@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Development environment &mdash; Transactron documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="https://unpkg.com/mermaid@9.4.0/dist/mermaid.min.js"></script>
+        <script>mermaid.initialize({startOnLoad:true});</script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Documentation for Transactron" href="transactions.html" />
+    <link rel="prev" title="Transactron" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> Transactron documentation
+            <img src="_static/logo-banner.svg" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Development environment</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#setting-up">Setting up</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#running-tests">Running tests</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#using-scripts">Using scripts</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#lint-sh">lint.sh</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#build-docs-sh">build_docs.sh</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#tprof-py">tprof.py</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="transactions.html">Documentation for Transactron</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Transactron documentation</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>Development environment</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/development-environment.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="development-environment">
+<h1>Development environment<a class="headerlink" href="#development-environment" title="Permalink to this heading"></a></h1>
+<section id="setting-up">
+<h2>Setting up<a class="headerlink" href="#setting-up" title="Permalink to this heading"></a></h2>
+<p>In order to prepare the development environment, please follow the steps below:</p>
+<ol class="arabic simple">
+<li><p>Install the Python 3.11 interpreter and pip package manager.</p>
+<ul class="simple">
+<li><p>Optionally create a Python virtual environment with <code class="docutils literal notranslate"><span class="pre">python3</span> <span class="pre">-m</span> <span class="pre">venv</span> <span class="pre">venv</span></code> in the project directory and activate it using generated script: <code class="docutils literal notranslate"><span class="pre">.</span> <span class="pre">venv/bin/activate</span></code>.</p></li>
+</ul>
+</li>
+<li><p>Install all required libraries with <code class="docutils literal notranslate"><span class="pre">pip3</span> <span class="pre">install</span> <span class="pre">.[dev]</span></code>.</p></li>
+<li><p>Optionally, install all precommit hooks with <code class="docutils literal notranslate"><span class="pre">pre-commit</span> <span class="pre">install</span></code>. This will automatically run the linter before commits.</p></li>
+</ol>
+</section>
+<section id="running-tests">
+<h2>Running tests<a class="headerlink" href="#running-tests" title="Permalink to this heading"></a></h2>
+<p>Tests are run using <code class="docutils literal notranslate"><span class="pre">pytest</span></code>. Useful things to know are:</p>
+<ul class="simple">
+<li><p>To speed up running tests, multiple worker threads can be used – use option <code class="docutils literal notranslate"><span class="pre">-n</span> <span class="pre">auto</span></code>.</p></li>
+<li><p>To run only some tests, use the option <code class="docutils literal notranslate"><span class="pre">-k</span> <span class="pre">EXPRESSION</span></code>. Expression format is described in pytest docs.</p></li>
+<li><p>To be able to read the standard output even for successful tests, use <code class="docutils literal notranslate"><span class="pre">-s</span></code>.</p></li>
+</ul>
+<p>Custom options are:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">--transactron-traces</span></code> – generates trace files readable by <code class="docutils literal notranslate"><span class="pre">gtkwave</span></code>. The trace files are saved in <code class="docutils literal notranslate"><span class="pre">test/__traces__</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--transactron-profile</span></code> – generates Transactron execution profiles, readable by the script named <code class="docutils literal notranslate"><span class="pre">tprof.py</span></code>. The profiles are saved in <code class="docutils literal notranslate"><span class="pre">test/__profiles__</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--transactron-log-filter</span></code> – allows to filter test logs.</p></li>
+</ul>
+</section>
+<section id="using-scripts">
+<h2>Using scripts<a class="headerlink" href="#using-scripts" title="Permalink to this heading"></a></h2>
+<p>The development environment contains a number of scripts which are run in CI, but are also intended for local use. They are:</p>
+<section id="lint-sh">
+<h3>lint.sh<a class="headerlink" href="#lint-sh" title="Permalink to this heading"></a></h3>
+<p>Checks the code formatting and typing. It should be run as follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">scripts</span><span class="o">/</span><span class="n">lint</span><span class="o">.</span><span class="n">sh</span> <span class="n">subcommand</span> <span class="p">[</span><span class="n">filename</span><span class="o">...</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>The following main subcommands are available:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">format</span></code> – reformats the code using <code class="docutils literal notranslate"><span class="pre">black</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">check_format</span></code> – verifies code formatting using <code class="docutils literal notranslate"><span class="pre">black</span></code> and <code class="docutils literal notranslate"><span class="pre">flake8</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">check_types</span></code> – verifies typing using <code class="docutils literal notranslate"><span class="pre">pyright</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">verify</span></code> – runs all checks. The same set of checks is run in CI.</p></li>
+</ul>
+<p>When confronted with <code class="docutils literal notranslate"><span class="pre">would</span> <span class="pre">reformat</span> <span class="pre">[filename]</span></code> message from <code class="docutils literal notranslate"><span class="pre">black</span></code> you may run:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">black</span> <span class="o">--</span><span class="n">diff</span> <span class="p">[</span><span class="n">filename</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>This way you may display the changes <code class="docutils literal notranslate"><span class="pre">black</span></code> would apply to <code class="docutils literal notranslate"><span class="pre">[filename]</span></code> if you chose the <code class="docutils literal notranslate"><span class="pre">format</span></code> option for <code class="docutils literal notranslate"><span class="pre">lint.sh</span></code> script. This may help you locate the formatting issues.</p>
+</section>
+<section id="build-docs-sh">
+<h3>build_docs.sh<a class="headerlink" href="#build-docs-sh" title="Permalink to this heading"></a></h3>
+<p>Generates local documentation using <a class="reference external" href="https://www.sphinx-doc.org/">Sphinx</a>. The generated HTML files are located in <code class="docutils literal notranslate"><span class="pre">build/html</span></code>.</p>
+</section>
+<section id="tprof-py">
+<h3>tprof.py<a class="headerlink" href="#tprof-py" title="Permalink to this heading"></a></h3>
+<p>Processes Transactron profile files and presents them in a readable way.
+To generate a profile file, the <code class="docutils literal notranslate"><span class="pre">run_tests.py</span></code> script should be used with the <code class="docutils literal notranslate"><span class="pre">--profile</span></code> option.
+The <code class="docutils literal notranslate"><span class="pre">tprof.py</span></code> can then be run as follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">scripts</span><span class="o">/</span><span class="n">tprof</span><span class="o">.</span><span class="n">py</span> <span class="n">test</span><span class="o">/</span><span class="n">__profile__</span><span class="o">/</span><span class="n">profile_file</span><span class="o">.</span><span class="n">json</span>
+</pre></div>
+</div>
+<p>This displays the profile information about transactions by default.
+For method profiles, one should use the <code class="docutils literal notranslate"><span class="pre">--mode=methods</span></code> option.</p>
+<p>The columns have the following meaning:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">name</span></code> – the name of the transaction or method in question. The method names are displayed together with the containing module name to differentiate between identically named methods in different modules.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">source</span> <span class="pre">location</span></code> – the file and line where the transaction or method was declared. Used to further disambiguate transaction/methods.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">locked</span></code> – for methods, shows the number of cycles the method was locked by the caller (called with a false condition). For transactions, shows the number of cycles the transaction could run, but was forced to wait by another, conflicting, transaction.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">run</span></code> – shows the number of cycles the given method/transaction was running.</p></li>
+</ul>
+<p>To display information about method calls, one can use the <code class="docutils literal notranslate"><span class="pre">--call-graph</span></code> option.
+When displaying transaction profiles, this option produces a call graph. For each transaction, there is a tree of methods which are called by this transaction.
+Counters presented in the tree shows information about the calls from the transaction in the root of the tree: if a method is also called by a different transaction, these calls are not counted.
+When displaying method profiles, an inverted call graph is produced: the transactions are in the leaves, and the children nodes are the callers of the method in question.
+In this mode, the <code class="docutils literal notranslate"><span class="pre">locked</span></code> field in the tree shows how many cycles a given method or transaction was responsible for locking the method in the root.</p>
+<p>Other options of <code class="docutils literal notranslate"><span class="pre">tprof.py</span></code> are:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">--sort</span></code> – selects which column is used for sorting rows.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--filter-name</span></code> – filters rows by name. Regular expressions can be used.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--filter-loc</span></code> – filters rows by source locations. Regular expressions can be used.</p></li>
+</ul>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="Transactron" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="transactions.html" class="btn btn-neutral float-right" title="Documentation for Transactron" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright Kuźnia Rdzeni, 2024.
+      <span class="lastupdated">Last updated on 18:21 2024-11-19.
+      </span></p>
+  </div>
+
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

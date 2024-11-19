@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Transactron &mdash; Transactron documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="https://unpkg.com/mermaid@9.4.0/dist/mermaid.min.js"></script>
+        <script>mermaid.initialize({startOnLoad:true});</script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Development environment" href="development-environment.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="#" class="icon icon-home"> Transactron documentation
+            <img src="_static/logo-banner.svg" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="development-environment.html">Development environment</a></li>
+<li class="toctree-l1"><a class="reference internal" href="transactions.html">Documentation for Transactron</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="#">Transactron documentation</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="#" class="icon icon-home"></a> &raquo;</li>
+      <li>Transactron</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/index.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="transactron">
+<h1>Transactron<a class="headerlink" href="#transactron" title="Permalink to this heading"></a></h1>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="development-environment.html">Development environment</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="development-environment.html#setting-up">Setting up</a></li>
+<li class="toctree-l2"><a class="reference internal" href="development-environment.html#running-tests">Running tests</a></li>
+<li class="toctree-l2"><a class="reference internal" href="development-environment.html#using-scripts">Using scripts</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="development-environment.html#lint-sh">lint.sh</a></li>
+<li class="toctree-l3"><a class="reference internal" href="development-environment.html#build-docs-sh">build_docs.sh</a></li>
+<li class="toctree-l3"><a class="reference internal" href="development-environment.html#tprof-py">tprof.py</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="transactions.html">Documentation for Transactron</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="transactions.html#introduction">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="transactions.html#basic-usage">Basic usage</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="transactions.html#implementing-transactions">Implementing transactions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="transactions.html#implementing-methods">Implementing methods</a></li>
+<li class="toctree-l3"><a class="reference internal" href="transactions.html#method-or-transaction">Method or transaction?</a></li>
+<li class="toctree-l3"><a class="reference internal" href="transactions.html#method-argument-passing-conventions">Method argument passing conventions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="transactions.html#method-definition-conventions">Method definition conventions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="transactions.html#method-return-value-conventions">Method return value conventions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="transactions.html#readiness-signals">Readiness signals</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="transactions.html#the-library">The library</a></li>
+<li class="toctree-l2"><a class="reference internal" href="transactions.html#advanced-concepts">Advanced concepts</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="transactions.html#special-combinational-domains">Special combinational domains</a></li>
+<li class="toctree-l3"><a class="reference internal" href="transactions.html#scheduling-order">Scheduling order</a></li>
+<li class="toctree-l3"><a class="reference internal" href="transactions.html#conflicts">Conflicts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="transactions.html#transaction-and-method-nesting">Transaction and method nesting</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api.html#transactron">transactron</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="transactron.html">transactron package</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="development-environment.html" class="btn btn-neutral float-right" title="Development environment" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright Kuźnia Rdzeni, 2024.
+      <span class="lastupdated">Last updated on 18:21 2024-11-19.
+      </span></p>
+  </div>
+
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

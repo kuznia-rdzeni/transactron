@@ -1,0 +1,48 @@
+transactron package
+===================
+
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   transactron.core
+   transactron.lib
+   transactron.testing
+   transactron.utils
+
+Submodules
+----------
+
+transactron.graph module
+------------------------
+
+.. automodule:: transactron.graph
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+transactron.profiler module
+---------------------------
+
+.. automodule:: transactron.profiler
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+transactron.tracing module
+--------------------------
+
+.. automodule:: transactron.tracing
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: transactron
+   :members:
+   :undoc-members:
+   :show-inheritance:

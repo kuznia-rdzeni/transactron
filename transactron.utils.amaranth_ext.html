@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>transactron.utils.amaranth_ext package &mdash; Transactron documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="https://unpkg.com/mermaid@9.4.0/dist/mermaid.min.js"></script>
+        <script>mermaid.initialize({startOnLoad:true});</script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="transactron.utils package" href="transactron.utils.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> Transactron documentation
+            <img src="_static/logo-banner.svg" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="development-environment.html">Development environment</a></li>
+<li class="toctree-l1"><a class="reference internal" href="transactions.html">Documentation for Transactron</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Transactron documentation</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="api.html">API</a> &raquo;</li>
+          <li><a href="transactron.html">transactron package</a> &raquo;</li>
+          <li><a href="transactron.utils.html">transactron.utils package</a> &raquo;</li>
+      <li>transactron.utils.amaranth_ext package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/transactron.utils.amaranth_ext.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="transactron-utils-amaranth-ext-package">
+<h1>transactron.utils.amaranth_ext package<a class="headerlink" href="#transactron-utils-amaranth-ext-package" title="Permalink to this heading"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this heading"></a></h2>
+</section>
+<section id="module-transactron.utils.amaranth_ext.coding">
+<span id="transactron-utils-amaranth-ext-coding-module"></span><h2>transactron.utils.amaranth_ext.coding module<a class="headerlink" href="#module-transactron.utils.amaranth_ext.coding" title="Permalink to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="transactron.utils.amaranth_ext.coding.Decoder">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">transactron.utils.amaranth_ext.coding.</span></span><span class="sig-name descname"><span class="pre">Decoder</span></span><a class="headerlink" href="#transactron.utils.amaranth_ext.coding.Decoder" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Elaboratable</span></code></p>
+<p>Decode binary to one-hot.</p>
+<p>If <code class="docutils literal notranslate"><span class="pre">n</span></code> is low, only the <code class="docutils literal notranslate"><span class="pre">i</span></code>-th bit in <code class="docutils literal notranslate"><span class="pre">o</span></code> is asserted.
+If <code class="docutils literal notranslate"><span class="pre">n</span></code> is high, <code class="docutils literal notranslate"><span class="pre">o</span></code> is <code class="docutils literal notranslate"><span class="pre">0</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>width</strong><span class="classifier">int</span></dt><dd><p>Bit width of the output.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Attributes</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>i</strong><span class="classifier">Signal(range(width)), in</span></dt><dd><p>Input binary.</p>
+</dd>
+<dt><strong>o</strong><span class="classifier">Signal(width), out</span></dt><dd><p>Decoded one-hot.</p>
+</dd>
+<dt><strong>n</strong><span class="classifier">Signal, in</span></dt><dd><p>Invalid, no output bits are to be asserted.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.utils.amaranth_ext.coding.Decoder.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">width</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.utils.amaranth_ext.coding.Decoder.__init__" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="transactron.utils.amaranth_ext.coding.Encoder">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">transactron.utils.amaranth_ext.coding.</span></span><span class="sig-name descname"><span class="pre">Encoder</span></span><a class="headerlink" href="#transactron.utils.amaranth_ext.coding.Encoder" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Elaboratable</span></code></p>
+<p>Encode one-hot to binary.</p>
+<p>If one bit in <code class="docutils literal notranslate"><span class="pre">i</span></code> is asserted, <code class="docutils literal notranslate"><span class="pre">n</span></code> is low and <code class="docutils literal notranslate"><span class="pre">o</span></code> indicates the asserted bit.
+Otherwise, <code class="docutils literal notranslate"><span class="pre">n</span></code> is high and <code class="docutils literal notranslate"><span class="pre">o</span></code> is <code class="docutils literal notranslate"><span class="pre">0</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>width</strong><span class="classifier">int</span></dt><dd><p>Bit width of the input</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Attributes</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>i</strong><span class="classifier">Signal(width), in</span></dt><dd><p>One-hot input.</p>
+</dd>
+<dt><strong>o</strong><span class="classifier">Signal(range(width)), out</span></dt><dd><p>Encoded natural binary.</p>
+</dd>
+<dt><strong>n</strong><span class="classifier">Signal, out</span></dt><dd><p>Invalid: either none or multiple input bits are asserted.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.utils.amaranth_ext.coding.Encoder.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">width</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.utils.amaranth_ext.coding.Encoder.__init__" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="transactron.utils.amaranth_ext.coding.GrayDecoder">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">transactron.utils.amaranth_ext.coding.</span></span><span class="sig-name descname"><span class="pre">GrayDecoder</span></span><a class="headerlink" href="#transactron.utils.amaranth_ext.coding.GrayDecoder" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Elaboratable</span></code></p>
+<p>Decode Gray code to binary.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>width</strong><span class="classifier">int</span></dt><dd><p>Bit width.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Attributes</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>i</strong><span class="classifier">Signal(width), in</span></dt><dd><p>Gray code input.</p>
+</dd>
+<dt><strong>o</strong><span class="classifier">Signal(width), out</span></dt><dd><p>Decoded natural binary.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.utils.amaranth_ext.coding.GrayDecoder.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">width</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.utils.amaranth_ext.coding.GrayDecoder.__init__" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="transactron.utils.amaranth_ext.coding.GrayEncoder">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">transactron.utils.amaranth_ext.coding.</span></span><span class="sig-name descname"><span class="pre">GrayEncoder</span></span><a class="headerlink" href="#transactron.utils.amaranth_ext.coding.GrayEncoder" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Elaboratable</span></code></p>
+<p>Encode binary to Gray code.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>width</strong><span class="classifier">int</span></dt><dd><p>Bit width.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Attributes</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>i</strong><span class="classifier">Signal(width), in</span></dt><dd><p>Natural binary input.</p>
+</dd>
+<dt><strong>o</strong><span class="classifier">Signal(width), out</span></dt><dd><p>Encoded Gray code.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.utils.amaranth_ext.coding.GrayEncoder.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">width</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.utils.amaranth_ext.coding.GrayEncoder.__init__" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="transactron.utils.amaranth_ext.coding.PriorityDecoder">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">transactron.utils.amaranth_ext.coding.</span></span><span class="sig-name descname"><span class="pre">PriorityDecoder</span></span><a class="headerlink" href="#transactron.utils.amaranth_ext.coding.PriorityDecoder" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#transactron.utils.amaranth_ext.coding.Decoder" title="transactron.utils.amaranth_ext.coding.Decoder"><code class="xref py py-class docutils literal notranslate"><span class="pre">Decoder</span></code></a></p>
+<p>Decode binary to priority request.</p>
+<p>Identical to <a class="reference internal" href="#transactron.utils.amaranth_ext.coding.Decoder" title="transactron.utils.amaranth_ext.coding.Decoder"><code class="xref py py-class docutils literal notranslate"><span class="pre">Decoder</span></code></a>.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="transactron.utils.amaranth_ext.coding.PriorityEncoder">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">transactron.utils.amaranth_ext.coding.</span></span><span class="sig-name descname"><span class="pre">PriorityEncoder</span></span><a class="headerlink" href="#transactron.utils.amaranth_ext.coding.PriorityEncoder" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Elaboratable</span></code></p>
+<p>Priority encode requests to binary.</p>
+<p>If any bit in <code class="docutils literal notranslate"><span class="pre">i</span></code> is asserted, <code class="docutils literal notranslate"><span class="pre">n</span></code> is low and <code class="docutils literal notranslate"><span class="pre">o</span></code> indicates the least significant
+asserted bit.
+Otherwise, <code class="docutils literal notranslate"><span class="pre">n</span></code> is high and <code class="docutils literal notranslate"><span class="pre">o</span></code> is <code class="docutils literal notranslate"><span class="pre">0</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>width</strong><span class="classifier">int</span></dt><dd><p>Bit width of the input.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Attributes</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>i</strong><span class="classifier">Signal(width), in</span></dt><dd><p>Input requests.</p>
+</dd>
+<dt><strong>o</strong><span class="classifier">Signal(range(width)), out</span></dt><dd><p>Encoded natural binary.</p>
+</dd>
+<dt><strong>n</strong><span class="classifier">Signal, out</span></dt><dd><p>Invalid: no input bits are asserted.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.utils.amaranth_ext.coding.PriorityEncoder.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">width</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.utils.amaranth_ext.coding.PriorityEncoder.__init__" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-transactron.utils.amaranth_ext.elaboratables">
+<span id="transactron-utils-amaranth-ext-elaboratables-module"></span><h2>transactron.utils.amaranth_ext.elaboratables module<a class="headerlink" href="#module-transactron.utils.amaranth_ext.elaboratables" title="Permalink to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="transactron.utils.amaranth_ext.elaboratables.ModuleConnector">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">transactron.utils.amaranth_ext.elaboratables.</span></span><span class="sig-name descname"><span class="pre">ModuleConnector</span></span><a class="headerlink" href="#transactron.utils.amaranth_ext.elaboratables.ModuleConnector" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Elaboratable</span></code></p>
+<p>An Elaboratable to create a new module, which will have all arguments
+added as its submodules.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.utils.amaranth_ext.elaboratables.ModuleConnector.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">HasElaborate</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">HasElaborate</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.utils.amaranth_ext.elaboratables.ModuleConnector.__init__" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>*args</strong></dt><dd><p>Modules which should be added as anonymous submodules.</p>
+</dd>
+<dt><strong>**kwargs</strong></dt><dd><p>Modules which will be added as named submodules.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="transactron.utils.amaranth_ext.elaboratables.MultiPriorityEncoder">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">transactron.utils.amaranth_ext.elaboratables.</span></span><span class="sig-name descname"><span class="pre">MultiPriorityEncoder</span></span><a class="headerlink" href="#transactron.utils.amaranth_ext.elaboratables.MultiPriorityEncoder" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Elaboratable</span></code></p>
+<p>Priority encoder with more outputs</p>
+<p>This is an extension of the <cite>PriorityEncoder</cite> from amaranth that supports
+more than one output from an input signal. In other words
+it decodes multi-hot encoded signal into lists of signals in binary
+format, each with the index of a different high bit in the input.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Attributes</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>input_width</strong><span class="classifier">int</span></dt><dd><p>Width of the input signal</p>
+</dd>
+<dt><strong>outputs_count</strong><span class="classifier">int</span></dt><dd><p>Number of outputs to generate at once.</p>
+</dd>
+<dt><strong>input</strong><span class="classifier">Signal, in</span></dt><dd><p>Signal with 1 on <cite>i</cite>-th bit if <cite>i</cite> can be selected by encoder</p>
+</dd>
+<dt><strong>outputs</strong><span class="classifier">list[Signal], out</span></dt><dd><p>Signals with selected indicies, sorted in ascending order,
+if the number of ready signals is less than <cite>outputs_count</cite>
+then valid signals are at the beginning of the list.</p>
+</dd>
+<dt><strong>valids</strong><span class="classifier">list[Signal], out</span></dt><dd><p>One bit for each output signal, indicating whether the output is valid or not.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.utils.amaranth_ext.elaboratables.MultiPriorityEncoder.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_width</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">outputs_count</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.utils.amaranth_ext.elaboratables.MultiPriorityEncoder.__init__" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.utils.amaranth_ext.elaboratables.MultiPriorityEncoder.build_tree">
+<span class="sig-name descname"><span class="pre">build_tree</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">m</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Module</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">in_sig</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Signal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_idx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.utils.amaranth_ext.elaboratables.MultiPriorityEncoder.build_tree" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.utils.amaranth_ext.elaboratables.MultiPriorityEncoder.create">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">create</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">m</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Module</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_width</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">input</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/latest/reference.html#amaranth.hdl.Value" title="(in Amaranth language &amp; toolchain v0.6.0.dev72)"><span class="pre">amaranth.hdl._ast.Value</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/enum.html#enum.Enum" title="(in Python v3.13)"><span class="pre">enum.Enum</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/latest/reference.html#amaranth.hdl.ValueCastable" title="(in Amaranth language &amp; toolchain v0.6.0.dev72)"><span class="pre">amaranth.hdl._ast.ValueCastable</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">outputs_count</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.13)"><span class="pre">Optional</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><span class="pre">amaranth.hdl._ast.Signal</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">amaranth.hdl._ast.Signal</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#transactron.utils.amaranth_ext.elaboratables.MultiPriorityEncoder.create" title="Permalink to this definition"></a></dt>
+<dd><p>Syntax sugar for creating MultiPriorityEncoder</p>
+<p>This static method allows to use MultiPriorityEncoder in a more functional
+way. Instead of creating the instance manually, connecting all the signals and
+adding a submodule, you can call this function to do it automatically.</p>
+<p>This function is equivalent to:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">m</span><span class="o">.</span><span class="n">submodules</span> <span class="o">+=</span> <span class="n">prio_encoder</span> <span class="o">=</span> <span class="n">PriorityEncoder</span><span class="p">(</span><span class="n">cnt</span><span class="p">)</span>
+<span class="n">m</span><span class="o">.</span><span class="n">d</span><span class="o">.</span><span class="n">top_comb</span> <span class="o">+=</span> <span class="n">prio_encoder</span><span class="o">.</span><span class="n">input</span><span class="o">.</span><span class="n">eq</span><span class="p">(</span><span class="n">one_hot_singal</span><span class="p">)</span>
+<span class="n">idx</span> <span class="o">=</span> <span class="n">prio_encoder</span><span class="o">.</span><span class="n">outputs</span>
+<span class="n">valid</span> <span class="o">=</span> <span class="n">prio</span><span class="o">.</span><span class="n">encoder</span><span class="o">.</span><span class="n">valids</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>m: Module</strong></dt><dd><p>Module to add the MultiPriorityEncoder to.</p>
+</dd>
+<dt><strong>input_width</strong><span class="classifier">int</span></dt><dd><p>Width of the one hot signal.</p>
+</dd>
+<dt><strong>input</strong><span class="classifier">ValueLike</span></dt><dd><p>The one hot signal to decode.</p>
+</dd>
+<dt><strong>outputs_count</strong><span class="classifier">int</span></dt><dd><p>Number of different decoder outputs to generate at once. Default: 1.</p>
+</dd>
+<dt><strong>name</strong><span class="classifier">Optional[str]</span></dt><dd><p>Name to use when adding MultiPriorityEncoder to submodules.
+If None, it will be added as an anonymous submodule. The given name
+can not be used in a submodule that has already been added. Default: None.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>return</strong><span class="classifier">list[tuple[Signal, Signal]]</span></dt><dd><p>Returns a list with len equal to outputs_count. Each tuple contains
+a pair of decoded index on the first position and a valid signal
+on the second position.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.utils.amaranth_ext.elaboratables.MultiPriorityEncoder.create_simple">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">create_simple</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">m</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Module</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_width</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">input</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/latest/reference.html#amaranth.hdl.Value" title="(in Amaranth language &amp; toolchain v0.6.0.dev72)"><span class="pre">amaranth.hdl._ast.Value</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/enum.html#enum.Enum" title="(in Python v3.13)"><span class="pre">enum.Enum</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/latest/reference.html#amaranth.hdl.ValueCastable" title="(in Amaranth language &amp; toolchain v0.6.0.dev72)"><span class="pre">amaranth.hdl._ast.ValueCastable</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.13)"><span class="pre">Optional</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><span class="pre">amaranth.hdl._ast.Signal</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">amaranth.hdl._ast.Signal</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#transactron.utils.amaranth_ext.elaboratables.MultiPriorityEncoder.create_simple" title="Permalink to this definition"></a></dt>
+<dd><p>Syntax sugar for creating MultiPriorityEncoder</p>
+<p>This is the same as <cite>create</cite> function, but with <cite>outputs_count</cite> hardcoded to 1.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="transactron.utils.amaranth_ext.elaboratables.OneHotSwitch">
+<span class="sig-prename descclassname"><span class="pre">transactron.utils.amaranth_ext.elaboratables.</span></span><span class="sig-name descname"><span class="pre">OneHotSwitch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">m</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ModuleLike</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/latest/reference.html#amaranth.hdl.Value" title="(in Amaranth language &amp; toolchain v0.6.0.dev72)"><span class="pre">Value</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.utils.amaranth_ext.elaboratables.OneHotSwitch" title="Permalink to this definition"></a></dt>
+<dd><p>One-hot switch.</p>
+<p>This function allows one-hot matching in the style similar to the standard
+Amaranth <cite>Switch</cite>. This allows to get the performance benefit of using
+the one-hot representation.</p>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">OneHotSwitch</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">sig</span><span class="p">)</span> <span class="k">as</span> <span class="n">OneHotCase</span><span class="p">:</span>
+    <span class="k">with</span> <span class="n">OneHotCase</span><span class="p">(</span><span class="mb">0b01</span><span class="p">):</span>
+        <span class="o">...</span>
+    <span class="k">with</span> <span class="n">OneHotCase</span><span class="p">(</span><span class="mb">0b10</span><span class="p">):</span>
+        <span class="o">...</span>
+    <span class="c1"># optional default case</span>
+    <span class="k">with</span> <span class="n">OneHotCase</span><span class="p">():</span>
+        <span class="o">...</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>m</strong><span class="classifier">Module</span></dt><dd><p>The module for which the matching is defined.</p>
+</dd>
+<dt><strong>test</strong><span class="classifier">Signal</span></dt><dd><p>The signal being tested.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="transactron.utils.amaranth_ext.elaboratables.OneHotSwitchDynamic">
+<span class="sig-prename descclassname"><span class="pre">transactron.utils.amaranth_ext.elaboratables.</span></span><span class="sig-name descname"><span class="pre">OneHotSwitchDynamic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">m</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ModuleLike</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/latest/reference.html#amaranth.hdl.Value" title="(in Amaranth language &amp; toolchain v0.6.0.dev72)"><span class="pre">Value</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Literal" title="(in Python v3.13)"><span class="pre">Literal</span></a><span class="p"><span class="pre">[</span></span><span class="k"><span class="pre">True</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterable" title="(in Python v3.13)"><span class="pre">Iterable</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.13)"><span class="pre">Optional</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#transactron.utils.amaranth_ext.elaboratables.OneHotSwitchDynamic" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">transactron.utils.amaranth_ext.elaboratables.</span></span><span class="sig-name descname"><span class="pre">OneHotSwitchDynamic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">m</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ModuleLike</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/latest/reference.html#amaranth.hdl.Value" title="(in Amaranth language &amp; toolchain v0.6.0.dev72)"><span class="pre">Value</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Literal" title="(in Python v3.13)"><span class="pre">Literal</span></a><span class="p"><span class="pre">[</span></span><span class="k"><span class="pre">False</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterable" title="(in Python v3.13)"><span class="pre">Iterable</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span></span></span></dt>
+<dd><p>Dynamic one-hot switch.</p>
+<p>This function allows simple one-hot matching on signals which can have
+variable bit widths.</p>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">OneHotSwitchDynamic</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">sig</span><span class="p">):</span>
+    <span class="c1"># code dependent on the bit index i</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>m</strong><span class="classifier">Module</span></dt><dd><p>The module for which the matching is defined.</p>
+</dd>
+<dt><strong>test</strong><span class="classifier">Signal</span></dt><dd><p>The signal being tested.</p>
+</dd>
+<dt><strong>default</strong><span class="classifier">bool, optional</span></dt><dd><p>Whether the matching includes a default case (signified by a None).</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="transactron.utils.amaranth_ext.elaboratables.RingMultiPriorityEncoder">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">transactron.utils.amaranth_ext.elaboratables.</span></span><span class="sig-name descname"><span class="pre">RingMultiPriorityEncoder</span></span><a class="headerlink" href="#transactron.utils.amaranth_ext.elaboratables.RingMultiPriorityEncoder" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Elaboratable</span></code></p>
+<p>Priority encoder with one or more outputs and flexible start</p>
+<p>This is an extension of the <cite>MultiPriorityEncoder</cite> that supports
+flexible start and end indexes. In the standard <cite>MultiPriorityEncoder</cite>
+the first bit is always at position 0 and the last is the last bit of
+the input signal. In this extended implementation, both can be
+selected at runtime.</p>
+<p>This implementation is intended for selection from the circular buffers,
+so if <cite>last &lt; first</cite> the encoder will first select bits from
+[first, input_width) and then from [0, last).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Attributes</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>input_width</strong><span class="classifier">int</span></dt><dd><p>Width of the input signal</p>
+</dd>
+<dt><strong>outputs_count</strong><span class="classifier">int</span></dt><dd><p>Number of outputs to generate at once.</p>
+</dd>
+<dt><strong>input</strong><span class="classifier">Signal, in</span></dt><dd><p>Signal with 1 on <cite>i</cite>-th bit if <cite>i</cite> can be selected by encoder</p>
+</dd>
+<dt><strong>first</strong><span class="classifier">Signal, in</span></dt><dd><p>Index of the first bit in the <cite>input</cite>. Inclusive.</p>
+</dd>
+<dt><strong>last</strong><span class="classifier">Signal, out</span></dt><dd><p>Index of the last bit in the <cite>input</cite>. Exclusive.</p>
+</dd>
+<dt><strong>outputs</strong><span class="classifier">list[Signal], out</span></dt><dd><p>Signals with selected indicies, sorted in ascending order,
+if the number of ready signals is less than <cite>outputs_count</cite>
+then valid signals are at the beginning of the list.</p>
+</dd>
+<dt><strong>valids</strong><span class="classifier">list[Signal], out</span></dt><dd><p>One bit for each output signal, indicating whether the output is valid or not.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.utils.amaranth_ext.elaboratables.RingMultiPriorityEncoder.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_width</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">outputs_count</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.utils.amaranth_ext.elaboratables.RingMultiPriorityEncoder.__init__" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.utils.amaranth_ext.elaboratables.RingMultiPriorityEncoder.create">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">create</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">m</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Module</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_width</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">input</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/latest/reference.html#amaranth.hdl.Value" title="(in Amaranth language &amp; toolchain v0.6.0.dev72)"><span class="pre">amaranth.hdl._ast.Value</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/enum.html#enum.Enum" title="(in Python v3.13)"><span class="pre">enum.Enum</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/latest/reference.html#amaranth.hdl.ValueCastable" title="(in Amaranth language &amp; toolchain v0.6.0.dev72)"><span class="pre">amaranth.hdl._ast.ValueCastable</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">first</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/latest/reference.html#amaranth.hdl.Value" title="(in Amaranth language &amp; toolchain v0.6.0.dev72)"><span class="pre">amaranth.hdl._ast.Value</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/enum.html#enum.Enum" title="(in Python v3.13)"><span class="pre">enum.Enum</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/latest/reference.html#amaranth.hdl.ValueCastable" title="(in Amaranth language &amp; toolchain v0.6.0.dev72)"><span class="pre">amaranth.hdl._ast.ValueCastable</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">last</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/latest/reference.html#amaranth.hdl.Value" title="(in Amaranth language &amp; toolchain v0.6.0.dev72)"><span class="pre">amaranth.hdl._ast.Value</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/enum.html#enum.Enum" title="(in Python v3.13)"><span class="pre">enum.Enum</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/latest/reference.html#amaranth.hdl.ValueCastable" title="(in Amaranth language &amp; toolchain v0.6.0.dev72)"><span class="pre">amaranth.hdl._ast.ValueCastable</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">outputs_count</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.13)"><span class="pre">Optional</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><span class="pre">amaranth.hdl._ast.Signal</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">amaranth.hdl._ast.Signal</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#transactron.utils.amaranth_ext.elaboratables.RingMultiPriorityEncoder.create" title="Permalink to this definition"></a></dt>
+<dd><p>Syntax sugar for creating RingMultiPriorityEncoder</p>
+<p>This static method allows to use RingMultiPriorityEncoder in a more functional
+way. Instead of creating the instance manually, connecting all the signals and
+adding a submodule, you can call this function to do it automatically.</p>
+<p>This function is equivalent to:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">m</span><span class="o">.</span><span class="n">submodules</span> <span class="o">+=</span> <span class="n">prio_encoder</span> <span class="o">=</span> <span class="n">RingMultiPriorityEncoder</span><span class="p">(</span><span class="n">input_width</span><span class="p">,</span> <span class="n">outputs_count</span><span class="p">)</span>
+<span class="n">m</span><span class="o">.</span><span class="n">d</span><span class="o">.</span><span class="n">comb</span> <span class="o">+=</span> <span class="n">prio_encoder</span><span class="o">.</span><span class="n">input</span><span class="o">.</span><span class="n">eq</span><span class="p">(</span><span class="n">one_hot_singal</span><span class="p">)</span>
+<span class="n">m</span><span class="o">.</span><span class="n">d</span><span class="o">.</span><span class="n">comb</span> <span class="o">+=</span> <span class="n">prio_encoder</span><span class="o">.</span><span class="n">first</span><span class="o">.</span><span class="n">eq</span><span class="p">(</span><span class="n">first</span><span class="p">)</span>
+<span class="n">m</span><span class="o">.</span><span class="n">d</span><span class="o">.</span><span class="n">comb</span> <span class="o">+=</span> <span class="n">prio_encoder</span><span class="o">.</span><span class="n">last</span><span class="o">.</span><span class="n">eq</span><span class="p">(</span><span class="n">last</span><span class="p">)</span>
+<span class="n">idx</span> <span class="o">=</span> <span class="n">prio_encoder</span><span class="o">.</span><span class="n">outputs</span>
+<span class="n">valid</span> <span class="o">=</span> <span class="n">prio</span><span class="o">.</span><span class="n">encoder</span><span class="o">.</span><span class="n">valids</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>m: Module</strong></dt><dd><p>Module to add the RingMultiPriorityEncoder to.</p>
+</dd>
+<dt><strong>input_width</strong><span class="classifier">int</span></dt><dd><p>Width of the one hot signal.</p>
+</dd>
+<dt><strong>input</strong><span class="classifier">ValueLike</span></dt><dd><p>The one hot signal to decode.</p>
+</dd>
+<dt><strong>first</strong><span class="classifier">ValueLike</span></dt><dd><p>Index of the first bit in the <cite>input</cite>. Inclusive.</p>
+</dd>
+<dt><strong>last</strong><span class="classifier">ValueLike</span></dt><dd><p>Index of the last bit in the <cite>input</cite>. Exclusive.</p>
+</dd>
+<dt><strong>outputs_count</strong><span class="classifier">int</span></dt><dd><p>Number of different decoder outputs to generate at once. Default: 1.</p>
+</dd>
+<dt><strong>name</strong><span class="classifier">Optional[str]</span></dt><dd><p>Name to use when adding RingMultiPriorityEncoder to submodules.
+If None, it will be added as an anonymous submodule. The given name
+can not be used in a submodule that has already been added. Default: None.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>return</strong><span class="classifier">list[tuple[Signal, Signal]]</span></dt><dd><p>Returns a list with len equal to outputs_count. Each tuple contains
+a pair of decoded index on the first position and a valid signal
+on the second position.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.utils.amaranth_ext.elaboratables.RingMultiPriorityEncoder.create_simple">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">create_simple</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">m</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Module</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_width</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">input</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/latest/reference.html#amaranth.hdl.Value" title="(in Amaranth language &amp; toolchain v0.6.0.dev72)"><span class="pre">amaranth.hdl._ast.Value</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/enum.html#enum.Enum" title="(in Python v3.13)"><span class="pre">enum.Enum</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/latest/reference.html#amaranth.hdl.ValueCastable" title="(in Amaranth language &amp; toolchain v0.6.0.dev72)"><span class="pre">amaranth.hdl._ast.ValueCastable</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">first</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/latest/reference.html#amaranth.hdl.Value" title="(in Amaranth language &amp; toolchain v0.6.0.dev72)"><span class="pre">amaranth.hdl._ast.Value</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/enum.html#enum.Enum" title="(in Python v3.13)"><span class="pre">enum.Enum</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/latest/reference.html#amaranth.hdl.ValueCastable" title="(in Amaranth language &amp; toolchain v0.6.0.dev72)"><span class="pre">amaranth.hdl._ast.ValueCastable</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">last</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/latest/reference.html#amaranth.hdl.Value" title="(in Amaranth language &amp; toolchain v0.6.0.dev72)"><span class="pre">amaranth.hdl._ast.Value</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/enum.html#enum.Enum" title="(in Python v3.13)"><span class="pre">enum.Enum</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/latest/reference.html#amaranth.hdl.ValueCastable" title="(in Amaranth language &amp; toolchain v0.6.0.dev72)"><span class="pre">amaranth.hdl._ast.ValueCastable</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.13)"><span class="pre">Optional</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><span class="pre">amaranth.hdl._ast.Signal</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">amaranth.hdl._ast.Signal</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#transactron.utils.amaranth_ext.elaboratables.RingMultiPriorityEncoder.create_simple" title="Permalink to this definition"></a></dt>
+<dd><p>Syntax sugar for creating RingMultiPriorityEncoder</p>
+<p>This is the same as <cite>create</cite> function, but with <cite>outputs_count</cite> hardcoded to 1.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="transactron.utils.amaranth_ext.elaboratables.RoundRobin">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">transactron.utils.amaranth_ext.elaboratables.</span></span><span class="sig-name descname"><span class="pre">RoundRobin</span></span><a class="headerlink" href="#transactron.utils.amaranth_ext.elaboratables.RoundRobin" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Elaboratable</span></code></p>
+<p>Round-robin scheduler.
+For a given set of requests, the round-robin scheduler will
+grant one request. Once it grants a request, if any other
+requests are active, it grants the next active request with
+a greater number, restarting from zero once it reaches the
+highest one.
+Use <code class="xref py py-class docutils literal notranslate"><span class="pre">EnableInserter</span></code> to control when the scheduler
+is updated.</p>
+<p>Implementation ported from amaranth lib.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>count</strong><span class="classifier">int</span></dt><dd><p>Number of requests.</p>
+</dd>
+<dt><strong>Attributes</strong></dt><dd></dd>
+<dt><strong>———-</strong></dt><dd></dd>
+<dt><strong>requests</strong><span class="classifier">Signal(count), in</span></dt><dd><p>Set of requests.</p>
+</dd>
+<dt><strong>grant</strong><span class="classifier">Signal(range(count)), out</span></dt><dd><p>Number of the granted request. Does not change if there are no
+active requests.</p>
+</dd>
+<dt><strong>valid</strong><span class="classifier">Signal(), out</span></dt><dd><p>Asserted if grant corresponds to an active request. Deasserted
+otherwise, i.e. if no requests are active.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.utils.amaranth_ext.elaboratables.RoundRobin.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">count</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.utils.amaranth_ext.elaboratables.RoundRobin.__init__" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="transactron.utils.amaranth_ext.elaboratables.Scheduler">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">transactron.utils.amaranth_ext.elaboratables.</span></span><span class="sig-name descname"><span class="pre">Scheduler</span></span><a class="headerlink" href="#transactron.utils.amaranth_ext.elaboratables.Scheduler" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Elaboratable</span></code></p>
+<p>Scheduler</p>
+<p>An implementation of a round-robin scheduler, which is used in the
+transaction subsystem. It is based on Amaranth’s round-robin scheduler
+but instead of using binary numbers, it uses one-hot encoding for the
+<cite>grant</cite> output signal.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Attributes</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>requests: Signal(count), in</strong></dt><dd><p>Signals that something (e.g. a transaction) wants to run. When i-th
+bit is high, then the i-th agent requests the grant signal.</p>
+</dd>
+<dt><strong>grant: Signal(count), out</strong></dt><dd><p>Signals that something (e.g. transaction) is granted to run. It uses
+one-hot encoding.</p>
+</dd>
+<dt><strong>valid</strong><span class="classifier">Signal(1), out</span></dt><dd><p>Signal that <cite>grant</cite> signals are valid.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.utils.amaranth_ext.elaboratables.Scheduler.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">count</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.utils.amaranth_ext.elaboratables.Scheduler.__init__" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>count</strong><span class="classifier">int</span></dt><dd><p>Number of agents between which the scheduler should arbitrate.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-transactron.utils.amaranth_ext.functions">
+<span id="transactron-utils-amaranth-ext-functions-module"></span><h2>transactron.utils.amaranth_ext.functions module<a class="headerlink" href="#module-transactron.utils.amaranth_ext.functions" title="Permalink to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="transactron.utils.amaranth_ext.functions.count_leading_zeros">
+<span class="sig-prename descclassname"><span class="pre">transactron.utils.amaranth_ext.functions.</span></span><span class="sig-name descname"><span class="pre">count_leading_zeros</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">s</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/latest/reference.html#amaranth.hdl.Value" title="(in Amaranth language &amp; toolchain v0.6.0.dev72)"><span class="pre">Value</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/latest/reference.html#amaranth.hdl.Value" title="(in Amaranth language &amp; toolchain v0.6.0.dev72)"><span class="pre">Value</span></a></span></span><a class="headerlink" href="#transactron.utils.amaranth_ext.functions.count_leading_zeros" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="transactron.utils.amaranth_ext.functions.count_trailing_zeros">
+<span class="sig-prename descclassname"><span class="pre">transactron.utils.amaranth_ext.functions.</span></span><span class="sig-name descname"><span class="pre">count_trailing_zeros</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">s</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/latest/reference.html#amaranth.hdl.Value" title="(in Amaranth language &amp; toolchain v0.6.0.dev72)"><span class="pre">Value</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/latest/reference.html#amaranth.hdl.Value" title="(in Amaranth language &amp; toolchain v0.6.0.dev72)"><span class="pre">Value</span></a></span></span><a class="headerlink" href="#transactron.utils.amaranth_ext.functions.count_trailing_zeros" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="transactron.utils.amaranth_ext.functions.flatten_signals">
+<span class="sig-prename descclassname"><span class="pre">transactron.utils.amaranth_ext.functions.</span></span><span class="sig-name descname"><span class="pre">flatten_signals</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">signals</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">amaranth.hdl._ast.Signal</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">amaranth.hdl._rec.Record</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/latest/stdlib/data.html#amaranth.lib.data.View" title="(in Amaranth language &amp; toolchain v0.6.0.dev72)"><span class="pre">amaranth.lib.data.View</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterable" title="(in Python v3.13)"><span class="pre">collections.abc.Iterable</span></a><span class="p"><span class="pre">[</span></span><span class="pre">amaranth.hdl._ast.Signal</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">amaranth.hdl._rec.Record</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/latest/stdlib/data.html#amaranth.lib.data.View" title="(in Amaranth language &amp; toolchain v0.6.0.dev72)"><span class="pre">amaranth.lib.data.View</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterable" title="(in Python v3.13)"><span class="pre">collections.abc.Iterable</span></a><span class="p"><span class="pre">[</span></span><span class="pre">SignalBundle</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping" title="(in Python v3.13)"><span class="pre">collections.abc.Mapping</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">SignalBundle</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping" title="(in Python v3.13)"><span class="pre">collections.abc.Mapping</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">amaranth.hdl._ast.Signal</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">amaranth.hdl._rec.Record</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/latest/stdlib/data.html#amaranth.lib.data.View" title="(in Amaranth language &amp; toolchain v0.6.0.dev72)"><span class="pre">amaranth.lib.data.View</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterable" title="(in Python v3.13)"><span class="pre">collections.abc.Iterable</span></a><span class="p"><span class="pre">[</span></span><span class="pre">SignalBundle</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping" title="(in Python v3.13)"><span class="pre">collections.abc.Mapping</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">SignalBundle</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterable" title="(in Python v3.13)"><span class="pre">Iterable</span></a><span class="p"><span class="pre">[</span></span><span class="pre">Signal</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#transactron.utils.amaranth_ext.functions.flatten_signals" title="Permalink to this definition"></a></dt>
+<dd><p>Flattens input data, which can be either a signal, a record, a list (or a dict) of SignalBundle items.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="transactron.utils.amaranth_ext.functions.mod_incr">
+<span class="sig-prename descclassname"><span class="pre">transactron.utils.amaranth_ext.functions.</span></span><span class="sig-name descname"><span class="pre">mod_incr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sig</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/latest/reference.html#amaranth.hdl.Value" title="(in Amaranth language &amp; toolchain v0.6.0.dev72)"><span class="pre">Value</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">mod</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/latest/reference.html#amaranth.hdl.Value" title="(in Amaranth language &amp; toolchain v0.6.0.dev72)"><span class="pre">Value</span></a></span></span><a class="headerlink" href="#transactron.utils.amaranth_ext.functions.mod_incr" title="Permalink to this definition"></a></dt>
+<dd><p>Perform <cite>(sig+1) % mod</cite> operation.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="transactron.utils.amaranth_ext.functions.popcount">
+<span class="sig-prename descclassname"><span class="pre">transactron.utils.amaranth_ext.functions.</span></span><span class="sig-name descname"><span class="pre">popcount</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">s</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/latest/reference.html#amaranth.hdl.Value" title="(in Amaranth language &amp; toolchain v0.6.0.dev72)"><span class="pre">Value</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.utils.amaranth_ext.functions.popcount" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-transactron.utils.amaranth_ext">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-transactron.utils.amaranth_ext" title="Permalink to this heading"></a></h2>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="transactron.utils.html" class="btn btn-neutral float-left" title="transactron.utils package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright Kuźnia Rdzeni, 2024.
+      <span class="lastupdated">Last updated on 18:21 2024-11-19.
+      </span></p>
+  </div>
+
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
