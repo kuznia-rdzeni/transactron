@@ -113,10 +113,10 @@ class Serializer(Elaboratable):
 
     Attributes
     ----------
-    serialize_in: list[Method]
-        List of request methods. Data layouts are the same as for `serialized_req_method`.
-    serialize_out: list[Method]
-        List of response methods. Data layouts are the same as for `serialized_resp_method`.
+    serialize_in: Methods
+        Request methods. Data layouts are the same as for `serialized_req_method`.
+    serialize_out: Methods
+        Response methods. Data layouts are the same as for `serialized_resp_method`.
         `i`-th response method provides responses for requests from `i`-th `serialize_in` method.
     """
 
@@ -145,6 +145,11 @@ class Serializer(Elaboratable):
             How many stack frames deep the source location is taken from.
             Alternatively, the source location to use instead of the default.
         """
+        if serialized_req_method.layout_out.size != 0:
+            raise ValueError("serialized_req_method must not return values")
+        if serialized_resp_method.layout_in.size != 0:
+            raise ValueError("serialized_resp_method must not accept arguments")
+
         self.src_loc = get_src_loc(src_loc)
         self.port_count = port_count
         self.serialized_req_method = serialized_req_method
@@ -155,12 +160,8 @@ class Serializer(Elaboratable):
         self.id_layout = [("id", exact_log2(self.port_count))]
 
         self.clear = Method()
-        self.serialize_in = [
-            Method.like(self.serialized_req_method, src_loc=self.src_loc) for _ in range(self.port_count)
-        ]
-        self.serialize_out = [
-            Method.like(self.serialized_resp_method, src_loc=self.src_loc) for _ in range(self.port_count)
-        ]
+        self.serialize_in = Methods(port_count, i=serialized_req_method.layout_in, src_loc=self.src_loc)
+        self.serialize_out = Methods(port_count, o=serialized_resp_method.layout_out, src_loc=self.src_loc)
 
     def elaborate(self, platform) -> TModule:
         m = TModule()

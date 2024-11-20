@@ -1,6 +1,6 @@
 from amaranth import *
 
-from transactron.core import Method, TModule, def_methods
+from transactron.core import Methods, TModule, def_methods
 from transactron.utils.amaranth_ext.elaboratables import MultiPriorityEncoder
 
 
@@ -16,12 +16,11 @@ class PriorityEncoderAllocator(Elaboratable):
 
     Attributes
     ----------
-    allocs : list[Method]
-        List of `ways` methods which allocate a fresh identifier. If there is
-        too little free identifiers, some or all of the methods are disabled.
-    frees : list[Method]
-        List with `ways` methods. Each of them allows to deallocate
-        a single identifier in one cycle.
+    alloc : Methods
+        Methods which allocate a fresh identifier. If there is too little free
+        identifiers, some or all of the methods are disabled.
+    free : Methods
+        Methods which deallocate a single identifier in one cycle.
     """
 
     def __init__(self, entries: int, ways: int = 1, *, init: int = -1):
@@ -31,8 +30,7 @@ class PriorityEncoderAllocator(Elaboratable):
         entries : int
             The total number of identifiers available for allocation.
         ways : int
-            The amount of allocations or deallocations possible in a single
-            clock cycle.
+            The number of `alloc` and `free` methods.
         init : int
             Bit mask of identifiers which should be treated as free on reset.
             By default, every identifier is free on reset.
@@ -41,8 +39,8 @@ class PriorityEncoderAllocator(Elaboratable):
         self.ways = ways
         self.init = init
 
-        self.allocs = [Method(o=[("ident", range(entries))], name=f"alloc{i}") for i in range(ways)]
-        self.frees = [Method(i=[("ident", range(entries))], name=f"free{i}") for i in range(ways)]
+        self.alloc = Methods(ways, o=[("ident", range(entries))])
+        self.free = Methods(ways, i=[("ident", range(entries))])
 
     def elaborate(self, platform) -> TModule:
         m = TModule()
@@ -52,12 +50,12 @@ class PriorityEncoderAllocator(Elaboratable):
         m.submodules.priority_encoder = encoder = MultiPriorityEncoder(self.entries, self.ways)
         m.d.top_comb += encoder.input.eq(not_used)
 
-        @def_methods(m, self.allocs, ready=lambda i: encoder.valids[i])
+        @def_methods(m, self.alloc, ready=lambda i: encoder.valids[i])
         def _(i):
             m.d.sync += not_used.bit_select(encoder.outputs[i], 1).eq(0)
             return {"ident": encoder.outputs[i]}
 
-        @def_methods(m, self.frees)
+        @def_methods(m, self.free)
         def _(_, ident):
             m.d.sync += not_used.bit_select(ident, 1).eq(1)
 

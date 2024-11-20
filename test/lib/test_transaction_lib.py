@@ -169,7 +169,7 @@ class TestMemoryBank(TestCaseWithSimulator):
                 for cycle in range(test_count):
                     d = random.randrange(2**data_width)
                     a = random.randrange(max_addr)
-                    await m.writes[i].call(sim, data={"data": d}, addr=a)
+                    await m.write[i].call(sim, data={"data": d}, addr=a)
                     await sim.delay(1e-9 * (i + 2 if not transparent else i))
                     data[a] = d
                     await self.random_wait(sim, writer_rand)
@@ -180,7 +180,7 @@ class TestMemoryBank(TestCaseWithSimulator):
             async def process(sim: TestbenchContext):
                 for cycle in range(test_count):
                     a = random.randrange(max_addr)
-                    await m.read_reqs[i].call(sim, addr=a)
+                    await m.read_req[i].call(sim, addr=a)
                     await sim.delay(1e-9 * (1 if not transparent else write_ports + 2))
                     d = data[a]
                     read_req_queues[i].append(d)
@@ -196,7 +196,7 @@ class TestMemoryBank(TestCaseWithSimulator):
                         await self.random_wait(sim, reader_resp_rand or 1, min_cycle_cnt=1)
                         await sim.delay(1e-9 * (write_ports + 3))
                     d = read_req_queues[i].popleft()
-                    assert (await m.read_resps[i].call(sim)).data == d
+                    assert (await m.read_resp[i].call(sim)).data == d
                     await self.random_wait(sim, reader_resp_rand)
 
             return process
@@ -237,7 +237,7 @@ class TestAsyncMemoryBank(TestCaseWithSimulator):
                 for cycle in range(test_count):
                     d = random.randrange(2**data_width)
                     a = random.randrange(max_addr)
-                    await m.writes[i].call(sim, data={"data": d}, addr=a)
+                    await m.write[i].call(sim, data={"data": d}, addr=a)
                     await sim.delay(1e-9 * (i + 2))
                     data[a] = d
                     await self.random_wait(sim, writer_rand, min_cycle_cnt=1)
@@ -248,7 +248,7 @@ class TestAsyncMemoryBank(TestCaseWithSimulator):
             async def process(sim: TestbenchContext):
                 for cycle in range(test_count):
                     a = random.randrange(max_addr)
-                    d = await m.reads[i].call(sim, addr=a)
+                    d = await m.read[i].call(sim, addr=a)
                     await sim.delay(1e-9)
                     expected_d = data[a]
                     assert d["data"] == expected_d
