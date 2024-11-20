@@ -17,7 +17,7 @@ from .profiler import profiler_process, Profile
 from .logging import make_logging_process, parse_logging_level, _LogFormatter
 from .tick_count import make_tick_count_process
 from .method_mock import MethodMock
-from transactron import Method
+from transactron import Method, Methods
 from transactron.lib import AdapterTrans
 from transactron.core.keys import TransactionManagerKey
 from transactron.core import TransactionModule
@@ -58,7 +58,7 @@ class SimpleTestCircuit(Elaboratable, Generic[_T_HasElaborate]):
 
     def elaborate(self, platform):
         def transform_methods_to_testbenchios(
-            container: _T_nested_collection[Method],
+            container: _T_nested_collection[Method | Methods],
         ) -> tuple[
             _T_nested_collection["TestbenchIO"],
             "ModuleConnector | TestbenchIO",
@@ -79,6 +79,9 @@ class SimpleTestCircuit(Elaboratable, Generic[_T_HasElaborate]):
                     tb_dict[name] = tb
                     mc_dict[name] = mc
                 return tb_dict, ModuleConnector(*mc_dict)
+            elif isinstance(container, Methods):
+                tb_list = [TestbenchIO(AdapterTrans(method)) for method in container]
+                return list(tb_list), ModuleConnector(*tb_list)
             else:
                 tb = TestbenchIO(AdapterTrans(container))
                 return tb, tb
@@ -88,7 +91,7 @@ class SimpleTestCircuit(Elaboratable, Generic[_T_HasElaborate]):
         m.submodules.dut = self._dut
 
         for name, attr in vars(self._dut).items():
-            if guard_nested_collection(attr, Method) and attr:
+            if guard_nested_collection(attr, Method | Methods) and attr:
                 tb_cont, mc = transform_methods_to_testbenchios(attr)
                 self._io[name] = tb_cont
                 m.submodules[name] = mc

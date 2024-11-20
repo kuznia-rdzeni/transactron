@@ -28,7 +28,7 @@ class TestPriorityEncoderAllocator(TestCaseWithSimulator):
         def make_allocator(i: int):
             async def process(sim: TestbenchContext):
                 for _ in range(iterations):
-                    val = (await dut.allocs[i].call(sim)).ident
+                    val = (await dut.alloc[i].call(sim)).ident
                     assert val in free
                     free.remove(val)
                     allocated.append(val)
@@ -42,7 +42,7 @@ class TestPriorityEncoderAllocator(TestCaseWithSimulator):
                     while not allocated:
                         await sim.tick()
                     val = allocated.pop(random.randrange(len(allocated)))
-                    await dut.frees[i].call(sim, ident=val)
+                    await dut.free[i].call(sim, ident=val)
                     free.append(val)
                     await self.random_wait_geom(sim, 0.3)
 
