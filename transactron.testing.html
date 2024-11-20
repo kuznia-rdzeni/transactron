@@ -279,8 +279,10 @@ and also on combinational changes to inputs.</p>
 the arguments passed to a method as a <cite>data.Const</cite>, or multiple named arguments,
 which correspond to named arguments of the method.</p>
 <p>This decorator can be applied to function definitions or method definitions.
-When applied to a method definition, lambdas passed to <cite>async_def_method_mock</cite>
+When applied to a method definition, lambdas passed to <cite>def_method_mock</cite>
 need to take a <cite>self</cite> argument, which should be the first.</p>
+<p>Mocks defined at class level or at test level are automatically discovered and
+don’t need to be manually added to the simulation.</p>
 <p>Any side effects (state modification, assertions, etc.) need to be guarded
 using the <cite>MethodMock.effect</cite> decorator.</p>
 <p>Make sure to defer accessing state, since decorators are evaluated eagerly
@@ -318,25 +320,72 @@ between different mocks and testbench processes.</p>
 <dt class="sig sig-object py" id="transactron.testing.testbenchio.CallTrigger">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">transactron.testing.testbenchio.</span></span><span class="sig-name descname"><span class="pre">CallTrigger</span></span><a class="headerlink" href="#transactron.testing.testbenchio.CallTrigger" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>A trigger which allows to call multiple methods and sample signals.</p>
+<p>The <cite>call()</cite> and <cite>call_try()</cite> methods on a <cite>TestbenchIO</cite> always wait at least one clock cycle. It follows
+that these methods can’t be used to perform calls to multiple methods in a single clock cycle. Usually
+this is not a problem, as different methods can be called from different simulation processes. But in cases
+when more control over the time when different calls happen is needed, this trigger class allows to call
+many methods in a single clock cycle.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="transactron.testing.testbenchio.CallTrigger.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/latest/simulator.html#amaranth.sim.SimulatorContext" title="(in Amaranth language &amp; toolchain v0.6.0.dev72)"><span class="pre">SimulatorContext</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">calls</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterable" title="(in Python v3.13)"><span class="pre">Iterable</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/latest/reference.html#amaranth.hdl.Value" title="(in Amaranth language &amp; toolchain v0.6.0.dev72)"><span class="pre">amaranth.hdl._ast.Value</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/enum.html#enum.Enum" title="(in Python v3.13)"><span class="pre">enum.Enum</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/latest/reference.html#amaranth.hdl.ValueCastable" title="(in Amaranth language &amp; toolchain v0.6.0.dev72)"><span class="pre">amaranth.hdl._ast.ValueCastable</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#transactron.testing.testbenchio.TestbenchIO" title="transactron.testing.testbenchio.TestbenchIO"><span class="pre">transactron.testing.testbenchio.TestbenchIO</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.13)"><span class="pre">Optional</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">()</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.testing.testbenchio.CallTrigger.__init__" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/latest/simulator.html#amaranth.sim.SimulatorContext" title="(in Amaranth language &amp; toolchain v0.6.0.dev72)"><span class="pre">SimulatorContext</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">_calls</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterable" title="(in Python v3.13)"><span class="pre">Iterable</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/latest/reference.html#amaranth.hdl.Value" title="(in Amaranth language &amp; toolchain v0.6.0.dev72)"><span class="pre">amaranth.hdl._ast.Value</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/enum.html#enum.Enum" title="(in Python v3.13)"><span class="pre">enum.Enum</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/latest/reference.html#amaranth.hdl.ValueCastable" title="(in Amaranth language &amp; toolchain v0.6.0.dev72)"><span class="pre">amaranth.hdl._ast.ValueCastable</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#transactron.testing.testbenchio.TestbenchIO" title="transactron.testing.testbenchio.TestbenchIO"><span class="pre">transactron.testing.testbenchio.TestbenchIO</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.13)"><span class="pre">Optional</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">()</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.testing.testbenchio.CallTrigger.__init__" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>sim: SimulatorContext</strong></dt><dd><p>Amaranth simulator context.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="transactron.testing.testbenchio.CallTrigger.call">
 <span class="sig-name descname"><span class="pre">call</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tbio</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#transactron.testing.testbenchio.TestbenchIO" title="transactron.testing.testbenchio.TestbenchIO"><span class="pre">TestbenchIO</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">/</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwdata</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.testing.testbenchio.CallTrigger.call" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Call a method and sample its result.</p>
+<p>Adds a method call to the trigger. The method result is sampled on a clock edge. If the call did not
+succeed, the sampled value is <cite>None</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>tbio: TestbenchIO</strong></dt><dd><p>The method to call.</p>
+</dd>
+<dt><strong>data: dict[str, Any]</strong></dt><dd><p>Method call arguments stored in a dict.</p>
+</dd>
+<dt><strong>**kwdata: Any</strong></dt><dd><p>Method call arguments passed as keyword arguments. If keyword arguments are used,
+the <cite>data</cite> argument should not be provided.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="transactron.testing.testbenchio.CallTrigger.sample">
 <span class="sig-name descname"><span class="pre">sample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">values</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/latest/reference.html#amaranth.hdl.Value" title="(in Amaranth language &amp; toolchain v0.6.0.dev72)"><span class="pre">amaranth.hdl._ast.Value</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/enum.html#enum.Enum" title="(in Python v3.13)"><span class="pre">enum.Enum</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/latest/reference.html#amaranth.hdl.ValueCastable" title="(in Amaranth language &amp; toolchain v0.6.0.dev72)"><span class="pre">amaranth.hdl._ast.ValueCastable</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="#transactron.testing.testbenchio.TestbenchIO" title="transactron.testing.testbenchio.TestbenchIO"><span class="pre">transactron.testing.testbenchio.TestbenchIO</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.testing.testbenchio.CallTrigger.sample" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Sample a signal or a method result on a clock edge.</p>
+<p>Values are sampled like in standard Amaranth <cite>TickTrigger</cite>. Sampling a method result works like <cite>call()</cite>,
+but the method is not called - another process can do that instead. If the method was not called, the
+sampled value is <cite>None</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>*values: ValueLike | TestbenchIO</strong></dt><dd><p>Value or method to sample.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="transactron.testing.testbenchio.CallTrigger.until_done">
 <em class="property"><span class="pre">async</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">until_done</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><span class="pre">Any</span></a></span></span><a class="headerlink" href="#transactron.testing.testbenchio.CallTrigger.until_done" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Wait until at least one of the calls succeeds.</p>
+<p>The <cite>CallTrigger</cite> normally acts like <cite>TickTrigger</cite>, e.g. awaiting on it advances the clock to the next
+clock edge. It is possible that none of the calls could not be performed, for example because the called
+methods were not enabled. In case we only want to focus on the cycles when one of the calls succeeded,
+<cite>until_done</cite> can be used. This works like <cite>until()</cite> in <cite>TickTrigger</cite>.</p>
+</dd></dl>
 
 </dd></dl>
 
@@ -473,7 +522,7 @@ between different mocks and testbench processes.</p>
 
   <div role="contentinfo">
     <p>&#169; Copyright Kuźnia Rdzeni, 2024.
-      <span class="lastupdated">Last updated on 10:52 2024-11-20.
+      <span class="lastupdated">Last updated on 11:30 2024-11-20.
       </span></p>
   </div>
 
