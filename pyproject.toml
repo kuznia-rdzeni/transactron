@@ -1,6 +1,10 @@
+[build-system]
+requires = ["setuptools>=64", "setuptools_scm>=8"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "transactron"
-version = "2024.11.20.dev0"
+dynamic = ["version"]
 dependencies = [
     "amaranth == 0.5.3",
     "amaranth-stubs @ git+https://github.com/kuznia-rdzeni/amaranth-stubs.git@edb302b001433edf4c8568190adc9bd0c0039f45",
@@ -36,6 +40,8 @@ dev = [
     # Other
     "pre-commit == 2.16.0"
 ]
+
+[tool.setuptools_scm]
 
 [tool.pyright]
 include = ["transactron", "test", "scripts"]
