@@ -611,6 +611,14 @@ multple dependencies added to it.</p>
 <p>The way dependencies are interpreted is dependent on the key type.</p>
 </dd></dl>
 
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.lib.dependencies.DependencyManager.get_optional_dependency">
+<span class="sig-name descname"><span class="pre">get_optional_dependency</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="transactron.utils.html#transactron.utils.dependencies.DependencyKey" title="transactron.utils.dependencies.DependencyKey"><span class="pre">DependencyKey</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><span class="pre">Any</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">U</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.13)"><span class="pre">Optional</span></a><span class="p"><span class="pre">[</span></span><span class="pre">U</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#transactron.lib.dependencies.DependencyManager.get_optional_dependency" title="Permalink to this definition"></a></dt>
+<dd><p>Gets the dependency for a key, if it exists.</p>
+<p>If the dependency is gettable, the return value is the same as in
+<cite>get_dependency</cite>. Otherwise, <cite>None</cite> is returned.</p>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py class">
@@ -2252,7 +2260,7 @@ Alternatively, the source location to use instead of the default.</p>
 
   <div role="contentinfo">
     <p>&#169; Copyright Kuźnia Rdzeni, 2024.
-      <span class="lastupdated">Last updated on 20:38 2024-11-19.
+      <span class="lastupdated">Last updated on 10:52 2024-11-20.
       </span></p>
   </div>
 
