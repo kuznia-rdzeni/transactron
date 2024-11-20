@@ -20,25 +20,16 @@ class MemoryBank(Elaboratable):
 
     Attributes
     ----------
-    read_reqs: list[Method]
+    read_req: Methods
         The read request methods, one for each read port. Accepts an `addr` from which data should be read.
         Only ready if there is there is a place to buffer response. After calling `read_reqs[i]`, the result
         will be available via the method `read_resps[i]`.
-    read_resps: list[Method]
+    read_resp: Methods
         The read response methods, one for each read port. Return `data_layout` View which was saved on `addr` given
         by last corresponding `read_reqs` method call. Only ready after corresponding `read_reqs` call.
-    writes: list[Method]
+    write: Methods
         The write methods, one for each write port. Accepts write address `addr`, `data` in form of `data_layout`
         and optionally `mask` if `granularity` is not None. `1` in mask means that appropriate part should be written.
-    read_req: Method
-        The only method from `read_reqs`, if the memory has a single read port. If it has more ports, this method
-        is unavailable and `read_reqs` should be used instead.
-    read_resp: Method
-        The only method from `read_resps`, if the memory has a single read port. If it has more ports, this method
-        is unavailable and `read_resps` should be used instead.
-    write: Method
-        The only method from `writes`, if the memory has a single write port. If it has more ports, this method
-        is unavailable and `writes` should be used instead.
     """
 
     def __init__(
@@ -92,15 +83,9 @@ class MemoryBank(Elaboratable):
             write_layout.append(("mask", self.width // self.granularity))
         self.writes_layout = make_layout(*write_layout)
 
-        self.read_reqs = [Method(i=self.read_reqs_layout, src_loc=self.src_loc) for _ in range(read_ports)]
-        self.read_resps = [Method(o=self.data_layout, src_loc=self.src_loc) for _ in range(read_ports)]
-        self.writes = [Method(i=self.writes_layout, src_loc=self.src_loc) for _ in range(write_ports)]
-
-        if read_ports == 1:
-            self.read_req = self.read_reqs[0]
-            self.read_resp = self.read_resps[0]
-        if write_ports == 1:
-            self.write = self.writes[0]
+        self.read_req = Methods(read_ports, i=self.read_reqs_layout, src_loc=self.src_loc)
+        self.read_resp = Methods(read_ports, o=self.data_layout, src_loc=self.src_loc)
+        self.write = Methods(write_ports, i=self.writes_layout, src_loc=self.src_loc)
 
     def elaborate(self, platform) -> TModule:
         m = TModule()
@@ -119,11 +104,11 @@ class MemoryBank(Elaboratable):
         # If the responses are always read as they arrive, overflow is never written and no stalls occur.
 
         for i in range(self.reads_ports):
-            with m.If(read_output_valid[i] & ~overflow_valid[i] & self.read_reqs[i].run & ~self.read_resps[i].run):
+            with m.If(read_output_valid[i] & ~overflow_valid[i] & self.read_req[i].run & ~self.read_resp[i].run):
                 m.d.sync += overflow_valid[i].eq(1)
                 m.d.sync += overflow_data[i].eq(read_port[i].data)
 
-        @def_methods(m, self.read_resps, lambda i: read_output_valid[i] | overflow_valid[i])
+        @def_methods(m, self.read_resp, lambda i: read_output_valid[i] | overflow_valid[i])
         def _(i: int):
             with m.If(overflow_valid[i]):
                 m.d.sync += overflow_valid[i].eq(0)
@@ -134,13 +119,13 @@ class MemoryBank(Elaboratable):
         for i in range(self.reads_ports):
             m.d.comb += read_port[i].en.eq(0)  # because the init value is 1
 
-        @def_methods(m, self.read_reqs, lambda i: ~overflow_valid[i])
+        @def_methods(m, self.read_req, lambda i: ~overflow_valid[i])
         def _(i: int, addr):
             m.d.sync += read_output_valid[i].eq(1)
             m.d.comb += read_port[i].en.eq(1)
             m.d.comb += read_port[i].addr.eq(addr)
 
-        @def_methods(m, self.writes)
+        @def_methods(m, self.write)
         def _(i: int, arg):
             m.d.comb += write_port[i].addr.eq(arg.addr)
             m.d.comb += write_port[i].data.eq(arg.data)
@@ -257,17 +242,13 @@ class AsyncMemoryBank(Elaboratable):
 
     Attributes
     ----------
-    reads: list[Method]
+    read: Methods
         The read methods, one for each read port. Accepts an `addr` from which data should be read.
         The read response method. Return `data_layout` View which was saved on `addr` given by last
         `write` method call.
-    writes: list[Method]
+    write: Methods
         The write methods, one for each write port. Accepts write address `addr`, `data` in form of `data_layout`
         and optionally `mask` if `granularity` is not None. `1` in mask means that appropriate part should be written.
-    read: Method
-        The only method from `reads`, if the memory has a single read port.
-    write: Method
-        The only method from `writes`, if the memory has a single write port.
     """
 
     def __init__(
@@ -315,15 +296,8 @@ class AsyncMemoryBank(Elaboratable):
             write_layout.append(("mask", self.width // self.granularity))
         self.writes_layout = make_layout(*write_layout)
 
-        self.reads = [
-            Method(i=self.read_reqs_layout, o=self.data_layout, src_loc=self.src_loc) for _ in range(read_ports)
-        ]
-        self.writes = [Method(i=self.writes_layout, src_loc=self.src_loc) for _ in range(write_ports)]
-
-        if read_ports == 1:
-            self.read = self.reads[0]
-        if write_ports == 1:
-            self.write = self.writes[0]
+        self.read = Methods(read_ports, i=self.read_reqs_layout, o=self.data_layout, src_loc=self.src_loc)
+        self.write = Methods(write_ports, i=self.writes_layout, src_loc=self.src_loc)
 
     def elaborate(self, platform) -> TModule:
         m = TModule()
@@ -333,12 +307,12 @@ class AsyncMemoryBank(Elaboratable):
         write_port = [mem.write_port() for _ in range(self.writes_ports)]
         read_port = [mem.read_port(domain="comb") for _ in range(self.reads_ports)]
 
-        @def_methods(m, self.reads)
+        @def_methods(m, self.read)
         def _(i: int, addr):
             m.d.comb += read_port[i].addr.eq(addr)
             return read_port[i].data
 
-        @def_methods(m, self.writes)
+        @def_methods(m, self.write)
         def _(i: int, arg):
             m.d.comb += write_port[i].addr.eq(arg.addr)
             m.d.comb += write_port[i].data.eq(arg.data)

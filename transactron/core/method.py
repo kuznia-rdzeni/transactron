@@ -1,4 +1,5 @@
 from collections.abc import Sequence
+
 from transactron.utils import *
 from amaranth import *
 from amaranth import tracer
@@ -7,11 +8,12 @@ from .transaction_base import *
 from .sugar import def_method
 from contextlib import contextmanager
 from transactron.utils.assign import AssignArg
+from transactron.utils._typing import type_self_add_1pos_kwargs_as
 
 if TYPE_CHECKING:
     from .tmodule import TModule
 
-__all__ = ["Method"]
+__all__ = ["Method", "Methods"]
 
 
 class Method(TransactionBase):
@@ -313,3 +315,41 @@ class Method(TransactionBase):
 
     def debug_signals(self) -> SignalBundle:
         return [self.ready, self.run, self.data_in, self.data_out]
+
+
+class Methods(Sequence[Method]):
+    @type_self_add_1pos_kwargs_as(Method.__init__)
+    def __init__(self, count: int, **kwargs):
+        if count <= 0:
+            raise ValueError("count should be at least 1")
+        _, owner_name = get_caller_class_name(default="$method")
+        self.name = kwargs["name"] if "name" in kwargs else tracer.get_var_name(depth=2, default=owner_name)
+        if "src_loc" not in kwargs:
+            kwargs["src_loc"] = 0
+        if isinstance(kwargs["src_loc"], int):
+            kwargs["src_loc"] += 1
+        self._methods = [Method(**{**kwargs, "name": f"{self.name}{i}"}) for i in range(count)]
+
+    @property
+    def layout_in(self):
+        return self._methods[0].layout_in
+
+    @property
+    def layout_out(self):
+        return self._methods[0].layout_out
+
+    def __call__(
+        self, m: "TModule", arg: Optional[AssignArg] = None, enable: ValueLike = C(1), /, **kwargs: AssignArg
+    ) -> MethodStruct:
+        if len(self._methods) != 1:
+            raise RuntimeError("calling Methods only allowed when count=1")
+        return self._methods[0](m, arg, enable, **kwargs)
+
+    def __getitem__(self, key: int):
+        return self._methods[key]
+
+    def __len__(self):
+        return len(self._methods)
+
+    def debug_signals(self) -> SignalBundle:
+        return {method.name: method.debug_signals() for method in self._methods}
