@@ -214,11 +214,10 @@ clock cycle.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Attributes</dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>allocs</strong><span class="classifier">list[Method]</span></dt><dd><p>List of <cite>ways</cite> methods which allocate a fresh identifier. If there is
-too little free identifiers, some or all of the methods are disabled.</p>
+<dt><strong>alloc</strong><span class="classifier">Methods</span></dt><dd><p>Methods which allocate a fresh identifier. If there is too little free
+identifiers, some or all of the methods are disabled.</p>
 </dd>
-<dt><strong>frees</strong><span class="classifier">list[Method]</span></dt><dd><p>List with <cite>ways</cite> methods. Each of them allows to deallocate
-a single identifier in one cycle.</p>
+<dt><strong>free</strong><span class="classifier">Methods</span></dt><dd><p>Methods which deallocate a single identifier in one cycle.</p>
 </dd>
 </dl>
 </dd>
@@ -231,8 +230,7 @@ a single identifier in one cycle.</p>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>entries</strong><span class="classifier">int</span></dt><dd><p>The total number of identifiers available for allocation.</p>
 </dd>
-<dt><strong>ways</strong><span class="classifier">int</span></dt><dd><p>The amount of allocations or deallocations possible in a single
-clock cycle.</p>
+<dt><strong>ways</strong><span class="classifier">int</span></dt><dd><p>The number of <cite>alloc</cite> and <cite>free</cite> methods.</p>
 </dd>
 <dt><strong>init</strong><span class="classifier">int</span></dt><dd><p>Bit mask of identifiers which should be treated as free on reset.
 By default, every identifier is free on reset.</p>
@@ -1725,9 +1723,9 @@ responses from the server are in-order, so the order of responses is the same as
 <dl class="field-list simple">
 <dt class="field-odd">Attributes</dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>serialize_in: list[Method]</strong></dt><dd><p>List of request methods. Data layouts are the same as for <cite>serialized_req_method</cite>.</p>
+<dt><strong>serialize_in: Methods</strong></dt><dd><p>Request methods. Data layouts are the same as for <cite>serialized_req_method</cite>.</p>
 </dd>
-<dt><strong>serialize_out: list[Method]</strong></dt><dd><p>List of response methods. Data layouts are the same as for <cite>serialized_resp_method</cite>.
+<dt><strong>serialize_out: Methods</strong></dt><dd><p>Response methods. Data layouts are the same as for <cite>serialized_resp_method</cite>.
 <cite>i</cite>-th response method provides responses for requests from <cite>i</cite>-th <cite>serialize_in</cite> method.</p>
 </dd>
 </dl>
@@ -1818,16 +1816,12 @@ read and write ports. It supports optionally writing with given granularity.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Attributes</dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>reads: list[Method]</strong></dt><dd><p>The read methods, one for each read port. Accepts an <cite>addr</cite> from which data should be read.
+<dt><strong>read: Methods</strong></dt><dd><p>The read methods, one for each read port. Accepts an <cite>addr</cite> from which data should be read.
 The read response method. Return <cite>data_layout</cite> View which was saved on <cite>addr</cite> given by last
 <cite>write</cite> method call.</p>
 </dd>
-<dt><strong>writes: list[Method]</strong></dt><dd><p>The write methods, one for each write port. Accepts write address <cite>addr</cite>, <cite>data</cite> in form of <cite>data_layout</cite>
+<dt><strong>write: Methods</strong></dt><dd><p>The write methods, one for each write port. Accepts write address <cite>addr</cite>, <cite>data</cite> in form of <cite>data_layout</cite>
 and optionally <cite>mask</cite> if <cite>granularity</cite> is not None. <cite>1</cite> in mask means that appropriate part should be written.</p>
-</dd>
-<dt><strong>read: Method</strong></dt><dd><p>The only method from <cite>reads</cite>, if the memory has a single read port.</p>
-</dd>
-<dt><strong>write: Method</strong></dt><dd><p>The only method from <cite>writes</cite>, if the memory has a single write port.</p>
 </dd>
 </dl>
 </dd>
@@ -1918,24 +1912,15 @@ number of read and write ports. It supports optionally writing with given granul
 <dl class="field-list simple">
 <dt class="field-odd">Attributes</dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>read_reqs: list[Method]</strong></dt><dd><p>The read request methods, one for each read port. Accepts an <cite>addr</cite> from which data should be read.
+<dt><strong>read_req: Methods</strong></dt><dd><p>The read request methods, one for each read port. Accepts an <cite>addr</cite> from which data should be read.
 Only ready if there is there is a place to buffer response. After calling <cite>read_reqs[i]</cite>, the result
 will be available via the method <cite>read_resps[i]</cite>.</p>
 </dd>
-<dt><strong>read_resps: list[Method]</strong></dt><dd><p>The read response methods, one for each read port. Return <cite>data_layout</cite> View which was saved on <cite>addr</cite> given
+<dt><strong>read_resp: Methods</strong></dt><dd><p>The read response methods, one for each read port. Return <cite>data_layout</cite> View which was saved on <cite>addr</cite> given
 by last corresponding <cite>read_reqs</cite> method call. Only ready after corresponding <cite>read_reqs</cite> call.</p>
 </dd>
-<dt><strong>writes: list[Method]</strong></dt><dd><p>The write methods, one for each write port. Accepts write address <cite>addr</cite>, <cite>data</cite> in form of <cite>data_layout</cite>
+<dt><strong>write: Methods</strong></dt><dd><p>The write methods, one for each write port. Accepts write address <cite>addr</cite>, <cite>data</cite> in form of <cite>data_layout</cite>
 and optionally <cite>mask</cite> if <cite>granularity</cite> is not None. <cite>1</cite> in mask means that appropriate part should be written.</p>
-</dd>
-<dt><strong>read_req: Method</strong></dt><dd><p>The only method from <cite>read_reqs</cite>, if the memory has a single read port. If it has more ports, this method
-is unavailable and <cite>read_reqs</cite> should be used instead.</p>
-</dd>
-<dt><strong>read_resp: Method</strong></dt><dd><p>The only method from <cite>read_resps</cite>, if the memory has a single read port. If it has more ports, this method
-is unavailable and <cite>read_resps</cite> should be used instead.</p>
-</dd>
-<dt><strong>write: Method</strong></dt><dd><p>The only method from <cite>writes</cite>, if the memory has a single write port. If it has more ports, this method
-is unavailable and <cite>writes</cite> should be used instead.</p>
 </dd>
 </dl>
 </dd>
@@ -2310,7 +2295,7 @@ Alternatively, the source location to use instead of the default.</p>
 
   <div role="contentinfo">
     <p>&#169; Copyright Kuźnia Rdzeni, 2024.
-      <span class="lastupdated">Last updated on 14:23 2024-11-25.
+      <span class="lastupdated">Last updated on 14:27 2024-11-25.
       </span></p>
   </div>
 
