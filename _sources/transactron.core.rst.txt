@@ -4,14 +4,6 @@ transactron.core package
 Submodules
 ----------
 
-transactron.core.interface module
----------------------------------
-
-.. automodule:: transactron.core.interface
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 transactron.core.keys module
 ----------------------------
 
