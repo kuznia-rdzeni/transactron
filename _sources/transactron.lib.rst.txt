@@ -12,6 +12,14 @@ transactron.lib.adapters module
    :undoc-members:
    :show-inheritance:
 
+transactron.lib.allocators module
+---------------------------------
+
+.. automodule:: transactron.lib.allocators
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 transactron.lib.buttons module
 ------------------------------
 

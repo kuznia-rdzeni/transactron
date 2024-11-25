@@ -201,6 +201,50 @@ Alternatively, the source location to use instead of the default.</p>
 </dd></dl>
 
 </section>
+<section id="module-transactron.lib.allocators">
+<span id="transactron-lib-allocators-module"></span><h2>transactron.lib.allocators module<a class="headerlink" href="#module-transactron.lib.allocators" title="Permalink to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="transactron.lib.allocators.PriorityEncoderAllocator">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">transactron.lib.allocators.</span></span><span class="sig-name descname"><span class="pre">PriorityEncoderAllocator</span></span><a class="headerlink" href="#transactron.lib.allocators.PriorityEncoderAllocator" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Elaboratable</span></code></p>
+<p>Superscalar structure for identifier allocation.</p>
+<p>This module allows to allocate and deallocate identifiers from a continuous
+range. Multiple identifiers can be allocated or deallocated in a single
+clock cycle.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Attributes</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>allocs</strong><span class="classifier">list[Method]</span></dt><dd><p>List of <cite>ways</cite> methods which allocate a fresh identifier. If there is
+too little free identifiers, some or all of the methods are disabled.</p>
+</dd>
+<dt><strong>frees</strong><span class="classifier">list[Method]</span></dt><dd><p>List with <cite>ways</cite> methods. Each of them allows to deallocate
+a single identifier in one cycle.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.lib.allocators.PriorityEncoderAllocator.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">entries</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">ways</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">-1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.lib.allocators.PriorityEncoderAllocator.__init__" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>entries</strong><span class="classifier">int</span></dt><dd><p>The total number of identifiers available for allocation.</p>
+</dd>
+<dt><strong>ways</strong><span class="classifier">int</span></dt><dd><p>The amount of allocations or deallocations possible in a single
+clock cycle.</p>
+</dd>
+<dt><strong>init</strong><span class="classifier">int</span></dt><dd><p>Bit mask of identifiers which should be treated as free on reset.
+By default, every identifier is free on reset.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
 <section id="module-transactron.lib.buttons">
 <span id="transactron-lib-buttons-module"></span><h2>transactron.lib.buttons module<a class="headerlink" href="#module-transactron.lib.buttons" title="Permalink to this heading"></a></h2>
 <dl class="py class">
@@ -2266,7 +2310,7 @@ Alternatively, the source location to use instead of the default.</p>
 
   <div role="contentinfo">
     <p>&#169; Copyright Kuźnia Rdzeni, 2024.
-      <span class="lastupdated">Last updated on 14:13 2024-11-25.
+      <span class="lastupdated">Last updated on 14:23 2024-11-25.
       </span></p>
   </div>
 
