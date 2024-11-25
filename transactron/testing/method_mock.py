@@ -3,7 +3,7 @@ import functools
 from typing import Callable, Any, Optional
 
 from amaranth.sim._async import SimulatorContext
-from transactron.lib.adapters import Adapter
+from transactron.lib.adapters import Adapter, AdapterBase
 from transactron.utils.transactron_helpers import async_mock_def_helper
 from .testbenchio import TestbenchIO
 from transactron.utils._typing import RecordIntDict
@@ -15,7 +15,7 @@ __all__ = ["MethodMock", "def_method_mock"]
 class MethodMock:
     def __init__(
         self,
-        adapter: Adapter,
+        adapter: AdapterBase,
         function: Callable[..., Optional[RecordIntDict]],
         *,
         validate_arguments: Optional[Callable[..., bool]] = None,
@@ -63,6 +63,8 @@ class MethodMock:
 
     async def validate_arguments_process(self, sim: SimulatorContext) -> None:
         assert self.validate_arguments is not None
+        assert isinstance(self.adapter, Adapter)
+
         sync = sim._design.lookup_domain("sync", None)  # type: ignore
         async for *args, clk, _ in (
             sim.changed(*(a for a, _ in self.adapter.validators)).edge(sync.clk, 1).edge(self.adapter.en, 1)
@@ -166,7 +168,6 @@ def def_method_mock(
                     kw[k] = bind(func_self) if bind else v
             tb = getter()
             assert isinstance(tb, TestbenchIO)
-            assert isinstance(tb.adapter, Adapter)
             return MethodMock(tb.adapter, f, **kw)
 
         mock._transactron_method_mock = 1  # type: ignore
