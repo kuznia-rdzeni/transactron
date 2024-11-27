@@ -7,7 +7,9 @@ from parameterized import parameterized
 
 from amaranth import *
 from transactron import *
-from transactron.lib import *
+from transactron.utils._typing import MethodLayout
+from transactron.lib.adapters import Adapter
+from transactron.lib.connectors import *
 from transactron.testing.testbenchio import CallTrigger
 from transactron.testing import (
     SimpleTestCircuit,

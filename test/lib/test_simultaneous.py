@@ -4,7 +4,8 @@ from itertools import product
 
 from amaranth import *
 from transactron import *
-from transactron.lib import *
+from transactron.lib.adapters import Adapter
+from transactron.lib.simultaneous import *
 from transactron.testing.method_mock import MethodMock
 from transactron.utils import ModuleConnector
 from transactron.testing import (

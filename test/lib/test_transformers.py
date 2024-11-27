@@ -3,7 +3,8 @@ from parameterized import parameterized
 
 from amaranth import *
 from transactron import *
-from transactron.lib import *
+from transactron.lib.adapters import Adapter, AdapterTrans
+from transactron.lib.transformers import *
 from transactron.utils._typing import ModuleLike, MethodStruct, RecordDict
 from transactron.utils import ModuleConnector
 from transactron.testing import (
