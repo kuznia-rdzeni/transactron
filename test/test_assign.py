@@ -9,9 +9,6 @@ from transactron.utils._typing import MethodLayout
 from transactron.utils import AssignType, assign
 from transactron.utils.assign import AssignArg, AssignFields
 
-from unittest import TestCase
-from parameterized import parameterized_class, parameterized
-
 
 class ExampleEnum(Enum, shape=1):
     ZERO = 0
@@ -70,15 +67,20 @@ params_mk = [
 ]
 
 
-@parameterized_class(
-    ["name", "buildl", "wrapl", "extrl", "buildr", "wrapr", "extrr", "mk"],
-    [
-        (f"{nl}_{nr}_{c}", *map(staticmethod, params_funs[nl] + params_funs[nr] + (m,)))
-        for nl, nr in params_pairs
-        for c, m in params_mk
-    ],
-)
-class TestAssign(TestCase):
+class TestAssign:
+    @pytest.fixture(
+        scope="function",
+        autouse=True,
+        params=[
+            tuple(map(staticmethod, params_funs[nl] + params_funs[nr] + (m,)))
+            for nl, nr in params_pairs
+            for c, m in params_mk
+        ],
+        ids=[f"{nl}_{nr}_{c}" for nl, nr in params_pairs for c, _ in params_mk],
+    )
+    def setup_fixture(self, request):
+        self.buildl, self.wrapl, self.extrl, self.buildr, self.wrapr, self.extrr, self.mk = request.param
+
     # constructs `assign` arguments (views, proxies, dicts) which have an "inner" and "outer" part
     # parameterized with a constructor and a layout of the inner part
     buildl: Callable[[Callable[[MethodLayout], AssignArg], MethodLayout], AssignArg]
@@ -120,11 +122,12 @@ class TestAssign(TestCase):
     def test_wrong_bits(self):
         with pytest.raises(ValueError):
             list(assign(self.buildl(self.mk, layout_a), self.buildr(self.mk, layout_a_alt)))
-        if self.mk != mkproxy:  # Arrays are troublesome and defeat some checks
+        if self.mk.__wrapped__ != mkproxy:  # Arrays are troublesome and defeat some checks
             with pytest.raises(ValueError):
                 list(assign(self.buildl(self.mk, layout_a), self.buildr(self.mk, layout_a_enum)))
 
-    @parameterized.expand(
+    @pytest.mark.parametrize(
+        "name, layout1, layout2, atype",
         [
             ("lhs", layout_a, layout_ab, AssignType.LHS),
             ("rhs", layout_ab, layout_a, AssignType.RHS),
@@ -132,7 +135,7 @@ class TestAssign(TestCase):
             ("common", layout_ab, layout_ac, AssignType.COMMON),
             ("set", layout_ab, layout_ab, {"a"}),
             ("list", layout_ab, layout_ab, ["a", "a"]),
-        ]
+        ],
     )
     def test_assign_a(self, name, layout1: MethodLayout, layout2: MethodLayout, atype: AssignType):
         lhs = self.buildl(self.mk, layout1)
@@ -147,14 +150,14 @@ class TestAssign(TestCase):
         expr2 = Value.cast(expr2)
         if isinstance(expr1, SwitchValue) and isinstance(expr2, SwitchValue):
             # new proxies are created on each index, structural equality is needed
-            self.assertIs(expr1.test, expr2.test)
+            assert expr1.test is expr2.test
             assert len(expr1.cases) == len(expr2.cases)
             for (px, x), (py, y) in zip(expr1.cases, expr2.cases):
-                self.assertEqual(px, py)
+                assert px == py
                 self.assertIs_AP(x, y)
         elif isinstance(expr1, Slice) and isinstance(expr2, Slice):
             self.assertIs_AP(expr1.value, expr2.value)
             assert expr1.start == expr2.start
             assert expr1.stop == expr2.stop
         else:
-            self.assertIs(expr1, expr2)
+            assert expr1 is expr2

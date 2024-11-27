@@ -29,7 +29,6 @@ dev = [
     "pytest == 8.0.0",
     "pytest-xdist == 3.5.0",
     "hypothesis == 6.99.6",
-    "parameterized == 0.8.1",
     # Documentation
     "pep8-naming == 0.13.3",
     "Sphinx == 5.1.1",

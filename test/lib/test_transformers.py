@@ -1,5 +1,5 @@
+import pytest
 import random
-from parameterized import parameterized
 
 from amaranth import *
 from transactron import *
@@ -137,7 +137,7 @@ class TestMethodFilter(TestCaseWithSimulator):
         with self.run_simulation(m) as sim:
             sim.add_testbench(self.source)
 
-    @parameterized.expand([(True,), (False,)])
+    @pytest.mark.parametrize("use_condition", [True, False])
     def test_method_filter_plain(self, use_condition):
         self.initialize()
 
@@ -182,7 +182,7 @@ class MethodProductTestCircuit(Elaboratable):
 
 
 class TestMethodProduct(TestCaseWithSimulator):
-    @parameterized.expand([(1, False), (2, False), (5, True)])
+    @pytest.mark.parametrize("targets, add_combiner", [(1, False), (2, False), (5, True)])
     def test_method_product(self, targets: int, add_combiner: bool):
         random.seed(14)
 
@@ -226,7 +226,7 @@ class TestMethodProduct(TestCaseWithSimulator):
 
 
 class TestMethodTryProduct(TestCaseWithSimulator):
-    @parameterized.expand([(1, False), (2, False), (5, True)])
+    @pytest.mark.parametrize("targets, add_combiner", [(1, False), (2, False), (5, True)])
     def test_method_try_product(self, targets: int, add_combiner: bool):
         random.seed(14)
 
