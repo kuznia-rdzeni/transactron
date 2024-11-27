@@ -1,11 +1,10 @@
+import pytest
 from amaranth import *
 from amaranth.sim import *
 
 from transactron.utils import OneHotSwitch
 
 from transactron.testing import TestCaseWithSimulator, TestbenchContext
-
-from parameterized import parameterized
 
 
 class OneHotSwitchCircuit(Elaboratable):
@@ -31,7 +30,7 @@ class OneHotSwitchCircuit(Elaboratable):
 
 
 class TestOneHotSwitch(TestCaseWithSimulator):
-    @parameterized.expand([(False,), (True,)])
+    @pytest.mark.parametrize("test_zero", [False, True])
     def test_onehotswitch(self, test_zero):
         circuit = OneHotSwitchCircuit(4, test_zero)
 

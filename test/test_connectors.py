@@ -1,30 +1,26 @@
+import pytest
 import random
-from parameterized import parameterized_class
 
 from transactron.lib import StableSelectingNetwork
 from transactron.testing import TestCaseWithSimulator, TestbenchContext
 
 
-@parameterized_class(
-    ("n"),
-    [(2,), (3,), (7,), (8,)],
-)
 class TestStableSelectingNetwork(TestCaseWithSimulator):
-    n: int
 
-    def test(self):
-        m = StableSelectingNetwork(self.n, [("data", 8)])
+    @pytest.mark.parametrize("n", [2, 3, 7, 8])
+    def test(self, n: int):
+        m = StableSelectingNetwork(n, [("data", 8)])
 
         random.seed(42)
 
         async def process(sim: TestbenchContext):
             for _ in range(100):
-                inputs = [random.randrange(2**8) for _ in range(self.n)]
-                valids = [random.randrange(2) for _ in range(self.n)]
+                inputs = [random.randrange(2**8) for _ in range(n)]
+                valids = [random.randrange(2) for _ in range(n)]
                 total = sum(valids)
 
                 expected_output_prefix = []
-                for i in range(self.n):
+                for i in range(n):
                     sim.set(m.valids[i], valids[i])
                     sim.set(m.inputs[i].data, inputs[i])
 
