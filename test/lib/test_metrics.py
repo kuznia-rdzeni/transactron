@@ -1,10 +1,9 @@
 import json
 import random
 import queue
+import pytest
 from typing import Type
 from enum import IntFlag, IntEnum, auto, Enum
-
-from parameterized import parameterized_class
 
 from amaranth import *
 
@@ -229,8 +228,8 @@ class ExpHistogramCircuit(Elaboratable):
         return m
 
 
-@parameterized_class(
-    ("bucket_count", "sample_width"),
+@pytest.mark.parametrize(
+    "bucket_count, sample_width",
     [
         (5, 5),  # last bucket is [8, inf), max sample=31
         (8, 5),  # last bucket is [64, inf), max sample=31
@@ -239,16 +238,13 @@ class ExpHistogramCircuit(Elaboratable):
     ],
 )
 class TestHwHistogram(TestCaseWithSimulator):
-    bucket_count: int
-    sample_width: int
-
-    def test_histogram(self):
+    def test_histogram(self, bucket_count: int, sample_width: int):
         random.seed(42)
 
-        m = SimpleTestCircuit(ExpHistogramCircuit(bucket_cnt=self.bucket_count, sample_width=self.sample_width))
+        m = SimpleTestCircuit(ExpHistogramCircuit(bucket_cnt=bucket_count, sample_width=sample_width))
         DependencyContext.get().add_dependency(HwMetricsEnabledKey(), True)
 
-        max_sample_value = 2**self.sample_width - 1
+        max_sample_value = 2**sample_width - 1
 
         async def test_process(sim):
             min = max_sample_value
@@ -256,7 +252,7 @@ class TestHwHistogram(TestCaseWithSimulator):
             sum = 0
             count = 0
 
-            buckets = [0] * self.bucket_count
+            buckets = [0] * bucket_count
 
             for _ in range(500):
                 if random.randrange(3) == 0:
@@ -267,8 +263,8 @@ class TestHwHistogram(TestCaseWithSimulator):
                         max = value
                     sum += value
                     count += 1
-                    for i in range(self.bucket_count):
-                        if value < 2**i or i == self.bucket_count - 1:
+                    for i in range(bucket_count):
+                        if value < 2**i or i == bucket_count - 1:
                             buckets[i] += 1
                             break
                     await m.method.call(sim, data=value)
@@ -283,7 +279,7 @@ class TestHwHistogram(TestCaseWithSimulator):
                 assert count == sim.get(histogram.count.value)
 
                 total_count = 0
-                for i in range(self.bucket_count):
+                for i in range(bucket_count):
                     bucket_value = sim.get(histogram.buckets[i].value)
                     total_count += bucket_value
                     assert buckets[i] == bucket_value
@@ -310,8 +306,8 @@ class TestLatencyMeasurerBase(TestCaseWithSimulator):
             assert count == sim.get(m._dut.histogram.buckets[i].value)
 
 
-@parameterized_class(
-    ("slots_number", "expected_consumer_wait"),
+@pytest.mark.parametrize(
+    "slots_number, expected_consumer_wait",
     [
         (2, 5),
         (2, 10),
@@ -322,13 +318,10 @@ class TestLatencyMeasurerBase(TestCaseWithSimulator):
     ],
 )
 class TestFIFOLatencyMeasurer(TestLatencyMeasurerBase):
-    slots_number: int
-    expected_consumer_wait: float
-
-    def test_latency_measurer(self):
+    def test_latency_measurer(self, slots_number: int, expected_consumer_wait: float):
         random.seed(42)
 
-        m = SimpleTestCircuit(FIFOLatencyMeasurer("latency", slots_number=self.slots_number, max_latency=300))
+        m = SimpleTestCircuit(FIFOLatencyMeasurer("latency", slots_number=slots_number, max_latency=300))
         DependencyContext.get().add_dependency(HwMetricsEnabledKey(), True)
 
         latencies: list[int] = []
@@ -357,7 +350,7 @@ class TestFIFOLatencyMeasurer(TestLatencyMeasurerBase):
 
                 latencies.append(sim.get(ticks) - event_queue.get())
 
-                await self.random_wait_geom(sim, 1.0 / self.expected_consumer_wait)
+                await self.random_wait_geom(sim, 1.0 / expected_consumer_wait)
 
             self.check_latencies(sim, m, latencies)
 
@@ -366,8 +359,8 @@ class TestFIFOLatencyMeasurer(TestLatencyMeasurerBase):
             sim.add_testbench(consumer)
 
 
-@parameterized_class(
-    ("slots_number", "expected_consumer_wait"),
+@pytest.mark.parametrize(
+    "slots_number, expected_consumer_wait",
     [
         (2, 5),
         (2, 10),
@@ -378,19 +371,16 @@ class TestFIFOLatencyMeasurer(TestLatencyMeasurerBase):
     ],
 )
 class TestIndexedLatencyMeasurer(TestLatencyMeasurerBase):
-    slots_number: int
-    expected_consumer_wait: float
-
-    def test_latency_measurer(self):
+    def test_latency_measurer(self, slots_number: int, expected_consumer_wait: float):
         random.seed(42)
 
-        m = SimpleTestCircuit(TaggedLatencyMeasurer("latency", slots_number=self.slots_number, max_latency=300))
+        m = SimpleTestCircuit(TaggedLatencyMeasurer("latency", slots_number=slots_number, max_latency=300))
         DependencyContext.get().add_dependency(HwMetricsEnabledKey(), True)
 
         latencies: list[int] = []
 
-        events = list(0 for _ in range(self.slots_number))
-        free_slots = list(k for k in range(self.slots_number))
+        events = list(0 for _ in range(slots_number))
+        free_slots = list(k for k in range(slots_number))
         used_slots: list[int] = []
 
         finish = False
@@ -433,7 +423,7 @@ class TestIndexedLatencyMeasurer(TestLatencyMeasurerBase):
                 used_slots.remove(slot_id)
                 free_slots.append(slot_id)
 
-                await self.random_wait_geom(sim, 1.0 / self.expected_consumer_wait)
+                await self.random_wait_geom(sim, 1.0 / expected_consumer_wait)
 
             self.check_latencies(sim, m, latencies)
 

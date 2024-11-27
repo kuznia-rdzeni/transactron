@@ -11,8 +11,6 @@ from transactron.testing.infrastructure import SimpleTestCircuit
 from transactron.utils import MethodStruct
 from transactron.lib import *
 
-from parameterized import parameterized
-
 from unittest import TestCase
 
 from transactron.utils.assign import AssignArg
@@ -388,7 +386,7 @@ class Quadruple2(Elaboratable):
 
 
 class TestQuadrupleCircuits(TestCaseWithSimulator):
-    @parameterized.expand([(Quadruple,), (Quadruple2,)])
+    @pytest.mark.parametrize("quadruple", [Quadruple, Quadruple2])
     def test(self, quadruple):
         circ = QuadrupleCircuit(quadruple())
 
@@ -505,13 +503,14 @@ class TestConditionals(TestCaseWithSimulator):
         with self.run_simulation(circ) as sim:
             sim.add_testbench(process)
 
-    @parameterized.expand(
+    @pytest.mark.parametrize(
+        "elaboratable",
         [
-            (ConditionalMethodCircuit1,),
-            (ConditionalMethodCircuit2,),
-            (ConditionalTransactionCircuit1,),
-            (ConditionalTransactionCircuit2,),
-        ]
+            ConditionalMethodCircuit1,
+            ConditionalMethodCircuit2,
+            ConditionalTransactionCircuit1,
+            ConditionalTransactionCircuit2,
+        ],
     )
     def test_conditional(self, elaboratable):
         circ = elaboratable()

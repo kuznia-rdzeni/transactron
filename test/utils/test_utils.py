@@ -1,5 +1,6 @@
 import unittest
 import random
+import pytest
 
 from amaranth import *
 from transactron.testing import *
@@ -10,7 +11,6 @@ from transactron.utils import (
     count_leading_zeros,
     count_trailing_zeros,
 )
-from parameterized import parameterized_class
 
 
 class TestAlignToPowerOfTwo(unittest.TestCase):
@@ -66,14 +66,11 @@ class PopcountTestCircuit(Elaboratable):
         return m
 
 
-@parameterized_class(
-    ("name", "size"),
-    [("size" + str(s), s) for s in [2, 3, 4, 5, 6, 8, 10, 16, 21, 32, 33, 64, 1025]],
-)
+@pytest.mark.parametrize("size", [2, 3, 4, 5, 6, 8, 10, 16, 21, 32, 33, 64, 1025])
 class TestPopcount(TestCaseWithSimulator):
-    size: int
-
-    def setup_method(self):
+    @pytest.fixture(scope="function", autouse=True)
+    def setup_fixture(self, size):
+        self.size = size
         random.seed(14)
         self.test_number = 40
         self.m = PopcountTestCircuit(self.size)
@@ -90,7 +87,7 @@ class TestPopcount(TestCaseWithSimulator):
             sim.delay(1e-6)
         self.check(sim, 2**self.size - 1)
 
-    def test_popcount(self):
+    def test_popcount(self, size):
         with self.run_simulation(self.m) as sim:
             sim.add_testbench(self.process)
 
@@ -112,17 +109,15 @@ class CLZTestCircuit(Elaboratable):
         return m
 
 
-@parameterized_class(
-    ("name", "size"),
-    [("size" + str(s), s) for s in range(1, 7)],
-)
+@pytest.mark.parametrize("size", range(1, 7))
 class TestCountLeadingZeros(TestCaseWithSimulator):
-    size: int
-
-    def setup_method(self):
+    @pytest.fixture(scope="function", autouse=True)
+    def setup_fixture(self, size):
+        self.size = size
         random.seed(14)
         self.test_number = 40
         self.m = CLZTestCircuit(self.size)
+        yield
 
     def check(self, sim: TestbenchContext, n):
         sim.set(self.m.sig_in, n)
@@ -136,7 +131,7 @@ class TestCountLeadingZeros(TestCaseWithSimulator):
             sim.delay(1e-6)
         self.check(sim, 2**self.size - 1)
 
-    def test_count_leading_zeros(self):
+    def test_count_leading_zeros(self, size):
         with self.run_simulation(self.m) as sim:
             sim.add_testbench(self.process)
 
@@ -158,14 +153,11 @@ class CTZTestCircuit(Elaboratable):
         return m
 
 
-@parameterized_class(
-    ("name", "size"),
-    [("size" + str(s), s) for s in range(1, 7)],
-)
+@pytest.mark.parametrize("size", range(1, 7))
 class TestCountTrailingZeros(TestCaseWithSimulator):
-    size: int
-
-    def setup_method(self):
+    @pytest.fixture(scope="function", autouse=True)
+    def setup_fixture(self, size):
+        self.size = size
         random.seed(14)
         self.test_number = 40
         self.m = CTZTestCircuit(self.size)
@@ -191,6 +183,6 @@ class TestCountTrailingZeros(TestCaseWithSimulator):
             await sim.delay(1e-6)
         self.check(sim, 2**self.size - 1)
 
-    def test_count_trailing_zeros(self):
+    def test_count_trailing_zeros(self, size):
         with self.run_simulation(self.m) as sim:
             sim.add_testbench(self.process)

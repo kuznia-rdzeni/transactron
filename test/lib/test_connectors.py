@@ -3,7 +3,6 @@ import random
 from operator import and_
 from functools import reduce
 from typing import TypeAlias
-from parameterized import parameterized
 
 from amaranth import *
 from transactron import *
@@ -59,23 +58,23 @@ class TestFifoBase(TestCaseWithSimulator):
 
 
 class TestFIFO(TestFifoBase):
-    @parameterized.expand([(0, 0), (2, 0), (0, 2), (1, 1)])
+    @pytest.mark.parametrize("writer_rand, reader_rand", [(0, 0), (2, 0), (0, 2), (1, 1)])
     def test_fifo(self, writer_rand, reader_rand):
         self.do_test_fifo(FIFO, writer_rand=writer_rand, reader_rand=reader_rand, fifo_kwargs=dict(depth=4))
 
 
 class TestConnect(TestFifoBase):
-    @parameterized.expand([(0, 0), (2, 0), (0, 2), (1, 1)])
+    @pytest.mark.parametrize("writer_rand, reader_rand", [(0, 0), (2, 0), (0, 2), (1, 1)])
     def test_fifo(self, writer_rand, reader_rand):
         self.do_test_fifo(Connect, writer_rand=writer_rand, reader_rand=reader_rand)
 
-    @parameterized.expand([(0, 0), (2, 0), (0, 2), (1, 1)])
+    @pytest.mark.parametrize("writer_rand, reader_rand", [(0, 0), (2, 0), (0, 2), (1, 1)])
     def test_rev_fifo(self, writer_rand, reader_rand):
         self.do_test_fifo(RevConnect, writer_rand=writer_rand, reader_rand=reader_rand)
 
 
 class TestForwarder(TestFifoBase):
-    @parameterized.expand([(0, 0), (2, 0), (0, 2), (1, 1)])
+    @pytest.mark.parametrize("writer_rand, reader_rand", [(0, 0), (2, 0), (0, 2), (1, 1)])
     def test_fifo(self, writer_rand, reader_rand):
         self.do_test_fifo(Forwarder, writer_rand=writer_rand, reader_rand=reader_rand)
 
@@ -116,7 +115,7 @@ class TestForwarder(TestFifoBase):
 
 
 class TestPipe(TestFifoBase):
-    @parameterized.expand([(0, 0), (2, 0), (0, 2), (1, 1)])
+    @pytest.mark.parametrize("writer_rand, reader_rand", [(0, 0), (2, 0), (0, 2), (1, 1)])
     def test_fifo(self, writer_rand, reader_rand):
         self.do_test_fifo(Pipe, writer_rand=writer_rand, reader_rand=reader_rand)
 

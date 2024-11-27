@@ -1,10 +1,10 @@
+import pytest
 from amaranth import *
 
 from transactron.lib import AdapterTrans, BasicFifo
 
 from transactron.testing import TestCaseWithSimulator, TestbenchIO, data_layout, TestbenchContext
 from collections import deque
-from parameterized import parameterized_class
 import random
 
 
@@ -24,18 +24,10 @@ class BasicFifoTestCircuit(Elaboratable):
         return m
 
 
-@parameterized_class(
-    ("name", "depth"),
-    [
-        ("notpower", 5),
-        ("power", 4),
-    ],
-)
 class TestBasicFifo(TestCaseWithSimulator):
-    depth: int
-
-    def test_randomized(self):
-        fifoc = BasicFifoTestCircuit(depth=self.depth)
+    @pytest.mark.parametrize("depth", [5, 4])
+    def test_randomized(self, depth):
+        fifoc = BasicFifoTestCircuit(depth=depth)
         expq = deque()
 
         cycles = 256

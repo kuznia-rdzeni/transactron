@@ -10,7 +10,6 @@ import contextlib
 
 from collections import deque
 from typing import Iterable, Callable
-from parameterized import parameterized, parameterized_class
 
 from transactron.testing import TestCaseWithSimulator, TestbenchIO, data_layout
 
@@ -119,16 +118,14 @@ class TransactionConflictTestCircuit(Elaboratable):
         return tm
 
 
-@parameterized_class(
-    ("name", "scheduler"),
+@pytest.mark.parametrize(
+    "scheduler",
     [
-        ("trivial_roundrobin", trivial_roundrobin_cc_scheduler),
-        ("eager_deterministic", eager_deterministic_cc_scheduler),
+        trivial_roundrobin_cc_scheduler,
+        eager_deterministic_cc_scheduler,
     ],
 )
 class TestTransactionConflict(TestCaseWithSimulator):
-    scheduler: TransactionScheduler
-
     def setup_method(self):
         random.seed(42)
 
@@ -182,21 +179,22 @@ class TestTransactionConflict(TestCaseWithSimulator):
 
         return self.make_process(self.m.out, prob, self.out_stream, tgt, chk)
 
-    @parameterized.expand(
+    @pytest.mark.parametrize(
+        "name, prob1, prob2, probout",
         [
             ("fullcontention", 1, 1, 1),
             ("highcontention", 0.5, 0.5, 0.75),
             ("lowcontention", 0.1, 0.1, 0.5),
-        ]
+        ],
     )
-    def test_calls(self, name, prob1, prob2, probout):
+    def test_calls(self, name, scheduler: TransactionScheduler, prob1, prob2, probout):
         self.in1_stream = range(0, 100)
         self.in2_stream = range(100, 200)
         self.out_stream = range(200, 400)
         self.in_expected = deque()
         self.out1_expected = deque()
         self.out2_expected = deque()
-        self.m = TransactionConflictTestCircuit(self.__class__.scheduler)
+        self.m = TransactionConflictTestCircuit(scheduler)
 
         with self.run_simulation(self.m, add_transaction_module=False) as sim:
             sim.add_testbench(self.make_in1_process(prob1))
@@ -276,18 +274,14 @@ class MethodPriorityTestCircuit(PriorityTestCircuit):
         return m
 
 
-@parameterized_class(
-    ("name", "circuit"), [("transaction", TransactionPriorityTestCircuit), ("method", MethodPriorityTestCircuit)]
-)
+@pytest.mark.parametrize("circuit", [TransactionPriorityTestCircuit, MethodPriorityTestCircuit])
 class TestTransactionPriorities(TestCaseWithSimulator):
-    circuit: type[PriorityTestCircuit]
-
     def setup_method(self):
         random.seed(42)
 
-    @parameterized.expand([(Priority.UNDEFINED,), (Priority.LEFT,), (Priority.RIGHT,)])
-    def test_priorities(self, priority: Priority):
-        m = self.circuit(priority)
+    @pytest.mark.parametrize("priority", [Priority.UNDEFINED, Priority.LEFT, Priority.RIGHT])
+    def test_priorities(self, circuit: type[PriorityTestCircuit], priority: Priority):
+        m = circuit(priority)
 
         async def process(sim):
             to_do = 5 * [(0, 1), (1, 0), (1, 1)]
@@ -306,9 +300,9 @@ class TestTransactionPriorities(TestCaseWithSimulator):
         with self.run_simulation(m) as sim:
             sim.add_testbench(process)
 
-    @parameterized.expand([(Priority.UNDEFINED,), (Priority.LEFT,), (Priority.RIGHT,)])
-    def test_unsatisfiable(self, priority: Priority):
-        m = self.circuit(priority, True)
+    @pytest.mark.parametrize("priority", [Priority.UNDEFINED, Priority.LEFT, Priority.RIGHT])
+    def test_unsatisfiable(self, circuit: type[PriorityTestCircuit], priority: Priority):
+        m = circuit(priority, True)
 
         import graphlib
 
@@ -362,17 +356,13 @@ class NestedMethodsTestCircuit(SchedulingTestCircuit):
         return tm
 
 
-@parameterized_class(
-    ("name", "circuit"), [("transaction", NestedTransactionsTestCircuit), ("method", NestedMethodsTestCircuit)]
-)
+@pytest.mark.parametrize("circuit", [NestedTransactionsTestCircuit, NestedMethodsTestCircuit])
 class TestNested(TestCaseWithSimulator):
-    circuit: type[SchedulingTestCircuit]
-
     def setup_method(self):
         random.seed(42)
 
-    def test_scheduling(self):
-        m = self.circuit()
+    def test_scheduling(self, circuit: type[SchedulingTestCircuit]):
+        m = circuit()
 
         async def process(sim):
             to_do = 5 * [(0, 1), (1, 0), (1, 1)]
