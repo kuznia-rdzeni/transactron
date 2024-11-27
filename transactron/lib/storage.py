@@ -90,7 +90,7 @@ class MemoryBank(Elaboratable):
     def elaborate(self, platform) -> TModule:
         m = TModule()
 
-        m.submodules.mem = mem = self.memory_type(shape=self.width, depth=self.elem_count, init=[])
+        m.submodules.mem = self.mem = mem = self.memory_type(shape=self.width, depth=self.elem_count, init=[])
         write_port = [mem.write_port() for _ in range(self.writes_ports)]
         read_port = [
             mem.read_port(transparent_for=write_port if self.transparent else []) for _ in range(self.reads_ports)
@@ -303,7 +303,7 @@ class AsyncMemoryBank(Elaboratable):
         m = TModule()
 
         mem = self.memory_type(shape=self.width, depth=self.elem_count, init=[])
-        m.submodules.mem = mem
+        m.submodules.mem = self.mem = mem
         write_port = [mem.write_port() for _ in range(self.writes_ports)]
         read_port = [mem.read_port(domain="comb") for _ in range(self.reads_ports)]
 
