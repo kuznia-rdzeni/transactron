@@ -1,12 +1,15 @@
+from typing import Optional
 from amaranth import *
 import amaranth.lib.memory as memory
+import amaranth.lib.data as data
+from amaranth_types.types import ShapeLike
 from transactron import Method, def_method, Priority, TModule
 from transactron.utils._typing import ValueLike, MethodLayout, SrcLoc, MethodStruct
-from transactron.utils.amaranth_ext import mod_incr
+from transactron.utils.amaranth_ext import mod_incr, barrel_shift_left, barrel_shift_right
 from transactron.utils.transactron_helpers import from_method_layout, get_src_loc
 
 
-__all__ = ["BasicFifo", "Semaphore"]
+__all__ = ["BasicFifo", "WideFifo", "Semaphore"]
 
 
 class BasicFifo(Elaboratable):
@@ -110,6 +113,136 @@ class BasicFifo(Elaboratable):
         def _() -> None:
             m.d.sync += self.read_idx.eq(0)
             m.d.sync += self.write_idx.eq(0)
+
+        return m
+
+
+class WideFifo(Elaboratable):
+    def __init__(
+        self, shape: ShapeLike, depth: int, read_width: int, write_width: Optional[int], *, src_loc: int | SrcLoc = 0
+    ) -> None:
+        if write_width is None:
+            write_width = read_width
+
+        self.shape = shape
+        self.read_layout = data.StructLayout(
+            {"count": range(read_width + 1), "data": data.ArrayLayout(shape, read_width)}
+        )
+        self.write_layout = data.StructLayout(
+            {"count": range(write_width + 1), "data": data.ArrayLayout(shape, write_width)}
+        )
+        self.read_width = read_width
+        self.write_width = write_width
+        self.depth = depth
+
+        self.read = Method(i=[("count", range(read_width + 1))], o=self.read_layout, src_loc=src_loc)
+        self.peek = Method(o=self.read_layout, nonexclusive=True, src_loc=src_loc)
+        self.write = Method(i=self.write_layout, src_loc=src_loc)
+        self.clear = Method(src_loc=src_loc)
+
+    def elaborate(self, platform):
+        m = TModule()
+
+        max_width = max(self.read_width, self.write_width)
+
+        storage = [memory.Memory(shape=self.shape, depth=self.depth, init=[]) for _ in range(max_width)]
+
+        for i, mem in enumerate(storage):
+            m.submodules[f"storage{i}"] = mem
+
+        write_ports = [mem.write_port() for mem in storage]
+        read_ports = [mem.read_port(domain="sync", transparent_for=[port]) for mem, port in zip(storage, write_ports)]
+
+        write_row = Signal(range(self.depth))
+        write_col = Signal(range(max_width))
+        read_row = Signal(range(self.depth))
+        read_col = Signal(range(max_width))
+
+        next_read_row = Signal(range(self.depth))
+        next_read_col = Signal(range(max_width))
+
+        incr_read_row = Signal(range(self.depth))
+        incr_next_read_row = Signal(range(self.depth))
+        incr_write_row = Signal(range(self.depth))
+
+        level = Signal(range(max_width * self.depth + 1))
+        remaining = Signal(range(max_width * self.depth + 1))
+
+        read_available = Signal(range(self.read_width + 1))
+        write_available = Signal(range(self.write_width + 1))
+
+        read_count = Signal(range(self.read_width + 1))
+        write_count = Signal(range(self.write_width + 1))
+
+        m.d.comb += incr_read_row.eq(mod_incr(read_row, self.depth))
+        m.d.comb += incr_next_read_row.eq(mod_incr(next_read_row, self.depth))
+        m.d.comb += incr_write_row.eq(mod_incr(write_row, self.depth))
+
+        m.d.sync += level.eq(level - read_count + write_count)
+        m.d.comb += remaining.eq(max_width * self.depth - level)
+
+        m.d.comb += read_available.eq(Mux(level > self.read_width, self.read_width, level))
+        m.d.comb += write_available.eq(Mux(remaining > self.write_width, self.write_width, remaining))
+
+        for i, port in enumerate(read_ports):
+            m.d.comb += port.addr.eq(Mux(i >= next_read_col, next_read_row, incr_next_read_row))
+
+        for i, port in enumerate(write_ports):
+            m.d.comb += port.addr.eq(Mux(i >= write_col, write_row, incr_write_row))
+
+        read_data = [port.data for port in read_ports]
+        head = barrel_shift_left(read_data, read_col)[: self.read_width]
+
+        head_sig = [Signal.like(item) for item in head]
+        for item_sig, item in zip(head_sig, head):
+            m.d.comb += item_sig.eq(item)
+
+        def incr_row_col(new_row: Value, new_col: Value, row: Value, col: Value, incr_row: Value, count: Value):
+            chg_row = Signal.like(new_row)
+            chg_col = Signal.like(new_col)
+            with m.If(col + count >= max_width):
+                m.d.comb += chg_row.eq(incr_row)
+                m.d.comb += chg_col.eq(col + count - max_width)
+            with m.Else():
+                m.d.comb += chg_row.eq(row)
+                m.d.comb += chg_col.eq(col + count)
+            return [new_row.eq(chg_row), new_col.eq(chg_col)]
+
+        @def_method(m, self.write, remaining != 0, validate_arguments=lambda count, data: count <= remaining)
+        def _(count, data):
+            ext_data = list(data) + [C(0, self.shape)] * (max_width - self.write_width)
+            shifted_data = barrel_shift_right(ext_data, write_col)
+            ens = Signal(max_width)
+            m.d.comb += ens.eq(Cat(i < count for i in reversed(range(max_width))))
+            m.d.comb += Cat(port.en for port in reversed(write_ports)).eq(
+                Cat(ens, ens).bit_select(write_col, max_width)
+            )
+            m.d.av_comb += [write_ports[i].data.eq(shifted_data[i]) for i in range(max_width)]
+            m.d.comb += write_count.eq(count)
+            m.d.sync += incr_row_col(write_row, write_col, write_row, write_col, incr_write_row, count)
+
+        m.d.comb += next_read_row.eq(read_row)
+        m.d.comb += next_read_col.eq(read_col)
+        m.d.sync += read_row.eq(next_read_row)
+        m.d.sync += read_col.eq(next_read_col)
+
+        @def_method(m, self.read, level != 0)
+        def _(count):
+            m.d.comb += read_count.eq(Mux(count > read_available, read_available, count))
+            m.d.comb += incr_row_col(next_read_row, next_read_col, read_row, read_col, incr_read_row, read_count)
+            return {"count": read_count, "data": head}
+
+        @def_method(m, self.peek, level != 0)
+        def _():
+            return {"count": read_available, "data": head}
+
+        @def_method(m, self.clear)
+        def _() -> None:
+            m.d.sync += write_row.eq(0)
+            m.d.sync += write_col.eq(0)
+            m.d.sync += read_row.eq(0)
+            m.d.sync += read_col.eq(0)
+            m.d.sync += level.eq(0)
 
         return m
 
