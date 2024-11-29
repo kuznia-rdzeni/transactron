@@ -1,4 +1,5 @@
 from collections import defaultdict
+from collections.abc import Iterator
 from contextlib import contextmanager
 from enum import Enum, auto
 from itertools import count
@@ -12,7 +13,7 @@ from typing import (
     Self,
     runtime_checkable,
     TYPE_CHECKING,
-    Iterator,
+    Optional,
 )
 from amaranth import *
 

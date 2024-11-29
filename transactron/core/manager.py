@@ -1,5 +1,6 @@
 from collections import defaultdict, deque
-from typing import Callable, Iterable, Sequence, TypeAlias, Tuple
+from collections.abc import Callable, Iterable, Sequence, Collection, Mapping
+from typing import TypeAlias, Optional
 from os import environ
 from graphlib import TopologicalSorter
 from amaranth import *
@@ -89,7 +90,7 @@ class TransactionManager(Elaboratable):
         self.transactions.append(transaction)
 
     @staticmethod
-    def _conflict_graph(method_map: MethodMap) -> Tuple[TransactionGraph, PriorityOrder]:
+    def _conflict_graph(method_map: MethodMap) -> tuple[TransactionGraph, PriorityOrder]:
         """_conflict_graph
 
         This function generates the graph of transaction conflicts. Conflicts

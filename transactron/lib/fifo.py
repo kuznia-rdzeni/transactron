@@ -6,6 +6,9 @@ from transactron.utils.amaranth_ext import mod_incr
 from transactron.utils.transactron_helpers import from_method_layout, get_src_loc
 
 
+__all__ = ["BasicFifo", "Semaphore"]
+
+
 class BasicFifo(Elaboratable):
     """Transactional FIFO queue
 

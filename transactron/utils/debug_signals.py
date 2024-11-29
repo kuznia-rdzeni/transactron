@@ -4,6 +4,9 @@ from ._typing import SignalBundle, HasDebugSignals
 from collections.abc import Collection, Mapping
 
 
+__all__ = ["auto_debug_signals"]
+
+
 def auto_debug_signals(thing) -> SignalBundle:
     """Automatic debug signal generation.
 

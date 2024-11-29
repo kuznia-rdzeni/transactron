@@ -1,6 +1,7 @@
 import random
 from amaranth import *
 from amaranth.sim import *
+from amaranth.lib.data import StructLayout
 
 from transactron import *
 from transactron.testing import TestCaseWithSimulator, TestbenchContext
@@ -11,7 +12,7 @@ from transactron.lib import *
 
 class ReverseMethodMockTestCircuit(Elaboratable):
     def __init__(self, width):
-        self.method = Method(i=from_method_layout([("input", width)]), o=from_method_layout([("output", width)]))
+        self.method = Method(i=StructLayout({"input": width}), o=StructLayout({"output": width}))
 
     def elaborate(self, platform):
         m = TModule()
