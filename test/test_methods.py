@@ -3,6 +3,7 @@ import pytest
 import random
 from amaranth import *
 from amaranth.sim import *
+from amaranth.lib.data import StructLayout
 
 from transactron.testing import TestCaseWithSimulator, TestbenchIO, data_layout
 
@@ -45,7 +46,7 @@ class TestDefMethod(TestCaseWithSimulator):
         self.do_test_definition(definition)
 
     def test_fields_valid2(self):
-        rec = Signal(from_method_layout([("bar1", 4), ("bar2", 6)]))
+        rec = Signal(StructLayout({"bar1": 4, "bar2": 6}))
 
         def definition(arg):
             return {"foo1": Signal(3), "foo2": rec}
