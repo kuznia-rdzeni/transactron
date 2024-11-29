@@ -117,7 +117,6 @@ class TestCountLeadingZeros(TestCaseWithSimulator):
         random.seed(14)
         self.test_number = 40
         self.m = CLZTestCircuit(self.size)
-        yield
 
     def check(self, sim: TestbenchContext, n):
         sim.set(self.m.sig_in, n)
