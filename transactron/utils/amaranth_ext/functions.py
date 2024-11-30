@@ -1,16 +1,13 @@
 from amaranth import *
+from amaranth.hdl import ShapeCastable, ValueCastable
 from amaranth.utils import bits_for, exact_log2
 from amaranth.lib import data
 from collections.abc import Iterable, Mapping
+
+from amaranth_types.types import ValueLike
 from transactron.utils._typing import SignalBundle
 
-__all__ = [
-    "mod_incr",
-    "popcount",
-    "count_leading_zeros",
-    "count_trailing_zeros",
-    "flatten_signals",
-]
+__all__ = ["mod_incr", "popcount", "count_leading_zeros", "count_trailing_zeros", "flatten_signals", "shape_of"]
 
 
 def mod_incr(sig: Value, mod: int) -> Value:
@@ -97,3 +94,12 @@ def flatten_signals(signals: SignalBundle) -> Iterable[Signal]:
             yield from flatten_signals(signals[x])
     else:
         yield signals
+
+
+def shape_of(value: ValueLike) -> Shape | ShapeCastable:
+    if isinstance(value, ValueCastable):
+        shape = value.shape()
+        assert isinstance(shape, (Shape, ShapeCastable))
+        return shape
+    else:
+        return Value.cast(value).shape()
