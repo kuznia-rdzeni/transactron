@@ -5,8 +5,8 @@ import amaranth.lib.data as data
 from amaranth_types.types import ShapeLike
 from transactron import Method, def_method, Priority, TModule
 from transactron.utils._typing import ValueLike, MethodLayout, SrcLoc, MethodStruct
-from transactron.utils.amaranth_ext import mod_incr, rotate_vec_left, rotate_vec_right
-from transactron.utils.amaranth_ext.shifter import rotate_right
+from transactron.utils.amaranth_ext import mod_incr, rotate_vec_right, rotate_vec_left
+from transactron.utils.amaranth_ext.shifter import rotate_left
 from transactron.utils.transactron_helpers import from_method_layout, get_src_loc
 
 
@@ -192,7 +192,7 @@ class WideFifo(Elaboratable):
             m.d.comb += port.addr.eq(Mux(i >= write_col, write_row, incr_write_row))
 
         read_data = [port.data for port in read_ports]
-        head = rotate_vec_left(read_data, read_col)[: self.read_width]
+        head = rotate_vec_right(read_data, read_col)[: self.read_width]
 
         head_sig = [Signal.like(item) for item in head]
         for item_sig, item in zip(head_sig, head):
@@ -212,10 +212,10 @@ class WideFifo(Elaboratable):
         @def_method(m, self.write, remaining != 0, validate_arguments=lambda count, data: count <= remaining)
         def _(count, data):
             ext_data = list(data) + [C(0, self.shape)] * (max_width - self.write_width)
-            shifted_data = rotate_vec_right(ext_data, write_col)
+            shifted_data = rotate_vec_left(ext_data, write_col)
             ens = Signal(max_width)
             m.d.comb += ens.eq(Cat(i < count for i in range(max_width)))
-            m.d.comb += Cat(port.en for port in write_ports).eq(rotate_right(ens, write_col))
+            m.d.comb += Cat(port.en for port in write_ports).eq(rotate_left(ens, write_col))
             m.d.av_comb += [write_ports[i].data.eq(shifted_data[i]) for i in range(max_width)]
             m.d.comb += write_count.eq(count)
             m.d.sync += incr_row_col(write_row, write_col, write_row, write_col, incr_write_row, count)
