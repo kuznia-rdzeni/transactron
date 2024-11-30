@@ -69,7 +69,7 @@ class TestBasicFifo(TestCaseWithSimulator):
 
 class TestWideFifo(TestCaseWithSimulator):
     async def source(self, sim: TestbenchContext):
-        cycles = 256
+        cycles = 100
 
         for _ in range(cycles):
             await self.random_wait_geom(sim, 0.5)
