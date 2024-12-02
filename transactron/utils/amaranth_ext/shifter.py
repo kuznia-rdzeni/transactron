@@ -35,7 +35,7 @@ def generic_shift_right(value1: ValueLike, value2: ValueLike, offset: ValueLike)
 def generic_shift_left(value1: ValueLike, value2: ValueLike, offset: ValueLike) -> Value:
     value1 = Value.cast(value1)
     value2 = Value.cast(value2)
-    return Cat(*reversed(generic_shift_right(Cat(*reversed(value2)), Cat(*reversed(value1)), offset)))
+    return Cat(*reversed(generic_shift_right(Cat(*reversed(value1)), Cat(*reversed(value2)), offset)))
 
 
 def shift_right(value: ValueLike, offset: ValueLike, placeholder: ValueLike = 0) -> Value:
@@ -113,7 +113,7 @@ def generic_shift_vec_left(
 def generic_shift_vec_left(
     data1: Sequence[ValueLike | ValueCastable], data2: Sequence[ValueLike | ValueCastable], offset: ValueLike
 ) -> Sequence[Value | ValueCastable]:
-    return list(reversed(generic_shift_vec_right(list(reversed(data2)), list(reversed(data1)), offset)))
+    return list(reversed(generic_shift_vec_right(list(reversed(data1)), list(reversed(data2)), offset)))
 
 
 @overload
