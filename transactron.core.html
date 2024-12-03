@@ -137,7 +137,7 @@ If omitted, a new one is created.</p>
 are never granted in the same clock cycle.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="transactron.core.manager.TransactionManager.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">cc_scheduler:</span> <span class="pre">~typing.Callable[[~transactron.core.manager.MethodMap,</span> <span class="pre">dict[transactron.core.transaction.Transaction,</span> <span class="pre">set[transactron.core.transaction.Transaction]],</span> <span class="pre">set[transactron.core.transaction.Transaction],</span> <span class="pre">dict[transactron.core.transaction.Transaction,</span> <span class="pre">int]],</span> <span class="pre">~amaranth.hdl._dsl.Module]</span> <span class="pre">=</span> <span class="pre">&lt;function</span> <span class="pre">eager_deterministic_cc_scheduler&gt;</span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.core.manager.TransactionManager.__init__" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">cc_scheduler:</span> <span class="pre">~collections.abc.Callable[[~transactron.core.manager.MethodMap,</span> <span class="pre">dict[transactron.core.transaction.Transaction,</span> <span class="pre">set[transactron.core.transaction.Transaction]],</span> <span class="pre">set[transactron.core.transaction.Transaction],</span> <span class="pre">dict[transactron.core.transaction.Transaction,</span> <span class="pre">int]],</span> <span class="pre">~amaranth.hdl._dsl.Module]</span> <span class="pre">=</span> <span class="pre">&lt;function</span> <span class="pre">eager_deterministic_cc_scheduler&gt;</span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.core.manager.TransactionManager.__init__" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -827,7 +827,7 @@ Defaults to undefined priority relation.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="transactron.core.transaction_base.TransactionBase.context">
-<span class="sig-name descname"><span class="pre">context</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">m</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#transactron.core.tmodule.TModule" title="transactron.core.tmodule.TModule"><span class="pre">TModule</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Iterator" title="(in Python v3.13)"><span class="pre">Iterator</span></a><span class="p"><span class="pre">[</span></span><span class="pre">TransactionOrMethodBound</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#transactron.core.transaction_base.TransactionBase.context" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">context</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">m</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#transactron.core.tmodule.TModule" title="transactron.core.tmodule.TModule"><span class="pre">TModule</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterator" title="(in Python v3.13)"><span class="pre">Iterator</span></a><span class="p"><span class="pre">[</span></span><span class="pre">TransactionOrMethodBound</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#transactron.core.transaction_base.TransactionBase.context" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
@@ -977,7 +977,7 @@ but mutually exclusive, with this <cite>Transaction</cite> or <cite>Method</cite
 
   <div role="contentinfo">
     <p>&#169; Copyright Kuźnia Rdzeni, 2024.
-      <span class="lastupdated">Last updated on 10:42 2024-11-29.
+      <span class="lastupdated">Last updated on 17:22 2024-12-03.
       </span></p>
   </div>
 
