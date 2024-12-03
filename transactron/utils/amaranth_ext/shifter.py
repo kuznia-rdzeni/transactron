@@ -1,7 +1,7 @@
 from amaranth import *
 from amaranth.hdl import ValueCastable
 from collections.abc import Sequence
-from typing import Optional, TypeVar, overload
+from typing import Optional, TypeVar, cast, overload
 from amaranth_types.types import ValueLike
 from .functions import shape_of
 
@@ -134,7 +134,11 @@ def shift_vec_right(
     placeholder: Optional[ValueLike | ValueCastable] = None,
 ) -> Sequence[Value | ValueCastable]:
     if placeholder is None:
-        placeholder = C(0, shape_of(data[0]))
+        shape = shape_of(data[0])
+        if isinstance(shape, Shape):
+            placeholder = C(0, shape)
+        else:
+            placeholder = cast(ValueLike, shape.from_bits(0))
     return generic_shift_vec_right(data, [placeholder] * len(data), offset)
 
 
@@ -156,7 +160,11 @@ def shift_vec_left(
     placeholder: Optional[ValueLike | ValueCastable] = None,
 ) -> Sequence[Value | ValueCastable]:
     if placeholder is None:
-        placeholder = C(0, shape_of(data[0]))
+        shape = shape_of(data[0])
+        if isinstance(shape, Shape):
+            placeholder = C(0, shape)
+        else:
+            placeholder = cast(ValueLike, shape.from_bits(0))
     return generic_shift_vec_left(data, [placeholder] * len(data), offset)
 
 
