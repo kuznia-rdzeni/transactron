@@ -1,8 +1,11 @@
+from amaranth_types.types import ShapeLike
 import pytest
 from amaranth import *
+from amaranth.lib import data
 
 from transactron.lib import AdapterTrans, BasicFifo
 from transactron.lib.fifo import WideFifo
+from transactron.utils.amaranth_ext import const_of
 
 from transactron.testing import TestCaseWithSimulator, TestbenchIO, data_layout, TestbenchContext
 from collections import deque
@@ -74,7 +77,7 @@ class TestWideFifo(TestCaseWithSimulator):
         for _ in range(cycles):
             await self.random_wait_geom(sim, 0.5)
             count = random.randint(1, self.write_width)
-            data = [random.randrange(2**self.bits) for _ in range(self.write_width)]
+            data = [const_of(random.randrange(2**self.bits), self.shape) for _ in range(self.write_width)]
             await self.circ.write.call(sim, count=count, data=data)
             await sim.delay(2e-9)
             self.expq.extend(data[:count])
@@ -100,13 +103,15 @@ class TestWideFifo(TestCaseWithSimulator):
             else:
                 assert not self.expq
 
+    @pytest.mark.parametrize("shape", [4, data.ArrayLayout(2, 2)])
     @pytest.mark.parametrize("depth", [2, 5])
     @pytest.mark.parametrize("read_width, write_width", [(1, 1), (2, 2), (1, 3), (3, 1)])
-    def test_randomized(self, depth: int, read_width: int, write_width: int):
+    def test_randomized(self, shape: ShapeLike, depth: int, read_width: int, write_width: int):
         random.seed(42)
 
-        self.bits = 4
-        self.circ = SimpleTestCircuit(WideFifo(self.bits, depth, read_width, write_width))
+        self.shape = shape
+        self.bits = Shape.cast(shape).width
+        self.circ = SimpleTestCircuit(WideFifo(shape, depth, read_width, write_width))
         self.read_width = read_width
         self.write_width = write_width
 
