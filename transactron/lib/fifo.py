@@ -6,6 +6,7 @@ from amaranth_types.types import ShapeLike
 from transactron import Method, def_method, Priority, TModule
 from transactron.utils._typing import ValueLike, MethodLayout, SrcLoc, MethodStruct
 from transactron.utils.amaranth_ext import mod_incr, rotate_vec_right, rotate_vec_left
+from transactron.utils.amaranth_ext.functions import const_of
 from transactron.utils.amaranth_ext.shifter import rotate_left
 from transactron.utils.transactron_helpers import from_method_layout, get_src_loc
 
@@ -211,7 +212,7 @@ class WideFifo(Elaboratable):
 
         @def_method(m, self.write, remaining != 0, validate_arguments=lambda count, data: count <= remaining)
         def _(count, data):
-            ext_data = list(data) + [C(0, self.shape)] * (max_width - self.write_width)
+            ext_data = list(data) + [const_of(0, self.shape)] * (max_width - self.write_width)
             shifted_data = rotate_vec_left(ext_data, write_col)
             ens = Signal(max_width)
             m.d.comb += ens.eq(Cat(i < count for i in range(max_width)))

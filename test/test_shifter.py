@@ -4,8 +4,9 @@ from collections.abc import Callable, Iterable, Sequence
 from typing import Any, cast
 from amaranth import *
 from amaranth.lib import data
-from amaranth_types.types import ShapeCastable, ShapeLike, ValueLike
+from amaranth_types.types import ShapeLike, ValueLike
 from transactron.utils import assign
+from transactron.utils.amaranth_ext.functions import const_of
 from transactron.utils.amaranth_ext.shifter import *
 from transactron.testing import TestCaseWithSimulator, TestbenchContext
 
@@ -124,10 +125,7 @@ class TestVecShifter(TestCaseWithSimulator):
     )
     def test_vec_shifter(self, shape, shift_fun, shift_kwargs, test_fun):
         def mk_const(x):
-            if isinstance(shape, ShapeCastable):
-                return shape.from_bits(0)
-            else:
-                return C(x, shape)
+            return const_of(x, shape)
 
         width = 8
         tests = 50
