@@ -30,7 +30,6 @@ class BasicFifo(Elaboratable):
         Ready only if the FIFO is not full.
     clear: Method
         Clears the FIFO entries. Has priority over `read` and `write` methods.
-        Note that, clearing the FIFO doesn't reinitialize it to values passed in `init` parameter.
 
     """
 
@@ -120,9 +119,51 @@ class BasicFifo(Elaboratable):
 
 
 class WideFifo(Elaboratable):
+    """Transactional FIFO queue which allows reading or writing multiple elements per cycle.
+
+    The `read`, `write` and `peek` methods use the following layout, where `k` denotes the
+    maximum number of elements which can be inserted or removed:
+
+    .. highlight:: python
+    .. code-block:: python
+
+        StructLayout({"count": range(k+1), "data": ArrayLayout(shape, k)})
+
+    Attributes
+    ----------
+    read: Method
+        Reads from the FIFO. Accepts a single argument `count`, denoting the number of elements
+        to be read. Returns `count` elements, or less, if the queue has less than `count` elements.
+        Ready only if the FIFO is not empty.
+    peek: Method
+        Returns the elements at the front (without removing them). Ready only if the FIFO
+        is not empty. The method is nonexclusive.
+    write: Method
+        Writes to the FIFO. Ready only if the FIFO has enough free slots to accept the write.
+    clear: Method
+        Clears the FIFO entries. Has priority over `read` and `write` methods.
+    """
+
     def __init__(
         self, shape: ShapeLike, depth: int, read_width: int, write_width: Optional[int], *, src_loc: int | SrcLoc = 0
     ) -> None:
+        """
+        Parameters
+        ----------
+        shape: ShapeLike
+            Shape of the data stored in the queue.
+        depth: int
+            Depth of the FIFO. The number of elements which can be stored in the queue
+            is `depth * max(read_width, write_width)`.
+        read_width: int
+            Number of elements which can be simultaneously read from the queue.
+        write_width: int, optional
+            Number of elements which can be simultaneously written to the queue.
+            If omitted, it is assumed to be equal to `read_width`.
+        src_loc: int | SrcLoc
+            How many stack frames deep the source location is taken from.
+            Alternatively, the source location to use instead of the default.
+        """
         if write_width is None:
             write_width = read_width
 
