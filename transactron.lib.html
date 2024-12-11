@@ -770,8 +770,7 @@ is not empty. The method is nonexclusive.</p>
 <dt><strong>write: Method</strong></dt><dd><p>Writes to the FIFO. Accepts a structure, returns empty result.
 Ready only if the FIFO is not full.</p>
 </dd>
-<dt><strong>clear: Method</strong></dt><dd><p>Clears the FIFO entries. Has priority over <cite>read</cite> and <cite>write</cite> methods.
-Note that, clearing the FIFO doesn’t reinitialize it to values passed in <cite>init</cite> parameter.</p>
+<dt><strong>clear: Method</strong></dt><dd><p>Clears the FIFO entries. Has priority over <cite>read</cite> and <cite>write</cite> methods.</p>
 </dd>
 </dl>
 </dd>
@@ -808,6 +807,59 @@ Alternatively, the source location to use instead of the default.</p>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>size: int</strong></dt><dd><p>Size of the semaphore.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="transactron.lib.fifo.WideFifo">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">transactron.lib.fifo.</span></span><span class="sig-name descname"><span class="pre">WideFifo</span></span><a class="headerlink" href="#transactron.lib.fifo.WideFifo" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Elaboratable</span></code></p>
+<p>Transactional FIFO queue which allows reading or writing multiple elements per cycle.</p>
+<p>The <cite>read</cite>, <cite>write</cite> and <cite>peek</cite> methods use the following layout, where <cite>k</cite> denotes the
+maximum number of elements which can be inserted or removed:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">StructLayout</span><span class="p">({</span><span class="s2">&quot;count&quot;</span><span class="p">:</span> <span class="nb">range</span><span class="p">(</span><span class="n">k</span><span class="o">+</span><span class="mi">1</span><span class="p">),</span> <span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="n">ArrayLayout</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">k</span><span class="p">)})</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Attributes</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>read: Method</strong></dt><dd><p>Reads from the FIFO. Accepts a single argument <cite>count</cite>, denoting the number of elements
+to be read. Returns <cite>count</cite> elements, or less, if the queue has less than <cite>count</cite> elements.
+Ready only if the FIFO is not empty.</p>
+</dd>
+<dt><strong>peek: Method</strong></dt><dd><p>Returns the elements at the front (without removing them). Ready only if the FIFO
+is not empty. The method is nonexclusive.</p>
+</dd>
+<dt><strong>write: Method</strong></dt><dd><p>Writes to the FIFO. Ready only if the FIFO has enough free slots to accept the write.</p>
+</dd>
+<dt><strong>clear: Method</strong></dt><dd><p>Clears the FIFO entries. Has priority over <cite>read</cite> and <cite>write</cite> methods.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.lib.fifo.WideFifo.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shape</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/latest/reference.html#amaranth.hdl.Shape" title="(in Amaranth language &amp; toolchain v0.6.0.dev72)"><span class="pre">amaranth.hdl._ast.Shape</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/latest/reference.html#amaranth.hdl.ShapeCastable" title="(in Amaranth language &amp; toolchain v0.6.0.dev72)"><span class="pre">amaranth.hdl._ast.ShapeCastable</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#range" title="(in Python v3.13)"><span class="pre">range</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.13)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/enum.html#enum.Enum" title="(in Python v3.13)"><span class="pre">enum.Enum</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">depth</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">read_width</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">write_width</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.13)"><span class="pre">Optional</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src_loc</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#transactron.lib.fifo.WideFifo.__init__" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>shape: ShapeLike</strong></dt><dd><p>Shape of the data stored in the queue.</p>
+</dd>
+<dt><strong>depth: int</strong></dt><dd><p>Depth of the FIFO. The number of elements which can be stored in the queue
+is <cite>depth * max(read_width, write_width)</cite>.</p>
+</dd>
+<dt><strong>read_width: int</strong></dt><dd><p>Number of elements which can be simultaneously read from the queue.</p>
+</dd>
+<dt><strong>write_width: int, optional</strong></dt><dd><p>Number of elements which can be simultaneously written to the queue.
+If omitted, it is assumed to be equal to <cite>read_width</cite>.</p>
+</dd>
+<dt><strong>src_loc: int | SrcLoc</strong></dt><dd><p>How many stack frames deep the source location is taken from.
+Alternatively, the source location to use instead of the default.</p>
 </dd>
 </dl>
 </dd>
@@ -2295,7 +2347,7 @@ Alternatively, the source location to use instead of the default.</p>
 
   <div role="contentinfo">
     <p>&#169; Copyright Kuźnia Rdzeni, 2024.
-      <span class="lastupdated">Last updated on 17:22 2024-12-03.
+      <span class="lastupdated">Last updated on 16:26 2024-12-11.
       </span></p>
   </div>
 
