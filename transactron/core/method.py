@@ -1,4 +1,4 @@
-from collections.abc import Sequence
+from collections.abc import Iterable, Sequence
 
 from transactron.utils import *
 from amaranth import *
@@ -329,6 +329,17 @@ class Methods(Sequence[Method]):
         if isinstance(kwargs["src_loc"], int):
             kwargs["src_loc"] += 1
         self._methods = [Method(**{**kwargs, "name": f"{self.name}{i}"}) for i in range(count)]
+
+    @staticmethod
+    def like(other: "Methods", *, name: Optional[str] = None, src_loc: int | SrcLoc = 0) -> "Methods":
+        return Methods(len(other), name=name, i=other.layout_in, o=other.layout_out, src_loc=get_src_loc(src_loc))
+
+    def proxy(self, m: "TModule", methods: Iterable[Method]):
+        methods = list(methods)
+        if len(methods) != len(self):
+            raise ValueError("number of methods not matching")
+        for lhs, rhs in zip(self, methods):
+            lhs.proxy(m, rhs)
 
     @property
     def layout_in(self):
