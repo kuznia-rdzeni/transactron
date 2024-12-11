@@ -107,13 +107,13 @@ class TestVecShifter(TestCaseWithSimulator):
             (shift_vec_right, lambda mkc: [], lambda val, offset, mkc: val[offset:] + [mkc(0)] * offset),
             (
                 shift_vec_left,
-                lambda mkc: [("placeholder", mkc(0))],
-                lambda val, offset, mkc: [mkc(0)] * offset + val[: len(val) - offset],
+                lambda mkc: [("placeholder", mkc(1))],
+                lambda val, offset, mkc: [mkc(1)] * offset + val[: len(val) - offset],
             ),
             (
                 shift_vec_right,
-                lambda mkc: [("placeholder", mkc(0))],
-                lambda val, offset, mkc: val[offset:] + [mkc(0)] * offset,
+                lambda mkc: [("placeholder", mkc(1))],
+                lambda val, offset, mkc: val[offset:] + [mkc(1)] * offset,
             ),
             (
                 rotate_vec_left,

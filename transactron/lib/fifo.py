@@ -262,6 +262,8 @@ class WideFifo(Elaboratable):
             m.d.comb += write_count.eq(count)
             m.d.sync += incr_row_col(write_row, write_col, write_row, write_col, incr_write_row, count)
 
+        # The next_read_{row,col} signals contain the value written to read_{row,col} registers in the next cycle.
+        # They following assignments are the defaults, which are overridden in the read method.
         m.d.comb += next_read_row.eq(read_row)
         m.d.comb += next_read_col.eq(read_col)
         m.d.sync += read_row.eq(next_read_row)

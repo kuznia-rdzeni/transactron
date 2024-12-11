@@ -79,7 +79,7 @@ class TestWideFifo(TestCaseWithSimulator):
             count = random.randint(1, self.write_width)
             data = [const_of(random.randrange(2**self.bits), self.shape) for _ in range(self.write_width)]
             await self.circ.write.call(sim, count=count, data=data)
-            await sim.delay(2e-9)
+            await sim.delay(2e-9)  # Ensures following code runs after peek_verifier and target
             self.expq.extend(data[:count])
 
         self.done = True
@@ -89,7 +89,7 @@ class TestWideFifo(TestCaseWithSimulator):
             await self.random_wait_geom(sim, 0.5)
             count = random.randint(1, self.read_width)
             v = await self.circ.read.call_try(sim, count=count)
-            await sim.delay(1e-9)
+            await sim.delay(1e-9)  # Ensures following code runs after peek_verifier
             if v is not None:
                 assert v.count == min(count, len(self.expq))
                 assert v.data[: v.count] == [self.expq.popleft() for _ in range(v.count)]

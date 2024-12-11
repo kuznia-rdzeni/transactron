@@ -26,6 +26,27 @@ _T_ValueCastable = TypeVar("_T_ValueCastable", bound=ValueCastable)
 
 
 def generic_shift_right(value1: ValueLike, value2: ValueLike, offset: ValueLike) -> Value:
+    """Generic right shift function.
+
+    Shift `value1` right by `offset` bits, fill the empty space with bits
+    from `value2`. The bit vectors `value1` and `value2` need to be of the
+    same width. This function is used to implement `shift_right` and
+    `rotate_right`.
+
+    Parameters
+    ----------
+    value1 : ValueLike
+        The bit vector to be shifted.
+    value2 : ValueLike
+        The bit vector used to fill space after shifting.
+    offset : ValueLike
+        The number of bits to shift.
+
+    Returns
+    -------
+    Value
+        The shifted value, the same width as `value1`.
+    """
     value1 = Value.cast(value1)
     value2 = Value.cast(value2)
     assert len(value1) == len(value2)
@@ -33,12 +54,56 @@ def generic_shift_right(value1: ValueLike, value2: ValueLike, offset: ValueLike)
 
 
 def generic_shift_left(value1: ValueLike, value2: ValueLike, offset: ValueLike) -> Value:
+    """Generic left shift function.
+
+    Shift `value1` left by `offset` bits, fill the empty space with bits
+    from `value2`. The bit vectors `value1` and `value2` need to be of the
+    same width. This function is used to implement `shift_left` and
+    `rotate_left`.
+
+    Parameters
+    ----------
+    value1 : ValueLike
+        The bit vector to be shifted.
+    value2 : ValueLike
+        The bit vector used to fill space after shifting.
+    offset : ValueLike
+        The number of bits to shift.
+
+    Returns
+    -------
+    Value
+        The shifted value, the same width as `value1`.
+    """
     value1 = Value.cast(value1)
     value2 = Value.cast(value2)
     return Cat(*reversed(generic_shift_right(Cat(*reversed(value1)), Cat(*reversed(value2)), offset)))
 
 
 def shift_right(value: ValueLike, offset: ValueLike, placeholder: ValueLike = 0) -> Value:
+    """Right shift function.
+
+    Shift `value` right by `offset` bits, fill the empty space with the
+    `placeholder` bit (0 by default).
+
+    Differs from `value.shift_right(offset)` in that the shift amount is
+    variable. Differs from `value >> offset` in that the placeholder bit
+    can be customized.
+
+    Parameters
+    ----------
+    value : ValueLike
+        The bit vector to be shifted.
+    offset : ValueLike
+        The number of bits to shift.
+    placeholder : ValueLike, optional
+        The bit used to fill space after shifting.
+
+    Returns
+    -------
+    Value
+        The shifted value, the same width as `value`.
+    """
     value = Value.cast(value)
     placeholder = Value.cast(placeholder)
     assert len(placeholder) == 1
@@ -46,6 +111,30 @@ def shift_right(value: ValueLike, offset: ValueLike, placeholder: ValueLike = 0)
 
 
 def shift_left(value: ValueLike, offset: ValueLike, placeholder: ValueLike = 0) -> Value:
+    """Left shift function.
+
+    Shift `value` left by `offset` bits, fill the empty space with the
+    `placeholder` bit (0 by default).
+
+    Differs from `value.shift_left(offset)` in that the shift amount is
+    variable. Differs from `value << offset` in that the placeholder bit
+    can be customized. Differs from both in that the result is of the
+    same width as `value`.
+
+    Parameters
+    ----------
+    value : ValueLike
+        The bit vector to be shifted.
+    offset : ValueLike
+        The number of bits to shift.
+    placeholder : ValueLike, optional
+        The bit used to fill space after shifting.
+
+    Returns
+    -------
+    Value
+        The shifted value, the same width as `value`.
+    """
     value = Value.cast(value)
     placeholder = Value.cast(placeholder)
     assert len(placeholder) == 1
@@ -53,10 +142,48 @@ def shift_left(value: ValueLike, offset: ValueLike, placeholder: ValueLike = 0) 
 
 
 def rotate_right(value: ValueLike, offset: ValueLike) -> Value:
+    """Right rotate function.
+
+    Rotate `value` right by `offset` bits.
+
+    Differs from `value.rotate_right(offset)` in that the shift amount is
+    variable.
+
+    Parameters
+    ----------
+    value : ValueLike
+        The bit vector to be rotated.
+    offset : ValueLike
+        The number of bits to rotate.
+
+    Returns
+    -------
+    Value
+        The rotated value, the same width as `value`.
+    """
     return generic_shift_right(value, value, offset)
 
 
 def rotate_left(value: ValueLike, offset: ValueLike) -> Value:
+    """Left rotate function.
+
+    Rotate `value` left by `offset` bits.
+
+    Differs from `value.rotate_left(offset)` in that the shift amount is
+    variable.
+
+    Parameters
+    ----------
+    value : ValueLike
+        The bit vector to be rotated.
+    offset : ValueLike
+        The number of bits to rotate.
+
+    Returns
+    -------
+    Value
+        The rotated value, the same width as `value`.
+    """
     return generic_shift_left(value, value, offset)
 
 
@@ -75,6 +202,30 @@ def generic_shift_vec_right(
 def generic_shift_vec_right(
     data1: Sequence[ValueLike | ValueCastable], data2: Sequence[ValueLike | ValueCastable], offset: ValueLike
 ) -> Sequence[Value | ValueCastable]:
+    """Generic right shift function for bit vectors and complex data.
+
+    Given `data1` and `data2` which are sequences of `ValueLike` or
+    `ValueCastable`, shift `data1` right by `offset` bits, fill the empty
+    space with entries from `data2`. The sequences `data1` and `value2` need
+    to be of the same length, and their entries must be of the same width.
+    This function is used to implement `shift_vec_right` and
+    `rotate_vec_right`.
+
+    Parameters
+    ----------
+    data1 : Sequence[ValueLike | ValueCastable]
+        The sequence of data to be shifted.
+    data2 : Sequence[ValueLike | ValueCastable]
+        The sequence of data used to fill space after shifting.
+    offset : ValueLike
+        The number of entries to shift.
+
+    Returns
+    -------
+    Sequence[Value | ValueCastable]
+        The shifted sequence, the same length as `data1`.
+    """
+    assert len(data1) > 0
     shape = shape_of(data1[0])
 
     data1_values = [Value.cast(entry) for entry in data1]
@@ -113,6 +264,29 @@ def generic_shift_vec_left(
 def generic_shift_vec_left(
     data1: Sequence[ValueLike | ValueCastable], data2: Sequence[ValueLike | ValueCastable], offset: ValueLike
 ) -> Sequence[Value | ValueCastable]:
+    """Generic left shift function for bit vectors and complex data.
+
+    Given `data1` and `data2` which are sequences of `ValueLike` or
+    `ValueCastable`, shift `data1` left by `offset` bits, fill the empty
+    space with entries from `data2`. The sequences `data1` and `value2` need
+    to be of the same length, and their entries must be of the same width.
+    This function is used to implement `shift_vec_left` and
+    `rotate_vec_left`.
+
+    Parameters
+    ----------
+    data1 : Sequence[ValueLike | ValueCastable]
+        The sequence of data to be shifted.
+    data2 : Sequence[ValueLike | ValueCastable]
+        The sequence of data used to fill space after shifting.
+    offset : ValueLike
+        The number of entries to shift.
+
+    Returns
+    -------
+    Sequence[Value | ValueCastable]
+        The shifted sequence, the same length as `data1`.
+    """
     return list(reversed(generic_shift_vec_right(list(reversed(data1)), list(reversed(data2)), offset)))
 
 
@@ -133,6 +307,26 @@ def shift_vec_right(
     offset: ValueLike,
     placeholder: Optional[ValueLike | ValueCastable] = None,
 ) -> Sequence[Value | ValueCastable]:
+    """Right shift function for bit vectors and complex data.
+
+    Given `data` which is a sequence of `ValueLike` or `ValueCastable`, shift
+    `data` right by `offset` bits, fill the empty space with `placeholder`.
+    The entries of `data` must be of the same width.
+
+    Parameters
+    ----------
+    data : Sequence[ValueLike | ValueCastable]
+        The sequence of data to be shifted.
+    offset : ValueLike
+        The number of entries to shift.
+    placeholder : ValueLike | ValueCastable, optional
+        The data used to fill space after shifting.
+
+    Returns
+    -------
+    Sequence[Value | ValueCastable]
+        The shifted sequence, the same length as `data`.
+    """
     if placeholder is None:
         shape = shape_of(data[0])
         if isinstance(shape, Shape):
@@ -159,6 +353,26 @@ def shift_vec_left(
     offset: ValueLike,
     placeholder: Optional[ValueLike | ValueCastable] = None,
 ) -> Sequence[Value | ValueCastable]:
+    """Left shift function for bit vectors and complex data.
+
+    Given `data` which is a sequence of `ValueLike` or `ValueCastable`, shift
+    `data` left by `offset` bits, fill the empty space with `placeholder`.
+    The entries of `data` must be of the same width.
+
+    Parameters
+    ----------
+    data : Sequence[ValueLike | ValueCastable]
+        The sequence of data to be shifted.
+    offset : ValueLike
+        The number of entries to shift.
+    placeholder : ValueLike | ValueCastable, optional
+        The data used to fill space after shifting.
+
+    Returns
+    -------
+    Sequence[Value | ValueCastable]
+        The shifted sequence, the same length as `data`.
+    """
     if placeholder is None:
         placeholder = cast(ValueLike, const_of(0, shape_of(data[0])))
     return generic_shift_vec_left(data, [placeholder] * len(data), offset)
@@ -173,6 +387,24 @@ def rotate_vec_right(data: Sequence[ValueLike], offset: ValueLike) -> Sequence[V
 
 
 def rotate_vec_right(data: Sequence[ValueLike | ValueCastable], offset: ValueLike) -> Sequence[Value | ValueCastable]:
+    """Right rotate function for bit vectors and complex data.
+
+    Given `data` which is a sequence of `ValueLike` or `ValueCastable`, rotate
+    `data` right by `offset` bits. The entries of `data` must be of the same
+    width.
+
+    Parameters
+    ----------
+    data : Sequence[ValueLike | ValueCastable]
+        The sequence of data to be rotated.
+    offset : ValueLike
+        The number of entries to rotate.
+
+    Returns
+    -------
+    Sequence[Value | ValueCastable]
+        The rotated sequence, the same length as `data`.
+    """
     return generic_shift_vec_right(data, data, offset)
 
 
@@ -185,4 +417,22 @@ def rotate_vec_left(data: Sequence[ValueLike], offset: ValueLike) -> Sequence[Va
 
 
 def rotate_vec_left(data: Sequence[ValueLike | ValueCastable], offset: ValueLike) -> Sequence[Value | ValueCastable]:
+    """Left rotate function for bit vectors and complex data.
+
+    Given `data` which is a sequence of `ValueLike` or `ValueCastable`, rotate
+    `data` left by `offset` bits. The entries of `data` must be of the same
+    width.
+
+    Parameters
+    ----------
+    data : Sequence[ValueLike | ValueCastable]
+        The sequence of data to be rotated.
+    offset : ValueLike
+        The number of entries to rotate.
+
+    Returns
+    -------
+    Sequence[Value | ValueCastable]
+        The rotated sequence, the same length as `data`.
+    """
     return generic_shift_vec_left(data, data, offset)
