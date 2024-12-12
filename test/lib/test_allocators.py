@@ -4,6 +4,7 @@ import random
 from amaranth import *
 from transactron import *
 from transactron.lib.allocators import *
+from transactron.lib.allocators import LRUOrderAllocator
 from transactron.testing import (
     SimpleTestCircuit,
     TestCaseWithSimulator,
@@ -52,3 +53,48 @@ class TestPriorityEncoderAllocator(TestCaseWithSimulator):
             for i in range(ways):
                 sim.add_testbench(make_allocator(i))
                 sim.add_testbench(make_deallocator(i))
+
+
+class TestLRUOrderAllocator(TestCaseWithSimulator):
+    @pytest.mark.parametrize("entries", [5, 8])
+    def test_allocator(self, entries: int):
+        dut = SimpleTestCircuit(LRUOrderAllocator(entries))
+
+        iterations = 5 * entries
+
+        allocated: list[int] = []
+        free: list[int] = list(range(entries))
+
+        async def allocator(sim: TestbenchContext):
+            for _ in range(iterations):
+                val = (await dut.alloc.call(sim)).ident
+                sim.delay(1e-9)  # Runs after deallocator
+                free.remove(val)
+                allocated.append(val)
+                await self.random_wait_geom(sim, 0.5)
+
+        async def deallocator(sim: TestbenchContext):
+            for _ in range(iterations):
+                while not allocated:
+                    await sim.tick()
+                idx = random.randrange(len(allocated))
+                val = allocated[idx]
+                if random.randint(0, 1):
+                    await dut.free.call(sim, ident=val)
+                else:
+                    await dut.free_idx.call(sim, idx=idx)
+                free.insert(0, val)
+                allocated.pop(idx)
+                await self.random_wait_geom(sim, 0.4)
+
+        async def order_verifier(sim: TestbenchContext):
+            while True:
+                val = await dut.order.call(sim)
+                sim.delay(2e-9)  # Runs after allocator and deallocator
+                assert val.used == len(allocated)
+                assert val.order == allocated + free
+
+        with self.run_simulation(dut) as sim:
+            sim.add_testbench(order_verifier, background=True)
+            sim.add_testbench(allocator)
+            sim.add_testbench(deallocator)
