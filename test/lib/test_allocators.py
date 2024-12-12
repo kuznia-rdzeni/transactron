@@ -4,7 +4,7 @@ import random
 from amaranth import *
 from transactron import *
 from transactron.lib.allocators import *
-from transactron.lib.allocators import LRUOrderAllocator
+from transactron.lib.allocators import PreservedOrderAllocator
 from transactron.testing import (
     SimpleTestCircuit,
     TestCaseWithSimulator,
@@ -55,10 +55,10 @@ class TestPriorityEncoderAllocator(TestCaseWithSimulator):
                 sim.add_testbench(make_deallocator(i))
 
 
-class TestLRUOrderAllocator(TestCaseWithSimulator):
+class TestPreservedOrderAllocator(TestCaseWithSimulator):
     @pytest.mark.parametrize("entries", [5, 8])
     def test_allocator(self, entries: int):
-        dut = SimpleTestCircuit(LRUOrderAllocator(entries))
+        dut = SimpleTestCircuit(PreservedOrderAllocator(entries))
 
         iterations = 5 * entries
 

@@ -63,7 +63,7 @@ class PriorityEncoderAllocator(Elaboratable):
         return m
 
 
-class LRUOrderAllocator(Elaboratable):
+class PreservedOrderAllocator(Elaboratable):
     """Allocator with allocation order information.
 
     This module allows to allocate and deallocate identifiers from a
