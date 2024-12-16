@@ -1,23 +1,32 @@
+from collections import defaultdict
 from collections.abc import Iterator, Sequence
 from contextlib import contextmanager
 
 from amaranth.lib.data import StructLayout
-from transactron.core.tmodule import TModule
+from transactron.core.tmodule import CtrlPath, TModule
 from transactron.graph import Owned
 
 from transactron.utils import *
 from amaranth import *
-from typing import ClassVar, Optional, Callable, Protocol, final
+from typing import TYPE_CHECKING, ClassVar, NewType, Optional, Callable, Protocol, final
 from .transaction_base import *
 from transactron.utils.assign import AssignArg
 
+from .transaction_base import OwnedAndNamed
 
-__all__ = ["Body"]
+if TYPE_CHECKING:
+    from .method import Method
+
+
+__all__ = ["Body", "TBody", "MBody"]
 
 
 @final
-class Body(TransactionBase):
+class Body(OwnedAndNamed):
     stack: ClassVar[list["Body"]] = []
+    ctrl_path: CtrlPath = CtrlPath(-1, [])
+    method_uses: dict["Method", tuple[MethodStruct, Signal]]
+    method_calls: defaultdict["Method", list[tuple[CtrlPath, MethodStruct, ValueLike]]]
 
     def __init__(
         self,
@@ -32,8 +41,6 @@ class Body(TransactionBase):
         single_caller: bool,
         src_loc: SrcLoc
     ):
-        super().__init__(src_loc=src_loc)
-        
         def default_combiner(m: Module, args: Sequence[MethodStruct], runs: Value) -> AssignArg:
             ret = Signal(from_method_layout(i))
             for k in OneHotSwitchDynamic(m, runs):
@@ -51,6 +58,9 @@ class Body(TransactionBase):
         self.nonexclusive = nonexclusive
         self.single_caller = single_caller
         self.validate_arguments: Optional[Callable[..., ValueLike]] = validate_arguments
+        self.method_uses = {}
+        self.method_calls = defaultdict(list)
+        self.src_loc = src_loc
         
         if nonexclusive:
             assert len(self.data_in.as_value()) == 0 or combiner is not None
@@ -59,3 +69,51 @@ class Body(TransactionBase):
         if self.validate_arguments is not None:
             return self.ready & method_def_helper(self, self.validate_arguments, arg_rec)
         return self.ready
+
+    @contextmanager
+    def context(self, m: TModule) -> Iterator["Body"]:
+        self.ctrl_path = m.ctrl_path
+
+        parent = Body.peek()
+# TODO
+#        if parent is not None:
+#            parent.schedule_before(self)
+
+        Body.stack.append(self)
+
+        try:
+            yield self
+        finally:
+            Body.stack.pop()
+            self.defined = True
+
+    @staticmethod
+    def get() -> "Body":
+        ret = Body.peek()
+        if ret is None:
+            raise RuntimeError("No current body")
+        return ret
+
+    @staticmethod
+    def peek() -> Optional["Body"]:
+        if not Body.stack:
+            return None
+        return Body.stack[-1]
+
+    def _set_method_uses(self, m: ModuleLike):
+        for method, calls in self.method_calls.items():
+            arg_rec, enable_sig = self.method_uses[method]
+            if len(calls) == 1:
+                m.d.comb += arg_rec.eq(calls[0][1])
+                m.d.comb += enable_sig.eq(calls[0][2])
+            else:
+                call_ens = Cat([en for _, _, en in calls])
+
+                for i in OneHotSwitchDynamic(m, call_ens):
+                    m.d.comb += arg_rec.eq(calls[i][1])
+                    m.d.comb += enable_sig.eq(1)
+
+
+TBody = NewType("TBody", Body)
+MBody = NewType("MBody", Body)
+

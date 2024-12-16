@@ -1,10 +1,13 @@
+from amaranth.lib.data import StructLayout
 from transactron.utils import *
 from amaranth import *
 from amaranth import tracer
 from typing import Optional, Iterator, TYPE_CHECKING
-from .transaction_base import *
+from .transaction_base import OwnedAndNamed
 from .keys import *
 from contextlib import contextmanager
+from .body import Body, TBody
+
 
 if TYPE_CHECKING:
     from .tmodule import TModule
@@ -13,7 +16,7 @@ if TYPE_CHECKING:
 __all__ = ["Transaction"]
 
 
-class Transaction(TransactionBase):
+class Transaction(OwnedAndNamed):
     """Transaction.
 
     A `Transaction` represents a task which needs to be regularly done.
@@ -50,6 +53,7 @@ class Transaction(TransactionBase):
         Signals that the transaction is granted by the `TransactionManager`,
         and all used methods are called.
     """
+    _body_ptr: Optional["Body"] = None
 
     def __init__(
         self, *, name: Optional[str] = None, manager: Optional["TransactionManager"] = None, src_loc: int | SrcLoc = 0
@@ -69,7 +73,6 @@ class Transaction(TransactionBase):
             How many stack frames deep the source location is taken from.
             Alternatively, the source location to use instead of the default.
         """
-        super().__init__(src_loc=get_src_loc(src_loc))
         self.owner, owner_name = get_caller_class_name(default="$transaction")
         self.name = name or tracer.get_var_name(depth=2, default=owner_name)
         if manager is None:
@@ -78,6 +81,20 @@ class Transaction(TransactionBase):
         self.request = Signal(name=self.owned_name + "_request")
         self.runnable = Signal(name=self.owned_name + "_runnable")
         self.grant = Signal(name=self.owned_name + "_grant")
+        self.src_loc=get_src_loc(src_loc)
+    
+    @property
+    def _body(self) -> TBody:
+        if self._body_ptr is not None:
+            return TBody(self._body_ptr)
+        raise RuntimeError(f"Method '{self.name}' not defined")
+
+    def _set_impl(self, m: "TModule", value: Body):
+        if self._body_ptr is not None:
+            raise RuntimeError(f"Transaction '{self.name}' already defined")
+        self._body_ptr = value
+        m.d.comb += self.request.eq(value.ready)
+        m.d.comb += self.grant.eq(value.run)
 
     @contextmanager
     def body(self, m: "TModule", *, request: ValueLike = C(1)) -> Iterator["Transaction"]:
@@ -99,13 +116,12 @@ class Transaction(TransactionBase):
             default it is `Const(1)`, so it wants to be executed in
             every clock cycle.
         """
-        if self.defined:
-            raise RuntimeError(f"Transaction '{self.name}' already defined")
-        self.def_order = next(TransactionBase.def_counter)
+        impl = Body(name=self.name, owner=self.owner, i=StructLayout({}), o=StructLayout({}), combiner=None, validate_arguments=None, nonexclusive=False, single_caller=False, src_loc=self.src_loc)
+        self._set_impl(m, impl)
 
-        m.d.av_comb += self.request.eq(request)
-        with self.context(m):
-            with m.AvoidedIf(self.grant):
+        m.d.av_comb += impl.ready.eq(request)
+        with impl.context(m):
+            with m.AvoidedIf(impl.run):
                 yield self
 
     def __repr__(self) -> str:

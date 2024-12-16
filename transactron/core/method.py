@@ -10,7 +10,7 @@ from transactron.utils.assign import AssignArg
 from transactron.utils._typing import type_self_add_1pos_kwargs_as
 
 from .transaction_base import OwnedAndNamed
-from .body import Body
+from .body import Body, MBody
 
 if TYPE_CHECKING:
     from .tmodule import TModule
@@ -133,9 +133,9 @@ class Method(OwnedAndNamed):
         return Method(name=name, i=other.layout_in, o=other.layout_out)
     
     @property
-    def _body(self) -> Body:
+    def _body(self) -> MBody:
         if isinstance(self._body_ptr, Body):
-            return self._body_ptr
+            return MBody(self._body_ptr)
         if isinstance(self._body_ptr, Method):
             self._body_ptr = self._body_ptr._body
             return self._body_ptr
@@ -223,14 +223,14 @@ class Method(OwnedAndNamed):
             with my_sum_method.body(m, out = sum) as data_in:
                 m.d.comb += sum.eq(data_in.arg1 + data_in.arg2)
         """
-        impl = Body(name=self.name, owner=self.owner, i=self.layout_in, o=self.layout_out, combiner=combiner, validate_arguments=validate_arguments, nonexclusive=nonexclusive, single_caller=single_caller, src_loc=self.src_loc)
-        self._set_impl(m, impl)
+        body = Body(name=self.name, owner=self.owner, i=self.layout_in, o=self.layout_out, combiner=combiner, validate_arguments=validate_arguments, nonexclusive=nonexclusive, single_caller=single_caller, src_loc=self.src_loc)
+        self._set_impl(m, body)
         
-        m.d.av_comb += impl.ready.eq(ready)
-        m.d.top_comb += impl.data_out.eq(out)
-        with impl.context(m):
-            with m.AvoidedIf(impl.run):
-                yield impl.data_in
+        m.d.av_comb += body.ready.eq(ready)
+        m.d.top_comb += body.data_out.eq(out)
+        with body.context(m):
+            with m.AvoidedIf(body.run):
+                yield body.data_in
 
     def __call__(
         self, m: "TModule", arg: Optional[AssignArg] = None, enable: ValueLike = C(1), /, **kwargs: AssignArg
@@ -293,7 +293,7 @@ class Method(OwnedAndNamed):
         m.d.av_comb += enable_sig.eq(enable)
         m.d.top_comb += assign(arg_rec, arg, fields=AssignType.ALL)
 
-        caller = TransactionBase.get()
+        caller = Body.get()
         if not all(ctrl_path.exclusive_with(m.ctrl_path) for ctrl_path, _, _ in caller.method_calls[self]):
             raise RuntimeError(f"Method '{self.name}' can't be called twice from the same caller '{caller.name}'")
         caller.method_calls[self].append((m.ctrl_path, arg_rec, enable_sig))

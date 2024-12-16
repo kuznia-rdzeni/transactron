@@ -64,22 +64,16 @@ class OwnedAndNamed(Owned, Protocol):
 
 @runtime_checkable
 class TransactionBase(OwnedAndNamed, Protocol):
-    stack: ClassVar[list[Union["Transaction", "Body"]]] = []
     def_counter: ClassVar[count] = count()
     def_order: int
     defined: bool = False
     src_loc: SrcLoc
-    method_uses: dict["Method", tuple[MethodStruct, Signal]]
-    method_calls: defaultdict["Method", list[tuple[CtrlPath, MethodStruct, ValueLike]]]
     relations: list[RelationBase]
     simultaneous_list: list[TransactionOrMethodImpl]
     independent_list: list[TransactionOrMethodImpl]
-    ctrl_path: CtrlPath = CtrlPath(-1, [])
 
     def __init__(self, *, src_loc: int | SrcLoc):
         self.src_loc = get_src_loc(src_loc)
-        self.method_uses = {}
-        self.method_calls = defaultdict(list)
         self.relations = []
         self.simultaneous_list = []
         self.independent_list = []
@@ -167,47 +161,3 @@ class TransactionBase(OwnedAndNamed, Protocol):
             for execution.
         """
         self.independent_list += others
-
-    @contextmanager
-    def context(self: TransactionOrMethodImplBound, m: TModule) -> Iterator[TransactionOrMethodImplBound]:
-        self.ctrl_path = m.ctrl_path
-
-        parent = TransactionBase.peek()
-        if parent is not None:
-            parent.schedule_before(self)
-
-        TransactionBase.stack.append(self)
-
-        try:
-            yield self
-        finally:
-            TransactionBase.stack.pop()
-            self.defined = True
-
-    def _set_method_uses(self, m: ModuleLike):
-        for method, calls in self.method_calls.items():
-            arg_rec, enable_sig = self.method_uses[method]
-            if len(calls) == 1:
-                m.d.comb += arg_rec.eq(calls[0][1])
-                m.d.comb += enable_sig.eq(calls[0][2])
-            else:
-                call_ens = Cat([en for _, _, en in calls])
-
-                for i in OneHotSwitchDynamic(m, call_ens):
-                    m.d.comb += arg_rec.eq(calls[i][1])
-                    m.d.comb += enable_sig.eq(1)
-
-    @classmethod
-    def get(cls) -> Self:
-        ret = cls.peek()
-        if ret is None:
-            raise RuntimeError("No current body")
-        return ret
-
-    @classmethod
-    def peek(cls) -> Optional[Self]:
-        if not TransactionBase.stack:
-            return None
-        if not isinstance(TransactionBase.stack[-1], cls):
-            raise RuntimeError(f"Current body not a {cls.__name__}")
-        return TransactionBase.stack[-1]
