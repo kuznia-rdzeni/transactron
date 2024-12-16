@@ -5,10 +5,12 @@ from amaranth import *
 from amaranth import tracer
 from typing import Optional, Callable, Iterator, TYPE_CHECKING
 from .transaction_base import *
-from .sugar import def_method
 from contextlib import contextmanager
 from transactron.utils.assign import AssignArg
 from transactron.utils._typing import type_self_add_1pos_kwargs_as
+
+from .transaction_base import OwnedAndNamed
+from .body import Body
 
 if TYPE_CHECKING:
     from .tmodule import TModule
@@ -16,7 +18,7 @@ if TYPE_CHECKING:
 __all__ = ["Method", "Methods"]
 
 
-class Method(TransactionBase):
+class Method(OwnedAndNamed):
     """Transactional method.
 
     A `Method` serves to interface a module with external `Transaction`\\s
@@ -54,17 +56,15 @@ class Method(TransactionBase):
         (a `Transaction` or another `Method`). Typically defined by
         calling `body`.
     """
-
+    _body_ptr: Optional["Body | Method"] = None
+    
     def __init__(
         self,
         *,
         name: Optional[str] = None,
         i: MethodLayout = (),
         o: MethodLayout = (),
-        nonexclusive: bool = False,
-        combiner: Optional[Callable[[Module, Sequence[MethodStruct], Value], AssignArg]] = None,
-        single_caller: bool = False,
-        src_loc: int | SrcLoc = 0,
+        src_loc: int | SrcLoc = 0
     ):
         """
         Parameters
@@ -95,26 +95,13 @@ class Method(TransactionBase):
             How many stack frames deep the source location is taken from.
             Alternatively, the source location to use instead of the default.
         """
-        super().__init__(src_loc=get_src_loc(src_loc))
-
-        def default_combiner(m: Module, args: Sequence[MethodStruct], runs: Value) -> AssignArg:
-            ret = Signal(from_method_layout(i))
-            for k in OneHotSwitchDynamic(m, runs):
-                m.d.comb += ret.eq(args[k])
-            return ret
-
         self.owner, owner_name = get_caller_class_name(default="$method")
         self.name = name or tracer.get_var_name(depth=2, default=owner_name)
         self.ready = Signal(name=self.owned_name + "_ready")
         self.run = Signal(name=self.owned_name + "_run")
-        self.data_in: MethodStruct = Signal(from_method_layout(i))
-        self.data_out: MethodStruct = Signal(from_method_layout(o))
-        self.nonexclusive = nonexclusive
-        self.combiner: Callable[[Module, Sequence[MethodStruct], Value], AssignArg] = combiner or default_combiner
-        self.single_caller = single_caller
-        self.validate_arguments: Optional[Callable[..., ValueLike]] = None
-        if nonexclusive:
-            assert len(self.data_in.as_value()) == 0 or combiner is not None
+        self.data_in: MethodStruct = Signal(from_method_layout(i), name=self.owned_name + "_data_in")
+        self.data_out: MethodStruct = Signal(from_method_layout(o), name=self.owned_name + "_data_out")
+        self.src_loc = get_src_loc(src_loc)
 
     @property
     def layout_in(self):
@@ -125,7 +112,7 @@ class Method(TransactionBase):
         return self.data_out.shape()
 
     @staticmethod
-    def like(other: "Method", *, name: Optional[str] = None, src_loc: int | SrcLoc = 0) -> "Method":
+    def like(other: "Method", *, name: Optional[str] = None) -> "Method":
         """Constructs a new `Method` based on another.
 
         The returned `Method` has the same input/output data layouts as the
@@ -137,16 +124,31 @@ class Method(TransactionBase):
             The `Method` which serves as a blueprint for the new `Method`.
         name : str, optional
             Name of the new `Method`.
-        src_loc: int | SrcLoc
-            How many stack frames deep the source location is taken from.
-            Alternatively, the source location to use instead of the default.
 
         Returns
         -------
         Method
             The freshly constructed `Method`.
         """
-        return Method(name=name, i=other.layout_in, o=other.layout_out, src_loc=get_src_loc(src_loc))
+        return Method(name=name, i=other.layout_in, o=other.layout_out)
+    
+    @property
+    def _body(self) -> Body:
+        if isinstance(self._body_ptr, Body):
+            return self._body_ptr
+        if isinstance(self._body_ptr, Method):
+            self._body_ptr = self._body_ptr._body
+            return self._body_ptr
+        raise RuntimeError(f"Method '{self.name}' not defined")
+
+    def _set_impl(self, m: "TModule", value: "Body | Method"):
+        if self._body_ptr is not None:
+            raise RuntimeError(f"Method '{self.name}' already defined")
+        self._body_ptr = value
+        m.d.comb += self.ready.eq(value.ready)
+        m.d.comb += self.run.eq(value.run)
+        m.d.comb += self.data_in.eq(value.data_in)
+        m.d.comb += self.data_out.eq(value.data_out)
 
     def proxy(self, m: "TModule", method: "Method"):
         """Define as a proxy for another method.
@@ -161,10 +163,7 @@ class Method(TransactionBase):
         method : Method
             Method for which this method is a proxy for.
         """
-
-        @def_method(m, self, ready=method.ready)
-        def _(arg):
-            return method(m, arg)
+        self._set_impl(m, method)
 
     @contextmanager
     def body(
@@ -174,6 +173,9 @@ class Method(TransactionBase):
         ready: ValueLike = C(1),
         out: ValueLike = C(0, 0),
         validate_arguments: Optional[Callable[..., ValueLike]] = None,
+        combiner: Optional[Callable[[Module, Sequence[MethodStruct], Value], AssignArg]] = None,
+        nonexclusive: bool = False,
+        single_caller: bool = False,
     ) -> Iterator[MethodStruct]:
         """Define method body
 
@@ -221,21 +223,14 @@ class Method(TransactionBase):
             with my_sum_method.body(m, out = sum) as data_in:
                 m.d.comb += sum.eq(data_in.arg1 + data_in.arg2)
         """
-        if self.defined:
-            raise RuntimeError(f"Method '{self.name}' already defined")
-        self.def_order = next(TransactionBase.def_counter)
-        self.validate_arguments = validate_arguments
-
-        m.d.av_comb += self.ready.eq(ready)
-        m.d.top_comb += self.data_out.eq(out)
-        with self.context(m):
-            with m.AvoidedIf(self.run):
-                yield self.data_in
-
-    def _validate_arguments(self, arg_rec: MethodStruct) -> ValueLike:
-        if self.validate_arguments is not None:
-            return self.ready & method_def_helper(self, self.validate_arguments, arg_rec)
-        return self.ready
+        impl = Body(name=self.name, owner=self.owner, i=self.layout_in, o=self.layout_out, combiner=combiner, validate_arguments=validate_arguments, nonexclusive=nonexclusive, single_caller=single_caller, src_loc=self.src_loc)
+        self._set_impl(m, impl)
+        
+        m.d.av_comb += impl.ready.eq(ready)
+        m.d.top_comb += impl.data_out.eq(out)
+        with impl.context(m):
+            with m.AvoidedIf(impl.run):
+                yield impl.data_in
 
     def __call__(
         self, m: "TModule", arg: Optional[AssignArg] = None, enable: ValueLike = C(1), /, **kwargs: AssignArg

@@ -4,6 +4,7 @@ from typing import TypeAlias, Optional
 from os import environ
 from graphlib import TopologicalSorter
 from amaranth import *
+from amaranth.lib.data import StructLayout
 from amaranth.lib.wiring import Component, connect, flipped
 from itertools import chain, filterfalse, product
 
@@ -13,8 +14,8 @@ from transactron.utils import *
 from transactron.utils.transactron_helpers import _graph_ccs
 from transactron.graph import OwnershipGraph, Direction
 
-from .transaction_base import TransactionBase, TransactionOrMethod, Priority, Relation
-from .method import Method
+from .transaction_base import TransactionBase, TransactionOrMethodImpl, Priority, Relation
+from .body import Body
 from .transaction import Transaction, TransactionManagerKey
 from .tmodule import TModule
 from .schedulers import eager_deterministic_cc_scheduler
@@ -29,23 +30,21 @@ TransactionScheduler: TypeAlias = Callable[["MethodMap", TransactionGraph, Trans
 
 class MethodMap:
     def __init__(self, transactions: Iterable["Transaction"]):
-        self.methods_by_transaction = dict[Transaction, list[Method]]()
-        self.transactions_by_method = defaultdict[Method, list[Transaction]](list)
-        self.argument_by_call = dict[tuple[Transaction, Method], MethodStruct]()
-        self.ancestors_by_call = dict[tuple[Transaction, Method], tuple[Method, ...]]()
-        self.method_parents = defaultdict[Method, list[TransactionBase]](list)
+        self.methods_by_transaction = dict[Transaction, list[Body]]()
+        self.transactions_by_method = defaultdict[Body, list[Transaction]](list)
+        self.argument_by_call = dict[tuple[Transaction, Body], MethodStruct]()
+        self.ancestors_by_call = dict[tuple[Transaction, Body], tuple[Body, ...]]()
+        self.method_parents = defaultdict[Body, list[TransactionBase]](list)
 
-        def rec(transaction: Transaction, source: TransactionBase, ancestors: tuple[Method, ...]):
+        def rec(transaction: Transaction, source: TransactionBase, ancestors: tuple[Body, ...]):
             for method, (arg_rec, _) in source.method_uses.items():
-                if not method.defined:
-                    raise RuntimeError(f"Trying to use method '{method.name}' which is not defined yet")
                 if method in self.methods_by_transaction[transaction]:
                     raise RuntimeError(f"Method '{method.name}' can't be called twice from the same transaction")
-                self.methods_by_transaction[transaction].append(method)
-                self.transactions_by_method[method].append(transaction)
-                self.argument_by_call[(transaction, method)] = arg_rec
-                self.ancestors_by_call[(transaction, method)] = new_ancestors = (method, *ancestors)
-                rec(transaction, method, new_ancestors)
+                self.methods_by_transaction[transaction].append(method._body)
+                self.transactions_by_method[method._body].append(transaction)
+                self.argument_by_call[(transaction, method._body)] = arg_rec
+                self.ancestors_by_call[(transaction, method._body)] = new_ancestors = (method._body, *ancestors)
+                rec(transaction, method._body, new_ancestors)
 
         for transaction in transactions:
             self.methods_by_transaction[transaction] = []
@@ -53,16 +52,16 @@ class MethodMap:
 
         for transaction_or_method in self.methods_and_transactions:
             for method in transaction_or_method.method_uses.keys():
-                self.method_parents[method].append(transaction_or_method)
+                self.method_parents[method._body].append(transaction_or_method)
 
-    def transactions_for(self, elem: TransactionOrMethod) -> Collection["Transaction"]:
+    def transactions_for(self, elem: TransactionOrMethodImpl) -> Collection["Transaction"]:
         if isinstance(elem, Transaction):
             return [elem]
         else:
             return self.transactions_by_method[elem]
 
     @property
-    def methods(self) -> Collection["Method"]:
+    def methods(self) -> Collection["Body"]:
         return self.transactions_by_method.keys()
 
     @property
@@ -70,7 +69,7 @@ class MethodMap:
         return self.methods_by_transaction.keys()
 
     @property
-    def methods_and_transactions(self) -> Iterable[TransactionOrMethod]:
+    def methods_and_transactions(self) -> Iterable[TransactionOrMethodImpl]:
         return chain(self.methods, self.transactions)
 
 
@@ -132,7 +131,7 @@ class TransactionManager(Elaboratable):
 
             return False
 
-        def calls_nonexclusive(trans1: Transaction, trans2: Transaction, method: Method):
+        def calls_nonexclusive(trans1: Transaction, trans2: Transaction, method: Body):
             ancestors1 = method_map.ancestors_by_call[(trans1, method)]
             ancestors2 = method_map.ancestors_by_call[(trans2, method)]
             common_ancestors = longest_common_prefix(ancestors1, ancestors2)
@@ -191,15 +190,15 @@ class TransactionManager(Elaboratable):
         return cgr, porder
 
     @staticmethod
-    def _method_enables(method_map: MethodMap) -> Mapping["Transaction", Mapping["Method", ValueLike]]:
-        method_enables = defaultdict[Transaction, dict[Method, ValueLike]](dict)
+    def _method_enables(method_map: MethodMap) -> Mapping["Transaction", Mapping["Body", ValueLike]]:
+        method_enables = defaultdict[Transaction, dict[Body, ValueLike]](dict)
         enables: list[ValueLike] = []
 
-        def rec(transaction: Transaction, source: TransactionOrMethod):
+        def rec(transaction: Transaction, source: TransactionOrMethodImpl):
             for method, (_, enable) in source.method_uses.items():
                 enables.append(enable)
-                rec(transaction, method)
-                method_enables[transaction][method] = Cat(*enables).all()
+                rec(transaction, method._body)
+                method_enables[transaction][method._body] = Cat(*enables).all()
                 enables.pop()
 
         for transaction in method_map.transactions:
@@ -210,20 +209,20 @@ class TransactionManager(Elaboratable):
     @staticmethod
     def _method_calls(
         m: Module, method_map: MethodMap
-    ) -> tuple[Mapping["Method", Sequence[MethodStruct]], Mapping["Method", Sequence[Value]]]:
-        args = defaultdict[Method, list[MethodStruct]](list)
-        runs = defaultdict[Method, list[Value]](list)
+    ) -> tuple[Mapping["Body", Sequence[MethodStruct]], Mapping["Body", Sequence[Value]]]:
+        args = defaultdict[Body, list[MethodStruct]](list)
+        runs = defaultdict[Body, list[Value]](list)
 
         for source in method_map.methods_and_transactions:
-            if isinstance(source, Method):
+            if isinstance(source, Body):
                 run_val = Cat(transaction.grant for transaction in method_map.transactions_by_method[source]).any()
                 run = Signal()
                 m.d.comb += run.eq(run_val)
             else:
                 run = source.grant
             for method, (arg, _) in source.method_uses.items():
-                args[method].append(arg)
-                runs[method].append(run)
+                args[method._body].append(arg)
+                runs[method._body].append(run)
 
         return (args, runs)
 
@@ -289,13 +288,11 @@ class TransactionManager(Elaboratable):
         joined_transactions = set[Transaction]().union(*final_simultaneous)
 
         self.transactions = list(filter(lambda t: t not in joined_transactions, self.transactions))
-        methods = dict[Transaction, Method]()
+        methods = dict[Transaction, Body]()
 
         for transaction in joined_transactions:
             # TODO: some simpler way?
-            method = Method(name=transaction.name)
-            method.owner = transaction.owner
-            method.src_loc = transaction.src_loc
+            method = Body(name=transaction.name, owner=transaction.owner, i=StructLayout({}), o=StructLayout({}), combiner=None, validate_arguments = None, nonexclusive=False, single_caller=False, src_loc=transaction.src_loc)
             method.ready = transaction.request
             method.run = transaction.grant
             method.defined = transaction.defined
@@ -304,6 +301,7 @@ class TransactionManager(Elaboratable):
             method.relations = transaction.relations
             method.def_order = transaction.def_order
             method.ctrl_path = transaction.ctrl_path
+            method.src_loc = transaction.src_loc
             methods[transaction] = method
 
         for elem in method_map.methods_and_transactions:
@@ -432,7 +430,7 @@ class TransactionManager(Elaboratable):
                 + [t2.grant for t2 in cgr[t]]
             )
 
-        def method_debug(m: Method):
+        def method_debug(m: Body):
             return [m.ready, m.run, {t.name: transaction_debug(t) for t in method_map.transactions_by_method[m]}]
 
         return {

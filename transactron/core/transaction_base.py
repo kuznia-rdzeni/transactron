@@ -22,13 +22,13 @@ from transactron.graph import Owned
 from transactron.utils import *
 
 if TYPE_CHECKING:
-    from .method import Method
+    from .method import Body, Method
     from .transaction import Transaction
 
 __all__ = ["TransactionBase", "Priority"]
 
-TransactionOrMethod: TypeAlias = Union["Transaction", "Method"]
-TransactionOrMethodBound = TypeVar("TransactionOrMethodBound", "Transaction", "Method")
+TransactionOrMethodImpl: TypeAlias = Union["Transaction", "Body"]
+TransactionOrMethodImplBound = TypeVar("TransactionOrMethodImplBound", "Transaction", "MethodImpl")
 
 
 class Priority(Enum):
@@ -41,29 +41,39 @@ class Priority(Enum):
 
 
 class RelationBase(TypedDict):
-    end: TransactionOrMethod
+    end: TransactionOrMethodImpl
     priority: Priority
     conflict: bool
     silence_warning: bool
 
 
 class Relation(RelationBase):
-    start: TransactionOrMethod
+    start: TransactionOrMethodImpl
+
+
+class OwnedAndNamed(Owned, Protocol):
+    name: str
+
+    @property
+    def owned_name(self):
+        if self.owner is not None and self.owner.__class__.__name__ != self.name:
+            return f"{self.owner.__class__.__name__}_{self.name}"
+        else:
+            return self.name
 
 
 @runtime_checkable
-class TransactionBase(Owned, Protocol):
-    stack: ClassVar[list[Union["Transaction", "Method"]]] = []
+class TransactionBase(OwnedAndNamed, Protocol):
+    stack: ClassVar[list[Union["Transaction", "Body"]]] = []
     def_counter: ClassVar[count] = count()
     def_order: int
     defined: bool = False
-    name: str
     src_loc: SrcLoc
     method_uses: dict["Method", tuple[MethodStruct, Signal]]
     method_calls: defaultdict["Method", list[tuple[CtrlPath, MethodStruct, ValueLike]]]
     relations: list[RelationBase]
-    simultaneous_list: list[TransactionOrMethod]
-    independent_list: list[TransactionOrMethod]
+    simultaneous_list: list[TransactionOrMethodImpl]
+    independent_list: list[TransactionOrMethodImpl]
     ctrl_path: CtrlPath = CtrlPath(-1, [])
 
     def __init__(self, *, src_loc: int | SrcLoc):
@@ -74,7 +84,7 @@ class TransactionBase(Owned, Protocol):
         self.simultaneous_list = []
         self.independent_list = []
 
-    def add_conflict(self, end: TransactionOrMethod, priority: Priority = Priority.UNDEFINED) -> None:
+    def add_conflict(self, end: TransactionOrMethodImpl, priority: Priority = Priority.UNDEFINED) -> None:
         """Registers a conflict.
 
         Record that that the given `Transaction` or `Method` cannot execute
@@ -93,7 +103,7 @@ class TransactionBase(Owned, Protocol):
             RelationBase(end=end, priority=priority, conflict=True, silence_warning=self.owner != end.owner)
         )
 
-    def schedule_before(self, end: TransactionOrMethod) -> None:
+    def schedule_before(self, end: TransactionOrMethodImpl) -> None:
         """Adds a priority relation.
 
         Record that that the given `Transaction` or `Method` needs to be
@@ -109,7 +119,7 @@ class TransactionBase(Owned, Protocol):
             RelationBase(end=end, priority=Priority.LEFT, conflict=False, silence_warning=self.owner != end.owner)
         )
 
-    def simultaneous(self, *others: TransactionOrMethod) -> None:
+    def simultaneous(self, *others: TransactionOrMethodImpl) -> None:
         """Adds simultaneity relations.
 
         The given `Transaction`\\s or `Method``\\s will execute simultaneously
@@ -122,7 +132,7 @@ class TransactionBase(Owned, Protocol):
         """
         self.simultaneous_list += others
 
-    def simultaneous_alternatives(self, *others: TransactionOrMethod) -> None:
+    def simultaneous_alternatives(self, *others: TransactionOrMethodImpl) -> None:
         """Adds exclusive simultaneity relations.
 
         Each of the given `Transaction`\\s or `Method``\\s will execute
@@ -139,7 +149,7 @@ class TransactionBase(Owned, Protocol):
         self.simultaneous(*others)
         others[0]._independent(*others[1:])
 
-    def _independent(self, *others: TransactionOrMethod) -> None:
+    def _independent(self, *others: TransactionOrMethodImpl) -> None:
         """Adds independence relations.
 
         This `Transaction` or `Method`, together with all the given
@@ -159,7 +169,7 @@ class TransactionBase(Owned, Protocol):
         self.independent_list += others
 
     @contextmanager
-    def context(self: TransactionOrMethodBound, m: TModule) -> Iterator[TransactionOrMethodBound]:
+    def context(self: TransactionOrMethodImplBound, m: TModule) -> Iterator[TransactionOrMethodImplBound]:
         self.ctrl_path = m.ctrl_path
 
         parent = TransactionBase.peek()
@@ -201,10 +211,3 @@ class TransactionBase(Owned, Protocol):
         if not isinstance(TransactionBase.stack[-1], cls):
             raise RuntimeError(f"Current body not a {cls.__name__}")
         return TransactionBase.stack[-1]
-
-    @property
-    def owned_name(self):
-        if self.owner is not None and self.owner.__class__.__name__ != self.name:
-            return f"{self.owner.__class__.__name__}_{self.name}"
-        else:
-            return self.name
