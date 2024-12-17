@@ -65,8 +65,7 @@ def count_leading_zeros(s: Value) -> Value:
     # 0 number edge case
     # if s == 0 then iter() returns value off by 1
     # this switch negates this effect
-    high_bit = slen
-    result = Mux(s.any(), value.as_unsigned(), high_bit )
+    result = Mux(s.any(), value, slen)
     return result
 
 
