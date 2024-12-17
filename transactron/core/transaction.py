@@ -88,6 +88,8 @@ class Transaction(TransactionBase["Transaction | Method"]):
     def _set_impl(self, m: TModule, value: Body):
         if self._body_ptr is not None:
             raise RuntimeError(f"Transaction '{self.name}' already defined")
+        if value.data_in.shape().size != 0 or value.data_out.shape().size != 0:
+            raise ValueError(f"Transaction body {value.name} has invalid interface")
         self._body_ptr = value
         m.d.comb += self.request.eq(value.ready)
         m.d.comb += self.runnable.eq(value.runnable)

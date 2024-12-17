@@ -4,7 +4,6 @@ from typing import TypeAlias, Optional
 from os import environ
 from graphlib import TopologicalSorter
 from amaranth import *
-from amaranth.lib.data import StructLayout
 from amaranth.lib.wiring import Component, connect, flipped
 from itertools import chain, filterfalse, product
 
@@ -176,7 +175,6 @@ class TransactionManager(Elaboratable):
             for elem in method_map.methods_and_transactions
             for relation in elem.relations
         ]
-        print(relations)
 
         for relation in relations:
             start = relation.start
@@ -235,7 +233,6 @@ class TransactionManager(Elaboratable):
         return (args, runs)
 
     def _simultaneous(self):
-        return TModule()  # TODO
         method_map = MethodMap(self.transactions)
 
         # remove orderings between simultaneous methods/transactions
@@ -244,24 +241,24 @@ class TransactionManager(Elaboratable):
             all_sims = frozenset(elem.simultaneous_list)
             elem.relations = list(
                 filterfalse(
-                    lambda relation: not relation["conflict"]
-                    and relation["priority"] != Priority.UNDEFINED
-                    and relation["end"] in all_sims,
+                    lambda relation: not relation.conflict
+                    and relation.priority != Priority.UNDEFINED
+                    and relation.end in all_sims,
                     elem.relations,
                 )
             )
 
         # step 1: simultaneous and independent sets generation
-        independents = defaultdict[Transaction, set[Transaction]](set)
+        independents = defaultdict[TBody, set[TBody]](set)
 
         for elem in method_map.methods_and_transactions:
-            indeps = frozenset[Transaction]().union(
+            indeps = frozenset[TBody]().union(
                 *(frozenset(method_map.transactions_for(ind)) for ind in chain([elem], elem.independent_list))
             )
             for transaction1, transaction2 in product(indeps, indeps):
                 independents[transaction1].add(transaction2)
 
-        simultaneous = set[frozenset[Transaction]]()
+        simultaneous = set[frozenset[TBody]]()
 
         for elem in method_map.methods_and_transactions:
             for sim_elem in elem.simultaneous_list:
@@ -273,12 +270,12 @@ class TransactionManager(Elaboratable):
                     simultaneous.add(frozenset({tr1, tr2}))
 
         # step 2: transitivity computation
-        tr_simultaneous = set[frozenset[Transaction]]()
+        tr_simultaneous = set[frozenset[TBody]]()
 
-        def conflicting(group: frozenset[Transaction]):
+        def conflicting(group: frozenset[TBody]):
             return any(tr1 != tr2 and tr1 in independents[tr2] for tr1 in group for tr2 in group)
 
-        q = deque[frozenset[Transaction]](simultaneous)
+        q = deque[frozenset[TBody]](simultaneous)
 
         while q:
             new_group = q.popleft()
@@ -288,54 +285,29 @@ class TransactionManager(Elaboratable):
             tr_simultaneous.add(new_group)
 
         # step 3: maximal group selection
-        def maximal(group: frozenset[Transaction]):
+        def maximal(group: frozenset[TBody]):
             return not any(group.issubset(group2) and group != group2 for group2 in tr_simultaneous)
 
         final_simultaneous = set(filter(maximal, tr_simultaneous))
 
         # step 4: convert transactions to methods
-        joined_transactions = set[Transaction]().union(*final_simultaneous)
+        joined_transactions = set[TBody]().union(*final_simultaneous)
 
-        self.transactions = list(filter(lambda t: t not in joined_transactions, self.transactions))
-        methods = dict[Transaction, Body]()
+        self.transactions = list(filter(lambda t: t._body not in joined_transactions, self.transactions))
+        methods = dict[TBody, Method]()
 
-        for transaction in joined_transactions:
-            # TODO: some simpler way?
-            method = Body(
-                name=transaction.name,
-                owner=transaction.owner,
-                i=StructLayout({}),
-                o=StructLayout({}),
-                combiner=None,
-                validate_arguments=None,
-                nonexclusive=False,
-                single_caller=False,
-                src_loc=transaction.src_loc,
-            )
-            method.ready = transaction.request
-            method.run = transaction.grant
-            method.defined = transaction.defined
-            method.method_calls = transaction.method_calls
-            method.method_uses = transaction.method_uses
-            method.relations = transaction.relations
-            method.def_order = transaction.def_order
-            method.ctrl_path = transaction.ctrl_path
-            method.src_loc = transaction.src_loc
-            methods[transaction] = method
-
-        for elem in method_map.methods_and_transactions:
-            # I guess method/transaction unification is really needed
-            for relation in elem.relations:
-                if relation["end"] in methods:
-                    relation["end"] = methods[relation["end"]]
-
-        # step 5: construct merged transactions
         m = TModule()
         m._MustUse__silence = True  # type: ignore
 
+        for transaction in joined_transactions:
+            method = Method(name=transaction.name, src_loc=transaction.src_loc)
+            method._set_impl(m, transaction)
+            methods[transaction] = method
+
+        # step 5: construct merged transactions
         for group in final_simultaneous:
             name = "_".join([t.name for t in group])
-            with Transaction(manager=self, name=name).body(m):
+            with Transaction(name=name).body(m):
                 for transaction in group:
                     methods[transaction](m)
 

@@ -144,6 +144,8 @@ class Method(TransactionBase["Transaction | Method"]):
     def _set_impl(self, m: TModule, value: "Body | Method"):
         if self._body_ptr is not None:
             raise RuntimeError(f"Method '{self.name}' already defined")
+        if value.data_in.shape() != self.layout_in or value.data_out.shape() != self.layout_out:
+            raise ValueError(f"Method {value.name} has different interface than {self.name}")
         self._body_ptr = value
         m.d.comb += self.ready.eq(value.ready)
         m.d.comb += self.run.eq(value.run)
