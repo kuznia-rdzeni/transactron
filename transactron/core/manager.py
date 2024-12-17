@@ -340,10 +340,10 @@ class TransactionManager(Elaboratable):
         for elem in method_map.methods_and_transactions:
             elem._set_method_uses(m)
 
-        for transaction in self.transactions:
+        for transaction in method_map.transactions:
             ready = [
-                method._validate_arguments(method_map.argument_by_call[transaction._body, method])
-                for method in method_map.methods_by_transaction[transaction._body]
+                method._validate_arguments(method_map.argument_by_call[transaction, method])
+                for method in method_map.methods_by_transaction[transaction]
             ]
             m.d.comb += transaction.runnable.eq(Cat(ready).all())
 

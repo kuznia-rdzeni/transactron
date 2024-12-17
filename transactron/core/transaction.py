@@ -94,6 +94,7 @@ class Transaction(OwnedAndNamed):
             raise RuntimeError(f"Transaction '{self.name}' already defined")
         self._body_ptr = value
         m.d.comb += self.request.eq(value.ready)
+        m.d.comb += self.runnable.eq(value.runnable)
         m.d.comb += self.grant.eq(value.run)
 
     @contextmanager

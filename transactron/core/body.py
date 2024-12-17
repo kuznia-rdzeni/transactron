@@ -51,6 +51,7 @@ class Body(OwnedAndNamed):
         self.name = name
         self.owner = owner
         self.ready = Signal(name=self.owned_name + "_ready")
+        self.runnable = Signal(name=self.owned_name + "_runnable")
         self.run = Signal(name=self.owned_name + "_run")
         self.data_in: MethodStruct = Signal(from_method_layout(i), name=self.owned_name + "_data_in")
         self.data_out: MethodStruct = Signal(from_method_layout(o), name=self.owned_name + "_data_out")

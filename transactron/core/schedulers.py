@@ -72,6 +72,6 @@ def trivial_roundrobin_cc_scheduler(
     sched = Scheduler(len(cc))
     m.submodules.scheduler = sched
     for k, transaction in enumerate(cc):
-        m.d.comb += sched.requests[k].eq(transaction.request & transaction.runnable)
-        m.d.comb += transaction.grant.eq(sched.grant[k] & sched.valid)
+        m.d.comb += sched.requests[k].eq(transaction.ready & transaction.runnable)
+        m.d.comb += transaction.run.eq(sched.grant[k] & sched.valid)
     return m
