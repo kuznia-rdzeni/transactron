@@ -1,7 +1,11 @@
+from typing import Any
 from amaranth import *
+from amaranth.hdl import ShapeCastable, ValueCastable
 from amaranth.utils import bits_for, ceil_log2
 from amaranth.lib import data
 from collections.abc import Iterable, Mapping
+
+from amaranth_types.types import ValueLike, ShapeLike
 from transactron.utils._typing import SignalBundle
 
 __all__ = [
@@ -10,6 +14,8 @@ __all__ = [
     "count_leading_zeros",
     "count_trailing_zeros",
     "flatten_signals",
+    "shape_of",
+    "const_of",
 ]
 
 
@@ -90,3 +96,19 @@ def flatten_signals(signals: SignalBundle) -> Iterable[Signal]:
             yield from flatten_signals(signals[x])
     else:
         yield signals
+
+
+def shape_of(value: ValueLike) -> Shape | ShapeCastable:
+    if isinstance(value, ValueCastable):
+        shape = value.shape()
+        assert isinstance(shape, (Shape, ShapeCastable))
+        return shape
+    else:
+        return Value.cast(value).shape()
+
+
+def const_of(value: int, shape: ShapeLike) -> Any:
+    if isinstance(shape, ShapeCastable):
+        return shape.from_bits(value)
+    else:
+        return C(value, Shape.cast(shape))
