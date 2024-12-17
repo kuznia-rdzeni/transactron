@@ -1,5 +1,5 @@
 from enum import Enum, auto
-from dataclasses import dataclass
+from dataclasses import KW_ONLY, dataclass
 from typing import (
     Generic,
     Protocol,
@@ -10,13 +10,12 @@ from amaranth import *
 
 from transactron.graph import Owned
 from transactron.utils import *
-from .keys import TransactionManagerKey
 
 
 __all__ = ["TransactionBase", "Priority"]
 
 
-_T = TypeVar("_T")
+_T = TypeVar("_T", bound="TransactionBase")
 
 
 class Priority(Enum):
@@ -29,26 +28,34 @@ class Priority(Enum):
 
 
 @dataclass
-class Relation(Generic[_T]):
-    start: _T
+class RelationBase(Generic[_T]):
+    _: KW_ONLY
     end: _T
     priority: Priority = Priority.UNDEFINED
     conflict: bool = False
     silence_warning: bool = False
 
 
+@dataclass
+class Relation(RelationBase[_T], Generic[_T]):
+    _: KW_ONLY
+    start: _T
+
+
 @runtime_checkable
-class TransactionBase(Owned, Protocol):
+class TransactionBase(Owned, Protocol, Generic[_T]):
     src_loc: SrcLoc
-    simultaneous_list: list["TransactionBase"]
-    independent_list: list["TransactionBase"]
+    relations: list[RelationBase[_T]]
+    simultaneous_list: list[_T]
+    independent_list: list[_T]
 
     def __init__(self, *, src_loc: SrcLoc):
         self.src_loc = src_loc
+        self.relations = []
         self.simultaneous_list = []
         self.independent_list = []
 
-    def add_conflict(self, end: "TransactionBase", priority: Priority = Priority.UNDEFINED) -> None:
+    def add_conflict(self, end: _T, priority: Priority = Priority.UNDEFINED) -> None:
         """Registers a conflict.
 
         Record that that the given `Transaction` or `Method` cannot execute
@@ -63,12 +70,11 @@ class TransactionBase(Owned, Protocol):
             Is one of conflicting `Transaction`\\s or `Method`\\s prioritized?
             Defaults to undefined priority relation.
         """
-        manager = DependencyContext.get().get_dependency(TransactionManagerKey())
-        manager._add_relation(
-            Relation(start=self, end=end, priority=priority, conflict=True, silence_warning=self.owner != end.owner)
+        self.relations.append(
+            RelationBase(end=end, priority=priority, conflict=True, silence_warning=self.owner != end.owner)
         )
 
-    def schedule_before(self, end: "TransactionBase") -> None:
+    def schedule_before(self, end: _T) -> None:
         """Adds a priority relation.
 
         Record that that the given `Transaction` or `Method` needs to be
@@ -80,12 +86,11 @@ class TransactionBase(Owned, Protocol):
         end: Transaction or Method
             The other `Transaction` or `Method`
         """
-        manager = DependencyContext.get().get_dependency(TransactionManagerKey())
-        manager._add_relation(
-            Relation(start=self, end=end, priority=Priority.LEFT, conflict=False, silence_warning=self.owner != end.owner)
+        self.relations.append(
+            RelationBase(end=end, priority=Priority.LEFT, conflict=False, silence_warning=self.owner != end.owner)
         )
 
-    def simultaneous(self, *others: "TransactionBase") -> None:
+    def simultaneous(self, *others: _T) -> None:
         """Adds simultaneity relations.
 
         The given `Transaction`\\s or `Method``\\s will execute simultaneously
@@ -98,7 +103,7 @@ class TransactionBase(Owned, Protocol):
         """
         self.simultaneous_list += others
 
-    def simultaneous_alternatives(self, *others: "TransactionBase") -> None:
+    def simultaneous_alternatives(self, *others: _T) -> None:
         """Adds exclusive simultaneity relations.
 
         Each of the given `Transaction`\\s or `Method``\\s will execute
@@ -115,7 +120,7 @@ class TransactionBase(Owned, Protocol):
         self.simultaneous(*others)
         others[0]._independent(*others[1:])
 
-    def _independent(self, *others: "TransactionBase") -> None:
+    def _independent(self, *others: _T) -> None:
         """Adds independence relations.
 
         This `Transaction` or `Method`, together with all the given

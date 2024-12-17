@@ -5,7 +5,7 @@ from itertools import count
 
 from amaranth.lib.data import StructLayout
 from transactron.core.tmodule import CtrlPath, TModule
-from transactron.graph import Owned
+from transactron.core.transaction_base import TransactionBase
 
 from transactron.utils import *
 from amaranth import *
@@ -20,7 +20,7 @@ __all__ = ["Body", "TBody", "MBody"]
 
 
 @final
-class Body(Owned):
+class Body(TransactionBase["Body"]):
     def_counter: ClassVar[count] = count()
     def_order: int
     stack: ClassVar[list["Body"]] = []
@@ -41,6 +41,8 @@ class Body(Owned):
         single_caller: bool,
         src_loc: SrcLoc,
     ):
+        super().__init__(src_loc=src_loc)
+
         def default_combiner(m: Module, args: Sequence[MethodStruct], runs: Value) -> AssignArg:
             ret = Signal(from_method_layout(i))
             for k in OneHotSwitchDynamic(m, runs):
@@ -61,7 +63,6 @@ class Body(Owned):
         self.validate_arguments: Optional[Callable[..., ValueLike]] = validate_arguments
         self.method_uses = {}
         self.method_calls = defaultdict(list)
-        self.src_loc = src_loc
 
         if nonexclusive:
             assert len(self.data_in.as_value()) == 0 or combiner is not None
@@ -76,9 +77,8 @@ class Body(Owned):
         self.ctrl_path = m.ctrl_path
 
         parent = Body.peek()
-        # TODO
-        #        if parent is not None:
-        #            parent.schedule_before(self)
+        if parent is not None:
+            parent.schedule_before(self)
 
         Body.stack.append(self)
 

@@ -14,9 +14,10 @@ from transactron.utils import *
 from transactron.utils.transactron_helpers import _graph_ccs
 from transactron.graph import OwnershipGraph, Direction
 
-from .transaction_base import Priority, Relation, TransactionBase
+from .transaction_base import Priority, Relation, RelationBase
 from .body import Body, TBody, MBody
 from .transaction import Transaction, TransactionManagerKey
+from .method import Method
 from .tmodule import TModule
 from .schedulers import eager_deterministic_cc_scheduler
 
@@ -85,14 +86,14 @@ class TransactionManager(Elaboratable):
 
     def __init__(self, cc_scheduler: TransactionScheduler = eager_deterministic_cc_scheduler):
         self.transactions: list[Transaction] = []
-        self.relations: list[Relation[TransactionBase | Body]] = []
+        self.methods: list[Method] = []
         self.cc_scheduler = cc_scheduler
 
     def _add_transaction(self, transaction: Transaction):
         self.transactions.append(transaction)
 
-    def _add_relation(self, relation: Relation):
-        self.relations.append(relation)
+    def _add_method(self, method: Method):
+        self.methods.append(method)
 
     @staticmethod
     def _conflict_graph(method_map: MethodMap) -> tuple[TransactionGraph, PriorityOrder]:
@@ -171,22 +172,23 @@ class TransactionManager(Elaboratable):
                         add_edge(transaction1, transaction2, Priority.UNDEFINED, True)
 
         relations = [
-            #            Relation(**relation, start=elem)
-            #            for elem in method_map.methods_and_transactions
-            #            for relation in elem.relations
+            Relation(start=elem, **dataclass_asdict(relation))
+            for elem in method_map.methods_and_transactions
+            for relation in elem.relations
         ]
+        print(relations)
 
         for relation in relations:
-            start = relation["start"]
-            end = relation["end"]
-            if not relation["conflict"]:  # relation added with schedule_before
-                if end.def_order < start.def_order and not relation["silence_warning"]:
+            start = relation.start
+            end = relation.end
+            if not relation.conflict:  # relation added with schedule_before
+                if end.def_order < start.def_order and not relation.silence_warning:
                     raise RuntimeError(f"{start.name!r} scheduled before {end.name!r}, but defined afterwards")
 
             for trans_start in method_map.transactions_for(start):
                 for trans_end in method_map.transactions_for(end):
-                    conflict = relation["conflict"] and not transactions_exclusive(trans_start, trans_end)
-                    add_edge(trans_start, trans_end, relation["priority"], conflict)
+                    conflict = relation.conflict and not transactions_exclusive(trans_start, trans_end)
+                    add_edge(trans_start, trans_end, relation.priority, conflict)
 
         porder: PriorityOrder = {}
 
@@ -340,6 +342,17 @@ class TransactionManager(Elaboratable):
         return m
 
     def elaborate(self, platform):
+        for elem in chain(self.transactions, self.methods):
+            for relation in elem.relations:
+                elem._body.relations.append(RelationBase(**{**dataclass_asdict(relation), "end": relation.end._body}))
+            for elem2 in elem.simultaneous_list:
+                elem._body.simultaneous_list.append(elem2._body)
+            for elem2 in elem.independent_list:
+                elem._body.independent_list.append(elem2._body)
+            elem.relations = []
+            elem.simultaneous_list = []
+            elem.independent_list = []
+
         # In the following, various problems in the transaction set-up are detected.
         # The exception triggers an unused Elaboratable warning.
         with silence_mustuse(self):

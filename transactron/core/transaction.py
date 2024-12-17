@@ -2,7 +2,7 @@ from amaranth.lib.data import StructLayout
 from transactron.utils import *
 from amaranth import *
 from amaranth import tracer
-from typing import Optional, Iterator
+from typing import TYPE_CHECKING, Optional, Iterator
 from .keys import *
 from contextlib import contextmanager
 from .body import Body, TBody
@@ -10,10 +10,14 @@ from .tmodule import TModule
 from .transaction_base import TransactionBase
 
 
+if TYPE_CHECKING:
+    from .method import Method  # noqa: F401
+
+
 __all__ = ["Transaction"]
 
 
-class Transaction(TransactionBase):
+class Transaction(TransactionBase["Transaction | Method"]):
     """Transaction.
 
     A `Transaction` represents a task which needs to be regularly done.

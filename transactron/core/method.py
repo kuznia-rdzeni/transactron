@@ -3,21 +3,26 @@ from collections.abc import Sequence
 from transactron.utils import *
 from amaranth import *
 from amaranth import tracer
-from typing import Optional, Callable, Iterator
+from typing import TYPE_CHECKING, Optional, Callable, Iterator
 from .transaction_base import *
 from contextlib import contextmanager
 from transactron.utils.assign import AssignArg
 from transactron.utils._typing import type_self_add_1pos_kwargs_as
 
 from .body import Body, MBody
+from .keys import TransactionManagerKey
 from .tmodule import TModule
 from .transaction_base import TransactionBase
+
+
+if TYPE_CHECKING:
+    from .transaction import Transaction  # noqa: F401
 
 
 __all__ = ["Method", "Methods"]
 
 
-class Method(TransactionBase):
+class Method(TransactionBase["Transaction | Method"]):
     """Transactional method.
 
     A `Method` serves to interface a module with external `Transaction`\\s
@@ -236,6 +241,9 @@ class Method(TransactionBase):
         with body.context(m):
             with m.AvoidedIf(body.run):
                 yield body.data_in
+
+        manager = DependencyContext.get().get_dependency(TransactionManagerKey())
+        manager._add_method(self)
 
     def __call__(
         self, m: TModule, arg: Optional[AssignArg] = None, enable: ValueLike = C(1), /, **kwargs: AssignArg
