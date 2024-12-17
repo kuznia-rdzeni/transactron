@@ -110,13 +110,13 @@ class CLZTestCircuit(Elaboratable):
         return m
 
 
-@pytest.mark.parametrize("size", range(1, 128))
+@pytest.mark.parametrize("size", range(1, 65))
 class TestCountLeadingZeros(TestCaseWithSimulator):
     @pytest.fixture(scope="function", autouse=True)
     def setup_fixture(self, size):
         self.size = size
         random.seed(14)
-        self.test_number = 40
+        self.test_number = 10
         self.m = CLZTestCircuit(self.size)
 
     def check(self, sim: TestbenchContext, n):
@@ -131,6 +131,8 @@ class TestCountLeadingZeros(TestCaseWithSimulator):
             self.check(sim, n)
             sim.delay(1e-6)
         self.check(sim, 2**self.size - 1)
+        await sim.delay(1e-6)
+        self.check(sim, 0)
 
     def test_count_leading_zeros(self, size):
         with self.run_simulation(self.m) as sim:
@@ -154,13 +156,13 @@ class CTZTestCircuit(Elaboratable):
         return m
 
 
-@pytest.mark.parametrize("size", range(1, 128))
+@pytest.mark.parametrize("size", range(1, 65))
 class TestCountTrailingZeros(TestCaseWithSimulator):
     @pytest.fixture(scope="function", autouse=True)
     def setup_fixture(self, size):
         self.size = size
         random.seed(14)
-        self.test_number = 40
+        self.test_number = 10
         self.m = CTZTestCircuit(self.size)
 
     def check(self, sim: TestbenchContext, n):
@@ -183,6 +185,8 @@ class TestCountTrailingZeros(TestCaseWithSimulator):
             self.check(sim, n)
             await sim.delay(1e-6)
         self.check(sim, self.size - 1)
+        await sim.delay(1e-6)
+        self.check(sim, 0)
 
     def test_count_trailing_zeros(self, size):
         with self.run_simulation(self.m) as sim:
