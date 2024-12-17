@@ -2,7 +2,7 @@
 # Copyright (C) 2019-2024 Amaranth HDL contributors
 
 from amaranth import *
-from transactron.utils import count_leading_zeros
+from transactron.utils.amaranth_ext.functions import count_leading_zeros
 
 
 __all__ = [

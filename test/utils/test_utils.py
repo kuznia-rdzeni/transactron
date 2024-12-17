@@ -122,7 +122,7 @@ class TestCountLeadingZeros(TestCaseWithSimulator):
     def check(self, sim: TestbenchContext, n):
         sim.set(self.m.sig_in, n)
         out_clz = sim.get(self.m.sig_out)
-        expected = (self.size) - n.sizegth()
+        expected = (self.size) - n.bit_length()
         assert out_clz == expected, f"Incorrect result: got {out_clz}\t expected: {expected}"
 
     async def process(self, sim: TestbenchContext):
