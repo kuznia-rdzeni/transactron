@@ -61,7 +61,7 @@ def count_leading_zeros(s: Value) -> Value:
 
     slen = len(s)
     slen_log = ceil_log2(slen)
-    closest_pow_2_of_s = 2 ** slen_log
+    closest_pow_2_of_s = 2**slen_log
     zeros_prepend_count = closest_pow_2_of_s - slen
     value = iter(Cat(C(0, shape=zeros_prepend_count), s), slen_log)
 

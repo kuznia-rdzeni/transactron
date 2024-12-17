@@ -96,7 +96,7 @@ class TestPopcount(TestCaseWithSimulator):
 class CLZTestCircuit(Elaboratable):
     def __init__(self, xlen: int):
         self.sig_in = Signal(xlen)
-        self.sig_out = Signal(ceil_log2(xlen)+1)
+        self.sig_out = Signal(ceil_log2(xlen) + 1)
         self.xlen = xlen
 
     def elaborate(self, platform):
@@ -130,7 +130,7 @@ class TestCountLeadingZeros(TestCaseWithSimulator):
             n = random.randrange(self.size)
             self.check(sim, n)
             sim.delay(1e-6)
-        self.check(sim, 2**self.size-1)
+        self.check(sim, 2**self.size - 1)
 
     def test_count_leading_zeros(self, size):
         with self.run_simulation(self.m) as sim:
@@ -140,7 +140,7 @@ class TestCountLeadingZeros(TestCaseWithSimulator):
 class CTZTestCircuit(Elaboratable):
     def __init__(self, xlen: int):
         self.sig_in = Signal(xlen)
-        self.sig_out = Signal(ceil_log2(xlen)+1)
+        self.sig_out = Signal(ceil_log2(xlen) + 1)
         self.xlen = xlen
 
     def elaborate(self, platform):
