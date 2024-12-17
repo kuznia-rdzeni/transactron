@@ -179,7 +179,7 @@ class WideFifo(Elaboratable):
         self.depth = depth
 
         self.read = Method(i=[("count", range(read_width + 1))], o=self.read_layout, src_loc=src_loc)
-        self.peek = Method(o=self.read_layout, nonexclusive=True, src_loc=src_loc)
+        self.peek = Method(o=self.read_layout, src_loc=src_loc)
         self.write = Method(i=self.write_layout, src_loc=src_loc)
         self.clear = Method(src_loc=src_loc)
 
@@ -275,7 +275,7 @@ class WideFifo(Elaboratable):
             m.d.comb += incr_row_col(next_read_row, next_read_col, read_row, read_col, incr_read_row, read_count)
             return {"count": read_count, "data": head}
 
-        @def_method(m, self.peek, level != 0)
+        @def_method(m, self.peek, level != 0, nonexclusive=True)
         def _():
             return {"count": read_available, "data": head}
 
