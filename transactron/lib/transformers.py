@@ -4,7 +4,7 @@ from transactron.utils.transactron_helpers import get_src_loc
 from ..core import *
 from ..utils import SrcLoc
 from typing import Optional, Protocol
-from collections.abc import Callable
+from collections.abc import Callable, Iterable
 from transactron.utils import (
     ValueLike,
     assign,
@@ -60,7 +60,7 @@ class Transformer(HasElaborate, Protocol):
 class Unifier(Transformer, Protocol):
     method: Method
 
-    def __init__(self, targets: list[Method]): ...
+    def __init__(self, targets: Iterable[Method]): ...
 
 
 class MethodMap(Elaboratable, Transformer):
@@ -208,7 +208,7 @@ class MethodFilter(Elaboratable, Transformer):
 class MethodProduct(Elaboratable, Unifier):
     def __init__(
         self,
-        targets: list[Method],
+        targets: Iterable[Method],
         combiner: Optional[tuple[MethodLayout, Callable[[TModule, list[MethodStruct]], RecordDict]]] = None,
         *,
         src_loc: int | SrcLoc = 0,
@@ -224,7 +224,7 @@ class MethodProduct(Elaboratable, Unifier):
 
         Parameters
         ----------
-        targets: list[Method]
+        targets: Iterable[Method]
             A list of methods to be called.
         combiner: (int or method layout, function), optional
             A pair of the output layout and the combiner function. The
@@ -239,6 +239,7 @@ class MethodProduct(Elaboratable, Unifier):
         method: Method
             The product method.
         """
+        targets = list(targets)
         if combiner is None:
             combiner = (targets[0].layout_out, lambda _, x: x[0])
         self.targets = targets
@@ -262,7 +263,7 @@ class MethodProduct(Elaboratable, Unifier):
 class MethodTryProduct(Elaboratable, Unifier):
     def __init__(
         self,
-        targets: list[Method],
+        targets: Iterable[Method],
         combiner: Optional[
             tuple[MethodLayout, Callable[[TModule, list[tuple[Value, MethodStruct]]], RecordDict]]
         ] = None,
@@ -280,7 +281,7 @@ class MethodTryProduct(Elaboratable, Unifier):
 
         Parameters
         ----------
-        targets: list[Method]
+        targets: Iterable[Method]
             A list of methods to be called.
         combiner: (int or method layout, function), optional
             A pair of the output layout and the combiner function. The
@@ -296,6 +297,7 @@ class MethodTryProduct(Elaboratable, Unifier):
         method: Method
             The product method.
         """
+        targets = list(targets)
         if combiner is None:
             combiner = ([], lambda _, __: {})
         self.targets = targets
@@ -332,16 +334,17 @@ class Collector(Elaboratable, Unifier):
         Method which returns single result of provided methods.
     """
 
-    def __init__(self, targets: list[Method], *, src_loc: int | SrcLoc = 0):
+    def __init__(self, targets: Iterable[Method], *, src_loc: int | SrcLoc = 0):
         """
         Parameters
         ----------
-        method_list: list[Method]
+        targets: Iterable[Method]
             List of methods from which results will be collected.
         src_loc: int | SrcLoc
             How many stack frames deep the source location is taken from.
             Alternatively, the source location to use instead of the default.
         """
+        targets = list(targets)
         self.method_list = targets
         layout = targets[0].layout_out
         self.src_loc = get_src_loc(src_loc)
