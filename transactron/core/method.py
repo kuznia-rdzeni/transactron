@@ -76,21 +76,6 @@ class Method(TransactionBase["Transaction | Method"]):
             The format of `data_in`.
         o: method layout
             The format of `data_out`.
-        nonexclusive: bool
-            If true, the method is non-exclusive: it can be called by multiple
-            transactions in the same clock cycle. If such a situation happens,
-            the method still is executed only once, and each of the callers
-            receive its output. Nonexclusive methods cannot have inputs.
-        combiner: (Module, Sequence[MethodStruct], Value) -> AssignArg
-            If `nonexclusive` is true, the combiner function combines the
-            arguments from multiple calls to this method into a single
-            argument, which is passed to the method body. The third argument
-            is a bit vector, whose n-th bit is 1 if the n-th call is active
-            in a given cycle.
-        single_caller: bool
-            If true, this method is intended to be called from a single
-            transaction. An error will be thrown if called from multiple
-            transactions.
         src_loc: int | SrcLoc
             How many stack frames deep the source location is taken from.
             Alternatively, the source location to use instead of the default.
@@ -207,6 +192,21 @@ class Method(TransactionBase["Transaction | Method"]):
             It instantiates a combinational circuit for each
             method caller. By default, there is no function, so all arguments
             are accepted.
+        combiner: (Module, Sequence[MethodStruct], Value) -> AssignArg
+            If `nonexclusive` is true, the combiner function combines the
+            arguments from multiple calls to this method into a single
+            argument, which is passed to the method body. The third argument
+            is a bit vector, whose n-th bit is 1 if the n-th call is active
+            in a given cycle.
+        nonexclusive: bool
+            If true, the method is non-exclusive: it can be called by multiple
+            transactions in the same clock cycle. If such a situation happens,
+            the method still is executed only once, and each of the callers
+            receive its output. Nonexclusive methods cannot have inputs.
+        single_caller: bool
+            If true, this method is intended to be called from a single
+            transaction. An error will be thrown if called from multiple
+            transactions.
 
         Returns
         -------

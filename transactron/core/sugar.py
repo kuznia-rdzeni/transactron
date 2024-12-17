@@ -47,11 +47,15 @@ def def_method(
         default it is `Const(1)`, so the method is always ready.
         Assigned combinationally to the `ready` attribute.
     validate_arguments: Optional[Callable[..., ValueLike]]
-        Function that takes input arguments used to call the method
-        and checks whether the method can be called with those arguments.
-        It instantiates a combinational circuit for each
-        method caller. By default, there is no function, so all arguments
-        are accepted.
+        For details, see `Method.body`.
+    validate_arguments: Optional[Callable[..., ValueLike]]
+        For details, see `Method.body`.
+    combiner: (Module, Sequence[MethodStruct], Value) -> AssignArg
+        For details, see `Method.body`.
+    nonexclusive: bool
+        For details, see `Method.body`.
+    single_caller: bool
+        For details, see `Method.body`.
 
     Examples
     --------
