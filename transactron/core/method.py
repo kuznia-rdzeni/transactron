@@ -3,22 +3,22 @@ from collections.abc import Sequence
 from transactron.utils import *
 from amaranth import *
 from amaranth import tracer
-from typing import Optional, Callable, Iterator, TYPE_CHECKING
+from typing import Optional, Callable, Iterator
 from .transaction_base import *
 from contextlib import contextmanager
 from transactron.utils.assign import AssignArg
 from transactron.utils._typing import type_self_add_1pos_kwargs_as
 
-from .transaction_base import OwnedAndNamed
+from ..graph import Owned
 from .body import Body, MBody
+from .keys import TransactionManagerKey
+from .tmodule import TModule
 
-if TYPE_CHECKING:
-    from .tmodule import TModule
 
 __all__ = ["Method", "Methods"]
 
 
-class Method(OwnedAndNamed):
+class Method(Owned):
     """Transactional method.
 
     A `Method` serves to interface a module with external `Transaction`\\s
@@ -56,15 +56,11 @@ class Method(OwnedAndNamed):
         (a `Transaction` or another `Method`). Typically defined by
         calling `body`.
     """
+
     _body_ptr: Optional["Body | Method"] = None
-    
+
     def __init__(
-        self,
-        *,
-        name: Optional[str] = None,
-        i: MethodLayout = (),
-        o: MethodLayout = (),
-        src_loc: int | SrcLoc = 0
+        self, *, name: Optional[str] = None, i: MethodLayout = (), o: MethodLayout = (), src_loc: int | SrcLoc = 0
     ):
         """
         Parameters
@@ -131,7 +127,7 @@ class Method(OwnedAndNamed):
             The freshly constructed `Method`.
         """
         return Method(name=name, i=other.layout_in, o=other.layout_out)
-    
+
     @property
     def _body(self) -> MBody:
         if isinstance(self._body_ptr, Body):
@@ -141,7 +137,7 @@ class Method(OwnedAndNamed):
             return self._body_ptr
         raise RuntimeError(f"Method '{self.name}' not defined")
 
-    def _set_impl(self, m: "TModule", value: "Body | Method"):
+    def _set_impl(self, m: TModule, value: "Body | Method"):
         if self._body_ptr is not None:
             raise RuntimeError(f"Method '{self.name}' already defined")
         self._body_ptr = value
@@ -150,7 +146,7 @@ class Method(OwnedAndNamed):
         m.d.comb += self.data_in.eq(value.data_in)
         m.d.comb += self.data_out.eq(value.data_out)
 
-    def proxy(self, m: "TModule", method: "Method"):
+    def proxy(self, m: TModule, method: "Method"):
         """Define as a proxy for another method.
 
         The calls to this method will be forwarded to `method`.
@@ -168,7 +164,7 @@ class Method(OwnedAndNamed):
     @contextmanager
     def body(
         self,
-        m: "TModule",
+        m: TModule,
         *,
         ready: ValueLike = C(1),
         out: ValueLike = C(0, 0),
@@ -223,17 +219,30 @@ class Method(OwnedAndNamed):
             with my_sum_method.body(m, out = sum) as data_in:
                 m.d.comb += sum.eq(data_in.arg1 + data_in.arg2)
         """
-        body = Body(name=self.name, owner=self.owner, i=self.layout_in, o=self.layout_out, combiner=combiner, validate_arguments=validate_arguments, nonexclusive=nonexclusive, single_caller=single_caller, src_loc=self.src_loc)
+        body = Body(
+            name=self.name,
+            owner=self.owner,
+            i=self.layout_in,
+            o=self.layout_out,
+            combiner=combiner,
+            validate_arguments=validate_arguments,
+            nonexclusive=nonexclusive,
+            single_caller=single_caller,
+            src_loc=self.src_loc,
+        )
         self._set_impl(m, body)
-        
+
         m.d.av_comb += body.ready.eq(ready)
         m.d.top_comb += body.data_out.eq(out)
         with body.context(m):
             with m.AvoidedIf(body.run):
                 yield body.data_in
 
+        manager = DependencyContext.get().get_dependency(TransactionManagerKey())
+        manager.add_method(self)
+
     def __call__(
-        self, m: "TModule", arg: Optional[AssignArg] = None, enable: ValueLike = C(1), /, **kwargs: AssignArg
+        self, m: TModule, arg: Optional[AssignArg] = None, enable: ValueLike = C(1), /, **kwargs: AssignArg
     ) -> MethodStruct:
         """Call a method.
 
@@ -334,7 +343,7 @@ class Methods(Sequence[Method]):
         return self._methods[0].layout_out
 
     def __call__(
-        self, m: "TModule", arg: Optional[AssignArg] = None, enable: ValueLike = C(1), /, **kwargs: AssignArg
+        self, m: TModule, arg: Optional[AssignArg] = None, enable: ValueLike = C(1), /, **kwargs: AssignArg
     ) -> MethodStruct:
         if len(self._methods) != 1:
             raise RuntimeError("calling Methods only allowed when count=1")

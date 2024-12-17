@@ -1,13 +1,11 @@
 from collections.abc import Sequence, Callable
 from amaranth import *
-from typing import TYPE_CHECKING, Optional, Concatenate, ParamSpec
+from typing import Optional, Concatenate, ParamSpec
 from transactron.utils import *
 from transactron.utils.assign import AssignArg
 from functools import partial
-
-if TYPE_CHECKING:
-    from .tmodule import TModule
-    from .method import Method
+from .tmodule import TModule
+from .method import Method
 
 __all__ = ["def_method", "def_methods"]
 
@@ -16,10 +14,13 @@ P = ParamSpec("P")
 
 
 def def_method(
-    m: "TModule",
-    method: "Method",
+    m: TModule,
+    method: Method,
     ready: ValueLike = C(1),
+    combiner: Optional[Callable[[Module, Sequence[MethodStruct], Value], AssignArg]] = None,
     validate_arguments: Optional[Callable[..., ValueLike]] = None,
+    nonexclusive: bool = False,
+    single_caller: bool = False,
 ):
     """Define a method.
 
@@ -86,7 +87,7 @@ def def_method(
         out = Signal(method.layout_out)
         ret_out = None
 
-        with method.body(m, ready=ready, out=out, validate_arguments=validate_arguments) as arg:
+        with method.body(m, ready=ready, out=out, combiner=combiner, validate_arguments=validate_arguments, nonexclusive=nonexclusive, single_caller=single_caller) as arg:
             ret_out = method_def_helper(method, func, arg)
 
         if ret_out is not None:
@@ -96,8 +97,8 @@ def def_method(
 
 
 def def_methods(
-    m: "TModule",
-    methods: Sequence["Method"],
+    m: TModule,
+    methods: Sequence[Method],
     ready: Callable[[int], ValueLike] = lambda _: C(1),
     validate_arguments: Optional[Callable[..., ValueLike]] = None,
 ):

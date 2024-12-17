@@ -1,6 +1,7 @@
 from collections import defaultdict
 from collections.abc import Iterator, Sequence
 from contextlib import contextmanager
+from itertools import count
 
 from amaranth.lib.data import StructLayout
 from transactron.core.tmodule import CtrlPath, TModule
@@ -8,11 +9,8 @@ from transactron.graph import Owned
 
 from transactron.utils import *
 from amaranth import *
-from typing import TYPE_CHECKING, ClassVar, NewType, Optional, Callable, Protocol, final
-from .transaction_base import *
+from typing import TYPE_CHECKING, ClassVar, NewType, Optional, Callable, final
 from transactron.utils.assign import AssignArg
-
-from .transaction_base import OwnedAndNamed
 
 if TYPE_CHECKING:
     from .method import Method
@@ -22,7 +20,9 @@ __all__ = ["Body", "TBody", "MBody"]
 
 
 @final
-class Body(OwnedAndNamed):
+class Body(Owned):
+    def_counter: ClassVar[count] = count()
+    def_order: int
     stack: ClassVar[list["Body"]] = []
     ctrl_path: CtrlPath = CtrlPath(-1, [])
     method_uses: dict["Method", tuple[MethodStruct, Signal]]
@@ -39,7 +39,7 @@ class Body(OwnedAndNamed):
         validate_arguments: Optional[Callable[..., ValueLike]],
         nonexclusive: bool,
         single_caller: bool,
-        src_loc: SrcLoc
+        src_loc: SrcLoc,
     ):
         def default_combiner(m: Module, args: Sequence[MethodStruct], runs: Value) -> AssignArg:
             ret = Signal(from_method_layout(i))
@@ -47,7 +47,7 @@ class Body(OwnedAndNamed):
                 m.d.comb += ret.eq(args[k])
             return ret
 
-        self.def_order = next(TransactionBase.def_counter)
+        self.def_order = next(Body.def_counter)
         self.name = name
         self.owner = owner
         self.ready = Signal(name=self.owned_name + "_ready")
@@ -62,10 +62,10 @@ class Body(OwnedAndNamed):
         self.method_uses = {}
         self.method_calls = defaultdict(list)
         self.src_loc = src_loc
-        
+
         if nonexclusive:
             assert len(self.data_in.as_value()) == 0 or combiner is not None
-    
+
     def _validate_arguments(self, arg_rec: MethodStruct) -> ValueLike:
         if self.validate_arguments is not None:
             return self.ready & method_def_helper(self, self.validate_arguments, arg_rec)
@@ -76,9 +76,9 @@ class Body(OwnedAndNamed):
         self.ctrl_path = m.ctrl_path
 
         parent = Body.peek()
-# TODO
-#        if parent is not None:
-#            parent.schedule_before(self)
+        # TODO
+        #        if parent is not None:
+        #            parent.schedule_before(self)
 
         Body.stack.append(self)
 
@@ -117,4 +117,3 @@ class Body(OwnedAndNamed):
 
 TBody = NewType("TBody", Body)
 MBody = NewType("MBody", Body)
-

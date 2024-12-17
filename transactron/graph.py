@@ -14,6 +14,13 @@ class Owned(Protocol):
     name: str
     owner: Optional[Elaboratable]
 
+    @property
+    def owned_name(self):
+        if self.owner is not None and self.owner.__class__.__name__ != self.name:
+            return f"{self.owner.__class__.__name__}_{self.name}"
+        else:
+            return self.name
+
 
 class Direction(IntFlag):
     NONE = 0

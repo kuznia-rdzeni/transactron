@@ -2,21 +2,18 @@ from amaranth.lib.data import StructLayout
 from transactron.utils import *
 from amaranth import *
 from amaranth import tracer
-from typing import Optional, Iterator, TYPE_CHECKING
-from .transaction_base import OwnedAndNamed
+from typing import Optional, Iterator
+from ..graph import Owned
 from .keys import *
 from contextlib import contextmanager
 from .body import Body, TBody
+from .tmodule import TModule
 
-
-if TYPE_CHECKING:
-    from .tmodule import TModule
-    from .manager import TransactionManager
 
 __all__ = ["Transaction"]
 
 
-class Transaction(OwnedAndNamed):
+class Transaction(Owned):
     """Transaction.
 
     A `Transaction` represents a task which needs to be regularly done.
@@ -53,11 +50,10 @@ class Transaction(OwnedAndNamed):
         Signals that the transaction is granted by the `TransactionManager`,
         and all used methods are called.
     """
+
     _body_ptr: Optional["Body"] = None
 
-    def __init__(
-        self, *, name: Optional[str] = None, manager: Optional["TransactionManager"] = None, src_loc: int | SrcLoc = 0
-    ):
+    def __init__(self, *, name: Optional[str] = None, src_loc: int | SrcLoc = 0):
         """
         Parameters
         ----------
@@ -66,30 +62,26 @@ class Transaction(OwnedAndNamed):
             inferred from the variable name this `Transaction` is assigned to.
             If the `Transaction` was not assigned, the name is inferred from
             the class name where the `Transaction` was constructed.
-        manager: TransactionManager
-            The `TransactionManager` controlling this `Transaction`.
-            If omitted, the manager is received from `TransactionContext`.
         src_loc: int | SrcLoc
             How many stack frames deep the source location is taken from.
             Alternatively, the source location to use instead of the default.
         """
         self.owner, owner_name = get_caller_class_name(default="$transaction")
         self.name = name or tracer.get_var_name(depth=2, default=owner_name)
-        if manager is None:
-            manager = DependencyContext.get().get_dependency(TransactionManagerKey())
+        manager = DependencyContext.get().get_dependency(TransactionManagerKey())
         manager.add_transaction(self)
         self.request = Signal(name=self.owned_name + "_request")
         self.runnable = Signal(name=self.owned_name + "_runnable")
         self.grant = Signal(name=self.owned_name + "_grant")
-        self.src_loc=get_src_loc(src_loc)
-    
+        self.src_loc = get_src_loc(src_loc)
+
     @property
     def _body(self) -> TBody:
         if self._body_ptr is not None:
             return TBody(self._body_ptr)
         raise RuntimeError(f"Method '{self.name}' not defined")
 
-    def _set_impl(self, m: "TModule", value: Body):
+    def _set_impl(self, m: TModule, value: Body):
         if self._body_ptr is not None:
             raise RuntimeError(f"Transaction '{self.name}' already defined")
         self._body_ptr = value
@@ -98,7 +90,7 @@ class Transaction(OwnedAndNamed):
         m.d.comb += self.grant.eq(value.run)
 
     @contextmanager
-    def body(self, m: "TModule", *, request: ValueLike = C(1)) -> Iterator["Transaction"]:
+    def body(self, m: TModule, *, request: ValueLike = C(1)) -> Iterator["Transaction"]:
         """Defines the `Transaction` body.
 
         This context manager allows to conveniently define the actions
@@ -117,7 +109,17 @@ class Transaction(OwnedAndNamed):
             default it is `Const(1)`, so it wants to be executed in
             every clock cycle.
         """
-        impl = Body(name=self.name, owner=self.owner, i=StructLayout({}), o=StructLayout({}), combiner=None, validate_arguments=None, nonexclusive=False, single_caller=False, src_loc=self.src_loc)
+        impl = Body(
+            name=self.name,
+            owner=self.owner,
+            i=StructLayout({}),
+            o=StructLayout({}),
+            combiner=None,
+            validate_arguments=None,
+            nonexclusive=False,
+            single_caller=False,
+            src_loc=self.src_loc,
+        )
         self._set_impl(m, impl)
 
         m.d.av_comb += impl.ready.eq(request)

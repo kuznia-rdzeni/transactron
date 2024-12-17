@@ -1,28 +1,20 @@
-from collections import defaultdict
-from collections.abc import Iterator
-from contextlib import contextmanager
 from enum import Enum, auto
-from itertools import count
 from typing import (
-    ClassVar,
     TypeAlias,
     TypedDict,
     Union,
     TypeVar,
     Protocol,
-    Self,
     runtime_checkable,
     TYPE_CHECKING,
-    Optional,
 )
 from amaranth import *
 
-from .tmodule import TModule, CtrlPath
 from transactron.graph import Owned
 from transactron.utils import *
+from .body import Body
 
 if TYPE_CHECKING:
-    from .method import Body, Method
     from .transaction import Transaction
 
 __all__ = ["TransactionBase", "Priority"]
@@ -51,21 +43,8 @@ class Relation(RelationBase):
     start: TransactionOrMethodImpl
 
 
-class OwnedAndNamed(Owned, Protocol):
-    name: str
-
-    @property
-    def owned_name(self):
-        if self.owner is not None and self.owner.__class__.__name__ != self.name:
-            return f"{self.owner.__class__.__name__}_{self.name}"
-        else:
-            return self.name
-
-
 @runtime_checkable
-class TransactionBase(OwnedAndNamed, Protocol):
-    def_counter: ClassVar[count] = count()
-    def_order: int
+class TransactionBase(Owned, Protocol):
     defined: bool = False
     src_loc: SrcLoc
     relations: list[RelationBase]

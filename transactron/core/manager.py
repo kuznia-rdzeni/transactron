@@ -1,6 +1,6 @@
 from collections import defaultdict, deque
 from collections.abc import Callable, Iterable, Sequence, Collection, Mapping
-from typing import NewType, TypeAlias, Optional
+from typing import TypeAlias, Optional
 from os import environ
 from graphlib import TopologicalSorter
 from amaranth import *
@@ -14,9 +14,10 @@ from transactron.utils import *
 from transactron.utils.transactron_helpers import _graph_ccs
 from transactron.graph import OwnershipGraph, Direction
 
-from .transaction_base import TransactionBase, TransactionOrMethodImpl, Priority, Relation
+from .transaction_base import Priority
 from .body import Body, TBody, MBody
 from .transaction import Transaction, TransactionManagerKey
+from .method import Method
 from .tmodule import TModule
 from .schedulers import eager_deterministic_cc_scheduler
 
@@ -26,6 +27,7 @@ TransactionGraph: TypeAlias = Graph[TBody]
 TransactionGraphCC: TypeAlias = GraphCC[TBody]
 PriorityOrder: TypeAlias = dict[TBody, int]
 TransactionScheduler: TypeAlias = Callable[["MethodMap", TransactionGraph, TransactionGraphCC, PriorityOrder], Module]
+
 
 class MethodMap:
     def __init__(self, transactions: Iterable[Transaction]):
@@ -84,10 +86,14 @@ class TransactionManager(Elaboratable):
 
     def __init__(self, cc_scheduler: TransactionScheduler = eager_deterministic_cc_scheduler):
         self.transactions: list[Transaction] = []
+        self.methods: list[Method] = []
         self.cc_scheduler = cc_scheduler
 
     def add_transaction(self, transaction: Transaction):
         self.transactions.append(transaction)
+
+    def add_method(self, method: Method):
+        self.methods.append(method)
 
     @staticmethod
     def _conflict_graph(method_map: MethodMap) -> tuple[TransactionGraph, PriorityOrder]:
@@ -166,10 +172,10 @@ class TransactionManager(Elaboratable):
                         add_edge(transaction1, transaction2, Priority.UNDEFINED, True)
 
         relations = [
-# TODO
-#            Relation(**relation, start=elem)
-#            for elem in method_map.methods_and_transactions
-#            for relation in elem.relations
+            # TODO
+            #            Relation(**relation, start=elem)
+            #            for elem in method_map.methods_and_transactions
+            #            for relation in elem.relations
         ]
 
         for relation in relations:
@@ -295,7 +301,17 @@ class TransactionManager(Elaboratable):
 
         for transaction in joined_transactions:
             # TODO: some simpler way?
-            method = Body(name=transaction.name, owner=transaction.owner, i=StructLayout({}), o=StructLayout({}), combiner=None, validate_arguments = None, nonexclusive=False, single_caller=False, src_loc=transaction.src_loc)
+            method = Body(
+                name=transaction.name,
+                owner=transaction.owner,
+                i=StructLayout({}),
+                o=StructLayout({}),
+                combiner=None,
+                validate_arguments=None,
+                nonexclusive=False,
+                single_caller=False,
+                src_loc=transaction.src_loc,
+            )
             method.ready = transaction.request
             method.run = transaction.grant
             method.defined = transaction.defined
@@ -428,9 +444,7 @@ class TransactionManager(Elaboratable):
 
         def transaction_debug(t: TBody):
             return (
-                [t.ready, t.run]
-                + [m.ready for m in method_map.methods_by_transaction[t]]
-                + [t2.run for t2 in cgr[t]]
+                [t.ready, t.run] + [m.ready for m in method_map.methods_by_transaction[t]] + [t2.run for t2 in cgr[t]]
             )
 
         def method_debug(m: MBody):

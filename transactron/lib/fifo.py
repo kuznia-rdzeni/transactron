@@ -51,7 +51,7 @@ class BasicFifo(Elaboratable):
 
         src_loc = get_src_loc(src_loc)
         self.read = Method(o=self.layout, src_loc=src_loc)
-        self.peek = Method(o=self.layout, nonexclusive=True, src_loc=src_loc)
+        self.peek = Method(o=self.layout, src_loc=src_loc)
         self.write = Method(i=self.layout, src_loc=src_loc)
         self.clear = Method(src_loc=src_loc)
         self.head = Signal(from_method_layout(layout))
@@ -106,7 +106,7 @@ class BasicFifo(Elaboratable):
             m.d.sync += self.read_idx.eq(next_read_idx)
             return self.head
 
-        @def_method(m, self.peek, self.read_ready)
+        @def_method(m, self.peek, self.read_ready, nonexclusive=True)
         def _() -> ValueLike:
             return self.head
 
