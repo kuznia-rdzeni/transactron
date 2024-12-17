@@ -2,6 +2,7 @@
 # Copyright (C) 2019-2024 Amaranth HDL contributors
 
 from amaranth import *
+from transactron.utils import count_leading_zeros
 
 
 __all__ = [
@@ -84,9 +85,7 @@ class PriorityEncoder(Elaboratable):
 
     def elaborate(self, platform):
         m = Module()
-        for j in reversed(range(self.width)):
-            with m.If(self.i[j]):
-                m.d.comb += self.o.eq(j)
+        m.d.comb += self.o.eq(count_leading_zeros(self.i))
         m.d.comb += self.n.eq(self.i == 0)
         return m
 

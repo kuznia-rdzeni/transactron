@@ -11,6 +11,7 @@ from transactron.utils import (
     count_leading_zeros,
     count_trailing_zeros,
 )
+from amaranth.utils import ceil_log2
 
 
 class TestAlignToPowerOfTwo(unittest.TestCase):
@@ -93,10 +94,10 @@ class TestPopcount(TestCaseWithSimulator):
 
 
 class CLZTestCircuit(Elaboratable):
-    def __init__(self, xlen_log: int):
-        self.sig_in = Signal(1 << xlen_log)
-        self.sig_out = Signal(xlen_log + 1)
-        self.xlen_log = xlen_log
+    def __init__(self, xlen: int):
+        self.sig_in = Signal(xlen)
+        self.sig_out = Signal(ceil_log2(xlen)+1)
+        self.xlen = xlen
 
     def elaborate(self, platform):
         m = Module()
@@ -109,7 +110,7 @@ class CLZTestCircuit(Elaboratable):
         return m
 
 
-@pytest.mark.parametrize("size", range(1, 7))
+@pytest.mark.parametrize("size", range(1, 128))
 class TestCountLeadingZeros(TestCaseWithSimulator):
     @pytest.fixture(scope="function", autouse=True)
     def setup_fixture(self, size):
@@ -121,14 +122,15 @@ class TestCountLeadingZeros(TestCaseWithSimulator):
     def check(self, sim: TestbenchContext, n):
         sim.set(self.m.sig_in, n)
         out_clz = sim.get(self.m.sig_out)
-        assert out_clz == (2**self.size) - n.bit_length(), f"{n:x}"
+        expected = (self.size) - n.sizegth()
+        assert out_clz == expected, f"Incorrect result: got {out_clz}\t expected: {expected}"
 
     async def process(self, sim: TestbenchContext):
         for i in range(self.test_number):
-            n = random.randrange(2**self.size)
+            n = random.randrange(self.size)
             self.check(sim, n)
             sim.delay(1e-6)
-        self.check(sim, 2**self.size - 1)
+        self.check(sim, 2**self.size-1)
 
     def test_count_leading_zeros(self, size):
         with self.run_simulation(self.m) as sim:
@@ -136,10 +138,10 @@ class TestCountLeadingZeros(TestCaseWithSimulator):
 
 
 class CTZTestCircuit(Elaboratable):
-    def __init__(self, xlen_log: int):
-        self.sig_in = Signal(1 << xlen_log)
-        self.sig_out = Signal(xlen_log + 1)
-        self.xlen_log = xlen_log
+    def __init__(self, xlen: int):
+        self.sig_in = Signal(xlen)
+        self.sig_out = Signal(ceil_log2(xlen)+1)
+        self.xlen = xlen
 
     def elaborate(self, platform):
         m = Module()
@@ -152,7 +154,7 @@ class CTZTestCircuit(Elaboratable):
         return m
 
 
-@pytest.mark.parametrize("size", range(1, 7))
+@pytest.mark.parametrize("size", range(1, 128))
 class TestCountTrailingZeros(TestCaseWithSimulator):
     @pytest.fixture(scope="function", autouse=True)
     def setup_fixture(self, size):
@@ -167,7 +169,7 @@ class TestCountTrailingZeros(TestCaseWithSimulator):
 
         expected = 0
         if n == 0:
-            expected = 2**self.size
+            expected = self.size
         else:
             while (n & 1) == 0:
                 expected += 1
@@ -177,10 +179,10 @@ class TestCountTrailingZeros(TestCaseWithSimulator):
 
     async def process(self, sim: TestbenchContext):
         for i in range(self.test_number):
-            n = random.randrange(2**self.size)
+            n = random.randrange(self.size)
             self.check(sim, n)
             await sim.delay(1e-6)
-        self.check(sim, 2**self.size - 1)
+        self.check(sim, self.size - 1)
 
     def test_count_trailing_zeros(self, size):
         with self.run_simulation(self.m) as sim:
