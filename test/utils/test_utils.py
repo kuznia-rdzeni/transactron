@@ -110,13 +110,13 @@ class CLZTestCircuit(Elaboratable):
         return m
 
 
-@pytest.mark.parametrize("size", [1,2,3,4,5,6,7,8,9,15,16,17,31,32,33,63,64,65,97,98,127,128])
+@pytest.mark.parametrize("size", [1, 2, 3, 4, 5, 6, 7, 8, 9, 15, 16, 17, 31, 32, 33, 63, 64, 65, 97, 98, 127, 128])
 class TestCountLeadingZeros(TestCaseWithSimulator):
     @pytest.fixture(scope="function", autouse=True)
     def setup_fixture(self, size):
         self.size = size
         random.seed(14)
-        self.test_number = 10
+        self.test_number = 40
         self.m = CLZTestCircuit(self.size)
 
     def check(self, sim: TestbenchContext, n):
@@ -156,13 +156,13 @@ class CTZTestCircuit(Elaboratable):
         return m
 
 
-@pytest.mark.parametrize("size", [1,2,3,4,5,6,7,8,9,15,16,17,31,32,33,63,64,65,97,98,127,128])
+@pytest.mark.parametrize("size", [1, 2, 3, 4, 5, 6, 7, 8, 9, 15, 16, 17, 31, 32, 33, 63, 64, 65, 97, 98, 127, 128])
 class TestCountTrailingZeros(TestCaseWithSimulator):
     @pytest.fixture(scope="function", autouse=True)
     def setup_fixture(self, size):
         self.size = size
         random.seed(14)
-        self.test_number = 10
+        self.test_number = 40
         self.m = CTZTestCircuit(self.size)
 
     def check(self, sim: TestbenchContext, n):
