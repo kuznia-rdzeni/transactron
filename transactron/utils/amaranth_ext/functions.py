@@ -57,14 +57,13 @@ def count_leading_zeros(s: Value) -> Value:
     slen_log = ceil_log2(slen)
     closest_pow_2_of_s = 2 ** slen_log
     zeros_prepend_count = closest_pow_2_of_s - slen
-    value = iter(Cat(C(0, shape=zeros_prepend_count), s), slen_log) 
+    value = iter(Cat(C(0, shape=zeros_prepend_count), s), slen_log)
 
     # 0 number edge case
     # if s == 0 then iter() returns value off by 1
     # this switch negates this effect
     result = Mux(s.any(), value, slen)
     return result
-
 
 
 def count_trailing_zeros(s: Value) -> Value:
