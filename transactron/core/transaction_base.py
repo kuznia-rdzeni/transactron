@@ -1,26 +1,16 @@
 from enum import Enum, auto
 from typing import (
-    TypeAlias,
     TypedDict,
-    Union,
-    TypeVar,
     Protocol,
     runtime_checkable,
-    TYPE_CHECKING,
 )
 from amaranth import *
 
 from transactron.graph import Owned
 from transactron.utils import *
-from .body import Body
 
-if TYPE_CHECKING:
-    from .transaction import Transaction
 
 __all__ = ["TransactionBase", "Priority"]
-
-TransactionOrMethodImpl: TypeAlias = Union["Transaction", "Body"]
-TransactionOrMethodImplBound = TypeVar("TransactionOrMethodImplBound", "Transaction", "MethodImpl")
 
 
 class Priority(Enum):
@@ -33,31 +23,30 @@ class Priority(Enum):
 
 
 class RelationBase(TypedDict):
-    end: TransactionOrMethodImpl
+    end: "TransactionBase"
     priority: Priority
     conflict: bool
     silence_warning: bool
 
 
 class Relation(RelationBase):
-    start: TransactionOrMethodImpl
+    start: "TransactionBase"
 
 
 @runtime_checkable
 class TransactionBase(Owned, Protocol):
-    defined: bool = False
     src_loc: SrcLoc
     relations: list[RelationBase]
-    simultaneous_list: list[TransactionOrMethodImpl]
-    independent_list: list[TransactionOrMethodImpl]
+    simultaneous_list: list["TransactionBase"]
+    independent_list: list["TransactionBase"]
 
-    def __init__(self, *, src_loc: int | SrcLoc):
-        self.src_loc = get_src_loc(src_loc)
+    def __init__(self, *, src_loc: SrcLoc):
+        self.src_loc = src_loc
         self.relations = []
         self.simultaneous_list = []
         self.independent_list = []
 
-    def add_conflict(self, end: TransactionOrMethodImpl, priority: Priority = Priority.UNDEFINED) -> None:
+    def add_conflict(self, end: "TransactionBase", priority: Priority = Priority.UNDEFINED) -> None:
         """Registers a conflict.
 
         Record that that the given `Transaction` or `Method` cannot execute
@@ -76,7 +65,7 @@ class TransactionBase(Owned, Protocol):
             RelationBase(end=end, priority=priority, conflict=True, silence_warning=self.owner != end.owner)
         )
 
-    def schedule_before(self, end: TransactionOrMethodImpl) -> None:
+    def schedule_before(self, end: "TransactionBase") -> None:
         """Adds a priority relation.
 
         Record that that the given `Transaction` or `Method` needs to be
@@ -92,7 +81,7 @@ class TransactionBase(Owned, Protocol):
             RelationBase(end=end, priority=Priority.LEFT, conflict=False, silence_warning=self.owner != end.owner)
         )
 
-    def simultaneous(self, *others: TransactionOrMethodImpl) -> None:
+    def simultaneous(self, *others: "TransactionBase") -> None:
         """Adds simultaneity relations.
 
         The given `Transaction`\\s or `Method``\\s will execute simultaneously
@@ -105,7 +94,7 @@ class TransactionBase(Owned, Protocol):
         """
         self.simultaneous_list += others
 
-    def simultaneous_alternatives(self, *others: TransactionOrMethodImpl) -> None:
+    def simultaneous_alternatives(self, *others: "TransactionBase") -> None:
         """Adds exclusive simultaneity relations.
 
         Each of the given `Transaction`\\s or `Method``\\s will execute
@@ -122,7 +111,7 @@ class TransactionBase(Owned, Protocol):
         self.simultaneous(*others)
         others[0]._independent(*others[1:])
 
-    def _independent(self, *others: TransactionOrMethodImpl) -> None:
+    def _independent(self, *others: "TransactionBase") -> None:
         """Adds independence relations.
 
         This `Transaction` or `Method`, together with all the given

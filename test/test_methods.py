@@ -538,9 +538,9 @@ class NonexclusiveMethodCircuit(Elaboratable):
         self.running = Signal()
         self.data = Signal(WIDTH)
 
-        method = Method(o=data_layout(WIDTH), nonexclusive=True)
+        method = Method(o=data_layout(WIDTH))
 
-        @def_method(m, method, self.ready)
+        @def_method(m, method, self.ready, nonexclusive=True)
         def _():
             m.d.comb += self.running.eq(1)
             return {"data": self.data}
@@ -594,20 +594,20 @@ class TwoNonexclusiveConflictCircuit(Elaboratable):
         self.running1 = Signal()
         self.running2 = Signal()
 
-        method1 = Method(o=data_layout(WIDTH), nonexclusive=True)
-        method2 = Method(o=data_layout(WIDTH), nonexclusive=self.two_nonexclusive)
+        method1 = Method(o=data_layout(WIDTH))
+        method2 = Method(o=data_layout(WIDTH))
         method_in = Method(o=data_layout(WIDTH))
 
         @def_method(m, method_in)
         def _():
             return {"data": 0}
 
-        @def_method(m, method1)
+        @def_method(m, method1, nonexclusive=True)
         def _():
             m.d.comb += self.running1.eq(1)
             return method_in(m)
 
-        @def_method(m, method2)
+        @def_method(m, method2, nonexclusive=self.two_nonexclusive)
         def _():
             m.d.comb += self.running2.eq(1)
             return method_in(m)
@@ -649,9 +649,9 @@ class CustomCombinerMethodCircuit(Elaboratable):
                 result = result ^ Mux(runs[i], v.data, 0)
             return {"data": result}
 
-        method = Method(i=data_layout(WIDTH), o=data_layout(WIDTH), nonexclusive=True, combiner=combiner)
+        method = Method(i=data_layout(WIDTH), o=data_layout(WIDTH))
 
-        @def_method(m, method, self.ready)
+        @def_method(m, method, self.ready, nonexclusive=True, combiner=combiner)
         def _(data: Value):
             m.d.comb += self.running.eq(1)
             return {"data": data}

@@ -40,7 +40,7 @@ class MethodMap:
         def rec(transaction: TBody, source: Body, ancestors: tuple[MBody, ...]):
             for method_obj, (arg_rec, _) in source.method_uses.items():
                 method = MBody(method_obj._body)
-                if method_obj in self.methods_by_transaction[transaction]:
+                if method in self.methods_by_transaction[transaction]:
                     raise RuntimeError(f"Method '{method_obj.name}' can't be called twice from the same transaction")
                 self.methods_by_transaction[transaction].append(method)
                 self.transactions_by_method[method].append(transaction)

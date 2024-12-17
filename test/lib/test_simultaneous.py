@@ -20,7 +20,7 @@ from transactron.testing import (
 class ConditionTestCircuit(Elaboratable):
     def __init__(self, target: Method, *, nonblocking: bool, priority: bool, catchall: bool):
         self.target = target
-        self.source = Method(i=[("cond1", 1), ("cond2", 1), ("cond3", 1)], single_caller=True)
+        self.source = Method(i=[("cond1", 1), ("cond2", 1), ("cond3", 1)])
         self.nonblocking = nonblocking
         self.priority = priority
         self.catchall = catchall
@@ -28,7 +28,7 @@ class ConditionTestCircuit(Elaboratable):
     def elaborate(self, platform):
         m = TModule()
 
-        @def_method(m, self.source)
+        @def_method(m, self.source, single_caller=True)
         def _(cond1, cond2, cond3):
             with condition(m, nonblocking=self.nonblocking, priority=self.priority) as branch:
                 with branch(cond1):

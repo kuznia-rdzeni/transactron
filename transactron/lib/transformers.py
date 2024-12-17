@@ -177,7 +177,7 @@ class MethodFilter(Elaboratable, Transformer):
         self.target = target
         self.use_condition = use_condition
         src_loc = get_src_loc(src_loc)
-        self.method = Method(i=target.layout_in, o=target.layout_out, single_caller=self.use_condition, src_loc=src_loc)
+        self.method = Method(i=target.layout_in, o=target.layout_out, src_loc=src_loc)
         self.condition = condition
         self.default = default
 
@@ -189,7 +189,7 @@ class MethodFilter(Elaboratable, Transformer):
         ret = Signal.like(self.target.data_out)
         m.d.comb += assign(ret, self.default, fields=AssignType.ALL)
 
-        @def_method(m, self.method)
+        @def_method(m, self.method, single_caller=self.use_condition)
         def _(arg):
             if self.use_condition:
                 cond = Signal()

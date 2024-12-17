@@ -1,8 +1,7 @@
 from amaranth import *
 
 from ..utils import SrcLoc
-from ..core import *
-from ..core import TransactionBase
+from ..core import TModule, Transaction, Body
 from contextlib import contextmanager
 from typing import Optional
 from transactron.utils import ValueLike
@@ -56,7 +55,7 @@ def condition(m: TModule, *, nonblocking: bool = False, priority: bool = False):
             with branch():  # default, optional
                 ...
     """
-    this = TransactionBase.get()
+    this = Body.get()
     transactions = list[Transaction]()
     last = False
     conds = list[Signal]()

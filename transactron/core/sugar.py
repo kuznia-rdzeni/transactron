@@ -87,7 +87,15 @@ def def_method(
         out = Signal(method.layout_out)
         ret_out = None
 
-        with method.body(m, ready=ready, out=out, combiner=combiner, validate_arguments=validate_arguments, nonexclusive=nonexclusive, single_caller=single_caller) as arg:
+        with method.body(
+            m,
+            ready=ready,
+            out=out,
+            combiner=combiner,
+            validate_arguments=validate_arguments,
+            nonexclusive=nonexclusive,
+            single_caller=single_caller,
+        ) as arg:
             ret_out = method_def_helper(method, func, arg)
 
         if ret_out is not None:

@@ -3,17 +3,17 @@ from transactron.utils import *
 from amaranth import *
 from amaranth import tracer
 from typing import Optional, Iterator
-from ..graph import Owned
 from .keys import *
 from contextlib import contextmanager
 from .body import Body, TBody
 from .tmodule import TModule
+from .transaction_base import TransactionBase
 
 
 __all__ = ["Transaction"]
 
 
-class Transaction(Owned):
+class Transaction(TransactionBase):
     """Transaction.
 
     A `Transaction` represents a task which needs to be regularly done.
@@ -66,6 +66,7 @@ class Transaction(Owned):
             How many stack frames deep the source location is taken from.
             Alternatively, the source location to use instead of the default.
         """
+        super().__init__(src_loc=get_src_loc(src_loc))
         self.owner, owner_name = get_caller_class_name(default="$transaction")
         self.name = name or tracer.get_var_name(depth=2, default=owner_name)
         manager = DependencyContext.get().get_dependency(TransactionManagerKey())
@@ -73,7 +74,6 @@ class Transaction(Owned):
         self.request = Signal(name=self.owned_name + "_request")
         self.runnable = Signal(name=self.owned_name + "_runnable")
         self.grant = Signal(name=self.owned_name + "_grant")
-        self.src_loc = get_src_loc(src_loc)
 
     @property
     def _body(self) -> TBody:

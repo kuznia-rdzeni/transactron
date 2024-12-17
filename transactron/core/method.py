@@ -9,16 +9,16 @@ from contextlib import contextmanager
 from transactron.utils.assign import AssignArg
 from transactron.utils._typing import type_self_add_1pos_kwargs_as
 
-from ..graph import Owned
 from .body import Body, MBody
 from .keys import TransactionManagerKey
 from .tmodule import TModule
+from .transaction_base import TransactionBase
 
 
 __all__ = ["Method", "Methods"]
 
 
-class Method(Owned):
+class Method(TransactionBase):
     """Transactional method.
 
     A `Method` serves to interface a module with external `Transaction`\\s
@@ -91,13 +91,13 @@ class Method(Owned):
             How many stack frames deep the source location is taken from.
             Alternatively, the source location to use instead of the default.
         """
+        super().__init__(src_loc=get_src_loc(src_loc))
         self.owner, owner_name = get_caller_class_name(default="$method")
         self.name = name or tracer.get_var_name(depth=2, default=owner_name)
         self.ready = Signal(name=self.owned_name + "_ready")
         self.run = Signal(name=self.owned_name + "_run")
         self.data_in: MethodStruct = Signal(from_method_layout(i), name=self.owned_name + "_data_in")
         self.data_out: MethodStruct = Signal(from_method_layout(o), name=self.owned_name + "_data_out")
-        self.src_loc = get_src_loc(src_loc)
 
     @property
     def layout_in(self):
