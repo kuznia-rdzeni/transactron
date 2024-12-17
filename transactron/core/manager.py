@@ -334,6 +334,7 @@ class TransactionManager(Elaboratable):
             cgr, porder = TransactionManager._conflict_graph(method_map)
 
         m = Module()
+        m._MustUse__silence = True  # type: ignore
         m.submodules.merge_manager = merge_manager
 
         for elem in method_map.methods_and_transactions:
@@ -347,9 +348,6 @@ class TransactionManager(Elaboratable):
             m.d.comb += transaction.runnable.eq(Cat(ready).all())
 
         ccs = _graph_ccs(cgr)
-        m.submodules._transactron_schedulers = ModuleConnector(
-            *[self.cc_scheduler(method_map, cgr, cc, porder) for cc in ccs]
-        )
 
         method_enables = self._method_enables(method_map)
 
@@ -368,6 +366,10 @@ class TransactionManager(Elaboratable):
 
                 runs = Cat(method_runs[method])
                 m.d.comb += assign(method.data_in, method.combiner(m, method_args[method], runs), fields=AssignType.ALL)
+
+        m.submodules._transactron_schedulers = ModuleConnector(
+            *[self.cc_scheduler(method_map, cgr, cc, porder) for cc in ccs]
+        )
 
         if "TRANSACTRON_VERBOSE" in environ:
             self.print_info(cgr, porder, ccs, method_map)
