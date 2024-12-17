@@ -1,16 +1,22 @@
 from enum import Enum, auto
+from dataclasses import dataclass
 from typing import (
-    TypedDict,
+    Generic,
     Protocol,
+    TypeVar,
     runtime_checkable,
 )
 from amaranth import *
 
 from transactron.graph import Owned
 from transactron.utils import *
+from .keys import TransactionManagerKey
 
 
 __all__ = ["TransactionBase", "Priority"]
+
+
+_T = TypeVar("_T")
 
 
 class Priority(Enum):
@@ -22,27 +28,23 @@ class Priority(Enum):
     RIGHT = auto()
 
 
-class RelationBase(TypedDict):
-    end: "TransactionBase"
-    priority: Priority
-    conflict: bool
-    silence_warning: bool
-
-
-class Relation(RelationBase):
-    start: "TransactionBase"
+@dataclass
+class Relation(Generic[_T]):
+    start: _T
+    end: _T
+    priority: Priority = Priority.UNDEFINED
+    conflict: bool = False
+    silence_warning: bool = False
 
 
 @runtime_checkable
 class TransactionBase(Owned, Protocol):
     src_loc: SrcLoc
-    relations: list[RelationBase]
     simultaneous_list: list["TransactionBase"]
     independent_list: list["TransactionBase"]
 
     def __init__(self, *, src_loc: SrcLoc):
         self.src_loc = src_loc
-        self.relations = []
         self.simultaneous_list = []
         self.independent_list = []
 
@@ -61,8 +63,9 @@ class TransactionBase(Owned, Protocol):
             Is one of conflicting `Transaction`\\s or `Method`\\s prioritized?
             Defaults to undefined priority relation.
         """
-        self.relations.append(
-            RelationBase(end=end, priority=priority, conflict=True, silence_warning=self.owner != end.owner)
+        manager = DependencyContext.get().get_dependency(TransactionManagerKey())
+        manager._add_relation(
+            Relation(start=self, end=end, priority=priority, conflict=True, silence_warning=self.owner != end.owner)
         )
 
     def schedule_before(self, end: "TransactionBase") -> None:
@@ -77,8 +80,9 @@ class TransactionBase(Owned, Protocol):
         end: Transaction or Method
             The other `Transaction` or `Method`
         """
-        self.relations.append(
-            RelationBase(end=end, priority=Priority.LEFT, conflict=False, silence_warning=self.owner != end.owner)
+        manager = DependencyContext.get().get_dependency(TransactionManagerKey())
+        manager._add_relation(
+            Relation(start=self, end=end, priority=Priority.LEFT, conflict=False, silence_warning=self.owner != end.owner)
         )
 
     def simultaneous(self, *others: "TransactionBase") -> None:

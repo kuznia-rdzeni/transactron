@@ -70,7 +70,7 @@ class Transaction(TransactionBase):
         self.owner, owner_name = get_caller_class_name(default="$transaction")
         self.name = name or tracer.get_var_name(depth=2, default=owner_name)
         manager = DependencyContext.get().get_dependency(TransactionManagerKey())
-        manager.add_transaction(self)
+        manager._add_transaction(self)
         self.request = Signal(name=self.owned_name + "_request")
         self.runnable = Signal(name=self.owned_name + "_runnable")
         self.grant = Signal(name=self.owned_name + "_grant")

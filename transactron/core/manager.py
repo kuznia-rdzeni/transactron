@@ -14,10 +14,9 @@ from transactron.utils import *
 from transactron.utils.transactron_helpers import _graph_ccs
 from transactron.graph import OwnershipGraph, Direction
 
-from .transaction_base import Priority
+from .transaction_base import Priority, Relation, TransactionBase
 from .body import Body, TBody, MBody
 from .transaction import Transaction, TransactionManagerKey
-from .method import Method
 from .tmodule import TModule
 from .schedulers import eager_deterministic_cc_scheduler
 
@@ -86,14 +85,14 @@ class TransactionManager(Elaboratable):
 
     def __init__(self, cc_scheduler: TransactionScheduler = eager_deterministic_cc_scheduler):
         self.transactions: list[Transaction] = []
-        self.methods: list[Method] = []
+        self.relations: list[Relation[TransactionBase | Body]] = []
         self.cc_scheduler = cc_scheduler
 
-    def add_transaction(self, transaction: Transaction):
+    def _add_transaction(self, transaction: Transaction):
         self.transactions.append(transaction)
 
-    def add_method(self, method: Method):
-        self.methods.append(method)
+    def _add_relation(self, relation: Relation):
+        self.relations.append(relation)
 
     @staticmethod
     def _conflict_graph(method_map: MethodMap) -> tuple[TransactionGraph, PriorityOrder]:
@@ -172,7 +171,6 @@ class TransactionManager(Elaboratable):
                         add_edge(transaction1, transaction2, Priority.UNDEFINED, True)
 
         relations = [
-            # TODO
             #            Relation(**relation, start=elem)
             #            for elem in method_map.methods_and_transactions
             #            for relation in elem.relations
