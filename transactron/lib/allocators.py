@@ -113,11 +113,9 @@ class PreservedOrderAllocator(Elaboratable):
         @def_method(m, self.free_idx)
         def _(idx):
             for i in range(self.entries - 1):
-                with m.If((i >= idx) & (i + 1 < incr_used)):
+                with m.If(i >= idx):
                     m.d.sync += order[i].eq(order[i + 1])
-            for i in range(self.entries):
-                with m.If(i + 1 == incr_used):
-                    m.d.sync += order[i].eq(order[idx])
+            m.d.sync += order[self.entries - 1].eq(order[idx])
 
         @def_method(m, self.free)
         def _(ident):

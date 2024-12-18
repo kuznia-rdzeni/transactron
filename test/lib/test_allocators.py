@@ -83,7 +83,7 @@ class TestPreservedOrderAllocator(TestCaseWithSimulator):
                     await dut.free.call(sim, ident=val)
                 else:
                     await dut.free_idx.call(sim, idx=idx)
-                free.insert(0, val)
+                free.append(val)
                 allocated.pop(idx)
                 await self.random_wait_geom(sim, 0.4)
 
