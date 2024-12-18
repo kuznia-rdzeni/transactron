@@ -140,7 +140,7 @@ class TransitivityTestCircuit(Elaboratable):
 
 class TestTransitivity(TestCaseWithSimulator):
     def test_transitivity(self):
-        target = TestbenchIO(Adapter(i=[("data", 2)]))
+        target = TestbenchIO(Adapter.create(i=[("data", 2)]))
         req1 = Signal()
         req2 = Signal()
 

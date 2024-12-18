@@ -140,7 +140,7 @@ Suppose we have the following layout, which is an input layout for a method call
 
 ```python
 layout = [("foo", 1), ("bar", 32)]
-method = Method(input_layout=layout)
+method = Method(i=layout)
 ```
 
 The method can be called in multiple ways.
@@ -170,7 +170,7 @@ Take the following definitions:
 
 ```python
 layout2 = [("foobar", layout), ("baz", 42)]
-method2 = Method(input_layout=layout2)
+method2 = Method(i=layout2)
 ```
 
 One can then pass the arguments using `dict`s in following ways:
@@ -208,7 +208,7 @@ The `dict` syntax can be used for returning values from methods.
 Take the following method declaration:
 
 ```python
-method3 = Method(input_layout=layout, output_layout=layout2)
+method3 = Method(i=layout, o=layout2)
 ```
 
 One can then define this method as follows:

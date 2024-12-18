@@ -38,9 +38,9 @@ def eager_deterministic_cc_scheduler(
     ccl = list(cc)
     ccl.sort(key=lambda transaction: porder[transaction])
     for k, transaction in enumerate(ccl):
-        conflicts = [ccl[j].grant for j in range(k) if ccl[j] in gr[transaction]]
+        conflicts = [ccl[j].run for j in range(k) if ccl[j] in gr[transaction]]
         noconflict = ~Cat(conflicts).any()
-        m.d.comb += transaction.grant.eq(transaction.request & transaction.runnable & noconflict)
+        m.d.comb += transaction.run.eq(transaction.ready & transaction.runnable & noconflict)
     return m
 
 
@@ -72,6 +72,6 @@ def trivial_roundrobin_cc_scheduler(
     sched = Scheduler(len(cc))
     m.submodules.scheduler = sched
     for k, transaction in enumerate(cc):
-        m.d.comb += sched.requests[k].eq(transaction.request & transaction.runnable)
-        m.d.comb += transaction.grant.eq(sched.grant[k] & sched.valid)
+        m.d.comb += sched.requests[k].eq(transaction.ready & transaction.runnable)
+        m.d.comb += transaction.run.eq(sched.grant[k] & sched.valid)
     return m

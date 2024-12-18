@@ -51,7 +51,7 @@ class MethodMapTestCircuit(Elaboratable):
             itransform = itransform_rec
             otransform = otransform_rec
 
-        m.submodules.target = self.target = TestbenchIO(Adapter(i=layout, o=layout))
+        m.submodules.target = self.target = TestbenchIO(Adapter.create(i=layout, o=layout))
 
         if self.use_methods:
             imeth = Method(i=layout, o=layout)
@@ -111,8 +111,8 @@ class TestMethodFilter(TestCaseWithSimulator):
     def initialize(self):
         self.iosize = 4
         self.layout = data_layout(self.iosize)
-        self.target = TestbenchIO(Adapter(i=self.layout, o=self.layout))
-        self.cmeth = TestbenchIO(Adapter(i=self.layout, o=data_layout(1)))
+        self.target = TestbenchIO(Adapter.create(i=self.layout, o=self.layout))
+        self.cmeth = TestbenchIO(Adapter.create(i=self.layout, o=data_layout(1)))
 
     async def source(self, sim: TestbenchContext):
         for i in range(2**self.iosize):
@@ -165,7 +165,7 @@ class MethodProductTestCircuit(Elaboratable):
         methods = []
 
         for k in range(self.targets):
-            tgt = TestbenchIO(Adapter(i=layout, o=layout))
+            tgt = TestbenchIO(Adapter.create(i=layout, o=layout))
             methods.append(tgt.adapter.iface)
             self.target.append(tgt)
             m.submodules += tgt
@@ -280,7 +280,7 @@ class MethodTryProductTestCircuit(Elaboratable):
         methods = []
 
         for k in range(self.targets):
-            tgt = TestbenchIO(Adapter(i=layout, o=layout))
+            tgt = TestbenchIO(Adapter.create(i=layout, o=layout))
             methods.append(tgt.adapter.iface)
             self.target.append(tgt)
             m.submodules += tgt

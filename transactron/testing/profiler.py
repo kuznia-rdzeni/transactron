@@ -20,7 +20,7 @@ def profiler_process(transaction_manager: TransactionManager, profile: Profile):
             sim.tick()
             .sample(
                 *(
-                    View(transaction_sample_layout, Cat(transaction.request, transaction.runnable, transaction.grant))
+                    View(transaction_sample_layout, Cat(transaction.ready, transaction.runnable, transaction.run))
                     for transaction in method_map.transactions
                 )
             )

@@ -1,34 +1,21 @@
-from collections import defaultdict
-from collections.abc import Iterator
-from contextlib import contextmanager
 from enum import Enum, auto
-from itertools import count
+from dataclasses import KW_ONLY, dataclass
 from typing import (
-    ClassVar,
-    TypeAlias,
-    TypedDict,
-    Union,
-    TypeVar,
+    Generic,
     Protocol,
-    Self,
+    TypeVar,
     runtime_checkable,
-    TYPE_CHECKING,
-    Optional,
 )
 from amaranth import *
 
-from .tmodule import TModule, CtrlPath
 from transactron.graph import Owned
 from transactron.utils import *
 
-if TYPE_CHECKING:
-    from .method import Method
-    from .transaction import Transaction
 
 __all__ = ["TransactionBase", "Priority"]
 
-TransactionOrMethod: TypeAlias = Union["Transaction", "Method"]
-TransactionOrMethodBound = TypeVar("TransactionOrMethodBound", "Transaction", "Method")
+
+_T = TypeVar("_T", bound="TransactionBase")
 
 
 class Priority(Enum):
@@ -40,41 +27,35 @@ class Priority(Enum):
     RIGHT = auto()
 
 
-class RelationBase(TypedDict):
-    end: TransactionOrMethod
-    priority: Priority
-    conflict: bool
-    silence_warning: bool
+@dataclass
+class RelationBase(Generic[_T]):
+    _: KW_ONLY
+    end: _T
+    priority: Priority = Priority.UNDEFINED
+    conflict: bool = False
+    silence_warning: bool = False
 
 
-class Relation(RelationBase):
-    start: TransactionOrMethod
+@dataclass
+class Relation(RelationBase[_T], Generic[_T]):
+    _: KW_ONLY
+    start: _T
 
 
 @runtime_checkable
-class TransactionBase(Owned, Protocol):
-    stack: ClassVar[list[Union["Transaction", "Method"]]] = []
-    def_counter: ClassVar[count] = count()
-    def_order: int
-    defined: bool = False
-    name: str
+class TransactionBase(Owned, Protocol, Generic[_T]):
     src_loc: SrcLoc
-    method_uses: dict["Method", tuple[MethodStruct, Signal]]
-    method_calls: defaultdict["Method", list[tuple[CtrlPath, MethodStruct, ValueLike]]]
-    relations: list[RelationBase]
-    simultaneous_list: list[TransactionOrMethod]
-    independent_list: list[TransactionOrMethod]
-    ctrl_path: CtrlPath = CtrlPath(-1, [])
+    relations: list[RelationBase[_T]]
+    simultaneous_list: list[_T]
+    independent_list: list[_T]
 
-    def __init__(self, *, src_loc: int | SrcLoc):
-        self.src_loc = get_src_loc(src_loc)
-        self.method_uses = {}
-        self.method_calls = defaultdict(list)
+    def __init__(self, *, src_loc: SrcLoc):
+        self.src_loc = src_loc
         self.relations = []
         self.simultaneous_list = []
         self.independent_list = []
 
-    def add_conflict(self, end: TransactionOrMethod, priority: Priority = Priority.UNDEFINED) -> None:
+    def add_conflict(self, end: _T, priority: Priority = Priority.UNDEFINED) -> None:
         """Registers a conflict.
 
         Record that that the given `Transaction` or `Method` cannot execute
@@ -93,7 +74,7 @@ class TransactionBase(Owned, Protocol):
             RelationBase(end=end, priority=priority, conflict=True, silence_warning=self.owner != end.owner)
         )
 
-    def schedule_before(self, end: TransactionOrMethod) -> None:
+    def schedule_before(self, end: _T) -> None:
         """Adds a priority relation.
 
         Record that that the given `Transaction` or `Method` needs to be
@@ -109,7 +90,7 @@ class TransactionBase(Owned, Protocol):
             RelationBase(end=end, priority=Priority.LEFT, conflict=False, silence_warning=self.owner != end.owner)
         )
 
-    def simultaneous(self, *others: TransactionOrMethod) -> None:
+    def simultaneous(self, *others: _T) -> None:
         """Adds simultaneity relations.
 
         The given `Transaction`\\s or `Method``\\s will execute simultaneously
@@ -122,7 +103,7 @@ class TransactionBase(Owned, Protocol):
         """
         self.simultaneous_list += others
 
-    def simultaneous_alternatives(self, *others: TransactionOrMethod) -> None:
+    def simultaneous_alternatives(self, *others: _T) -> None:
         """Adds exclusive simultaneity relations.
 
         Each of the given `Transaction`\\s or `Method``\\s will execute
@@ -139,7 +120,7 @@ class TransactionBase(Owned, Protocol):
         self.simultaneous(*others)
         others[0]._independent(*others[1:])
 
-    def _independent(self, *others: TransactionOrMethod) -> None:
+    def _independent(self, *others: _T) -> None:
         """Adds independence relations.
 
         This `Transaction` or `Method`, together with all the given
@@ -157,54 +138,3 @@ class TransactionBase(Owned, Protocol):
             for execution.
         """
         self.independent_list += others
-
-    @contextmanager
-    def context(self: TransactionOrMethodBound, m: TModule) -> Iterator[TransactionOrMethodBound]:
-        self.ctrl_path = m.ctrl_path
-
-        parent = TransactionBase.peek()
-        if parent is not None:
-            parent.schedule_before(self)
-
-        TransactionBase.stack.append(self)
-
-        try:
-            yield self
-        finally:
-            TransactionBase.stack.pop()
-            self.defined = True
-
-    def _set_method_uses(self, m: ModuleLike):
-        for method, calls in self.method_calls.items():
-            arg_rec, enable_sig = self.method_uses[method]
-            if len(calls) == 1:
-                m.d.comb += arg_rec.eq(calls[0][1])
-                m.d.comb += enable_sig.eq(calls[0][2])
-            else:
-                call_ens = Cat([en for _, _, en in calls])
-
-                for i in OneHotSwitchDynamic(m, call_ens):
-                    m.d.comb += arg_rec.eq(calls[i][1])
-                    m.d.comb += enable_sig.eq(1)
-
-    @classmethod
-    def get(cls) -> Self:
-        ret = cls.peek()
-        if ret is None:
-            raise RuntimeError("No current body")
-        return ret
-
-    @classmethod
-    def peek(cls) -> Optional[Self]:
-        if not TransactionBase.stack:
-            return None
-        if not isinstance(TransactionBase.stack[-1], cls):
-            raise RuntimeError(f"Current body not a {cls.__name__}")
-        return TransactionBase.stack[-1]
-
-    @property
-    def owned_name(self):
-        if self.owner is not None and self.owner.__class__.__name__ != self.name:
-            return f"{self.owner.__class__.__name__}_{self.name}"
-        else:
-            return self.name
