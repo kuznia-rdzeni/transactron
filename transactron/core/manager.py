@@ -305,11 +305,13 @@ class TransactionManager(Elaboratable):
             methods[transaction] = method
 
         # step 5: construct merged transactions
-        for group in final_simultaneous:
-            name = "_".join([t.name for t in group])
-            with Transaction(name=name).body(m):
-                for transaction in group:
-                    methods[transaction](m)
+        with DependencyContext(DependencyManager()):
+            DependencyContext.get().add_dependency(TransactionManagerKey(), self)
+            for group in final_simultaneous:
+                name = "_".join([t.name for t in group])
+                with Transaction(name=name).body(m):
+                    for transaction in group:
+                        methods[transaction](m)
 
         return m
 
