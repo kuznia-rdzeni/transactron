@@ -9,14 +9,24 @@ from transactron.core.transaction_base import TransactionBase
 
 from transactron.utils import *
 from amaranth import *
-from typing import TYPE_CHECKING, ClassVar, NewType, Optional, Callable, final
+from typing import TYPE_CHECKING, ClassVar, NewType, NotRequired, Optional, Callable, TypedDict, Unpack, final
 from transactron.utils.assign import AssignArg
 
 if TYPE_CHECKING:
     from .method import Method
 
 
-__all__ = ["Body", "TBody", "MBody"]
+__all__ = ["AdapterBodyParams", "BodyParams", "Body", "TBody", "MBody"]
+
+
+class AdapterBodyParams(TypedDict):
+    combiner: NotRequired[Callable[[Module, Sequence[MethodStruct], Value], AssignArg]]
+    nonexclusive: NotRequired[bool]
+    single_caller: NotRequired[bool]
+
+
+class BodyParams(AdapterBodyParams):
+    validate_arguments: NotRequired[Callable[..., ValueLike]]
 
 
 @final
@@ -35,11 +45,8 @@ class Body(TransactionBase["Body"]):
         owner: Optional[Elaboratable],
         i: StructLayout,
         o: StructLayout,
-        combiner: Optional[Callable[[Module, Sequence[MethodStruct], Value], AssignArg]],
-        validate_arguments: Optional[Callable[..., ValueLike]],
-        nonexclusive: bool,
-        single_caller: bool,
         src_loc: SrcLoc,
+        **kwargs: Unpack[BodyParams],
     ):
         super().__init__(src_loc=src_loc)
 
@@ -57,15 +64,19 @@ class Body(TransactionBase["Body"]):
         self.run = Signal(name=self.owned_name + "_run")
         self.data_in: MethodStruct = Signal(from_method_layout(i), name=self.owned_name + "_data_in")
         self.data_out: MethodStruct = Signal(from_method_layout(o), name=self.owned_name + "_data_out")
-        self.combiner: Callable[[Module, Sequence[MethodStruct], Value], AssignArg] = combiner or default_combiner
-        self.nonexclusive = nonexclusive
-        self.single_caller = single_caller
-        self.validate_arguments: Optional[Callable[..., ValueLike]] = validate_arguments
+        self.combiner: Callable[[Module, Sequence[MethodStruct], Value], AssignArg] = (
+            kwargs["combiner"] if "combiner" in kwargs else default_combiner
+        )
+        self.nonexclusive = kwargs["nonexclusive"] if "nonexclusive" in kwargs else False
+        self.single_caller = kwargs["single_caller"] if "single_caller" in kwargs else False
+        self.validate_arguments: Optional[Callable[..., ValueLike]] = (
+            kwargs["validate_arguments"] if "validate_arguments" in kwargs else None
+        )
         self.method_uses = {}
         self.method_calls = defaultdict(list)
 
-        if nonexclusive:
-            assert len(self.data_in.as_value()) == 0 or combiner is not None
+        if self.nonexclusive:
+            assert len(self.data_in.as_value()) == 0 or self.combiner is not None
 
     def _validate_arguments(self, arg_rec: MethodStruct) -> ValueLike:
         if self.validate_arguments is not None:

@@ -407,7 +407,7 @@ class ConditionalCallCircuit(Elaboratable):
         meth = Method(i=data_layout(1))
 
         m.submodules.tb = self.tb = TestbenchIO(AdapterTrans(meth))
-        m.submodules.out = self.out = TestbenchIO(Adapter())
+        m.submodules.out = self.out = TestbenchIO(Adapter.create())
 
         @def_method(m, meth)
         def _(arg):
@@ -456,7 +456,7 @@ class ConditionalTransactionCircuit1(Elaboratable):
         m = TModule()
 
         self.ready = Signal()
-        m.submodules.tb = self.tb = TestbenchIO(Adapter())
+        m.submodules.tb = self.tb = TestbenchIO(Adapter.create())
 
         with Transaction().body(m, request=self.ready):
             self.tb.adapter.iface(m)
@@ -469,7 +469,7 @@ class ConditionalTransactionCircuit2(Elaboratable):
         m = TModule()
 
         self.ready = Signal()
-        m.submodules.tb = self.tb = TestbenchIO(Adapter())
+        m.submodules.tb = self.tb = TestbenchIO(Adapter.create())
 
         with m.If(self.ready):
             with Transaction().body(m):

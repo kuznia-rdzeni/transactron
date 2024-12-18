@@ -120,10 +120,6 @@ class Transaction(TransactionBase["Transaction | Method"]):
             owner=self.owner,
             i=StructLayout({}),
             o=StructLayout({}),
-            combiner=None,
-            validate_arguments=None,
-            nonexclusive=False,
-            single_caller=False,
             src_loc=self.src_loc,
         )
         self._set_impl(m, impl)

@@ -3,13 +3,13 @@ from collections.abc import Sequence
 from transactron.utils import *
 from amaranth import *
 from amaranth import tracer
-from typing import TYPE_CHECKING, Optional, Callable, Iterator
+from typing import TYPE_CHECKING, Optional, Iterator, Unpack
 from .transaction_base import *
 from contextlib import contextmanager
 from transactron.utils.assign import AssignArg
 from transactron.utils._typing import type_self_add_1pos_kwargs_as
 
-from .body import Body, MBody
+from .body import Body, BodyParams, MBody
 from .keys import TransactionManagerKey
 from .tmodule import TModule
 from .transaction_base import TransactionBase
@@ -154,15 +154,7 @@ class Method(TransactionBase["Transaction | Method"]):
 
     @contextmanager
     def body(
-        self,
-        m: TModule,
-        *,
-        ready: ValueLike = C(1),
-        out: ValueLike = C(0, 0),
-        validate_arguments: Optional[Callable[..., ValueLike]] = None,
-        combiner: Optional[Callable[[Module, Sequence[MethodStruct], Value], AssignArg]] = None,
-        nonexclusive: bool = False,
-        single_caller: bool = False,
+        self, m: TModule, *, ready: ValueLike = C(1), out: ValueLike = C(0, 0), **kwargs: Unpack[BodyParams]
     ) -> Iterator[MethodStruct]:
         """Define method body
 
@@ -226,15 +218,7 @@ class Method(TransactionBase["Transaction | Method"]):
                 m.d.comb += sum.eq(data_in.arg1 + data_in.arg2)
         """
         body = Body(
-            name=self.name,
-            owner=self.owner,
-            i=self.layout_in,
-            o=self.layout_out,
-            combiner=combiner,
-            validate_arguments=validate_arguments,
-            nonexclusive=nonexclusive,
-            single_caller=single_caller,
-            src_loc=self.src_loc,
+            name=self.name, owner=self.owner, i=self.layout_in, o=self.layout_out, src_loc=self.src_loc, **kwargs
         )
         self._set_impl(m, body)
 
