@@ -1,8 +1,9 @@
 from contextlib import contextmanager
 import functools
-from typing import Callable, Any, Optional
+from typing import Callable, Any, Optional, Unpack
 
 from amaranth.sim._async import SimulatorContext
+from transactron.core.body import AdapterBodyParams
 from transactron.lib.adapters import Adapter, AdapterBase
 from transactron.utils.transactron_helpers import async_mock_def_helper
 from .testbenchio import TestbenchIO
@@ -21,7 +22,13 @@ class MethodMock:
         validate_arguments: Optional[Callable[..., bool]] = None,
         enable: Callable[[], bool] = lambda: True,
         delay: float = 0,
+        **kwargs: Unpack[AdapterBodyParams],
     ):
+        if isinstance(adapter, Adapter):
+            adapter.set(with_validate_arguments=validate_arguments is not None).update_args(**kwargs)
+        else:
+            assert validate_arguments is None
+            assert kwargs == {}
         self.adapter = adapter
         self.function = function
         self.validate_arguments = validate_arguments
