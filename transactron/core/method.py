@@ -1,9 +1,10 @@
 from collections.abc import Sequence
+import enum
 
 from transactron.utils import *
 from amaranth import *
 from amaranth import tracer
-from typing import TYPE_CHECKING, Optional, Iterator, Unpack
+from typing import TYPE_CHECKING, Annotated, Optional, Iterator, TypeAlias, TypeVar, Unpack
 from .transaction_base import *
 from contextlib import contextmanager
 from transactron.utils.assign import AssignArg
@@ -19,7 +20,17 @@ if TYPE_CHECKING:
     from .transaction import Transaction  # noqa: F401
 
 
-__all__ = ["Method", "Methods"]
+__all__ = ["MethodDir", "Provided", "Required", "Method", "Methods"]
+
+
+class MethodDir(enum.Enum):
+    PROVIDED = enum.auto()
+    REQUIRED = enum.auto()
+
+
+_T = TypeVar("_T")
+Provided: TypeAlias = Annotated[_T, MethodDir.PROVIDED]
+Required: TypeAlias = Annotated[_T, MethodDir.REQUIRED]
 
 
 class Method(TransactionBase["Transaction | Method"]):

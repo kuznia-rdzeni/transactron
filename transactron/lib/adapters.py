@@ -125,6 +125,10 @@ class Adapter(AdapterBase):
         method = Method(name=name, i=i, o=o, src_loc=get_src_loc(src_loc))
         return Adapter(method, **kwargs)
 
+    def update_args(self, **kwargs: Unpack[AdapterBodyParams]):
+        self.kwargs.update(kwargs)
+        return self
+
     def set(self, with_validate_arguments: Optional[bool]):
         if with_validate_arguments is not None:
             self.with_validate_arguments = with_validate_arguments
