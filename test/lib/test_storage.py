@@ -274,7 +274,7 @@ class TestMultiReadMemory(TestCaseWithSimulator):
 
     @pytest.mark.parametrize("max_addr, writer_rand, reader_req_rand, reader_resp_rand, seed", test_conf)
     @pytest.mark.parametrize("transparent", [False])
-    @pytest.mark.parametrize("read_ports", [1, 2])
+    @pytest.mark.parametrize("read_ports", [1, 2, 4])
     @pytest.mark.parametrize("write_ports", [1])
     def test_mem(
         self,
