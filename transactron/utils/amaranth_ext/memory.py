@@ -1,7 +1,6 @@
 from amaranth import *
 from amaranth.utils import *
 import amaranth.lib.memory as memory
-import amaranth_types.memory as amemory
 from amaranth.hdl import AlreadyElaborated
 
 from typing import Optional, Any, final
@@ -17,6 +16,19 @@ class MultipleWritePorts(Exception):
     """Exception raised when a single write memory is being requested multiple write ports."""
 
 class MultiReadMemory(Elaboratable):
+    """Memory with one write and multiple read ports.
+
+    One can request multiple read ports and not more than 1 read port. Module internally
+    uses multiple (number of read ports) instances of amaranth.lib.memory.Memory with one 
+    read and one write port.
+
+    Attributes
+    ----------
+    shape: ShapeLike
+        Shape of each memory row.
+    depth: int
+        Number of memory rows.
+    """
 
     def __init__(
         self,
@@ -27,13 +39,48 @@ class MultiReadMemory(Elaboratable):
         attrs: Optional[dict[str, str]] = None,
         src_loc_at: int = 0
     ):
-        self.shape = shape
-        self.depth = depth
-        self.init = init
+        """
+        Parameters
+        ----------
+        shape: ShapeLike
+            Shape of each memory row.
+        depth : int
+            Number of memory rows.
+        init : iterable of initial values
+            Initial values for memory rows.
+        src_loc: int 
+            How many stack frames deep the source location is taken from.
+        """
+
+        self._shape = shape
+        self._depth = depth
+        self._init = init
+        self._attrs = attrs
+        self.src_loc = src_loc_at
 
         self._read_ports: "list[ReadPort]" = []
         self._write_ports: "list[WritePort]" = []
         self._frozen = False
+
+    @property
+    def shape(self):
+        return self._shape
+
+    @property
+    def depth(self):
+        return self._depth
+
+    @property
+    def init(self):
+        return self._init
+
+    @init.setter
+    def init(self, init):
+        self._init = init
+
+    @property
+    def attrs(self):
+        return self._attrs
     
     def read_port(
         self,
@@ -70,7 +117,7 @@ class MultiReadMemory(Elaboratable):
                 if port is None:
                     raise ValueError("Found None in read ports")
                 # for each read port a new single port memory block is generated
-                mem = memory.Memory(shape=port.width, depth=self.depth, init=self.init)
+                mem = memory.Memory(shape=port.width, depth=self.depth, init=self.init, attrs=self.attrs, src_loc_at=self.src_loc)
                 m.submodules += mem
                 physical_read_port = mem.read_port(transparent_for=port.transparent_for)
                 physical_write_port = mem.write_port()
