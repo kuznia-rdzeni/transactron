@@ -222,7 +222,7 @@ Such a transaction is included in the library – it’s named <code class="docu
 <p>Even though method arguments are Amaranth records, their use can be avoided in many cases, which results in cleaner code.
 Suppose we have the following layout, which is an input layout for a method called <code class="docutils literal notranslate"><span class="pre">method</span></code>:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">layout</span> <span class="o">=</span> <span class="p">[(</span><span class="s2">&quot;foo&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;bar&quot;</span><span class="p">,</span> <span class="mi">32</span><span class="p">)]</span>
-<span class="n">method</span> <span class="o">=</span> <span class="n">Method</span><span class="p">(</span><span class="n">input_layout</span><span class="o">=</span><span class="n">layout</span><span class="p">)</span>
+<span class="n">method</span> <span class="o">=</span> <span class="n">Method</span><span class="p">(</span><span class="n">i</span><span class="o">=</span><span class="n">layout</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>The method can be called in multiple ways.
@@ -244,7 +244,7 @@ The cleanest and recommended way is to pass each record field using a keyword ar
 <p>The <code class="docutils literal notranslate"><span class="pre">dict</span></code> convention can be used recursively when layouts are nested.
 Take the following definitions:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">layout2</span> <span class="o">=</span> <span class="p">[(</span><span class="s2">&quot;foobar&quot;</span><span class="p">,</span> <span class="n">layout</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;baz&quot;</span><span class="p">,</span> <span class="mi">42</span><span class="p">)]</span>
-<span class="n">method2</span> <span class="o">=</span> <span class="n">Method</span><span class="p">(</span><span class="n">input_layout</span><span class="o">=</span><span class="n">layout2</span><span class="p">)</span>
+<span class="n">method2</span> <span class="o">=</span> <span class="n">Method</span><span class="p">(</span><span class="n">i</span><span class="o">=</span><span class="n">layout2</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>One can then pass the arguments using <code class="docutils literal notranslate"><span class="pre">dict</span></code>s in following ways:</p>
@@ -276,7 +276,7 @@ The cleanest and recommended way is to create an argument for each record field:
 <h3>Method return value conventions<a class="headerlink" href="#method-return-value-conventions" title="Permalink to this heading"></a></h3>
 <p>The <code class="docutils literal notranslate"><span class="pre">dict</span></code> syntax can be used for returning values from methods.
 Take the following method declaration:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">method3</span> <span class="o">=</span> <span class="n">Method</span><span class="p">(</span><span class="n">input_layout</span><span class="o">=</span><span class="n">layout</span><span class="p">,</span> <span class="n">output_layout</span><span class="o">=</span><span class="n">layout2</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">method3</span> <span class="o">=</span> <span class="n">Method</span><span class="p">(</span><span class="n">i</span><span class="o">=</span><span class="n">layout</span><span class="p">,</span> <span class="n">o</span><span class="o">=</span><span class="n">layout2</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>One can then define this method as follows:</p>
@@ -399,8 +399,8 @@ Nesting implies scheduling order: the nested transaction or method is considered
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright Kuźnia Rdzeni, 2024.
-      <span class="lastupdated">Last updated on 14:55 2024-12-18.
+    <p>&#169; Copyright Kuźnia Rdzeni, 2025.
+      <span class="lastupdated">Last updated on 16:52 2025-01-03.
       </span></p>
   </div>
 

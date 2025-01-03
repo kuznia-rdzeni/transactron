@@ -97,9 +97,11 @@
 <h2 id="_">_</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="transactron.core.html#transactron.core.keys.TransactionManagerKey.__init__">__init__() (transactron.core.keys.TransactionManagerKey method)</a>
+      <li><a href="transactron.core.html#transactron.core.body.Body.__init__">__init__() (transactron.core.body.Body method)</a>
 
       <ul>
+        <li><a href="transactron.core.html#transactron.core.keys.TransactionManagerKey.__init__">(transactron.core.keys.TransactionManagerKey method)</a>
+</li>
         <li><a href="transactron.core.html#transactron.core.manager.TransactionComponent.__init__">(transactron.core.manager.TransactionComponent method)</a>
 </li>
         <li><a href="transactron.core.html#transactron.core.manager.TransactionManager.__init__">(transactron.core.manager.TransactionManager method)</a>
@@ -285,6 +287,8 @@
 </li>
       <li><a href="transactron.lib.html#transactron.lib.adapters.AdapterBase">AdapterBase (class in transactron.lib.adapters)</a>
 </li>
+      <li><a href="transactron.core.html#transactron.core.body.AdapterBodyParams">AdapterBodyParams (class in transactron.core.body)</a>
+</li>
       <li><a href="transactron.lib.html#transactron.lib.adapters.AdapterTrans">AdapterTrans (class in transactron.lib.adapters)</a>
 </li>
       <li><a href="transactron.lib.html#transactron.lib.metrics.HwExpHistogram.add">add() (transactron.lib.metrics.HwExpHistogram method)</a>
@@ -300,8 +304,6 @@
       <li><a href="transactron.testing.html#transactron.testing.infrastructure.TestCaseWithSimulator.add_mock">add_mock() (transactron.testing.infrastructure.TestCaseWithSimulator method)</a>
 </li>
       <li><a href="transactron.lib.html#transactron.lib.metrics.HwMetric.add_registers">add_registers() (transactron.lib.metrics.HwMetric method)</a>
-</li>
-      <li><a href="transactron.core.html#transactron.core.manager.TransactionManager.add_transaction">add_transaction() (transactron.core.manager.TransactionManager method)</a>
 </li>
       <li><a href="transactron.utils.html#transactron.utils.data_repr.align_down_to_power_of_two">align_down_to_power_of_two() (in module transactron.utils.data_repr)</a>
 </li>
@@ -343,6 +345,8 @@
 </li>
       <li><a href="transactron.utils.html#transactron.utils.data_repr.bits_from_int">bits_from_int() (in module transactron.utils.data_repr)</a>
 </li>
+      <li><a href="transactron.core.html#transactron.core.body.Body">Body (class in transactron.core.body)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="transactron.core.html#transactron.core.method.Method.body">body() (transactron.core.method.Method method)</a>
@@ -351,6 +355,8 @@
         <li><a href="transactron.core.html#transactron.core.transaction.Transaction.body">(transactron.core.transaction.Transaction method)</a>
 </li>
       </ul></li>
+      <li><a href="transactron.core.html#transactron.core.body.BodyParams">BodyParams (class in transactron.core.body)</a>
+</li>
       <li><a href="transactron.utils.amaranth_ext.html#transactron.utils.amaranth_ext.elaboratables.MultiPriorityEncoder.build_tree">build_tree() (transactron.utils.amaranth_ext.elaboratables.MultiPriorityEncoder method)</a>
 </li>
   </ul></td>
@@ -411,6 +417,12 @@
       </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="transactron.core.html#transactron.core.body.AdapterBodyParams.combiner">combiner (transactron.core.body.AdapterBodyParams attribute)</a>
+
+      <ul>
+        <li><a href="transactron.core.html#transactron.core.body.BodyParams.combiner">(transactron.core.body.BodyParams attribute)</a>
+</li>
+      </ul></li>
       <li><a href="transactron.utils.html#transactron.utils.assign.AssignType.COMMON">COMMON (transactron.utils.assign.AssignType attribute)</a>
 </li>
       <li><a href="transactron.lib.html#transactron.lib.simultaneous.condition">condition() (in module transactron.lib.simultaneous)</a>
@@ -425,19 +437,21 @@
 </li>
       <li><a href="transactron.lib.html#transactron.lib.storage.ContentAddressableMemory">ContentAddressableMemory (class in transactron.lib.storage)</a>
 </li>
-      <li><a href="transactron.core.html#transactron.core.manager.TransactionModule.context">context() (transactron.core.manager.TransactionModule method)</a>
+      <li><a href="transactron.core.html#transactron.core.body.Body.context">context() (transactron.core.body.Body method)</a>
 
       <ul>
-        <li><a href="transactron.core.html#transactron.core.transaction_base.TransactionBase.context">(transactron.core.transaction_base.TransactionBase method)</a>
+        <li><a href="transactron.core.html#transactron.core.manager.TransactionModule.context">(transactron.core.manager.TransactionModule method)</a>
 </li>
       </ul></li>
       <li><a href="transactron.utils.amaranth_ext.html#transactron.utils.amaranth_ext.functions.count_leading_zeros">count_leading_zeros() (in module transactron.utils.amaranth_ext.functions)</a>
 </li>
       <li><a href="transactron.utils.amaranth_ext.html#transactron.utils.amaranth_ext.functions.count_trailing_zeros">count_trailing_zeros() (in module transactron.utils.amaranth_ext.functions)</a>
 </li>
-      <li><a href="transactron.utils.amaranth_ext.html#transactron.utils.amaranth_ext.elaboratables.MultiPriorityEncoder.create">create() (transactron.utils.amaranth_ext.elaboratables.MultiPriorityEncoder static method)</a>
+      <li><a href="transactron.lib.html#transactron.lib.adapters.Adapter.create">create() (transactron.lib.adapters.Adapter static method)</a>
 
       <ul>
+        <li><a href="transactron.utils.amaranth_ext.html#transactron.utils.amaranth_ext.elaboratables.MultiPriorityEncoder.create">(transactron.utils.amaranth_ext.elaboratables.MultiPriorityEncoder static method)</a>
+</li>
         <li><a href="transactron.utils.amaranth_ext.html#transactron.utils.amaranth_ext.elaboratables.RingMultiPriorityEncoder.create">(transactron.utils.amaranth_ext.elaboratables.RingMultiPriorityEncoder static method)</a>
 </li>
       </ul></li>
@@ -447,10 +461,10 @@
         <li><a href="transactron.utils.amaranth_ext.html#transactron.utils.amaranth_ext.elaboratables.RingMultiPriorityEncoder.create_simple">(transactron.utils.amaranth_ext.elaboratables.RingMultiPriorityEncoder static method)</a>
 </li>
       </ul></li>
-      <li><a href="transactron.core.html#transactron.core.tmodule.TModule.ctrl_path">ctrl_path (transactron.core.tmodule.TModule property)</a>
+      <li><a href="transactron.core.html#transactron.core.body.Body.ctrl_path">ctrl_path (transactron.core.body.Body attribute)</a>
 
       <ul>
-        <li><a href="transactron.core.html#transactron.core.transaction_base.TransactionBase.ctrl_path">(transactron.core.transaction_base.TransactionBase attribute)</a>
+        <li><a href="transactron.core.html#transactron.core.tmodule.TModule.ctrl_path">(transactron.core.tmodule.TModule property)</a>
 </li>
       </ul></li>
       <li><a href="transactron.html#transactron.profiler.Profile.cycles">cycles (transactron.profiler.Profile attribute)</a>
@@ -468,6 +482,8 @@
       <li><a href="transactron.utils.html#transactron.utils.data_repr.data_layout">data_layout() (in module transactron.utils.data_repr)</a>
 </li>
       <li><a href="transactron.lib.html#transactron.lib.adapters.AdapterBase.data_out">data_out (transactron.lib.adapters.AdapterBase attribute)</a>
+</li>
+      <li><a href="transactron.utils.html#transactron.utils.transactron_helpers.dataclass_asdict">dataclass_asdict() (in module transactron.utils.transactron_helpers)</a>
 </li>
       <li><a href="transactron.lib.html#transactron.lib.logging.HardwareLogger.debug">debug() (transactron.lib.logging.HardwareLogger method)</a>
 </li>
@@ -495,7 +511,7 @@
       </ul></li>
       <li><a href="transactron.utils.amaranth_ext.html#transactron.utils.amaranth_ext.coding.Decoder">Decoder (class in transactron.utils.amaranth_ext.coding)</a>
 </li>
-      <li><a href="transactron.core.html#transactron.core.transaction_base.TransactionBase.def_counter">def_counter (transactron.core.transaction_base.TransactionBase attribute)</a>
+      <li><a href="transactron.core.html#transactron.core.body.Body.def_counter">def_counter (transactron.core.body.Body attribute)</a>
 </li>
       <li><a href="transactron.utils.html#transactron.utils.transactron_helpers.def_helper">def_helper() (in module transactron.utils.transactron_helpers)</a>
 </li>
@@ -505,10 +521,10 @@
 </li>
       <li><a href="transactron.core.html#transactron.core.sugar.def_methods">def_methods() (in module transactron.core.sugar)</a>
 </li>
-      <li><a href="transactron.core.html#transactron.core.transaction_base.TransactionBase.def_order">def_order (transactron.core.transaction_base.TransactionBase attribute)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="transactron.core.html#transactron.core.body.Body.def_order">def_order (transactron.core.body.Body attribute)</a>
+</li>
       <li><a href="transactron.core.html#transactron.core.tmodule.TModule.Default">Default() (transactron.core.tmodule.TModule method)</a>
 </li>
       <li><a href="transactron.lib.html#transactron.lib.dependencies.SimpleKey.default_value">default_value (transactron.lib.dependencies.SimpleKey attribute)</a>
@@ -519,8 +535,6 @@
         <li><a href="transactron.utils.html#transactron.utils.dependencies.SimpleKey.default_value">(transactron.utils.dependencies.SimpleKey attribute)</a>
 </li>
       </ul></li>
-      <li><a href="transactron.core.html#transactron.core.transaction_base.TransactionBase.defined">defined (transactron.core.transaction_base.TransactionBase attribute)</a>
-</li>
       <li><a href="transactron.testing.html#transactron.testing.infrastructure.TestCaseWithSimulator.dependency_manager">dependency_manager (transactron.testing.infrastructure.TestCaseWithSimulator attribute)</a>
 </li>
       <li><a href="transactron.utils.html#transactron.utils.dependencies.DependencyContext">DependencyContext (class in transactron.utils.dependencies)</a>
@@ -707,7 +721,7 @@
 </li>
       <li><a href="transactron.utils.amaranth_ext.html#transactron.utils.amaranth_ext.shifter.generic_shift_vec_right">generic_shift_vec_right() (in module transactron.utils.amaranth_ext.shifter)</a>
 </li>
-      <li><a href="transactron.core.html#transactron.core.transaction_base.TransactionBase.get">get() (transactron.core.transaction_base.TransactionBase class method)</a>
+      <li><a href="transactron.core.html#transactron.core.body.Body.get">get() (transactron.core.body.Body static method)</a>
 
       <ul>
         <li><a href="transactron.html#transactron.tracing.TracingFragment.get">(transactron.tracing.TracingFragment static method)</a>
@@ -917,7 +931,7 @@
         <li><a href="transactron.lib.html#transactron.lib.transformers.Unifier.method">(transactron.lib.transformers.Unifier attribute)</a>
 </li>
       </ul></li>
-      <li><a href="transactron.core.html#transactron.core.transaction_base.TransactionBase.method_calls">method_calls (transactron.core.transaction_base.TransactionBase attribute)</a>
+      <li><a href="transactron.core.html#transactron.core.body.Body.method_calls">method_calls (transactron.core.body.Body attribute)</a>
 </li>
       <li><a href="transactron.utils.html#transactron.utils.transactron_helpers.method_def_helper">method_def_helper() (in module transactron.utils.transactron_helpers)</a>
 </li>
@@ -925,7 +939,7 @@
 </li>
       <li><a href="transactron.utils.html#transactron.utils.gen.GenerationInfo.method_signals_location">method_signals_location (transactron.utils.gen.GenerationInfo attribute)</a>
 </li>
-      <li><a href="transactron.core.html#transactron.core.transaction_base.TransactionBase.method_uses">method_uses (transactron.core.transaction_base.TransactionBase attribute)</a>
+      <li><a href="transactron.core.html#transactron.core.body.Body.method_uses">method_uses (transactron.core.body.Body attribute)</a>
 </li>
       <li><a href="transactron.lib.html#transactron.lib.transformers.MethodFilter">MethodFilter (class in transactron.lib.transformers)</a>
 </li>
@@ -970,6 +984,8 @@
         <li><a href="transactron.html#module-transactron">transactron</a>
 </li>
         <li><a href="transactron.core.html#module-transactron.core">transactron.core</a>
+</li>
+        <li><a href="transactron.core.html#module-transactron.core.body">transactron.core.body</a>
 </li>
         <li><a href="transactron.core.html#module-transactron.core.keys">transactron.core.keys</a>
 </li>
@@ -1078,11 +1094,9 @@
 <h2 id="N">N</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="transactron.core.html#transactron.core.transaction_base.TransactionBase.name">name (transactron.core.transaction_base.TransactionBase attribute)</a>
+      <li><a href="transactron.html#transactron.graph.Owned.name">name (transactron.graph.Owned attribute)</a>
 
       <ul>
-        <li><a href="transactron.html#transactron.graph.Owned.name">(transactron.graph.Owned attribute)</a>
-</li>
         <li><a href="transactron.lib.html#transactron.lib.metrics.MetricRegisterModel.name">(transactron.lib.metrics.MetricRegisterModel attribute)</a>
 </li>
         <li><a href="transactron.html#transactron.profiler.ProfileInfo.name">(transactron.profiler.ProfileInfo attribute)</a>
@@ -1098,6 +1112,12 @@
 </li>
       <li><a href="transactron.html#transactron.graph.Direction.NONE">NONE (transactron.graph.Direction attribute)</a>
 </li>
+      <li><a href="transactron.core.html#transactron.core.body.AdapterBodyParams.nonexclusive">nonexclusive (transactron.core.body.AdapterBodyParams attribute)</a>
+
+      <ul>
+        <li><a href="transactron.core.html#transactron.core.body.BodyParams.nonexclusive">(transactron.core.body.BodyParams attribute)</a>
+</li>
+      </ul></li>
   </ul></td>
 </tr></table>
 
@@ -1122,7 +1142,7 @@
 </li>
       <li><a href="transactron.html#transactron.graph.Owned">Owned (class in transactron.graph)</a>
 </li>
-      <li><a href="transactron.core.html#transactron.core.transaction_base.TransactionBase.owned_name">owned_name (transactron.core.transaction_base.TransactionBase property)</a>
+      <li><a href="transactron.html#transactron.graph.Owned.owned_name">owned_name (transactron.graph.Owned property)</a>
 </li>
       <li><a href="transactron.html#transactron.graph.Owned.owner">owner (transactron.graph.Owned attribute)</a>
 </li>
@@ -1136,7 +1156,7 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="transactron.testing.html#transactron.testing.logging.parse_logging_level">parse_logging_level() (in module transactron.testing.logging)</a>
 </li>
-      <li><a href="transactron.core.html#transactron.core.transaction_base.TransactionBase.peek">peek() (transactron.core.transaction_base.TransactionBase class method)</a>
+      <li><a href="transactron.core.html#transactron.core.body.Body.peek">peek() (transactron.core.body.Body static method)</a>
 </li>
       <li><a href="transactron.lib.html#transactron.lib.connectors.Pipe">Pipe (class in transactron.lib.connectors)</a>
 </li>
@@ -1288,10 +1308,10 @@
 </li>
       <li><a href="transactron.utils.amaranth_ext.html#transactron.utils.amaranth_ext.shifter.shift_vec_left">shift_vec_left() (in module transactron.utils.amaranth_ext.shifter)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="transactron.utils.amaranth_ext.html#transactron.utils.amaranth_ext.shifter.shift_vec_right">shift_vec_right() (in module transactron.utils.amaranth_ext.shifter)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="transactron.utils.html#transactron.utils.data_repr.signed_to_int">signed_to_int() (in module transactron.utils.data_repr)</a>
 </li>
       <li><a href="transactron.utils.html#transactron.utils.transactron_helpers.silence_mustuse">silence_mustuse() (in module transactron.utils.transactron_helpers)</a>
@@ -1310,6 +1330,12 @@
 </li>
       <li><a href="transactron.core.html#transactron.core.transaction_base.TransactionBase.simultaneous_list">simultaneous_list (transactron.core.transaction_base.TransactionBase attribute)</a>
 </li>
+      <li><a href="transactron.core.html#transactron.core.body.AdapterBodyParams.single_caller">single_caller (transactron.core.body.AdapterBodyParams attribute)</a>
+
+      <ul>
+        <li><a href="transactron.core.html#transactron.core.body.BodyParams.single_caller">(transactron.core.body.BodyParams attribute)</a>
+</li>
+      </ul></li>
       <li><a href="transactron.core.html#transactron.core.transaction_base.TransactionBase.src_loc">src_loc (transactron.core.transaction_base.TransactionBase attribute)</a>
 
       <ul>
@@ -1320,7 +1346,7 @@
       </ul></li>
       <li><a href="transactron.lib.html#transactron.lib.connectors.StableSelectingNetwork">StableSelectingNetwork (class in transactron.lib.connectors)</a>
 </li>
-      <li><a href="transactron.core.html#transactron.core.transaction_base.TransactionBase.stack">stack (transactron.core.transaction_base.TransactionBase attribute)</a>
+      <li><a href="transactron.core.html#transactron.core.body.Body.stack">stack (transactron.core.body.Body attribute)</a>
 
       <ul>
         <li><a href="transactron.utils.html#transactron.utils.dependencies.DependencyContext.stack">(transactron.utils.dependencies.DependencyContext attribute)</a>
@@ -1453,6 +1479,13 @@
 </li>
       </ul></li>
       <li>
+    transactron.core.body
+
+      <ul>
+        <li><a href="transactron.core.html#module-transactron.core.body">module</a>
+</li>
+      </ul></li>
+      <li>
     transactron.core.keys
 
       <ul>
@@ -1543,6 +1576,8 @@
         <li><a href="transactron.lib.html#module-transactron.lib.buttons">module</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     transactron.lib.connectors
 
@@ -1550,8 +1585,6 @@
         <li><a href="transactron.lib.html#module-transactron.lib.connectors">module</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     transactron.lib.dependencies
 
@@ -1817,10 +1850,12 @@
 <h2 id="V">V</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="transactron.testing.html#transactron.testing.method_mock.MethodMock.validate_arguments_process">validate_arguments_process() (transactron.testing.method_mock.MethodMock method)</a>
+      <li><a href="transactron.core.html#transactron.core.body.BodyParams.validate_arguments">validate_arguments (transactron.core.body.BodyParams attribute)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="transactron.testing.html#transactron.testing.method_mock.MethodMock.validate_arguments_process">validate_arguments_process() (transactron.testing.method_mock.MethodMock method)</a>
+</li>
       <li><a href="transactron.core.html#transactron.core.manager.TransactionManager.visual_graph">visual_graph() (transactron.core.manager.TransactionManager method)</a>
 </li>
   </ul></td>
@@ -1849,8 +1884,8 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright Kuźnia Rdzeni, 2024.
-      <span class="lastupdated">Last updated on 14:55 2024-12-18.
+    <p>&#169; Copyright Kuźnia Rdzeni, 2025.
+      <span class="lastupdated">Last updated on 16:52 2025-01-03.
       </span></p>
   </div>
 
