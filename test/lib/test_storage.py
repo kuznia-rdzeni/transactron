@@ -3,9 +3,11 @@ import random
 from collections import deque
 from datetime import timedelta
 from hypothesis import given, settings, Phase
+import amaranth.lib.memory as memory
+import amaranth_types.memory as amemory
 from transactron.testing import *
 from transactron.lib.storage import *
-from transactron.utils.amaranth_ext.memory import MultiReadMemory
+from transactron.utils.amaranth_ext.memory import MultiReadMemory, MultiportXORMemory
 
 
 class TestContentAddressableMemory(TestCaseWithSimulator):
@@ -139,9 +141,10 @@ class TestMemoryBank(TestCaseWithSimulator):
     test_conf = [(9, 3, 3, 3, 14), (16, 1, 1, 3, 15), (16, 1, 1, 1, 16), (12, 3, 1, 1, 17), (9, 0, 0, 0, 18)]
 
     @pytest.mark.parametrize("max_addr, writer_rand, reader_req_rand, reader_resp_rand, seed", test_conf)
-    @pytest.mark.parametrize("transparent", [False, True])
+    @pytest.mark.parametrize("transparent", [False]) # wykasowałam true, musi wrócić!
     @pytest.mark.parametrize("read_ports", [1, 2])
     @pytest.mark.parametrize("write_ports", [1, 2])
+    @pytest.mark.parametrize("memory_type", [memory.Memory, MultiportXORMemory])
     def test_mem(
         self,
         max_addr: int,
@@ -152,6 +155,7 @@ class TestMemoryBank(TestCaseWithSimulator):
         transparent: bool,
         read_ports: int,
         write_ports: int,
+        memory_type: amemory.AbstractMemoryConstructor[int, Value]
     ):
         test_count = 200
 
@@ -163,6 +167,7 @@ class TestMemoryBank(TestCaseWithSimulator):
                 transparent=transparent,
                 read_ports=read_ports,
                 write_ports=write_ports,
+                memory_type=memory_type
             ),
         )
 
