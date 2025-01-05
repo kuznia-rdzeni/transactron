@@ -93,7 +93,6 @@ class PreservedOrderAllocator(Elaboratable):
         self.free_idx = Method(i=[("idx", range(entries))])
         self.order = Method(
             o=[("used", range(entries + 1)), ("order", ArrayLayout(range(self.entries), self.entries))],
-            nonexclusive=True,
         )
 
     def elaborate(self, platform) -> TModule:
@@ -125,7 +124,7 @@ class PreservedOrderAllocator(Elaboratable):
                     m.d.comb += idx.eq(i)
             self.free_idx(m, idx=idx)
 
-        @def_method(m, self.order)
+        @def_method(m, self.order, nonexclusive=True)
         def _():
             return {"used": used, "order": order}
 
