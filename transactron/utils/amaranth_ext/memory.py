@@ -288,7 +288,6 @@ class MultiportXORMemory(Elaboratable):
         read_xors: "list[Value]" = [Signal(self.shape) for _ in self.read_ports]
         
         write_regs_addr = [Signal(addr_width) for _ in self.write_ports]
-        #sygnał chyba może być też rejestrem
         write_regs_data = [Signal(self.shape) for _ in self.write_ports]
 
         for index, write_port in enumerate(self.write_ports):
@@ -296,7 +295,7 @@ class MultiportXORMemory(Elaboratable):
                 raise ValueError("Found None in write ports")
             
             index_passed_by = False
-            write_xors[index] = write_port.data ^ write_xors[index]
+            m.d.sync += [write_xors[index].eq(write_port.data ^ write_xors[index])]
             # muszą zostać dołożone rejestry, żeby zgadzały się timingi przy xor feedback
             for i in range(len(self.write_ports) - 1):
                 mem = memory.Memory(shape=self.shape, depth=self.depth, init=self.init, attrs=self.attrs, src_loc_at=self.src_loc)
@@ -310,12 +309,14 @@ class MultiportXORMemory(Elaboratable):
                 idx = i+1 if index_passed_by else i
                 write_xors[idx] = physical_read_port.data ^ write_xors[idx]
 
-                m.d.comb += [physical_write_port.addr.eq(write_port.addr),
-                             physical_write_port.data.eq(write_xors[index]),
-                             physical_write_port.en.eq(write_port.en),
-                             physical_read_port.en.eq(1),
-                             #do sprawdzenia adresy
-                             physical_read_port.addr.eq(self.write_ports[idx].addr)]
+                m.d.comb += [physical_read_port.en.eq(1),
+                             physical_read_port.addr.eq(self.write_ports[idx].addr),
+                             #tego nie jestem pewna czy sync czy comb
+                             physical_write_port.data.eq(write_xors[index])]
+
+                m.d.sync += [physical_write_port.en.eq(write_port.en),
+                             physical_write_port.addr.eq(write_port.addr),
+                             ]
 
             read_block = MultiReadMemory(shape=self.shape, depth=self.depth, init=self.init, attrs=self.attrs, src_loc_at=self.src_loc)
             mem_name = f"read_block_{index}"
@@ -324,13 +325,16 @@ class MultiportXORMemory(Elaboratable):
             r_read_ports = [
                 read_block.read_port() for _ in self.read_ports
             ]
-            m.d.comb += [r_write_port.addr.eq(write_port.addr),
-                         r_write_port.data.eq(write_xors[index]),
+            m.d.comb += [r_write_port.data.eq(write_xors[index])]
+
+            m.d.sync += [r_write_port.addr.eq(write_port.addr),
                          r_write_port.en.eq(write_port.en)]
+
             for idx, port in enumerate(r_read_ports):
                 read_xors[idx] ^= port.data
                 m.d.comb += [port.addr.eq(self.read_ports[idx].addr),
-                             port.en.eq(1)]
+                            # może enable powinno być enable z readportu, niewykluczone
+                             port.en.eq(self.read_ports[idx].en)]
 
         for index, port in enumerate(self.read_ports):
             m.d.comb += [port.data.eq(read_xors[index])]
