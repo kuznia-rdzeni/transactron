@@ -141,7 +141,7 @@ class TestMemoryBank(TestCaseWithSimulator):
     test_conf = [(9, 3, 3, 3, 14), (16, 1, 1, 3, 15), (16, 1, 1, 1, 16), (12, 3, 1, 1, 17), (9, 0, 0, 0, 18)]
 
     @pytest.mark.parametrize("max_addr, writer_rand, reader_req_rand, reader_resp_rand, seed", test_conf)
-    @pytest.mark.parametrize("transparent", [False]) # wykasowałam true, musi wrócić!
+    @pytest.mark.parametrize("transparent", [False])  # wykasowałam true, musi wrócić!
     @pytest.mark.parametrize("read_ports", [1, 2])
     @pytest.mark.parametrize("write_ports", [1, 2])
     @pytest.mark.parametrize("memory_type", [memory.Memory, MultiportXORMemory])
@@ -155,7 +155,7 @@ class TestMemoryBank(TestCaseWithSimulator):
         transparent: bool,
         read_ports: int,
         write_ports: int,
-        memory_type: amemory.AbstractMemoryConstructor[int, Value]
+        memory_type: amemory.AbstractMemoryConstructor[int, Value],
     ):
         test_count = 200
 
@@ -167,7 +167,7 @@ class TestMemoryBank(TestCaseWithSimulator):
                 transparent=transparent,
                 read_ports=read_ports,
                 write_ports=write_ports,
-                memory_type=memory_type
+                memory_type=memory_type,
             ),
         )
 
@@ -274,6 +274,7 @@ class TestAsyncMemoryBank(TestCaseWithSimulator):
             for i in range(write_ports):
                 sim.add_testbench(writer(i))
 
+
 class TestMultiReadMemory(TestCaseWithSimulator):
     test_conf = [(9, 3, 3, 3, 14), (16, 1, 1, 3, 15), (16, 1, 1, 1, 16), (12, 3, 1, 1, 17), (9, 0, 0, 0, 18)]
 
@@ -302,7 +303,7 @@ class TestMultiReadMemory(TestCaseWithSimulator):
                 transparent=transparent,
                 read_ports=read_ports,
                 write_ports=write_ports,
-                memory_type=MultiReadMemory
+                memory_type=MultiReadMemory,
             ),
         )
 
