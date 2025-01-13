@@ -9,7 +9,7 @@ from collections.abc import Iterable
 from .. import get_src_loc
 from amaranth_types.types import ShapeLike, ValueLike
 
-__all__ = ["MultiReadMemory", "MultiportXORMemory"]
+__all__ = ["MultiReadMemory", "MultiportXORMemory", "MultiportILVTMemory"]
 
 
 @final
@@ -281,4 +281,52 @@ class MultiportXORMemory(BaseMultiportMemory):
         for index, port in enumerate(self.read_ports):
             m.d.comb += [port.data.eq(Mux(read_en_bypass[index], read_xors[index], port.data))]
 
+        return m
+
+
+class MultiportILVTMemory(BaseMultiportMemory):
+    def elaborate(self, platform):
+        m = Module()
+
+        self._frozen = True
+
+        m.submodules.ilvt = ilvt = MultiportXORMemory(
+            shape=bits_for(len(self.write_ports) - 1), depth=self.depth, init=self.init, src_loc_at=self.src_loc + 1
+        )
+
+        ilvt_write_ports = [ilvt.write_port(granularity=port.granularity) for port in self.write_ports]
+        ilvt_read_ports = [ilvt.read_port() for _ in self.read_ports]
+
+        for index, write_port in enumerate(ilvt_write_ports):
+            m.d.comb += [
+                write_port.addr.eq(self.write_ports[index].addr),
+                write_port.en.eq(self.write_ports[index].en),
+                write_port.data.eq(index),
+            ]
+
+            mem = MultiReadMemory(
+                shape=self.shape, depth=self.depth, init=self.init, attrs=self.attrs, src_loc_at=self.src_loc
+            )
+            mem_name = f"bank_{index}"
+            m.submodules[mem_name] = mem
+            bank_write_port = mem.write_port(granularity=write_port.granularity)
+            bank_read_ports = [mem.read_port() for _ in self.read_ports]
+
+            m.d.comb += [
+                bank_write_port.addr.eq(self.write_ports[index].addr),
+                bank_write_port.en.eq(self.write_ports[index].en),
+                bank_write_port.data.eq(self.write_ports[index].data),
+            ]
+            for idx, port in enumerate(bank_read_ports):
+                m.d.comb += [
+                    port.en.eq(self.read_ports[idx].en),
+                    port.addr.eq(self.read_ports[idx].addr),
+                ]
+
+        for index, read_port in enumerate(self.read_ports):
+            m.d.comb += [ilvt_read_ports[index].addr.eq(read_port.addr), ilvt_read_ports[index].en.eq(read_port.en)]
+            with m.Switch(ilvt_read_ports[index].data):
+                for value in range(len(self.write_ports)):
+                    with m.Case(value):
+                        m.d.comb += [read_port.data.eq(m.submodules[f"bank_{value}"].read_ports[index].data)]
         return m
