@@ -10,6 +10,8 @@ from typing import TypeVar, Generic, Type, TypeGuard, Any, cast, TypeAlias, Opti
 from amaranth import *
 from amaranth.sim import *
 from amaranth.sim._async import SimulatorContext
+from transactron.core.method import MethodDir
+from transactron.lib.adapters import Adapter
 
 from transactron.utils.dependencies import DependencyContext, DependencyManager
 from .testbenchio import TestbenchIO
@@ -58,6 +60,7 @@ class SimpleTestCircuit(Elaboratable, Generic[_T_HasElaborate]):
 
     def elaborate(self, platform):
         def transform_methods_to_testbenchios(
+            adapter_type: type[Adapter] | type[AdapterTrans],
             container: _T_nested_collection[Method | Methods],
         ) -> tuple[
             _T_nested_collection["TestbenchIO"],
@@ -67,7 +70,7 @@ class SimpleTestCircuit(Elaboratable, Generic[_T_HasElaborate]):
                 tb_list = []
                 mc_list = []
                 for elem in container:
-                    tb, mc = transform_methods_to_testbenchios(elem)
+                    tb, mc = transform_methods_to_testbenchios(adapter_type, elem)
                     tb_list.append(tb)
                     mc_list.append(mc)
                 return tb_list, ModuleConnector(*mc_list)
@@ -75,24 +78,29 @@ class SimpleTestCircuit(Elaboratable, Generic[_T_HasElaborate]):
                 tb_dict = {}
                 mc_dict = {}
                 for name, elem in container.items():
-                    tb, mc = transform_methods_to_testbenchios(elem)
+                    tb, mc = transform_methods_to_testbenchios(adapter_type, elem)
                     tb_dict[name] = tb
                     mc_dict[name] = mc
                 return tb_dict, ModuleConnector(*mc_dict)
             elif isinstance(container, Methods):
-                tb_list = [TestbenchIO(AdapterTrans(method)) for method in container]
+                tb_list = [TestbenchIO(adapter_type(method)) for method in container]
                 return list(tb_list), ModuleConnector(*tb_list)
             else:
-                tb = TestbenchIO(AdapterTrans(container))
+                tb = TestbenchIO(adapter_type(container))
                 return tb, tb
 
         m = Module()
 
         m.submodules.dut = self._dut
+        hints = self._dut.__class__.__annotations__
 
         for name, attr in vars(self._dut).items():
             if guard_nested_collection(attr, Method | Methods) and attr:
-                tb_cont, mc = transform_methods_to_testbenchios(attr)
+                if name in hints and MethodDir.REQUIRED in hints[name].__metadata__:
+                    adapter_type = Adapter
+                else:  # PROVIDED is the default
+                    adapter_type = AdapterTrans
+                tb_cont, mc = transform_methods_to_testbenchios(adapter_type, attr)
                 self._io[name] = tb_cont
                 m.submodules[name] = mc
 
@@ -166,19 +174,15 @@ class PysimSimulator(Simulator):
         else:
             self.ctx = nullcontext()
 
-        self.timeouted = False
-
         async def timeout_testbench(sim: SimulatorContext):
             await sim.delay(clk_period * max_cycles)
-            self.timeouted = True
+            assert False, "simulation timed out"
 
         self.add_testbench(timeout_testbench, background=True)
 
-    def run(self) -> bool:
+    def run(self) -> None:
         with self.ctx:
             super().run()
-
-        return not self.timeouted
 
 
 class TestCaseWithSimulator:
@@ -316,8 +320,7 @@ class TestCaseWithSimulator:
             if ret is not None:
                 sim.add_process(ret)
 
-        res = sim.run()
-        assert res, "Simulation time limit exceeded"
+        sim.run()
 
     async def tick(self, sim: SimulatorContext, cycle_cnt: int = 1):
         """

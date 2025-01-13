@@ -10,6 +10,44 @@ from transactron.testing.method_mock import MethodMock, def_method_mock
 from transactron.lib import *
 
 
+class SimpleMethodMockTestCircuit(Elaboratable):
+    method: Required[Method]
+    wrapper: Provided[Method]
+
+    def __init__(self, width: int):
+        self.method = Method(i=StructLayout({"input": width}), o=StructLayout({"output": width}))
+        self.wrapper = Method(i=StructLayout({"input": width}), o=StructLayout({"output": width}))
+
+    def elaborate(self, platform):
+        m = TModule()
+
+        @def_method(m, self.wrapper)
+        def _(input):
+            return {"output": self.method(m, input).output + 1}
+
+        return m
+
+
+class TestMethodMock(TestCaseWithSimulator):
+    async def process(self, sim: TestbenchContext):
+        for _ in range(20):
+            val = random.randrange(2**self.width)
+            ret = await self.dut.wrapper.call(sim, input=val)
+            assert ret.output == (val + 2) % 2**self.width
+
+    @def_method_mock(lambda self: self.dut.method, enable=lambda _: random.randint(0, 1))
+    def method_mock(self, input):
+        return {"output": input + 1}
+
+    def test_method_mock_simple(self):
+        random.seed(42)
+        self.width = 4
+        self.dut = SimpleTestCircuit(SimpleMethodMockTestCircuit(self.width))
+
+        with self.run_simulation(self.dut) as sim:
+            sim.add_testbench(self.process)
+
+
 class ReverseMethodMockTestCircuit(Elaboratable):
     def __init__(self, width):
         self.method = Method(i=StructLayout({"input": width}), o=StructLayout({"output": width}))

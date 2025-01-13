@@ -1,22 +1,39 @@
 from collections.abc import Sequence
+import enum
 
 from transactron.utils import *
 from amaranth import *
 from amaranth import tracer
-from typing import Optional, Callable, Iterator, TYPE_CHECKING
+from typing import TYPE_CHECKING, Annotated, Optional, Iterator, TypeAlias, TypeVar, Unpack
 from .transaction_base import *
-from .sugar import def_method
 from contextlib import contextmanager
 from transactron.utils.assign import AssignArg
 from transactron.utils._typing import type_self_add_1pos_kwargs_as
 
+from .body import Body, BodyParams, MBody
+from .keys import TransactionManagerKey
+from .tmodule import TModule
+from .transaction_base import TransactionBase
+
+
 if TYPE_CHECKING:
-    from .tmodule import TModule
-
-__all__ = ["Method", "Methods"]
+    from .transaction import Transaction  # noqa: F401
 
 
-class Method(TransactionBase):
+__all__ = ["MethodDir", "Provided", "Required", "Method", "Methods"]
+
+
+class MethodDir(enum.Enum):
+    PROVIDED = enum.auto()
+    REQUIRED = enum.auto()
+
+
+_T = TypeVar("_T")
+Provided: TypeAlias = Annotated[_T, MethodDir.PROVIDED]
+Required: TypeAlias = Annotated[_T, MethodDir.REQUIRED]
+
+
+class Method(TransactionBase["Transaction | Method"]):
     """Transactional method.
 
     A `Method` serves to interface a module with external `Transaction`\\s
@@ -55,16 +72,10 @@ class Method(TransactionBase):
         calling `body`.
     """
 
+    _body_ptr: Optional["Body | Method"] = None
+
     def __init__(
-        self,
-        *,
-        name: Optional[str] = None,
-        i: MethodLayout = (),
-        o: MethodLayout = (),
-        nonexclusive: bool = False,
-        combiner: Optional[Callable[[Module, Sequence[MethodStruct], Value], AssignArg]] = None,
-        single_caller: bool = False,
-        src_loc: int | SrcLoc = 0,
+        self, *, name: Optional[str] = None, i: MethodLayout = (), o: MethodLayout = (), src_loc: int | SrcLoc = 0
     ):
         """
         Parameters
@@ -76,45 +87,17 @@ class Method(TransactionBase):
             The format of `data_in`.
         o: method layout
             The format of `data_out`.
-        nonexclusive: bool
-            If true, the method is non-exclusive: it can be called by multiple
-            transactions in the same clock cycle. If such a situation happens,
-            the method still is executed only once, and each of the callers
-            receive its output. Nonexclusive methods cannot have inputs.
-        combiner: (Module, Sequence[MethodStruct], Value) -> AssignArg
-            If `nonexclusive` is true, the combiner function combines the
-            arguments from multiple calls to this method into a single
-            argument, which is passed to the method body. The third argument
-            is a bit vector, whose n-th bit is 1 if the n-th call is active
-            in a given cycle.
-        single_caller: bool
-            If true, this method is intended to be called from a single
-            transaction. An error will be thrown if called from multiple
-            transactions.
         src_loc: int | SrcLoc
             How many stack frames deep the source location is taken from.
             Alternatively, the source location to use instead of the default.
         """
         super().__init__(src_loc=get_src_loc(src_loc))
-
-        def default_combiner(m: Module, args: Sequence[MethodStruct], runs: Value) -> AssignArg:
-            ret = Signal(from_method_layout(i))
-            for k in OneHotSwitchDynamic(m, runs):
-                m.d.comb += ret.eq(args[k])
-            return ret
-
         self.owner, owner_name = get_caller_class_name(default="$method")
         self.name = name or tracer.get_var_name(depth=2, default=owner_name)
         self.ready = Signal(name=self.owned_name + "_ready")
         self.run = Signal(name=self.owned_name + "_run")
-        self.data_in: MethodStruct = Signal(from_method_layout(i))
-        self.data_out: MethodStruct = Signal(from_method_layout(o))
-        self.nonexclusive = nonexclusive
-        self.combiner: Callable[[Module, Sequence[MethodStruct], Value], AssignArg] = combiner or default_combiner
-        self.single_caller = single_caller
-        self.validate_arguments: Optional[Callable[..., ValueLike]] = None
-        if nonexclusive:
-            assert len(self.data_in.as_value()) == 0 or combiner is not None
+        self.data_in: MethodStruct = Signal(from_method_layout(i), name=self.owned_name + "_data_in")
+        self.data_out: MethodStruct = Signal(from_method_layout(o), name=self.owned_name + "_data_out")
 
     @property
     def layout_in(self):
@@ -125,7 +108,7 @@ class Method(TransactionBase):
         return self.data_out.shape()
 
     @staticmethod
-    def like(other: "Method", *, name: Optional[str] = None, src_loc: int | SrcLoc = 0) -> "Method":
+    def like(other: "Method", *, name: Optional[str] = None) -> "Method":
         """Constructs a new `Method` based on another.
 
         The returned `Method` has the same input/output data layouts as the
@@ -137,18 +120,35 @@ class Method(TransactionBase):
             The `Method` which serves as a blueprint for the new `Method`.
         name : str, optional
             Name of the new `Method`.
-        src_loc: int | SrcLoc
-            How many stack frames deep the source location is taken from.
-            Alternatively, the source location to use instead of the default.
 
         Returns
         -------
         Method
             The freshly constructed `Method`.
         """
-        return Method(name=name, i=other.layout_in, o=other.layout_out, src_loc=get_src_loc(src_loc))
+        return Method(name=name, i=other.layout_in, o=other.layout_out)
 
-    def proxy(self, m: "TModule", method: "Method"):
+    @property
+    def _body(self) -> MBody:
+        if isinstance(self._body_ptr, Body):
+            return MBody(self._body_ptr)
+        if isinstance(self._body_ptr, Method):
+            self._body_ptr = self._body_ptr._body
+            return self._body_ptr
+        raise RuntimeError(f"Method '{self.name}' not defined")
+
+    def _set_impl(self, m: TModule, value: "Body | Method"):
+        if self._body_ptr is not None:
+            raise RuntimeError(f"Method '{self.name}' already defined")
+        if value.data_in.shape() != self.layout_in or value.data_out.shape() != self.layout_out:
+            raise ValueError(f"Method {value.name} has different interface than {self.name}")
+        self._body_ptr = value
+        m.d.comb += self.ready.eq(value.ready)
+        m.d.comb += self.run.eq(value.run)
+        m.d.comb += self.data_in.eq(value.data_in)
+        m.d.comb += self.data_out.eq(value.data_out)
+
+    def proxy(self, m: TModule, method: "Method"):
         """Define as a proxy for another method.
 
         The calls to this method will be forwarded to `method`.
@@ -161,19 +161,11 @@ class Method(TransactionBase):
         method : Method
             Method for which this method is a proxy for.
         """
-
-        @def_method(m, self, ready=method.ready)
-        def _(arg):
-            return method(m, arg)
+        self._set_impl(m, method)
 
     @contextmanager
     def body(
-        self,
-        m: "TModule",
-        *,
-        ready: ValueLike = C(1),
-        out: ValueLike = C(0, 0),
-        validate_arguments: Optional[Callable[..., ValueLike]] = None,
+        self, m: TModule, *, ready: ValueLike = C(1), out: ValueLike = C(0, 0), **kwargs: Unpack[BodyParams]
     ) -> Iterator[MethodStruct]:
         """Define method body
 
@@ -203,6 +195,21 @@ class Method(TransactionBase):
             It instantiates a combinational circuit for each
             method caller. By default, there is no function, so all arguments
             are accepted.
+        combiner: (Module, Sequence[MethodStruct], Value) -> AssignArg
+            If `nonexclusive` is true, the combiner function combines the
+            arguments from multiple calls to this method into a single
+            argument, which is passed to the method body. The third argument
+            is a bit vector, whose n-th bit is 1 if the n-th call is active
+            in a given cycle.
+        nonexclusive: bool
+            If true, the method is non-exclusive: it can be called by multiple
+            transactions in the same clock cycle. If such a situation happens,
+            the method still is executed only once, and each of the callers
+            receive its output. Nonexclusive methods cannot have inputs.
+        single_caller: bool
+            If true, this method is intended to be called from a single
+            transaction. An error will be thrown if called from multiple
+            transactions.
 
         Returns
         -------
@@ -221,24 +228,22 @@ class Method(TransactionBase):
             with my_sum_method.body(m, out = sum) as data_in:
                 m.d.comb += sum.eq(data_in.arg1 + data_in.arg2)
         """
-        if self.defined:
-            raise RuntimeError(f"Method '{self.name}' already defined")
-        self.def_order = next(TransactionBase.def_counter)
-        self.validate_arguments = validate_arguments
+        body = Body(
+            name=self.name, owner=self.owner, i=self.layout_in, o=self.layout_out, src_loc=self.src_loc, **kwargs
+        )
+        self._set_impl(m, body)
 
-        m.d.av_comb += self.ready.eq(ready)
-        m.d.top_comb += self.data_out.eq(out)
-        with self.context(m):
-            with m.AvoidedIf(self.run):
-                yield self.data_in
+        m.d.av_comb += body.ready.eq(ready)
+        m.d.top_comb += body.data_out.eq(out)
+        with body.context(m):
+            with m.AvoidedIf(body.run):
+                yield body.data_in
 
-    def _validate_arguments(self, arg_rec: MethodStruct) -> ValueLike:
-        if self.validate_arguments is not None:
-            return self.ready & method_def_helper(self, self.validate_arguments, arg_rec)
-        return self.ready
+        manager = DependencyContext.get().get_dependency(TransactionManagerKey())
+        manager._add_method(self)
 
     def __call__(
-        self, m: "TModule", arg: Optional[AssignArg] = None, enable: ValueLike = C(1), /, **kwargs: AssignArg
+        self, m: TModule, arg: Optional[AssignArg] = None, enable: ValueLike = C(1), /, **kwargs: AssignArg
     ) -> MethodStruct:
         """Call a method.
 
@@ -298,7 +303,7 @@ class Method(TransactionBase):
         m.d.av_comb += enable_sig.eq(enable)
         m.d.top_comb += assign(arg_rec, arg, fields=AssignType.ALL)
 
-        caller = TransactionBase.get()
+        caller = Body.get()
         if not all(ctrl_path.exclusive_with(m.ctrl_path) for ctrl_path, _, _ in caller.method_calls[self]):
             raise RuntimeError(f"Method '{self.name}' can't be called twice from the same caller '{caller.name}'")
         caller.method_calls[self].append((m.ctrl_path, arg_rec, enable_sig))
@@ -339,7 +344,7 @@ class Methods(Sequence[Method]):
         return self._methods[0].layout_out
 
     def __call__(
-        self, m: "TModule", arg: Optional[AssignArg] = None, enable: ValueLike = C(1), /, **kwargs: AssignArg
+        self, m: TModule, arg: Optional[AssignArg] = None, enable: ValueLike = C(1), /, **kwargs: AssignArg
     ) -> MethodStruct:
         if len(self._methods) != 1:
             raise RuntimeError("calling Methods only allowed when count=1")

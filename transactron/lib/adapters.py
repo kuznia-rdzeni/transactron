@@ -1,12 +1,12 @@
 from abc import abstractmethod
-from typing import Optional
+from typing import Optional, Unpack
 from amaranth import *
 from amaranth.lib.wiring import Component, In, Out
 from amaranth.lib.data import StructLayout, View
 
 from ..utils import SrcLoc, get_src_loc, MethodStruct
 from ..core import *
-from ..utils._typing import type_self_kwargs_as, SignalBundle
+from ..utils._typing import SignalBundle, MethodLayout
 
 __all__ = [
     "AdapterBase",
@@ -100,8 +100,7 @@ class Adapter(AdapterBase):
         Hooks for `validate_arguments`.
     """
 
-    @type_self_kwargs_as(Method.__init__)
-    def __init__(self, **kwargs):
+    def __init__(self, method: Method, /, **kwargs: Unpack[AdapterBodyParams]):
         """
         Parameters
         ----------
@@ -110,12 +109,25 @@ class Adapter(AdapterBase):
             See transactron.core.Method.__init__ for parameters description.
         """
 
-        kwargs["src_loc"] = get_src_loc(kwargs.setdefault("src_loc", 0))
-
-        iface = Method(**kwargs)
-        super().__init__(iface, iface.layout_out, iface.layout_in)
+        super().__init__(method, method.layout_out, method.layout_in)
         self.validators: list[tuple[View[StructLayout], Signal]] = []
         self.with_validate_arguments: bool = False
+        self.kwargs = kwargs
+
+    @staticmethod
+    def create(
+        name: Optional[str] = None,
+        i: MethodLayout = [],
+        o: MethodLayout = [],
+        src_loc: int | SrcLoc = 0,
+        **kwargs: Unpack[AdapterBodyParams],
+    ):
+        method = Method(name=name, i=i, o=o, src_loc=get_src_loc(src_loc))
+        return Adapter(method, **kwargs)
+
+    def update_args(self, **kwargs: Unpack[AdapterBodyParams]):
+        self.kwargs.update(kwargs)
+        return self
 
     def set(self, with_validate_arguments: Optional[bool]):
         if with_validate_arguments is not None:
@@ -129,7 +141,7 @@ class Adapter(AdapterBase):
         data_in = Signal.like(self.data_in)
         m.d.comb += data_in.eq(self.data_in)
 
-        kwargs = {}
+        kwargs: BodyParams = self.kwargs  # type: ignore (pyright complains about optional attribute)
 
         if self.with_validate_arguments:
 

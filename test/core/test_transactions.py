@@ -10,6 +10,7 @@ import contextlib
 
 from collections import deque
 from typing import Iterable, Callable
+from transactron.core.keys import TransactionManagerKey
 
 from transactron.testing import TestCaseWithSimulator, TestbenchIO, data_layout
 
@@ -20,7 +21,7 @@ from transactron.utils import Scheduler
 from transactron.core import Priority
 from transactron.core.schedulers import trivial_roundrobin_cc_scheduler, eager_deterministic_cc_scheduler
 from transactron.core.manager import TransactionScheduler
-from transactron.utils.dependencies import DependencyContext
+from transactron.utils.dependencies import DependencyContext, DependencyManager
 
 
 class TestNames(TestCase):
@@ -28,25 +29,28 @@ class TestNames(TestCase):
         mgr = TransactionManager()
         mgr._MustUse__silence = True  # type: ignore
 
-        class T(Elaboratable):
-            def __init__(self):
-                self._MustUse__silence = True  # type: ignore
-                Transaction(manager=mgr)
+        with DependencyContext(DependencyManager()) as ctx:
+            ctx.manager.add_dependency(TransactionManagerKey(), mgr)
 
-        T()
-        assert mgr.transactions[0].name == "T"
+            class T(Elaboratable):
+                def __init__(self):
+                    self._MustUse__silence = True  # type: ignore
+                    Transaction()
 
-        t = Transaction(name="x", manager=mgr)
-        assert t.name == "x"
+            T()
+            assert mgr.transactions[0].name == "T"
 
-        t = Transaction(manager=mgr)
-        assert t.name == "t"
+            t = Transaction(name="x")
+            assert t.name == "x"
 
-        m = Method(name="x")
-        assert m.name == "x"
+            t = Transaction()
+            assert t.name == "t"
 
-        m = Method()
-        assert m.name == "m"
+            m = Method(name="x")
+            assert m.name == "x"
+
+            m = Method()
+            assert m.name == "m"
 
 
 class TestScheduler(TestCaseWithSimulator):
@@ -111,7 +115,7 @@ class TransactionConflictTestCircuit(Elaboratable):
     def elaborate(self, platform):
         m = TModule()
         tm = TransactionModule(m, DependencyContext.get(), TransactionManager(self.scheduler))
-        adapter = Adapter(i=data_layout(32), o=data_layout(32))
+        adapter = Adapter.create(i=data_layout(32), o=data_layout(32))
         m.submodules.out = self.out = TestbenchIO(adapter)
         m.submodules.in1 = self.in1 = TestbenchIO(AdapterTrans(adapter.iface))
         m.submodules.in2 = self.in2 = TestbenchIO(AdapterTrans(adapter.iface))
@@ -428,7 +432,11 @@ class SingleCallerTestCircuit(Elaboratable):
     def elaborate(self, platform):
         m = TModule()
 
-        method = Method(single_caller=True)
+        method = Method()
+
+        @def_method(m, method, single_caller=True)
+        def _():
+            pass
 
         with Transaction().body(m):
             method(m)

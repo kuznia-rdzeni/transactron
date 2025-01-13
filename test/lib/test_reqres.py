@@ -27,8 +27,8 @@ class TestSerializer(TestCaseWithSimulator):
 
         layout = [("field", self.data_width)]
 
-        self.req_method = TestbenchIO(Adapter(i=layout))
-        self.resp_method = TestbenchIO(Adapter(o=layout))
+        self.req_method = TestbenchIO(Adapter.create(i=layout))
+        self.resp_method = TestbenchIO(Adapter.create(o=layout))
 
         self.test_circuit = SimpleTestCircuit(
             Serializer(

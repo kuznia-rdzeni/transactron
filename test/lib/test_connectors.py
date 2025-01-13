@@ -134,13 +134,13 @@ class ManyToOneConnectTransTestCircuit(Elaboratable):
 
         get_results = []
         for i in range(self.count):
-            input = TestbenchIO(Adapter(o=self.lay))
+            input = TestbenchIO(Adapter.create(o=self.lay))
             get_results.append(input.adapter.iface)
             m.submodules[f"input_{i}"] = input
             self.inputs.append(input)
 
         # Create ManyToOneConnectTrans, which will serialize results from different inputs
-        output = TestbenchIO(Adapter(i=self.lay))
+        output = TestbenchIO(Adapter.create(i=self.lay))
         m.submodules.output = self.output = output
         m.submodules.fu_arbitration = ManyToOneConnectTrans(get_results=get_results, put_result=output.adapter.iface)
 

@@ -193,9 +193,9 @@ def collect_transaction_method_signals(
     get_id = IdGenerator()
 
     for transaction in method_map.transactions:
-        request_loc = get_signal_location(transaction.request, name_map)
+        request_loc = get_signal_location(transaction.ready, name_map)
         runnable_loc = get_signal_location(transaction.runnable, name_map)
-        grant_loc = get_signal_location(transaction.grant, name_map)
+        grant_loc = get_signal_location(transaction.run, name_map)
         transaction_signals_location[get_id(transaction)] = TransactionSignalsLocation(
             request_loc, runnable_loc, grant_loc
         )

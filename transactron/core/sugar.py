@@ -1,13 +1,12 @@
 from collections.abc import Sequence, Callable
 from amaranth import *
-from typing import TYPE_CHECKING, Optional, Concatenate, ParamSpec
+from typing import Optional, Concatenate, ParamSpec, Unpack
+from transactron.core.body import BodyParams
 from transactron.utils import *
 from transactron.utils.assign import AssignArg
 from functools import partial
-
-if TYPE_CHECKING:
-    from .tmodule import TModule
-    from .method import Method
+from .tmodule import TModule
+from .method import Method
 
 __all__ = ["def_method", "def_methods"]
 
@@ -15,12 +14,7 @@ __all__ = ["def_method", "def_methods"]
 P = ParamSpec("P")
 
 
-def def_method(
-    m: "TModule",
-    method: "Method",
-    ready: ValueLike = C(1),
-    validate_arguments: Optional[Callable[..., ValueLike]] = None,
-):
+def def_method(m: TModule, method: Method, ready: ValueLike = C(1), **kwargs: Unpack[BodyParams]):
     """Define a method.
 
     This decorator allows to define transactional methods in an
@@ -45,12 +39,8 @@ def def_method(
         Signal to indicate if the method is ready to be run. By
         default it is `Const(1)`, so the method is always ready.
         Assigned combinationally to the `ready` attribute.
-    validate_arguments: Optional[Callable[..., ValueLike]]
-        Function that takes input arguments used to call the method
-        and checks whether the method can be called with those arguments.
-        It instantiates a combinational circuit for each
-        method caller. By default, there is no function, so all arguments
-        are accepted.
+    **kwargs: BodyParams
+        For details, see `Method.body`.
 
     Examples
     --------
@@ -86,7 +76,7 @@ def def_method(
         out = Signal(method.layout_out)
         ret_out = None
 
-        with method.body(m, ready=ready, out=out, validate_arguments=validate_arguments) as arg:
+        with method.body(m, ready=ready, out=out, **kwargs) as arg:
             ret_out = method_def_helper(method, func, arg)
 
         if ret_out is not None:
@@ -96,10 +86,10 @@ def def_method(
 
 
 def def_methods(
-    m: "TModule",
-    methods: Sequence["Method"],
+    m: TModule,
+    methods: Sequence[Method],
     ready: Callable[[int], ValueLike] = lambda _: C(1),
-    validate_arguments: Optional[Callable[..., ValueLike]] = None,
+    **kwargs: Unpack[BodyParams],
 ):
     """Decorator for defining similar methods
 
@@ -130,12 +120,8 @@ def def_methods(
         A `Callable` that takes the index in the form of an `int` of the currently defined method
         and produces a `Value` describing whether the method is ready to be run.
         When omitted, each defined method is always ready. Assigned combinationally to the `ready` attribute.
-    validate_arguments: Optional[Callable[Concatenate[int, ...], ValueLike]]
-        Function that takes input arguments used to call the method
-        and checks whether the method can be called with those arguments.
-        It instantiates a combinational circuit for each
-        method caller. By default, there is no function, so all arguments
-        are accepted.
+    **kwargs: BodyParams
+        For details, see `Method.body`.
 
     Examples
     --------
@@ -174,7 +160,6 @@ def def_methods(
     def decorator(func: Callable[Concatenate[int, P], Optional[RecordDict]]):
         for i in range(len(methods)):
             partial_f = partial(func, i)
-            partial_vargs = partial(validate_arguments, i) if validate_arguments is not None else None
-            def_method(m, methods[i], ready(i), partial_vargs)(partial_f)
+            def_method(m, methods[i], ready(i), **kwargs)(partial_f)
 
     return decorator

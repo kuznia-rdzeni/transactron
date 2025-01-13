@@ -2,6 +2,7 @@
 # Copyright (C) 2019-2024 Amaranth HDL contributors
 
 from amaranth import *
+from transactron.utils.amaranth_ext.functions import count_trailing_zeros
 
 
 __all__ = [
@@ -84,9 +85,7 @@ class PriorityEncoder(Elaboratable):
 
     def elaborate(self, platform):
         m = Module()
-        for j in reversed(range(self.width)):
-            with m.If(self.i[j]):
-                m.d.comb += self.o.eq(j)
+        m.d.comb += self.o.eq(count_trailing_zeros(self.i))
         m.d.comb += self.n.eq(self.i == 0)
         return m
 

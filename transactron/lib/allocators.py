@@ -1,7 +1,8 @@
 from amaranth import *
 
-from transactron.core import Methods, TModule, def_methods
+from transactron.core import Method, Methods, TModule, def_method, def_methods
 from transactron.utils.amaranth_ext.elaboratables import MultiPriorityEncoder
+from amaranth.lib.data import ArrayLayout
 
 
 __all__ = ["PriorityEncoderAllocator"]
@@ -58,5 +59,73 @@ class PriorityEncoderAllocator(Elaboratable):
         @def_methods(m, self.free)
         def _(_, ident):
             m.d.sync += not_used.bit_select(ident, 1).eq(1)
+
+        return m
+
+
+class PreservedOrderAllocator(Elaboratable):
+    """Allocator with allocation order information.
+
+    This module allows to allocate and deallocate identifiers from a
+    continuous range. The order of allocations is preserved in the form of
+    a permutation of identifiers. Smaller positions correspond to earlier
+    (older) allocations.
+
+    Attributes
+    ----------
+    alloc : Method
+        Allocates a fresh identifier.
+    free : Method
+        Frees a previously allocated identifier.
+    free_idx : Method
+        Frees a previously allocated identifier at the given index of the
+        allocation order.
+    order : Method
+        Returns the allocation order as a permutation of identifiers
+        and the number of allocated identifiers.
+    """
+
+    def __init__(self, entries: int):
+        self.entries = entries
+
+        self.alloc = Method(o=[("ident", range(entries))])
+        self.free = Method(i=[("ident", range(entries))])
+        self.free_idx = Method(i=[("idx", range(entries))])
+        self.order = Method(
+            o=[("used", range(entries + 1)), ("order", ArrayLayout(range(self.entries), self.entries))],
+        )
+
+    def elaborate(self, platform) -> TModule:
+        m = TModule()
+
+        order = Signal(ArrayLayout(range(self.entries), self.entries), init=list(range(self.entries)))
+        used = Signal(range(self.entries + 1))
+        incr_used = Signal(range(self.entries + 1))
+
+        m.d.comb += incr_used.eq(used + self.alloc.run)
+        m.d.sync += used.eq(incr_used - self.free_idx.run)
+
+        @def_method(m, self.alloc, ready=used != self.entries)
+        def _():
+            return {"ident": order[used]}
+
+        @def_method(m, self.free_idx)
+        def _(idx):
+            for i in range(self.entries - 1):
+                with m.If(i >= idx):
+                    m.d.sync += order[i].eq(order[i + 1])
+            m.d.sync += order[self.entries - 1].eq(order[idx])
+
+        @def_method(m, self.free)
+        def _(ident):
+            idx = Signal(range(self.entries))
+            for i in range(self.entries):
+                with m.If(order[i] == ident):
+                    m.d.comb += idx.eq(i)
+            self.free_idx(m, idx=idx)
+
+        @def_method(m, self.order, nonexclusive=True)
+        def _():
+            return {"used": used, "order": order}
 
         return m

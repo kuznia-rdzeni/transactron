@@ -1,19 +1,23 @@
+from amaranth.lib.data import StructLayout
 from transactron.utils import *
 from amaranth import *
 from amaranth import tracer
-from typing import Optional, Iterator, TYPE_CHECKING
-from .transaction_base import *
+from typing import TYPE_CHECKING, Optional, Iterator
 from .keys import *
 from contextlib import contextmanager
+from .body import Body, TBody
+from .tmodule import TModule
+from .transaction_base import TransactionBase
+
 
 if TYPE_CHECKING:
-    from .tmodule import TModule
-    from .manager import TransactionManager
+    from .method import Method  # noqa: F401
+
 
 __all__ = ["Transaction"]
 
 
-class Transaction(TransactionBase):
+class Transaction(TransactionBase["Transaction | Method"]):
     """Transaction.
 
     A `Transaction` represents a task which needs to be regularly done.
@@ -51,9 +55,9 @@ class Transaction(TransactionBase):
         and all used methods are called.
     """
 
-    def __init__(
-        self, *, name: Optional[str] = None, manager: Optional["TransactionManager"] = None, src_loc: int | SrcLoc = 0
-    ):
+    _body_ptr: Optional["Body"] = None
+
+    def __init__(self, *, name: Optional[str] = None, src_loc: int | SrcLoc = 0):
         """
         Parameters
         ----------
@@ -62,9 +66,6 @@ class Transaction(TransactionBase):
             inferred from the variable name this `Transaction` is assigned to.
             If the `Transaction` was not assigned, the name is inferred from
             the class name where the `Transaction` was constructed.
-        manager: TransactionManager
-            The `TransactionManager` controlling this `Transaction`.
-            If omitted, the manager is received from `TransactionContext`.
         src_loc: int | SrcLoc
             How many stack frames deep the source location is taken from.
             Alternatively, the source location to use instead of the default.
@@ -72,15 +73,30 @@ class Transaction(TransactionBase):
         super().__init__(src_loc=get_src_loc(src_loc))
         self.owner, owner_name = get_caller_class_name(default="$transaction")
         self.name = name or tracer.get_var_name(depth=2, default=owner_name)
-        if manager is None:
-            manager = DependencyContext.get().get_dependency(TransactionManagerKey())
-        manager.add_transaction(self)
+        manager = DependencyContext.get().get_dependency(TransactionManagerKey())
+        manager._add_transaction(self)
         self.request = Signal(name=self.owned_name + "_request")
         self.runnable = Signal(name=self.owned_name + "_runnable")
         self.grant = Signal(name=self.owned_name + "_grant")
 
+    @property
+    def _body(self) -> TBody:
+        if self._body_ptr is not None:
+            return TBody(self._body_ptr)
+        raise RuntimeError(f"Method '{self.name}' not defined")
+
+    def _set_impl(self, m: TModule, value: Body):
+        if self._body_ptr is not None:
+            raise RuntimeError(f"Transaction '{self.name}' already defined")
+        if value.data_in.shape().size != 0 or value.data_out.shape().size != 0:
+            raise ValueError(f"Transaction body {value.name} has invalid interface")
+        self._body_ptr = value
+        m.d.comb += self.request.eq(value.ready)
+        m.d.comb += self.runnable.eq(value.runnable)
+        m.d.comb += self.grant.eq(value.run)
+
     @contextmanager
-    def body(self, m: "TModule", *, request: ValueLike = C(1)) -> Iterator["Transaction"]:
+    def body(self, m: TModule, *, request: ValueLike = C(1)) -> Iterator["Transaction"]:
         """Defines the `Transaction` body.
 
         This context manager allows to conveniently define the actions
@@ -99,13 +115,18 @@ class Transaction(TransactionBase):
             default it is `Const(1)`, so it wants to be executed in
             every clock cycle.
         """
-        if self.defined:
-            raise RuntimeError(f"Transaction '{self.name}' already defined")
-        self.def_order = next(TransactionBase.def_counter)
+        impl = Body(
+            name=self.name,
+            owner=self.owner,
+            i=StructLayout({}),
+            o=StructLayout({}),
+            src_loc=self.src_loc,
+        )
+        self._set_impl(m, impl)
 
-        m.d.av_comb += self.request.eq(request)
-        with self.context(m):
-            with m.AvoidedIf(self.grant):
+        m.d.av_comb += impl.ready.eq(request)
+        with impl.context(m):
+            with m.AvoidedIf(impl.run):
                 yield self
 
     def __repr__(self) -> str:

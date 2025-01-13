@@ -67,7 +67,7 @@ class ArgumentsToResultsZipper(Elaboratable):
         self.args_layout = args_layout
         self.output_layout = [("args", self.args_layout), ("results", results_layout)]
 
-        self.peek_arg = Method(o=self.args_layout, nonexclusive=True, src_loc=self.src_loc)
+        self.peek_arg = Method(o=self.args_layout, src_loc=self.src_loc)
         self.write_args = Method(i=self.args_layout, src_loc=self.src_loc)
         self.write_results = Method(i=self.results_layout, src_loc=self.src_loc)
         self.read = Method(o=self.output_layout, src_loc=self.src_loc)

@@ -9,6 +9,7 @@ from amaranth import *
 from amaranth import tracer
 from amaranth.lib.data import StructLayout
 import amaranth.lib.data as data
+import dataclasses
 
 
 __all__ = [
@@ -23,6 +24,7 @@ __all__ = [
     "from_method_layout",
     "make_layout",
     "extend_layout",
+    "dataclass_asdict",
 ]
 
 T = TypeVar("T")
@@ -167,3 +169,9 @@ def from_method_layout(layout: MethodLayout) -> StructLayout:
         return layout
     else:
         return StructLayout({k: from_layout_field(v) for k, v in layout})
+
+
+def dataclass_asdict(obj: Any) -> dict[str, Any]:
+    # Workaround for dataclass.asdict calling deepcopy without a reason, see:
+    # https://github.com/python/cpython/issues/88071
+    return {field.name: getattr(obj, field.name) for field in dataclasses.fields(obj)}
