@@ -320,10 +320,7 @@ class MultiportXORMemory(Elaboratable):
                 idx = i + 1 if index_passed_by else i
                 write_xors[idx] ^= physical_read_port.data
 
-                m.d.comb += [
-                    physical_read_port.en.eq(1),
-                    physical_read_port.addr.eq(self.write_ports[idx].addr)
-                ]
+                m.d.comb += [physical_read_port.en.eq(1), physical_read_port.addr.eq(self.write_ports[idx].addr)]
 
                 m.d.sync += [
                     physical_write_port.en.eq(write_port.en),
@@ -331,14 +328,10 @@ class MultiportXORMemory(Elaboratable):
                 ]
 
         for index, write_port in enumerate(self.write_ports):
-            index_passed_by = False
             for i in range(len(self.write_ports) - 1):
                 mem_name = f"memory_{index}_{i}"
                 mem = m.submodules[mem_name]
                 physical_write_port = mem.write_ports[0]
-                if i == index:
-                    index_passed_by = True
-                idx = i + 1 if index_passed_by else i
 
                 m.d.comb += [physical_write_port.data.eq(write_xors[index])]
 
@@ -361,6 +354,7 @@ class MultiportXORMemory(Elaboratable):
                 write_data_bypass.eq(write_xors[index]),
                 write_en_bypass.eq(r_write_port.en),
             ]
+
             for idx, port in enumerate(r_read_ports):
                 read_addr_bypass = Signal(addr_width)
 
@@ -368,11 +362,22 @@ class MultiportXORMemory(Elaboratable):
                     read_addr_bypass.eq(self.read_ports[idx].addr),
                     read_en_bypass[idx].eq(self.read_ports[idx].en),
                 ]
-                read_xors[idx] ^= Mux(
+
+                single_stage_bypass = Mux(
                     (read_addr_bypass == write_addr_bypass) & read_en_bypass[idx] & write_en_bypass,
                     write_data_bypass,
                     port.data,
                 )
+
+                if write_port in self.read_ports[idx].transparent_for:
+                    read_xors[idx] ^= Mux(
+                        (read_addr_bypass == write_regs_addr[index]) & r_write_port.en,
+                        write_xors[index],
+                        single_stage_bypass,
+                    )
+                else:
+                    read_xors[idx] ^= single_stage_bypass
+
                 m.d.comb += [port.addr.eq(self.read_ports[idx].addr), port.en.eq(self.read_ports[idx].en)]
 
         for index, port in enumerate(self.read_ports):
