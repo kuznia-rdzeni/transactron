@@ -17,21 +17,39 @@ class MultipleWritePorts(Exception):
     """Exception raised when a single write memory is being requested multiple write ports."""
 
 
-class MultiReadMemory(Elaboratable):
-    """Memory with one write and multiple read ports.
+class ReadPort:
 
-    One can request multiple read ports and not more than 1 read port. Module internally
-    uses multiple (number of read ports) instances of amaranth.lib.memory.Memory with one
-    read and one write port.
+    def __init__(self, memory, width, depth, init=None, transparent_for=None, src_loc=0):
+        self.src_loc = get_src_loc(src_loc)
+        self.depth = depth
+        self.width = width
+        self.init = init
+        self.transparent_for = transparent_for
+        self.addr_width = bits_for(self.depth - 1)
+        self.en = Signal(1)
+        self.addr = Signal(self.addr_width)
+        self.data = Signal(width)
+        self._memory = memory
+        memory.read_ports.append(self)
 
-    Attributes
-    ----------
-    shape: ShapeLike
-        Shape of each memory row.
-    depth: int
-        Number of memory rows.
-    """
 
+class WritePort:
+
+    def __init__(self, memory, width, depth, init, granularity=None, src_loc=0):
+        self.src_loc = get_src_loc(src_loc)
+        self.depth = depth
+        self.width = width
+        self.init = init
+        self.addr_width = bits_for(self.depth - 1)
+        self.en = Signal(1)
+        self.addr = Signal(self.addr_width)
+        self.data = Signal(width)
+        self.granularity = granularity
+        self._memory = memory
+        memory.write_ports.append(self)
+
+
+class BaseMultiportMemory(Elaboratable):
     def __init__(
         self,
         *,
@@ -54,49 +72,21 @@ class MultiReadMemory(Elaboratable):
             How many stack frames deep the source location is taken from.
         """
 
-        self._shape = shape
-        self._depth = depth
-        self._init = init
-        self._attrs = attrs
+        self.shape = shape
+        self.depth = depth
+        self.init = init
+        self.attrs = attrs
         self.src_loc = src_loc_at
 
-        self._read_ports: "list[ReadPort]" = []
-        self._write_ports: "list[WritePort]" = []
+        self.read_ports: "list[ReadPort]" = []
+        self.write_ports: "list[WritePort]" = []
         self._frozen = False
-
-    @property
-    def shape(self):
-        return self._shape
-
-    @property
-    def depth(self):
-        return self._depth
-
-    @property
-    def init(self):
-        return self._init
-
-    @init.setter
-    def init(self, init):
-        self._init = init
-
-    @property
-    def attrs(self):
-        return self._attrs
-
-    @property
-    def read_ports(self):
-        """All read ports defined so far."""
-        return tuple(self._read_ports)
-
-    @property
-    def write_ports(self):
-        """All write ports defined so far."""
-        return tuple(self._write_ports)
 
     def read_port(self, *, domain: str = "sync", transparent_for: Iterable[Any] = (), src_loc_at: int = 0):
         if self._frozen:
             raise AlreadyElaborated("Cannot add a memory port to a memory that has already been elaborated")
+        if domain != "sync":
+            raise ValueError("Invalid port domain: Only synchronous memory ports supported.")
         return ReadPort(
             memory=self,
             width=self.shape,
@@ -109,8 +99,8 @@ class MultiReadMemory(Elaboratable):
     def write_port(self, *, domain: str = "sync", granularity: Optional[int] = None, src_loc_at: int = 0):
         if self._frozen:
             raise AlreadyElaborated("Cannot add a memory port to a memory that has already been elaborated")
-        if self.write_ports:
-            raise MultipleWritePorts("Cannot add multiple write ports to a single write memory")
+        if domain != "sync":
+            raise ValueError("Invalid port domain: Only synchronous memory ports supported.")
         return WritePort(
             memory=self,
             width=self.shape,
@@ -119,6 +109,21 @@ class MultiReadMemory(Elaboratable):
             granularity=granularity,
             src_loc=1 + src_loc_at,
         )
+
+
+class MultiReadMemory(BaseMultiportMemory):
+    """Memory with one write and multiple read ports.
+
+    One can request multiple read ports and not more than 1 write port. Module internally
+    uses multiple (number of read ports) instances of amaranth.lib.memory.Memory with one
+    read and one write port.
+
+    """
+
+    def write_port(self, *, domain: str = "sync", granularity: Optional[int] = None, src_loc_at: int = 0):
+        if self.write_ports:
+            raise MultipleWritePorts("Cannot add multiple write ports to a single write memory")
+        return super().write_port(domain=domain, granularity=granularity, src_loc_at=src_loc_at)
 
     def elaborate(self, platform):
         m = Module()
@@ -135,8 +140,11 @@ class MultiReadMemory(Elaboratable):
                     shape=port.width, depth=self.depth, init=self.init, attrs=self.attrs, src_loc_at=self.src_loc
                 )
                 m.submodules += mem
-                physical_read_port = mem.read_port(transparent_for=port.transparent_for)
-                physical_write_port = mem.write_port()
+                physical_write_port = mem.write_port(granularity=write_port.granularity)
+                transparent_for = []
+                if write_port in port.transparent_for:
+                    transparent_for += [physical_write_port]
+                physical_read_port = mem.read_port(transparent_for=transparent_for)
                 m.d.comb += [
                     physical_read_port.addr.eq(port.addr),
                     port.data.eq(physical_read_port.data),
@@ -149,142 +157,16 @@ class MultiReadMemory(Elaboratable):
         return m
 
 
-class ReadPort:
-
-    # póki co ignoruję domenę, nie wiem co potem
-    def __init__(self, memory, width, depth, init=None, transparent_for=None, src_loc=0):
-        self.src_loc = get_src_loc(src_loc)
-        self.depth = depth
-        self.width = width
-        self.init = init
-        self.transparent_for = transparent_for
-        self.addr_width = bits_for(self.depth - 1)
-        self.en = Signal(1)
-        self.addr = Signal(self.addr_width)
-        self.data = Signal(width)
-        self._memory = memory
-        memory._read_ports.append(self)
-
-
-class WritePort:
-
-    # póki co ignoruję domenę i granularity, nie wiem co potem
-    def __init__(self, memory, width, depth, init, granularity=None, src_loc=0):
-        self.src_loc = get_src_loc(src_loc)
-        self.depth = depth
-        self.width = width
-        self.init = init
-        self.addr_width = bits_for(self.depth - 1)
-        self.en = Signal(1)
-        self.addr = Signal(self.addr_width)
-        self.data = Signal(width)
-        self._memory = memory
-        memory._write_ports.append(self)
-
-
-# one mogłyby dziedziczyć po czymś wspólnym, bez sensu identyczne inity
-class MultiportXORMemory(Elaboratable):
+class MultiportXORMemory(BaseMultiportMemory):
     """Multiport memory based on xor.
 
     Multiple read and write ports can be requested. Memory is built of
     (number of write ports) * (number of write ports - 1 + number of read ports) single port
-    memory blocks. XOR is used to enable writing multiple values in one cycle.
+    memory blocks. XOR is used to enable writing multiple values in one cycle and reading correct values.
+    Writing two different values to the same memory address in one cycle has undefined behavior.
 
-    Attributes
-    ----------
-    shape: ShapeLike
-        Shape of each memory row.
-    depth: int
-        Number of memory rows.
     """
 
-    def __init__(
-        self,
-        *,
-        shape: ShapeLike,
-        depth: int,
-        init: Iterable[ValueLike],
-        attrs: Optional[dict[str, str]] = None,
-        src_loc_at: int = 0,
-    ):
-        """
-        Parameters
-        ----------
-        shape: ShapeLike
-            Shape of each memory row.
-        depth : int
-            Number of memory rows.
-        init : iterable of initial values
-            Initial values for memory rows.
-        src_loc: int
-            How many stack frames deep the source location is taken from.
-        """
-
-        self._shape = shape
-        self._depth = depth
-        self._init = init
-        self._attrs = attrs
-        self.src_loc = src_loc_at
-
-        self._read_ports: "list[ReadPort]" = []
-        self._write_ports: "list[WritePort]" = []
-        self._frozen = False
-
-    @property
-    def shape(self):
-        return self._shape
-
-    @property
-    def depth(self):
-        return self._depth
-
-    @property
-    def init(self):
-        return self._init
-
-    @init.setter
-    def init(self, init):
-        self._init = init
-
-    @property
-    def attrs(self):
-        return self._attrs
-
-    @property
-    def read_ports(self):
-        """All read ports defined so far."""
-        return tuple(self._read_ports)
-
-    @property
-    def write_ports(self):
-        """All write ports defined so far."""
-        return tuple(self._write_ports)
-
-    def read_port(self, *, domain: str = "sync", transparent_for: Iterable[Any] = (), src_loc_at: int = 0):
-        if self._frozen:
-            raise AlreadyElaborated("Cannot add a memory port to a memory that has already been elaborated")
-        return ReadPort(
-            memory=self,
-            width=self.shape,
-            depth=self.depth,
-            init=self.init,
-            transparent_for=transparent_for,
-            src_loc=1 + src_loc_at,
-        )
-
-    def write_port(self, *, domain: str = "sync", granularity: Optional[int] = None, src_loc_at: int = 0):
-        if self._frozen:
-            raise AlreadyElaborated("Cannot add a memory port to a memory that has already been elaborated")
-        return WritePort(
-            memory=self,
-            width=self.shape,
-            depth=self.depth,
-            init=self.init,
-            granularity=granularity,
-            src_loc=1 + src_loc_at,
-        )
-
-    # transparentność trzeba załatwiać osobno, jest opisane w paperze
     def elaborate(self, platform):
         m = Module()
 
@@ -308,7 +190,7 @@ class MultiportXORMemory(Elaboratable):
             write_xors[index] ^= write_regs_data[index]
             for i in range(len(self.write_ports) - 1):
                 mem = memory.Memory(
-                    shape=self.shape, depth=self.depth, init=self.init, attrs=self.attrs, src_loc_at=self.src_loc
+                    shape=self.shape, depth=self.depth, init=[], attrs=self.attrs, src_loc_at=self.src_loc
                 )
                 mem_name = f"memory_{index}_{i}"
                 m.submodules[mem_name] = mem
@@ -335,8 +217,9 @@ class MultiportXORMemory(Elaboratable):
 
                 m.d.comb += [physical_write_port.data.eq(write_xors[index])]
 
+            init = self.init if index == 0 else []
             read_block = MultiReadMemory(
-                shape=self.shape, depth=self.depth, init=self.init, attrs=self.attrs, src_loc_at=self.src_loc
+                shape=self.shape, depth=self.depth, init=init, attrs=self.attrs, src_loc_at=self.src_loc
             )
             mem_name = f"read_block_{index}"
             m.submodules[mem_name] = read_block
