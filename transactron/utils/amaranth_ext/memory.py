@@ -292,8 +292,8 @@ class MultiportXORMemory(Elaboratable):
 
         addr_width = bits_for(self.depth - 1)
 
-        write_xors: "list[Value]" = [Signal(self.shape) for _ in self.write_ports]
-        read_xors: "list[Value]" = [Signal(self.shape) for _ in self.read_ports]
+        write_xors: "list[Value]" = [Signal(self.shape, name="write_xor") for _ in self.write_ports]
+        read_xors: "list[Value]" = [Signal(self.shape, name="read_xor") for _ in self.read_ports]
 
         write_regs_addr = [Signal(addr_width) for _ in self.write_ports]
         write_regs_data = [Signal(self.shape) for _ in self.write_ports]
@@ -312,24 +312,35 @@ class MultiportXORMemory(Elaboratable):
                 )
                 mem_name = f"memory_{index}_{i}"
                 m.submodules[mem_name] = mem
-                physical_read_port = mem.read_port()
                 physical_write_port = mem.write_port()
+                physical_read_port = mem.read_port(transparent_for=[physical_write_port])
 
                 if i == index:
                     index_passed_by = True
                 idx = i + 1 if index_passed_by else i
-                write_xors[idx] = physical_read_port.data ^ write_xors[idx]
+                write_xors[idx] ^= physical_read_port.data
 
                 m.d.comb += [
                     physical_read_port.en.eq(1),
-                    physical_read_port.addr.eq(self.write_ports[idx].addr),
-                    physical_write_port.data.eq(write_xors[index]),
+                    physical_read_port.addr.eq(self.write_ports[idx].addr)
                 ]
 
                 m.d.sync += [
                     physical_write_port.en.eq(write_port.en),
                     physical_write_port.addr.eq(write_port.addr),
                 ]
+
+        for index, write_port in enumerate(self.write_ports):
+            index_passed_by = False
+            for i in range(len(self.write_ports) - 1):
+                mem_name = f"memory_{index}_{i}"
+                mem = m.submodules[mem_name]
+                physical_write_port = mem.write_ports[0]
+                if i == index:
+                    index_passed_by = True
+                idx = i + 1 if index_passed_by else i
+
+                m.d.comb += [physical_write_port.data.eq(write_xors[index])]
 
             read_block = MultiReadMemory(
                 shape=self.shape, depth=self.depth, init=self.init, attrs=self.attrs, src_loc_at=self.src_loc

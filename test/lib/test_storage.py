@@ -173,6 +173,7 @@ class TestMemoryBank(TestCaseWithSimulator):
 
         data: list[int] = [0 for _ in range(max_addr)]
         read_req_queues = [deque() for _ in range(read_ports)]
+        address_lock = [False] * max_addr
 
         random.seed(seed)
 
@@ -180,10 +181,18 @@ class TestMemoryBank(TestCaseWithSimulator):
             async def process(sim: TestbenchContext):
                 for cycle in range(test_count):
                     d = random.randrange(2**data_width)
-                    a = random.randrange(max_addr)
+                    a = random.randrange(max_addr)  # uważam, że trzeba sprawdzać, czy nie piszemy pod ten sam adres
+
+                    while address_lock[a]:
+                        a = random.randrange(max_addr)
+                    address_lock[a] = True
+
                     await m.write[i].call(sim, data={"data": d}, addr=a)
                     await sim.delay(1e-9 * (i + 2 if not transparent else i))
                     data[a] = d
+
+                    address_lock[a] = False
+                    
                     await self.random_wait(sim, writer_rand)
 
             return process
