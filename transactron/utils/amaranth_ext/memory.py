@@ -19,7 +19,15 @@ class MultipleWritePorts(Exception):
 
 class ReadPort:
 
-    def __init__(self, memory, width, depth, init=None, transparent_for=None, src_loc=0):
+    def __init__(
+        self,
+        memory,
+        width: ShapeLike,
+        depth: int,
+        init: Iterable[ValueLike] = (),
+        transparent_for: Iterable[Any] = (),
+        src_loc=0,
+    ):
         self.src_loc = get_src_loc(src_loc)
         self.depth = depth
         self.width = width
@@ -35,7 +43,15 @@ class ReadPort:
 
 class WritePort:
 
-    def __init__(self, memory, width, depth, init, granularity=None, src_loc=0):
+    def __init__(
+        self,
+        memory,
+        width: ShapeLike,
+        depth: int,
+        init: Iterable[ValueLike] = (),
+        granularity: Optional[int] = None,
+        src_loc=0,
+    ):
         self.src_loc = get_src_loc(src_loc)
         self.depth = depth
         self.width = width
@@ -141,10 +157,9 @@ class MultiReadMemory(BaseMultiportMemory):
                 )
                 m.submodules += mem
                 physical_write_port = mem.write_port(granularity=write_port.granularity)
-                transparent_for = []
-                if write_port in port.transparent_for:
-                    transparent_for += [physical_write_port]
-                physical_read_port = mem.read_port(transparent_for=transparent_for)
+                physical_read_port = mem.read_port(
+                    transparent_for=[physical_write_port] if write_port in port.transparent_for else []
+                )
                 m.d.comb += [
                     physical_read_port.addr.eq(port.addr),
                     port.data.eq(physical_read_port.data),
