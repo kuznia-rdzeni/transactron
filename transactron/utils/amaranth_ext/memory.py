@@ -194,8 +194,8 @@ class MultiportXORMemory(BaseMultiportMemory):
 
         addr_width = bits_for(self.depth - 1)
 
-        write_xors: "list[Value]" = [Signal(self.shape) for _ in self.write_ports]
-        read_xors: "list[Value]" = [Signal(self.shape) for _ in self.read_ports]
+        write_xors = [Value.cast(0) for _ in self.write_ports]
+        read_xors = [Value.cast(0) for _ in self.read_ports]
 
         write_regs_addr = [Signal(addr_width) for _ in self.write_ports]
         write_regs_data = [Signal(self.shape) for _ in self.write_ports]
