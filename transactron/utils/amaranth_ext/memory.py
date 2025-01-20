@@ -146,24 +146,29 @@ class MultiReadMemory(BaseMultiportMemory):
 
         self._frozen = True
 
-        if self.write_ports:
-            write_port = self.write_ports[0]
-            for port in self.read_ports:
-                if port is None:
-                    raise ValueError("Found None in read ports")
-                # for each read port a new single port memory block is generated
-                mem = memory.Memory(
-                    shape=port.width, depth=self.depth, init=self.init, attrs=self.attrs, src_loc_at=self.src_loc
+        write_port = self.write_ports[0] if self.write_ports else None
+        for port in self.read_ports:
+            if port is None:
+                raise ValueError("Found None in read ports")
+            # for each read port a new single port memory block is generated
+            mem = memory.Memory(
+                shape=port.width, depth=self.depth, init=self.init, attrs=self.attrs, src_loc_at=self.src_loc
+            )
+            m.submodules += mem
+            physical_write_port = mem.write_port(granularity=write_port.granularity) if write_port else None
+            physical_read_port = mem.read_port(
+                transparent_for=(
+                    [physical_write_port] if physical_write_port and write_port in port.transparent_for else []
                 )
-                m.submodules += mem
-                physical_write_port = mem.write_port(granularity=write_port.granularity)
-                physical_read_port = mem.read_port(
-                    transparent_for=[physical_write_port] if write_port in port.transparent_for else []
-                )
+            )
+            m.d.comb += [
+                physical_read_port.addr.eq(port.addr),
+                port.data.eq(physical_read_port.data),
+                physical_read_port.en.eq(port.en),
+            ]
+
+            if physical_write_port and write_port:
                 m.d.comb += [
-                    physical_read_port.addr.eq(port.addr),
-                    port.data.eq(physical_read_port.data),
-                    physical_read_port.en.eq(port.en),
                     physical_write_port.addr.eq(write_port.addr),
                     physical_write_port.data.eq(write_port.data),
                     physical_write_port.en.eq(write_port.en),
@@ -189,8 +194,8 @@ class MultiportXORMemory(BaseMultiportMemory):
 
         addr_width = bits_for(self.depth - 1)
 
-        write_xors: "list[Value]" = [Signal(self.shape, name="write_xor") for _ in self.write_ports]
-        read_xors: "list[Value]" = [Signal(self.shape, name="read_xor") for _ in self.read_ports]
+        write_xors: "list[Value]" = [Signal(self.shape) for _ in self.write_ports]
+        read_xors: "list[Value]" = [Signal(self.shape) for _ in self.read_ports]
 
         write_regs_addr = [Signal(addr_width) for _ in self.write_ports]
         write_regs_data = [Signal(self.shape) for _ in self.write_ports]
@@ -200,7 +205,6 @@ class MultiportXORMemory(BaseMultiportMemory):
             if write_port is None:
                 raise ValueError("Found None in write ports")
 
-            index_passed_by = False
             m.d.sync += [write_regs_data[index].eq(write_port.data), write_regs_addr[index].eq(write_port.addr)]
             write_xors[index] ^= write_regs_data[index]
             for i in range(len(self.write_ports) - 1):
@@ -212,9 +216,7 @@ class MultiportXORMemory(BaseMultiportMemory):
                 physical_write_port = mem.write_port()
                 physical_read_port = mem.read_port(transparent_for=[physical_write_port])
 
-                if i == index:
-                    index_passed_by = True
-                idx = i + 1 if index_passed_by else i
+                idx = i + 1 if i >= index else i
                 write_xors[idx] ^= physical_read_port.data
 
                 m.d.comb += [physical_read_port.en.eq(1), physical_read_port.addr.eq(self.write_ports[idx].addr)]
@@ -225,12 +227,13 @@ class MultiportXORMemory(BaseMultiportMemory):
                 ]
 
         for index, write_port in enumerate(self.write_ports):
+            write_xor = write_xors[index]
             for i in range(len(self.write_ports) - 1):
                 mem_name = f"memory_{index}_{i}"
                 mem = m.submodules[mem_name]
                 physical_write_port = mem.write_ports[0]
 
-                m.d.comb += [physical_write_port.data.eq(write_xors[index])]
+                m.d.comb += [physical_write_port.data.eq(write_xor)]
 
             init = self.init if index == 0 else []
             read_block = MultiReadMemory(
@@ -240,7 +243,7 @@ class MultiportXORMemory(BaseMultiportMemory):
             m.submodules[mem_name] = read_block
             r_write_port = read_block.write_port()
             r_read_ports = [read_block.read_port() for _ in self.read_ports]
-            m.d.comb += [r_write_port.data.eq(write_xors[index])]
+            m.d.comb += [r_write_port.data.eq(write_xor)]
 
             m.d.sync += [r_write_port.addr.eq(write_port.addr), r_write_port.en.eq(write_port.en)]
 
@@ -249,7 +252,7 @@ class MultiportXORMemory(BaseMultiportMemory):
             write_en_bypass = Signal()
             m.d.sync += [
                 write_addr_bypass.eq(write_regs_addr[index]),
-                write_data_bypass.eq(write_xors[index]),
+                write_data_bypass.eq(write_xor),
                 write_en_bypass.eq(r_write_port.en),
             ]
 
@@ -270,7 +273,7 @@ class MultiportXORMemory(BaseMultiportMemory):
                 if write_port in self.read_ports[idx].transparent_for:
                     read_xors[idx] ^= Mux(
                         (read_addr_bypass == write_regs_addr[index]) & r_write_port.en,
-                        write_xors[index],
+                        write_xor,
                         single_stage_bypass,
                     )
                 else:
