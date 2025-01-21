@@ -148,8 +148,6 @@ class MultiReadMemory(BaseMultiportMemory):
 
         write_port = self.write_ports[0] if self.write_ports else None
         for port in self.read_ports:
-            if port is None:
-                raise ValueError("Found None in read ports")
             # for each read port a new single port memory block is generated
             mem = memory.Memory(
                 shape=port.width, depth=self.depth, init=self.init, attrs=self.attrs, src_loc_at=self.src_loc
@@ -202,9 +200,6 @@ class MultiportXORMemory(BaseMultiportMemory):
         read_en_bypass = [Signal() for _ in self.read_ports]
 
         for index, write_port in enumerate(self.write_ports):
-            if write_port is None:
-                raise ValueError("Found None in write ports")
-
             m.d.sync += [write_regs_data[index].eq(write_port.data), write_regs_addr[index].eq(write_port.addr)]
             write_xors[index] ^= write_regs_data[index]
             for i in range(len(self.write_ports) - 1):
@@ -227,7 +222,9 @@ class MultiportXORMemory(BaseMultiportMemory):
                 ]
 
         for index, write_port in enumerate(self.write_ports):
-            write_xor = write_xors[index]
+            write_xor = Signal(self.shape)
+            m.d.comb += [write_xor.eq(write_xors[index])]
+
             for i in range(len(self.write_ports) - 1):
                 mem_name = f"memory_{index}_{i}"
                 mem = m.submodules[mem_name]
