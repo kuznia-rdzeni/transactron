@@ -285,6 +285,16 @@ class MultiportXORMemory(BaseMultiportMemory):
 
 
 class MultiportILVTMemory(BaseMultiportMemory):
+    """Multiport memory based on Invalidation Live Value Table.
+
+    Multiple read and write ports can be requested. Memory is built of
+    number of write ports memory blocks with multiple read and multi-ported Invalidation Live Value Table.
+    ILVT is a XOR based memory that returns the number of the memory bank in which the current value is stored.
+    Width of data stored in ILVT is the binary logarithm of the number of write ports.
+    Writing two different values to the same memory address in one cycle has undefined behavior.
+
+    """
+
     def elaborate(self, platform):
         m = Module()
 
@@ -294,8 +304,16 @@ class MultiportILVTMemory(BaseMultiportMemory):
             shape=bits_for(len(self.write_ports) - 1), depth=self.depth, init=self.init, src_loc_at=self.src_loc + 1
         )
 
-        ilvt_write_ports = [ilvt.write_port(granularity=port.granularity) for port in self.write_ports]
+        ilvt_write_ports = [ilvt.write_port() for _ in self.write_ports]
         ilvt_read_ports = [ilvt.read_port() for _ in self.read_ports]
+
+        write_addr_bypass = [Signal(port.addr.shape()) for port in self.write_ports]
+        write_data_bypass = [Signal(self.shape) for _ in self.write_ports]
+        write_en_bypass = [Signal() for _ in self.write_ports]
+
+        m.d.sync += [write_addr_bypass[index].eq(port.addr) for index, port in enumerate(self.write_ports)]
+        m.d.sync += [write_data_bypass[index].eq(port.data) for index, port in enumerate(self.write_ports)]
+        m.d.sync += [write_en_bypass[index].eq(port.en) for index, port in enumerate(self.write_ports)]
 
         for index, write_port in enumerate(ilvt_write_ports):
             m.d.comb += [
@@ -309,7 +327,7 @@ class MultiportILVTMemory(BaseMultiportMemory):
             )
             mem_name = f"bank_{index}"
             m.submodules[mem_name] = mem
-            bank_write_port = mem.write_port(granularity=write_port.granularity)
+            bank_write_port = mem.write_port(granularity=self.write_ports[index].granularity)
             bank_read_ports = [mem.read_port() for _ in self.read_ports]
 
             m.d.comb += [
@@ -325,8 +343,26 @@ class MultiportILVTMemory(BaseMultiportMemory):
 
         for index, read_port in enumerate(self.read_ports):
             m.d.comb += [ilvt_read_ports[index].addr.eq(read_port.addr), ilvt_read_ports[index].en.eq(read_port.en)]
+
+            read_en_bypass = Signal()
+            read_addr_bypass = Signal(self.shape)
+
+            m.d.sync += [read_en_bypass.eq(read_port.en), read_addr_bypass.eq(read_port.addr)]
+
+            bank_data = Signal(self.shape)
+            bypass_data = Signal(self.shape)
+            bypass_en = Signal()
             with m.Switch(ilvt_read_ports[index].data):
                 for value in range(len(self.write_ports)):
                     with m.Case(value):
-                        m.d.comb += [read_port.data.eq(m.submodules[f"bank_{value}"].read_ports[index].data)]
+                        m.d.comb += [bank_data.eq(m.submodules[f"bank_{value}"].read_ports[index].data)]
+
+            for idx, write_port in enumerate(self.write_ports):
+                if write_port in read_port.transparent_for:
+                    with m.If((write_addr_bypass[idx] == read_addr_bypass) & write_en_bypass[idx]):
+                        m.d.comb += [bypass_en.eq(1), bypass_data.eq(write_data_bypass[idx])]
+
+            new_data = Mux(bypass_en, bypass_data, bank_data)
+            m.d.comb += [read_port.data.eq(Mux(read_en_bypass, new_data, read_port.data))]
+
         return m
