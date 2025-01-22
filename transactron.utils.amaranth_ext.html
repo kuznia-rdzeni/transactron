@@ -242,6 +242,116 @@ Otherwise, <code class="docutils literal notranslate"><span class="pre">n</span>
 </dd></dl>
 
 </section>
+<section id="module-transactron.utils.amaranth_ext.component_interface">
+<span id="transactron-utils-amaranth-ext-component-interface-module"></span><h2>transactron.utils.amaranth_ext.component_interface module<a class="headerlink" href="#module-transactron.utils.amaranth_ext.component_interface" title="Permalink to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="transactron.utils.amaranth_ext.component_interface.AbstractComponentInterface">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">transactron.utils.amaranth_ext.component_interface.</span></span><span class="sig-name descname"><span class="pre">AbstractComponentInterface</span></span><a class="headerlink" href="#transactron.utils.amaranth_ext.component_interface.AbstractComponentInterface" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">AbstractInterface</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">AbstractSignature</span></code>]</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.utils.amaranth_ext.component_interface.AbstractComponentInterface.flipped">
+<span class="sig-name descname"><span class="pre">flipped</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#transactron.utils.amaranth_ext.component_interface.AbstractComponentInterface" title="transactron.utils.amaranth_ext.component_interface.AbstractComponentInterface"><span class="pre">AbstractComponentInterface</span></a></span></span><a class="headerlink" href="#transactron.utils.amaranth_ext.component_interface.AbstractComponentInterface.flipped" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="transactron.utils.amaranth_ext.component_interface.AbstractComponentInterface.signature">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">signature</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">AbstractSignature</span></em><a class="headerlink" href="#transactron.utils.amaranth_ext.component_interface.AbstractComponentInterface.signature" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="transactron.utils.amaranth_ext.component_interface.CIn">
+<em class="property"><span class="pre">final</span><span class="w"> </span><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">transactron.utils.amaranth_ext.component_interface.</span></span><span class="sig-name descname"><span class="pre">CIn</span></span><a class="headerlink" href="#transactron.utils.amaranth_ext.component_interface.CIn" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">_ComponentSignal</span></code></p>
+<p><cite>_ComponentSignal</cite> with <cite>Flow.In</cite> direction.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.utils.amaranth_ext.component_interface.CIn.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shape</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/latest/reference.html#amaranth.hdl.ShapeLike" title="(in Amaranth language &amp; toolchain v0.6.0.dev72)"><span class="pre">ShapeLike</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.utils.amaranth_ext.component_interface.CIn.__init__" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="transactron.utils.amaranth_ext.component_interface.COut">
+<em class="property"><span class="pre">final</span><span class="w"> </span><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">transactron.utils.amaranth_ext.component_interface.</span></span><span class="sig-name descname"><span class="pre">COut</span></span><a class="headerlink" href="#transactron.utils.amaranth_ext.component_interface.COut" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">_ComponentSignal</span></code></p>
+<p><cite>_ComponentSignal</cite> with <cite>Flow.Out</cite> direction.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.utils.amaranth_ext.component_interface.COut.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shape</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/latest/reference.html#amaranth.hdl.ShapeLike" title="(in Amaranth language &amp; toolchain v0.6.0.dev72)"><span class="pre">ShapeLike</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.utils.amaranth_ext.component_interface.COut.__init__" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="transactron.utils.amaranth_ext.component_interface.ComponentInterface">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">transactron.utils.amaranth_ext.component_interface.</span></span><span class="sig-name descname"><span class="pre">ComponentInterface</span></span><a class="headerlink" href="#transactron.utils.amaranth_ext.component_interface.ComponentInterface" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#transactron.utils.amaranth_ext.component_interface.AbstractComponentInterface" title="transactron.utils.amaranth_ext.component_interface.AbstractComponentInterface"><code class="xref py py-class docutils literal notranslate"><span class="pre">AbstractComponentInterface</span></code></a></p>
+<p>Component Interface
+Syntactic sugar for using typed lib.wiring <cite>Signature`s in `Component</cite>.</p>
+<p>It allows to avoid defining desired Amaranth <cite>Signature</cite> and separetly <cite>AbstractInterface</cite> of <cite>Signals</cite> to get
+<cite>Component</cite> attribute-level typing of interface.</p>
+<p>Interface should be constructed in <cite>__init__</cite> of class that inherits <cite>ComponentInterface</cite>, by defining
+instance attributes.
+Only allowed attributes in <cite>ComponentInterface</cite> are of <cite>ComponentSignal</cite> (see <cite>CIn</cite> and <cite>COut</cite>)
+and <cite>ComponentInterface</cite> (nested interface) types.</p>
+<p>Resulting class can be used directly as typing hint for class-level interface attribute, that will be later
+constructed  by <cite>Component</cite>. Use <cite>signature</cite> property to get amaranth <cite>Signature</cite> in <cite>Component</cite> constructor.</p>
+<p class="rubric">Examples</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">ExampleInterface</span><span class="p">(</span><span class="n">ComponentInterface</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_width</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data_in</span> <span class="o">=</span> <span class="n">CIn</span><span class="p">(</span><span class="n">data_width</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data_out</span> <span class="o">=</span> <span class="n">COut</span><span class="p">(</span><span class="n">data_width</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">valid</span> <span class="o">=</span> <span class="n">CIn</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">SubInterface</span><span class="p">()</span><span class="o">.</span><span class="n">flipped</span><span class="p">()</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">Examp</span><span class="p">,</span><span class="n">le</span><span class="p">(</span><span class="n">Component</span><span class="p">):</span>
+    <span class="n">bus</span><span class="p">:</span> <span class="n">ExampleInterface</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">({</span><span class="n">bus</span><span class="p">:</span> <span class="n">In</span><span class="p">(</span><span class="n">ExampleInterface</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">signature</span><span class="p">)})</span>
+</pre></div>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.utils.amaranth_ext.component_interface.ComponentInterface.flipped">
+<span class="sig-name descname"><span class="pre">flipped</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#transactron.utils.amaranth_ext.component_interface.FlippedComponentInterface" title="transactron.utils.amaranth_ext.component_interface.FlippedComponentInterface"><span class="pre">FlippedComponentInterface</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Self" title="(in Python v3.13)"><span class="pre">Self</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#transactron.utils.amaranth_ext.component_interface.ComponentInterface.flipped" title="Permalink to this definition"></a></dt>
+<dd><p><cite>ComponentInterface</cite> with flipped <cite>Flow</cite> direction of members.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="transactron.utils.amaranth_ext.component_interface.ComponentInterface.signature">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">signature</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">AbstractSignature</span></em><a class="headerlink" href="#transactron.utils.amaranth_ext.component_interface.ComponentInterface.signature" title="Permalink to this definition"></a></dt>
+<dd><p>Amaranth lib.wiring <cite>Signature</cite> constructed from defined <cite>ComponentInterface</cite> attributes.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="transactron.utils.amaranth_ext.component_interface.FlippedComponentInterface">
+<em class="property"><span class="pre">final</span><span class="w"> </span><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">transactron.utils.amaranth_ext.component_interface.</span></span><span class="sig-name descname"><span class="pre">FlippedComponentInterface</span></span><a class="headerlink" href="#transactron.utils.amaranth_ext.component_interface.FlippedComponentInterface" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#transactron.utils.amaranth_ext.component_interface.AbstractComponentInterface" title="transactron.utils.amaranth_ext.component_interface.AbstractComponentInterface"><code class="xref py py-class docutils literal notranslate"><span class="pre">AbstractComponentInterface</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Generic" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Generic</span></code></a>[<code class="xref py py-obj docutils literal notranslate"><span class="pre">_T_ComponentInterface</span></code>]</p>
+<p>Represents <cite>ComponentInterface</cite> with flipped <cite>Flow</cite> directions of its members.
+Flip is applied only in resulting <cite>signature</cite> property.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.utils.amaranth_ext.component_interface.FlippedComponentInterface.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">base</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">_T_ComponentInterface</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.utils.amaranth_ext.component_interface.FlippedComponentInterface.__init__" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.utils.amaranth_ext.component_interface.FlippedComponentInterface.flipped">
+<span class="sig-name descname"><span class="pre">flipped</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">_T_ComponentInterface</span></span></span><a class="headerlink" href="#transactron.utils.amaranth_ext.component_interface.FlippedComponentInterface.flipped" title="Permalink to this definition"></a></dt>
+<dd><p><cite>ComponentInterface</cite> with flipped <cite>Flow</cite> direction of members.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="transactron.utils.amaranth_ext.component_interface.FlippedComponentInterface.signature">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">signature</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">AbstractSignature</span></em><a class="headerlink" href="#transactron.utils.amaranth_ext.component_interface.FlippedComponentInterface.signature" title="Permalink to this definition"></a></dt>
+<dd><p>Amaranth lib.wiring <cite>Signature</cite> constructed from defined <cite>ComponentInterface</cite> attributes.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
 <section id="module-transactron.utils.amaranth_ext.elaboratables">
 <span id="transactron-utils-amaranth-ext-elaboratables-module"></span><h2>transactron.utils.amaranth_ext.elaboratables module<a class="headerlink" href="#module-transactron.utils.amaranth_ext.elaboratables" title="Permalink to this heading"></a></h2>
 <dl class="py class">
@@ -607,7 +717,7 @@ v = [a, b, c, d, e, 0, 0, 0]</p>
 <p>Thus, the network has depth log_2(n).</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="transactron.utils.amaranth_ext.elaboratables.StableSelectingNetwork.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/latest/reference.html#amaranth.hdl.Shape" title="(in Amaranth language &amp; toolchain v0.6.0.dev72)"><span class="pre">amaranth.hdl._ast.Shape</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/latest/reference.html#amaranth.hdl.ShapeCastable" title="(in Amaranth language &amp; toolchain v0.6.0.dev72)"><span class="pre">amaranth.hdl._ast.ShapeCastable</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#range" title="(in Python v3.13)"><span class="pre">range</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.13)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/enum.html#enum.Enum" title="(in Python v3.13)"><span class="pre">enum.Enum</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.utils.amaranth_ext.elaboratables.StableSelectingNetwork.__init__" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/latest/reference.html#amaranth.hdl.Shape" title="(in Amaranth language &amp; toolchain v0.6.0.dev72)"><span class="pre">amaranth.hdl._ast.Shape</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#range" title="(in Python v3.13)"><span class="pre">range</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.13)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/enum.html#enum.Enum" title="(in Python v3.13)"><span class="pre">enum.Enum</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/latest/reference.html#amaranth.hdl.ShapeCastable" title="(in Amaranth language &amp; toolchain v0.6.0.dev72)"><span class="pre">amaranth.hdl._ast.ShapeCastable</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.utils.amaranth_ext.elaboratables.StableSelectingNetwork.__init__" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -617,7 +727,7 @@ v = [a, b, c, d, e, 0, 0, 0]</p>
 <span id="transactron-utils-amaranth-ext-functions-module"></span><h2>transactron.utils.amaranth_ext.functions module<a class="headerlink" href="#module-transactron.utils.amaranth_ext.functions" title="Permalink to this heading"></a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="transactron.utils.amaranth_ext.functions.const_of">
-<span class="sig-prename descclassname"><span class="pre">transactron.utils.amaranth_ext.functions.</span></span><span class="sig-name descname"><span class="pre">const_of</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/latest/reference.html#amaranth.hdl.Shape" title="(in Amaranth language &amp; toolchain v0.6.0.dev72)"><span class="pre">amaranth.hdl._ast.Shape</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/latest/reference.html#amaranth.hdl.ShapeCastable" title="(in Amaranth language &amp; toolchain v0.6.0.dev72)"><span class="pre">amaranth.hdl._ast.ShapeCastable</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#range" title="(in Python v3.13)"><span class="pre">range</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.13)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/enum.html#enum.Enum" title="(in Python v3.13)"><span class="pre">enum.Enum</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><span class="pre">Any</span></a></span></span><a class="headerlink" href="#transactron.utils.amaranth_ext.functions.const_of" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">transactron.utils.amaranth_ext.functions.</span></span><span class="sig-name descname"><span class="pre">const_of</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/latest/reference.html#amaranth.hdl.Shape" title="(in Amaranth language &amp; toolchain v0.6.0.dev72)"><span class="pre">amaranth.hdl._ast.Shape</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#range" title="(in Python v3.13)"><span class="pre">range</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.13)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/enum.html#enum.Enum" title="(in Python v3.13)"><span class="pre">enum.Enum</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/latest/reference.html#amaranth.hdl.ShapeCastable" title="(in Amaranth language &amp; toolchain v0.6.0.dev72)"><span class="pre">amaranth.hdl._ast.ShapeCastable</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><span class="pre">Any</span></a></span></span><a class="headerlink" href="#transactron.utils.amaranth_ext.functions.const_of" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
@@ -1020,7 +1130,7 @@ The entries of <cite>data</cite> must be of the same width.</p>
 
   <div role="contentinfo">
     <p>&#169; Copyright Kuźnia Rdzeni, 2025.
-      <span class="lastupdated">Last updated on 10:28 2025-01-22.
+      <span class="lastupdated">Last updated on 12:17 2025-01-22.
       </span></p>
   </div>
 
