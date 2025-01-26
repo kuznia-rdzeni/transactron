@@ -88,7 +88,7 @@ class BaseMultiportMemory(Elaboratable):
             How many stack frames deep the source location is taken from.
         """
 
-        self.shape = shape
+        self.shape = Shape.cast(shape)
         self.depth = depth
         self.init = init
         self.attrs = attrs

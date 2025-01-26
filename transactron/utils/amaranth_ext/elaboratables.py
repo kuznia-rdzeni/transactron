@@ -3,6 +3,8 @@ from contextlib import contextmanager
 from typing import Literal, Optional, overload
 from collections.abc import Iterable
 from amaranth import *
+from amaranth.lib.data import ArrayLayout
+from amaranth_types import ShapeLike
 from transactron.utils._typing import HasElaborate, ModuleLike, ValueLike
 
 __all__ = [
@@ -13,6 +15,7 @@ __all__ = [
     "RoundRobin",
     "MultiPriorityEncoder",
     "RingMultiPriorityEncoder",
+    "StableSelectingNetwork",
 ]
 
 
@@ -270,13 +273,13 @@ class MultiPriorityEncoder(Elaboratable):
         self.outputs_count = outputs_count
 
         self.input = Signal(self.input_width)
-        self.outputs = [Signal(range(self.input_width), name=f"output_{i}") for i in range(self.outputs_count)]
-        self.valids = [Signal(name=f"valid_{i}") for i in range(self.outputs_count)]
+        self.outputs = Signal(ArrayLayout(range(self.input_width), self.outputs_count))
+        self.valids = Signal(self.outputs_count)
 
     @staticmethod
     def create(
         m: Module, input_width: int, input: ValueLike, outputs_count: int = 1, name: Optional[str] = None
-    ) -> list[tuple[Signal, Signal]]:
+    ) -> list[tuple[Value, Value]]:
         """Syntax sugar for creating MultiPriorityEncoder
 
         This static method allows to use MultiPriorityEncoder in a more functional
@@ -325,12 +328,10 @@ class MultiPriorityEncoder(Elaboratable):
             except AttributeError:
                 setattr(m.submodules, name, prio_encoder)
         m.d.comb += prio_encoder.input.eq(input)
-        return list(zip(prio_encoder.outputs, prio_encoder.valids))
+        return [(prio_encoder.outputs[i], prio_encoder.valids[i]) for i in range(outputs_count)]
 
     @staticmethod
-    def create_simple(
-        m: Module, input_width: int, input: ValueLike, name: Optional[str] = None
-    ) -> tuple[Signal, Signal]:
+    def create_simple(m: Module, input_width: int, input: ValueLike, name: Optional[str] = None) -> tuple[Value, Value]:
         """Syntax sugar for creating MultiPriorityEncoder
 
         This is the same as `create` function, but with `outputs_count` hardcoded to 1.
@@ -420,8 +421,8 @@ class RingMultiPriorityEncoder(Elaboratable):
         self.input = Signal(self.input_width)
         self.first = Signal(range(self.input_width))
         self.last = Signal(range(self.input_width))
-        self.outputs = [Signal(range(self.input_width), name=f"output_{i}") for i in range(self.outputs_count)]
-        self.valids = [Signal(name=f"valid_{i}") for i in range(self.outputs_count)]
+        self.outputs = Signal(ArrayLayout(range(self.input_width), self.outputs_count))
+        self.valids = Signal(self.outputs_count)
 
     @staticmethod
     def create(
@@ -432,7 +433,7 @@ class RingMultiPriorityEncoder(Elaboratable):
         last: ValueLike,
         outputs_count: int = 1,
         name: Optional[str] = None,
-    ) -> list[tuple[Signal, Signal]]:
+    ) -> list[tuple[Value, Value]]:
         """Syntax sugar for creating RingMultiPriorityEncoder
 
         This static method allows to use RingMultiPriorityEncoder in a more functional
@@ -491,12 +492,12 @@ class RingMultiPriorityEncoder(Elaboratable):
         m.d.comb += prio_encoder.input.eq(input)
         m.d.comb += prio_encoder.first.eq(first)
         m.d.comb += prio_encoder.last.eq(last)
-        return list(zip(prio_encoder.outputs, prio_encoder.valids))
+        return [(prio_encoder.outputs[i], prio_encoder.valids[i]) for i in range(outputs_count)]
 
     @staticmethod
     def create_simple(
         m: Module, input_width: int, input: ValueLike, first: ValueLike, last: ValueLike, name: Optional[str] = None
-    ) -> tuple[Signal, Signal]:
+    ) -> tuple[Value, Value]:
         """Syntax sugar for creating RingMultiPriorityEncoder
 
         This is the same as `create` function, but with `outputs_count` hardcoded to 1.
@@ -529,4 +530,83 @@ class RingMultiPriorityEncoder(Elaboratable):
 
             m.d.comb += self.outputs[k].eq(corrected_out)
             m.d.comb += self.valids[k].eq(multi_enc.valids[k])
+        return m
+
+
+class StableSelectingNetwork(Elaboratable):
+    """A network that groups inputs with a valid bit set.
+
+    The circuit takes `n` inputs with a valid signal each and
+    on the output returns a grouped and consecutive sequence of the provided
+    input signals. The order of valid inputs is preserved.
+
+    For example for input (0 is an invalid input):
+    0, a, 0, d, 0, 0, e
+
+    The circuit will return:
+    a, d, e, 0, 0, 0, 0
+
+    The circuit uses a divide and conquer algorithm.
+    The recursive call takes two bit vectors and each of them
+    is already properly sorted, for example:
+    v1 = [a, b, 0, 0]; v2 = [c, d, e, 0]
+
+    Now by shifting left v2 and merging it with v1, we get the result:
+    v = [a, b, c, d, e, 0, 0, 0]
+
+    Thus, the network has depth log_2(n).
+
+    """
+
+    def __init__(self, n: int, shape: ShapeLike):
+        self.n = n
+        self.shape = shape
+
+        self.inputs = Signal(ArrayLayout(shape, n))
+        self.valids = Signal(n)
+
+        self.outputs = Signal(ArrayLayout(shape, n))
+        self.output_cnt = Signal(range(n + 1))
+
+    def elaborate(self, platform):
+        m = Module()
+
+        current_level = []
+        for i in range(self.n):
+            current_level.append((Array([self.inputs[i]]), self.valids[i]))
+
+        # Create the network using the bottom-up approach.
+        while len(current_level) >= 2:
+            next_level = []
+            while len(current_level) >= 2:
+                a, cnt_a = current_level.pop(0)
+                b, cnt_b = current_level.pop(0)
+
+                total_cnt = Signal(max(len(cnt_a), len(cnt_b)) + 1)
+                m.d.comb += total_cnt.eq(cnt_a + cnt_b)
+
+                total_len = len(a) + len(b)
+                merged = Array(Signal(self.shape) for _ in range(total_len))
+
+                for i in range(len(a)):
+                    m.d.comb += merged[i].eq(Mux(cnt_a <= i, b[i - cnt_a], a[i]))
+                for i in range(len(b)):
+                    m.d.comb += merged[len(a) + i].eq(Mux(len(a) + i - cnt_a >= len(b), 0, b[len(a) + i - cnt_a]))
+
+                next_level.append((merged, total_cnt))
+
+            # If we had an odd number of elements on the current level,
+            # move the item left to the next level.
+            if len(current_level) == 1:
+                next_level.append(current_level.pop(0))
+
+            current_level = next_level
+
+        last_level, total_cnt = current_level.pop(0)
+
+        for i in range(self.n):
+            m.d.comb += self.outputs[i].eq(last_level[i])
+
+        m.d.comb += self.output_cnt.eq(total_cnt)
+
         return m

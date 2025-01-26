@@ -10,6 +10,7 @@ from transactron.utils import (
     popcount,
     count_leading_zeros,
     count_trailing_zeros,
+    cyclic_mask,
 )
 from amaranth.utils import ceil_log2
 
@@ -187,6 +188,59 @@ class TestCountTrailingZeros(TestCaseWithSimulator):
         self.check(sim, self.size - 1)
         await sim.delay(1e-6)
         self.check(sim, 0)
+
+    def test_count_trailing_zeros(self, size):
+        with self.run_simulation(self.m) as sim:
+            sim.add_testbench(self.process)
+
+
+class GenCyclicMaskTestCircuit(Elaboratable):
+    def __init__(self, xlen: int):
+        self.start = Signal(range(xlen))
+        self.end = Signal(range(xlen))
+        self.sig_out = Signal(xlen)
+        self.xlen = xlen
+
+    def elaborate(self, platform):
+        m = Module()
+
+        m.d.comb += self.sig_out.eq(cyclic_mask(self.xlen, self.start, self.end))
+
+        return m
+
+
+@pytest.mark.parametrize("size", [1, 2, 3, 5, 8])
+class TestGenCyclicMask(TestCaseWithSimulator):
+    @pytest.fixture(scope="function", autouse=True)
+    def setup_fixture(self, size):
+        self.size = size
+        random.seed(14)
+        self.test_number = 40
+        self.m = GenCyclicMaskTestCircuit(self.size)
+
+    async def check(self, sim: TestbenchContext, start, end):
+        sim.set(self.m.start, start)
+        sim.set(self.m.end, end)
+        await sim.delay(1e-6)
+        out = sim.get(self.m.sig_out)
+
+        expected = 0
+        for i in range(min(start, end), max(start, end) + 1):
+            expected |= 1 << i
+
+        if end < start:
+            expected ^= (1 << self.size) - 1
+            expected |= 1 << start
+            expected |= 1 << end
+
+        assert out == expected
+
+    async def process(self, sim: TestbenchContext):
+        for _ in range(self.test_number):
+            start = random.randrange(self.size)
+            end = random.randrange(self.size)
+            await self.check(sim, start, end)
+            await sim.delay(1e-6)
 
     def test_count_trailing_zeros(self, size):
         with self.run_simulation(self.m) as sim:

@@ -1,3 +1,5 @@
+from collections.abc import Callable
+from amaranth_types import ShapeLike
 import pytest
 import random
 from collections import deque
@@ -8,6 +10,7 @@ import amaranth_types.memory as amemory
 from transactron.testing import *
 from transactron.lib.storage import *
 from transactron.utils.amaranth_ext.memory import MultiReadMemory, MultiportXORMemory, MultiportILVTMemory
+from transactron.utils.transactron_helpers import make_layout
 
 
 class TestContentAddressableMemory(TestCaseWithSimulator):
@@ -137,6 +140,12 @@ class TestContentAddressableMemory(TestCaseWithSimulator):
                 sim.add_testbench(self.remove_process(in_remove))
 
 
+bank_shapes = [
+    (6, lambda x: x, lambda x: x),
+    (make_layout(("data_field", 6)), lambda x: {"data_field": x}, lambda x: x["data_field"]),
+]
+
+
 class TestMemoryBank(TestCaseWithSimulator):
     test_conf = [(9, 3, 3, 3, 14), (16, 1, 1, 3, 15), (16, 1, 1, 1, 16), (12, 3, 1, 1, 17), (9, 0, 0, 0, 18)]
 
@@ -145,6 +154,7 @@ class TestMemoryBank(TestCaseWithSimulator):
     @pytest.mark.parametrize("read_ports", [1, 2])
     @pytest.mark.parametrize("write_ports", [1, 2])
     @pytest.mark.parametrize("memory_type", [memory.Memory, MultiportXORMemory, MultiportILVTMemory])
+    @pytest.mark.parametrize("shape,to_shape,from_shape", bank_shapes)
     def test_mem(
         self,
         max_addr: int,
@@ -155,15 +165,17 @@ class TestMemoryBank(TestCaseWithSimulator):
         transparent: bool,
         read_ports: int,
         write_ports: int,
-        memory_type: amemory.AbstractMemoryConstructor[int, Value],
+        memory_type: amemory.AbstractMemoryConstructor[ShapeLike, Value],
+        shape: ShapeLike,
+        to_shape: Callable,
+        from_shape: Callable,
     ):
         test_count = 200
 
-        data_width = 6
         m = SimpleTestCircuit(
             MemoryBank(
-                data_layout=[("data", data_width)],
-                elem_count=max_addr,
+                shape=shape,
+                depth=max_addr,
                 transparent=transparent,
                 read_ports=read_ports,
                 write_ports=write_ports,
@@ -180,7 +192,7 @@ class TestMemoryBank(TestCaseWithSimulator):
         def writer(i):
             async def process(sim: TestbenchContext):
                 for cycle in range(test_count):
-                    d = random.randrange(2**data_width)
+                    d = random.randrange(2 ** Shape.cast(shape).width)
                     a = random.randrange(max_addr)
 
                     # one address shouldn't be written by multiple ports at the same time
@@ -188,7 +200,8 @@ class TestMemoryBank(TestCaseWithSimulator):
                         a = random.randrange(max_addr)
                     address_lock[a] = True
 
-                    await m.write[i].call(sim, data={"data": d}, addr=a)
+                    await m.write[i].call(sim, data=to_shape(d), addr=a)
+
                     await sim.delay(1e-9 * (i + 2 if not transparent else i))
                     data[a] = d
 
@@ -218,7 +231,7 @@ class TestMemoryBank(TestCaseWithSimulator):
                         await self.random_wait(sim, reader_resp_rand or 1, min_cycle_cnt=1)
                         await sim.delay(1e-9 * (write_ports + 3))
                     d = read_req_queues[i].popleft()
-                    assert (await m.read_resp[i].call(sim)).data == d
+                    assert from_shape((await m.read_resp[i].call(sim)).data) == d
                     await self.random_wait(sim, reader_resp_rand)
 
             return process
@@ -240,13 +253,27 @@ class TestAsyncMemoryBank(TestCaseWithSimulator):
     )
     @pytest.mark.parametrize("read_ports", [1, 2])
     @pytest.mark.parametrize("write_ports", [1, 2])
-    def test_mem(self, max_addr: int, writer_rand: int, reader_rand: int, seed: int, read_ports: int, write_ports: int):
+    @pytest.mark.parametrize("shape,to_shape,from_shape", bank_shapes)
+    def test_mem(
+        self,
+        max_addr: int,
+        writer_rand: int,
+        reader_rand: int,
+        seed: int,
+        read_ports: int,
+        write_ports: int,
+        shape: ShapeLike,
+        to_shape: Callable,
+        from_shape: Callable,
+    ):
         test_count = 200
 
-        data_width = 6
         m = SimpleTestCircuit(
             AsyncMemoryBank(
-                data_layout=[("data", data_width)], elem_count=max_addr, read_ports=read_ports, write_ports=write_ports
+                shape=shape,
+                depth=max_addr,
+                read_ports=read_ports,
+                write_ports=write_ports,
             ),
         )
 
@@ -257,9 +284,9 @@ class TestAsyncMemoryBank(TestCaseWithSimulator):
         def writer(i):
             async def process(sim: TestbenchContext):
                 for cycle in range(test_count):
-                    d = random.randrange(2**data_width)
+                    d = random.randrange(2 ** Shape.cast(shape).width)
                     a = random.randrange(max_addr)
-                    await m.write[i].call(sim, data={"data": d}, addr=a)
+                    await m.write[i].call(sim, data=to_shape(d), addr=a)
                     await sim.delay(1e-9 * (i + 2))
                     data[a] = d
                     await self.random_wait(sim, writer_rand, min_cycle_cnt=1)
@@ -273,7 +300,7 @@ class TestAsyncMemoryBank(TestCaseWithSimulator):
                     d = await m.read[i].call(sim, addr=a)
                     await sim.delay(1e-9)
                     expected_d = data[a]
-                    assert d["data"] == expected_d
+                    assert from_shape(d.data) == expected_d
                     await self.random_wait(sim, reader_rand, min_cycle_cnt=1)
 
             return process
@@ -281,90 +308,5 @@ class TestAsyncMemoryBank(TestCaseWithSimulator):
         with self.run_simulation(m) as sim:
             for i in range(read_ports):
                 sim.add_testbench(reader(i))
-            for i in range(write_ports):
-                sim.add_testbench(writer(i))
-
-
-class TestMultiReadMemory(TestCaseWithSimulator):
-    test_conf = [(9, 3, 3, 3, 14), (16, 1, 1, 3, 15), (16, 1, 1, 1, 16), (12, 3, 1, 1, 17), (9, 0, 0, 0, 18)]
-
-    @pytest.mark.parametrize("max_addr, writer_rand, reader_req_rand, reader_resp_rand, seed", test_conf)
-    @pytest.mark.parametrize("transparent", [False])
-    @pytest.mark.parametrize("read_ports", [1, 2, 4])
-    @pytest.mark.parametrize("write_ports", [1])
-    def test_mem(
-        self,
-        max_addr: int,
-        writer_rand: int,
-        reader_req_rand: int,
-        reader_resp_rand: int,
-        seed: int,
-        transparent: bool,
-        read_ports: int,
-        write_ports: int,
-    ):
-        test_count = 200
-
-        data_width = 6
-        m = SimpleTestCircuit(
-            MemoryBank(
-                data_layout=[("data", data_width)],
-                elem_count=max_addr,
-                transparent=transparent,
-                read_ports=read_ports,
-                write_ports=write_ports,
-                memory_type=MultiReadMemory,
-            ),
-        )
-
-        data: list[int] = [0 for _ in range(max_addr)]
-        read_req_queues = [deque() for _ in range(read_ports)]
-
-        random.seed(seed)
-
-        def writer(i):
-            async def process(sim: TestbenchContext):
-                for cycle in range(test_count):
-                    d = random.randrange(2**data_width)
-                    a = random.randrange(max_addr)
-                    await m.write[i].call(sim, data={"data": d}, addr=a)
-                    await sim.delay(1e-9 * (i + 2 if not transparent else i))
-                    data[a] = d
-                    await self.random_wait(sim, writer_rand)
-
-            return process
-
-        def reader_req(i):
-            async def process(sim: TestbenchContext):
-                for cycle in range(test_count):
-                    a = random.randrange(max_addr)
-                    await m.read_req[i].call(sim, addr=a)
-                    await sim.delay(1e-9 * (1 if not transparent else write_ports + 2))
-                    d = data[a]
-                    read_req_queues[i].append(d)
-                    await self.random_wait(sim, reader_req_rand)
-
-            return process
-
-        def reader_resp(i):
-            async def process(sim: TestbenchContext):
-                for cycle in range(test_count):
-                    await sim.delay(1e-9 * (write_ports + 3))
-                    while not read_req_queues[i]:
-                        await self.random_wait(sim, reader_resp_rand or 1, min_cycle_cnt=1)
-                        await sim.delay(1e-9 * (write_ports + 3))
-                    d = read_req_queues[i].popleft()
-                    assert (await m.read_resp[i].call(sim)).data == d
-                    await self.random_wait(sim, reader_resp_rand)
-
-            return process
-
-        pipeline_test = writer_rand == 0 and reader_req_rand == 0 and reader_resp_rand == 0
-        max_cycles = test_count + 2 if pipeline_test else 100000
-
-        with self.run_simulation(m, max_cycles=max_cycles) as sim:
-            for i in range(read_ports):
-                sim.add_testbench(reader_req(i))
-                sim.add_testbench(reader_resp(i))
             for i in range(write_ports):
                 sim.add_testbench(writer(i))

@@ -1,7 +1,7 @@
 import pytest
 import random
 
-from transactron.lib import StableSelectingNetwork
+from transactron.utils import StableSelectingNetwork
 from transactron.testing import TestCaseWithSimulator, TestbenchContext
 
 
@@ -9,7 +9,7 @@ class TestStableSelectingNetwork(TestCaseWithSimulator):
 
     @pytest.mark.parametrize("n", [2, 3, 7, 8])
     def test(self, n: int):
-        m = StableSelectingNetwork(n, [("data", 8)])
+        m = StableSelectingNetwork(n, 8)
 
         random.seed(42)
 
@@ -22,13 +22,13 @@ class TestStableSelectingNetwork(TestCaseWithSimulator):
                 expected_output_prefix = []
                 for i in range(n):
                     sim.set(m.valids[i], valids[i])
-                    sim.set(m.inputs[i].data, inputs[i])
+                    sim.set(m.inputs[i], inputs[i])
 
                     if valids[i]:
                         expected_output_prefix.append(inputs[i])
 
                 for i in range(total):
-                    out = sim.get(m.outputs[i].data)
+                    out = sim.get(m.outputs[i])
                     assert out == expected_output_prefix[i]
 
                 assert sim.get(m.output_cnt) == total

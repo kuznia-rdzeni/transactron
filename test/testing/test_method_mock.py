@@ -2,6 +2,7 @@ import random
 from amaranth import *
 from amaranth.sim import *
 from amaranth.lib.data import StructLayout
+import pytest
 
 from transactron import *
 from transactron.testing import TestCaseWithSimulator, TestbenchContext
@@ -28,6 +29,22 @@ class SimpleMethodMockTestCircuit(Elaboratable):
         return m
 
 
+class DerivedMethodMockTestCircuit(SimpleMethodMockTestCircuit):
+    pass
+
+
+class MroTestBase:
+    method: int
+    wrapper: int
+
+
+class MroMethodMockTestCircuit(SimpleMethodMockTestCircuit, MroTestBase):
+    pass
+
+
+@pytest.mark.parametrize(
+    "test_circuit", [SimpleMethodMockTestCircuit, DerivedMethodMockTestCircuit, MroMethodMockTestCircuit]
+)
 class TestMethodMock(TestCaseWithSimulator):
     async def process(self, sim: TestbenchContext):
         for _ in range(20):
@@ -39,10 +56,10 @@ class TestMethodMock(TestCaseWithSimulator):
     def method_mock(self, input):
         return {"output": input + 1}
 
-    def test_method_mock_simple(self):
+    def test_method_mock_simple(self, test_circuit):
         random.seed(42)
         self.width = 4
-        self.dut = SimpleTestCircuit(SimpleMethodMockTestCircuit(self.width))
+        self.dut = SimpleTestCircuit(test_circuit(self.width))
 
         with self.run_simulation(self.dut) as sim:
             sim.add_testbench(self.process)

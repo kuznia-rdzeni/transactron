@@ -1,6 +1,7 @@
 from amaranth import *
 from amaranth.utils import *
 import amaranth.lib.memory as memory
+from amaranth_types import ShapeLike
 import amaranth_types.memory as amemory
 
 from transactron.utils.transactron_helpers import from_method_layout, make_layout
@@ -35,25 +36,26 @@ class MemoryBank(Elaboratable):
     def __init__(
         self,
         *,
-        data_layout: LayoutList,
-        elem_count: int,
+        shape: ShapeLike,
+        depth: int,
         granularity: Optional[int] = None,
         transparent: bool = False,
         read_ports: int = 1,
         write_ports: int = 1,
-        memory_type: amemory.AbstractMemoryConstructor[int, Value] = memory.Memory,
+        memory_type: amemory.AbstractMemoryConstructor[ShapeLike, Value] = memory.Memory,
         src_loc: int | SrcLoc = 0,
     ):
         """
         Parameters
         ----------
-        data_layout: method layout
+        shape: ShapeLike
             The format of structures stored in the Memory.
-        elem_count: int
+        depth: int
             Number of elements stored in Memory.
         granularity: Optional[int]
-            Granularity of write, forwarded to Amaranth. If `None` the whole structure is always saved at once.
-            If not, the width of `data_layout` is split into `granularity` parts, which can be saved independently.
+            Granularity of write. If `None` the whole structure is always saved at once.
+            If not, shape is split into `granularity` parts, which can be saved independently (according to
+            `amaranth.lib.memory` granularity logic).
         transparent: bool
             Read port transparency, false by default. When a read port is transparent, if a given memory address
             is read and written in the same clock cycle, the read returns the written value instead of the value
@@ -67,37 +69,43 @@ class MemoryBank(Elaboratable):
             Alternatively, the source location to use instead of the default.
         """
         self.src_loc = get_src_loc(src_loc)
-        self.data_layout = make_layout(*data_layout)
-        self.elem_count = elem_count
+        self.shape = shape
+        self.depth = depth
         self.granularity = granularity
-        self.width = from_method_layout(self.data_layout).size
-        self.addr_width = bits_for(self.elem_count - 1)
+        self.addr_width = bits_for(self.depth - 1)
         self.transparent = transparent
         self.reads_ports = read_ports
         self.writes_ports = write_ports
         self.memory_type = memory_type
 
         self.read_reqs_layout: LayoutList = [("addr", self.addr_width)]
-        write_layout = [("addr", self.addr_width), ("data", self.data_layout)]
+        self.read_resps_layout = make_layout(("data", self.shape))
+        write_layout = [("addr", self.addr_width), ("data", self.shape)]
         if self.granularity is not None:
-            write_layout.append(("mask", self.width // self.granularity))
+            # use Amaranth lib.memory granularity rule checks and width
+            amaranth_write_port_sig = memory.WritePort.Signature(
+                addr_width=0,
+                shape=self.shape,  # type: ignore
+                granularity=granularity,
+            )
+            write_layout.append(("mask", amaranth_write_port_sig.members["en"].shape))
         self.writes_layout = make_layout(*write_layout)
 
         self.read_req = Methods(read_ports, i=self.read_reqs_layout, src_loc=self.src_loc)
-        self.read_resp = Methods(read_ports, o=self.data_layout, src_loc=self.src_loc)
+        self.read_resp = Methods(read_ports, o=self.read_resps_layout, src_loc=self.src_loc)
         self.write = Methods(write_ports, i=self.writes_layout, src_loc=self.src_loc)
 
     def elaborate(self, platform) -> TModule:
         m = TModule()
 
-        m.submodules.mem = self.mem = mem = self.memory_type(shape=self.width, depth=self.elem_count, init=[])
-        write_port = [mem.write_port() for _ in range(self.writes_ports)]
+        m.submodules.mem = self.mem = mem = self.memory_type(shape=self.shape, depth=self.depth, init=[])
+        write_port = [mem.write_port(granularity=self.granularity) for _ in range(self.writes_ports)]
         read_port = [
             mem.read_port(transparent_for=write_port if self.transparent else []) for _ in range(self.reads_ports)
         ]
         read_output_valid = [Signal() for _ in range(self.reads_ports)]
         overflow_valid = [Signal() for _ in range(self.reads_ports)]
-        overflow_data = [Signal(self.width) for _ in range(self.reads_ports)]
+        overflow_data = [Signal(self.shape) for _ in range(self.reads_ports)]
 
         # The read request method can be called at most twice when not reading the response.
         # The first result is stored in the overflow buffer, the second - in the read value buffer of the memory.
@@ -114,7 +122,13 @@ class MemoryBank(Elaboratable):
                 m.d.sync += overflow_valid[i].eq(0)
             with m.Else():
                 m.d.sync += read_output_valid[i].eq(0)
-            return Mux(overflow_valid[i], overflow_data[i], read_port[i].data)
+
+            ret = Signal(self.shape)
+            with m.If(overflow_valid[i]):
+                m.d.av_comb += ret.eq(overflow_data[i])
+            with m.Else():
+                m.d.av_comb += ret.eq(read_port[i].data)
+            return {"data": ret}
 
         for i in range(self.reads_ports):
             m.d.comb += read_port[i].en.eq(0)  # because the init value is 1
@@ -123,12 +137,12 @@ class MemoryBank(Elaboratable):
         def _(i: int, addr):
             m.d.sync += read_output_valid[i].eq(1)
             m.d.comb += read_port[i].en.eq(1)
-            m.d.comb += read_port[i].addr.eq(addr)
+            m.d.av_comb += read_port[i].addr.eq(addr)
 
         @def_methods(m, self.write)
         def _(i: int, arg):
-            m.d.comb += write_port[i].addr.eq(arg.addr)
-            m.d.comb += write_port[i].data.eq(arg.data)
+            m.d.av_comb += write_port[i].addr.eq(arg.addr)
+            m.d.av_comb += write_port[i].data.eq(arg.data)
             if self.granularity is None:
                 m.d.comb += write_port[i].en.eq(1)
             else:
@@ -254,24 +268,25 @@ class AsyncMemoryBank(Elaboratable):
     def __init__(
         self,
         *,
-        data_layout: LayoutList,
-        elem_count: int,
+        shape: ShapeLike,
+        depth: int,
         granularity: Optional[int] = None,
         read_ports: int = 1,
         write_ports: int = 1,
-        memory_type: amemory.AbstractMemoryConstructor[int, Value] = memory.Memory,
+        memory_type: amemory.AbstractMemoryConstructor[ShapeLike, Value] = memory.Memory,
         src_loc: int | SrcLoc = 0,
     ):
         """
         Parameters
         ----------
-        data_layout: method layout
+        shape: ShapeLike
             The format of structures stored in the Memory.
-        elem_count: int
+        depth: int
             Number of elements stored in Memory.
         granularity: Optional[int]
-            Granularity of write, forwarded to Amaranth. If `None` the whole structure is always saved at once.
-            If not, the width of `data_layout` is split into `granularity` parts, which can be saved independently.
+            Granularity of write. If `None` the whole structure is always saved at once.
+            If not, shape is split into `granularity` parts, which can be saved independently (according to
+            `amaranth.lib.memory` granularity logic).
         read_ports: int
             Number of read ports.
         write_ports: int
@@ -281,36 +296,42 @@ class AsyncMemoryBank(Elaboratable):
             Alternatively, the source location to use instead of the default.
         """
         self.src_loc = get_src_loc(src_loc)
-        self.data_layout = make_layout(*data_layout)
-        self.elem_count = elem_count
+        self.shape = shape
+        self.depth = depth
         self.granularity = granularity
-        self.width = from_method_layout(self.data_layout).size
-        self.addr_width = bits_for(self.elem_count - 1)
+        self.addr_width = bits_for(self.depth - 1)
         self.reads_ports = read_ports
         self.writes_ports = write_ports
         self.memory_type = memory_type
 
         self.read_reqs_layout: LayoutList = [("addr", self.addr_width)]
-        write_layout = [("addr", self.addr_width), ("data", self.data_layout)]
+        self.read_resps_layout: LayoutList = [("data", self.shape)]
+        write_layout = [("addr", self.addr_width), ("data", self.shape)]
         if self.granularity is not None:
-            write_layout.append(("mask", self.width // self.granularity))
+            # use Amaranth lib.memory granularity rule checks and width
+            amaranth_write_port_sig = memory.WritePort.Signature(
+                addr_width=0,
+                shape=shape,  # type: ignore
+                granularity=granularity,
+            )
+            write_layout.append(("mask", amaranth_write_port_sig.members["en"].shape))
         self.writes_layout = make_layout(*write_layout)
 
-        self.read = Methods(read_ports, i=self.read_reqs_layout, o=self.data_layout, src_loc=self.src_loc)
+        self.read = Methods(read_ports, i=self.read_reqs_layout, o=self.read_resps_layout, src_loc=self.src_loc)
         self.write = Methods(write_ports, i=self.writes_layout, src_loc=self.src_loc)
 
     def elaborate(self, platform) -> TModule:
         m = TModule()
 
-        mem = self.memory_type(shape=self.width, depth=self.elem_count, init=[])
+        mem = self.memory_type(shape=self.shape, depth=self.depth, init=[])
         m.submodules.mem = self.mem = mem
-        write_port = [mem.write_port() for _ in range(self.writes_ports)]
+        write_port = [mem.write_port(granularity=self.granularity) for _ in range(self.writes_ports)]
         read_port = [mem.read_port(domain="comb") for _ in range(self.reads_ports)]
 
         @def_methods(m, self.read)
         def _(i: int, addr):
             m.d.comb += read_port[i].addr.eq(addr)
-            return read_port[i].data
+            return {"data": read_port[i].data}
 
         @def_methods(m, self.write)
         def _(i: int, arg):
