@@ -21,7 +21,7 @@ class ReadPort:
 
     def __init__(
         self,
-        memory,
+        memory: "BaseMultiportMemory",
         width: ShapeLike,
         depth: int,
         init: Iterable[ValueLike] = (),
@@ -34,7 +34,7 @@ class ReadPort:
         self.init = init
         self.transparent_for = transparent_for
         self.addr_width = bits_for(self.depth - 1)
-        self.en = Signal(1)
+        self.en = Signal()
         self.addr = Signal(self.addr_width)
         self.data = Signal(width)
         self._memory = memory
@@ -45,7 +45,7 @@ class WritePort:
 
     def __init__(
         self,
-        memory,
+        memory: "BaseMultiportMemory",
         width: ShapeLike,
         depth: int,
         init: Iterable[ValueLike] = (),
