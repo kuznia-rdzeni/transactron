@@ -22,21 +22,14 @@ class ReadPort:
     def __init__(
         self,
         memory: "BaseMultiportMemory",
-        width: ShapeLike,
-        depth: int,
-        init: Iterable[ValueLike] = (),
         transparent_for: Iterable[Any] = (),
         src_loc=0,
     ):
         self.src_loc = get_src_loc(src_loc)
-        self.depth = depth
-        self.width = width
-        self.init = init
         self.transparent_for = transparent_for
-        self.addr_width = bits_for(self.depth - 1)
         self.en = Signal()
-        self.addr = Signal(self.addr_width)
-        self.data = Signal(width)
+        self.addr = Signal(range(memory.depth))
+        self.data = Signal(memory.shape)
         self._memory = memory
         memory.read_ports.append(self)
 
@@ -46,20 +39,13 @@ class WritePort:
     def __init__(
         self,
         memory: "BaseMultiportMemory",
-        width: ShapeLike,
-        depth: int,
-        init: Iterable[ValueLike] = (),
         granularity: Optional[int] = None,
         src_loc=0,
     ):
         self.src_loc = get_src_loc(src_loc)
-        self.depth = depth
-        self.width = width
-        self.init = init
-        self.addr_width = bits_for(self.depth - 1)
         self.en = Signal(1)
-        self.addr = Signal(self.addr_width)
-        self.data = Signal(width)
+        self.addr = Signal(range(memory.depth))
+        self.data = Signal(memory.shape)
         self.granularity = granularity
         self._memory = memory
         memory.write_ports.append(self)
@@ -105,9 +91,6 @@ class BaseMultiportMemory(Elaboratable):
             raise ValueError("Invalid port domain: Only synchronous memory ports supported.")
         return ReadPort(
             memory=self,
-            width=self.shape,
-            depth=self.depth,
-            init=self.init,
             transparent_for=transparent_for,
             src_loc=1 + src_loc_at,
         )
@@ -119,9 +102,6 @@ class BaseMultiportMemory(Elaboratable):
             raise ValueError("Invalid port domain: Only synchronous memory ports supported.")
         return WritePort(
             memory=self,
-            width=self.shape,
-            depth=self.depth,
-            init=self.init,
             granularity=granularity,
             src_loc=1 + src_loc_at,
         )
@@ -150,7 +130,7 @@ class MultiReadMemory(BaseMultiportMemory):
         for port in self.read_ports:
             # for each read port a new single port memory block is generated
             mem = memory.Memory(
-                shape=port.width, depth=self.depth, init=self.init, attrs=self.attrs, src_loc_at=self.src_loc
+                shape=self.shape, depth=self.depth, init=self.init, attrs=self.attrs, src_loc_at=self.src_loc
             )
             m.submodules += mem
             physical_write_port = mem.write_port(granularity=write_port.granularity) if write_port else None
@@ -190,12 +170,10 @@ class MultiportXORMemory(BaseMultiportMemory):
 
         self._frozen = True
 
-        addr_width = bits_for(self.depth - 1)
-
         write_xors = [Value.cast(0) for _ in self.write_ports]
         read_xors = [Value.cast(0) for _ in self.read_ports]
 
-        write_regs_addr = [Signal(addr_width) for _ in self.write_ports]
+        write_regs_addr = [Signal(range(self.depth)) for _ in self.write_ports]
         write_regs_data = [Signal(self.shape) for _ in self.write_ports]
         read_en_bypass = [Signal() for _ in self.read_ports]
 
@@ -244,7 +222,7 @@ class MultiportXORMemory(BaseMultiportMemory):
 
             m.d.sync += [r_write_port.addr.eq(write_port.addr), r_write_port.en.eq(write_port.en)]
 
-            write_addr_bypass = Signal(addr_width)
+            write_addr_bypass = Signal(range(self.depth))
             write_data_bypass = Signal(self.shape)
             write_en_bypass = Signal()
             m.d.sync += [
@@ -254,7 +232,7 @@ class MultiportXORMemory(BaseMultiportMemory):
             ]
 
             for idx, port in enumerate(r_read_ports):
-                read_addr_bypass = Signal(addr_width)
+                read_addr_bypass = Signal(range(self.depth))
 
                 m.d.sync += [
                     read_addr_bypass.eq(self.read_ports[idx].addr),
