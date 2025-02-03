@@ -21,22 +21,15 @@ class ReadPort:
 
     def __init__(
         self,
-        memory,
-        width: ShapeLike,
-        depth: int,
-        init: Iterable[ValueLike] = (),
+        memory: "BaseMultiportMemory",
         transparent_for: Iterable[Any] = (),
         src_loc=0,
     ):
         self.src_loc = get_src_loc(src_loc)
-        self.depth = depth
-        self.width = width
-        self.init = init
         self.transparent_for = transparent_for
-        self.addr_width = bits_for(self.depth - 1)
-        self.en = Signal(1)
-        self.addr = Signal(self.addr_width)
-        self.data = Signal(width)
+        self.en = Signal()
+        self.addr = Signal(range(memory.depth))
+        self.data = Signal(memory.shape)
         self._memory = memory
         memory.read_ports.append(self)
 
@@ -45,21 +38,27 @@ class WritePort:
 
     def __init__(
         self,
-        memory,
-        width: ShapeLike,
-        depth: int,
-        init: Iterable[ValueLike] = (),
+        memory: "BaseMultiportMemory",
         granularity: Optional[int] = None,
         src_loc=0,
     ):
         self.src_loc = get_src_loc(src_loc)
-        self.depth = depth
-        self.width = width
-        self.init = init
-        self.addr_width = bits_for(self.depth - 1)
-        self.en = Signal(1)
-        self.addr = Signal(self.addr_width)
-        self.data = Signal(width)
+
+        shape = memory.shape
+        if granularity is None:
+            en_width = 1
+        elif not isinstance(granularity, int) or granularity <= 0:
+            raise TypeError(f"Granularity must be a positive integer or None, " f"not {granularity!r}")
+        elif shape.signed:
+            raise ValueError("Granularity cannot be specified for a memory with a signed shape")
+        elif shape.width % granularity != 0:
+            raise ValueError("Granularity must evenly divide data width")
+        else:
+            en_width = shape.width // granularity
+
+        self.en = Signal(en_width)
+        self.addr = Signal(range(memory.depth))
+        self.data = Signal(shape)
         self.granularity = granularity
         self._memory = memory
         memory.write_ports.append(self)
@@ -105,9 +104,6 @@ class BaseMultiportMemory(Elaboratable):
             raise ValueError("Invalid port domain: Only synchronous memory ports supported.")
         return ReadPort(
             memory=self,
-            width=self.shape,
-            depth=self.depth,
-            init=self.init,
             transparent_for=transparent_for,
             src_loc=1 + src_loc_at,
         )
@@ -119,9 +115,6 @@ class BaseMultiportMemory(Elaboratable):
             raise ValueError("Invalid port domain: Only synchronous memory ports supported.")
         return WritePort(
             memory=self,
-            width=self.shape,
-            depth=self.depth,
-            init=self.init,
             granularity=granularity,
             src_loc=1 + src_loc_at,
         )
@@ -150,7 +143,7 @@ class MultiReadMemory(BaseMultiportMemory):
         for port in self.read_ports:
             # for each read port a new single port memory block is generated
             mem = memory.Memory(
-                shape=port.width, depth=self.depth, init=self.init, attrs=self.attrs, src_loc_at=self.src_loc
+                shape=self.shape, depth=self.depth, init=self.init, attrs=self.attrs, src_loc_at=self.src_loc
             )
             m.submodules += mem
             physical_write_port = mem.write_port(granularity=write_port.granularity) if write_port else None
@@ -182,20 +175,24 @@ class MultiportXORMemory(BaseMultiportMemory):
     (number of write ports) * (number of write ports - 1 + number of read ports) single port
     memory blocks. XOR is used to enable writing multiple values in one cycle and reading correct values.
     Writing two different values to the same memory address in one cycle has undefined behavior.
+    Write port granularity is not yet supported.
 
     """
+
+    def write_port(self, *, domain: str = "sync", granularity: Optional[int] = None, src_loc_at: int = 0):
+        if granularity is not None:
+            raise ValueError("Granularity is not supported.")
+        return super().write_port(domain=domain, granularity=granularity, src_loc_at=src_loc_at)
 
     def elaborate(self, platform):
         m = Module()
 
         self._frozen = True
 
-        addr_width = bits_for(self.depth - 1)
-
         write_xors = [Value.cast(0) for _ in self.write_ports]
         read_xors = [Value.cast(0) for _ in self.read_ports]
 
-        write_regs_addr = [Signal(addr_width) for _ in self.write_ports]
+        write_regs_addr = [Signal(range(self.depth)) for _ in self.write_ports]
         write_regs_data = [Signal(self.shape) for _ in self.write_ports]
         read_en_bypass = [Signal() for _ in self.read_ports]
 
@@ -244,7 +241,7 @@ class MultiportXORMemory(BaseMultiportMemory):
 
             m.d.sync += [r_write_port.addr.eq(write_port.addr), r_write_port.en.eq(write_port.en)]
 
-            write_addr_bypass = Signal(addr_width)
+            write_addr_bypass = Signal(range(self.depth))
             write_data_bypass = Signal(self.shape)
             write_en_bypass = Signal()
             m.d.sync += [
@@ -254,7 +251,7 @@ class MultiportXORMemory(BaseMultiportMemory):
             ]
 
             for idx, port in enumerate(r_read_ports):
-                read_addr_bypass = Signal(addr_width)
+                read_addr_bypass = Signal(range(self.depth))
 
                 m.d.sync += [
                     read_addr_bypass.eq(self.read_ports[idx].addr),
@@ -309,16 +306,18 @@ class MultiportILVTMemory(BaseMultiportMemory):
 
         write_addr_bypass = [Signal(port.addr.shape()) for port in self.write_ports]
         write_data_bypass = [Signal(self.shape) for _ in self.write_ports]
-        write_en_bypass = [Signal() for _ in self.write_ports]
+        write_en_bypass = [Signal(port.en.shape()) for port in self.write_ports]
 
         m.d.sync += [write_addr_bypass[index].eq(port.addr) for index, port in enumerate(self.write_ports)]
         m.d.sync += [write_data_bypass[index].eq(port.data) for index, port in enumerate(self.write_ports)]
         m.d.sync += [write_en_bypass[index].eq(port.en) for index, port in enumerate(self.write_ports)]
 
         for index, write_port in enumerate(ilvt_write_ports):
+            # address a is marked as last changed in bank k (k gets stored at a in ILVT)
+            # when any part of value at address a gets overwritten by port k
             m.d.comb += [
                 write_port.addr.eq(self.write_ports[index].addr),
-                write_port.en.eq(self.write_ports[index].en),
+                write_port.en.eq(self.write_ports[index].en.any()),
                 write_port.data.eq(index),
             ]
 
