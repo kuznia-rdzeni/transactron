@@ -1,0 +1,21 @@
+transactron.cmd package
+=======================
+
+Submodules
+----------
+
+transactron.cmd.tprof module
+----------------------------
+
+.. automodule:: transactron.cmd.tprof
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: transactron.cmd
+   :members:
+   :undoc-members:
+   :show-inheritance:
