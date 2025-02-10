@@ -24,12 +24,16 @@ def layout_subset(layout: StructLayout, *, fields: set[str]) -> StructLayout:
 
 
 def make_hashable(val) -> Hashable:
-    if isinstance(val, Mapping):
-        return frozenset(((k, make_hashable(v)) for k, v in val.items()))
-    elif isinstance(val, Iterable):
-        return tuple(make_hashable(v) for v in val)
-    else:
+    try:
+        hash(val)
         return val
+    except TypeError:
+        if isinstance(val, Mapping):
+            return frozenset(((k, make_hashable(v)) for k, v in val.items()))
+        elif isinstance(val, Iterable):
+            return tuple(make_hashable(v) for v in val)
+        else:
+            raise
 
 
 def align_to_power_of_two(num: int, power: int) -> int:
