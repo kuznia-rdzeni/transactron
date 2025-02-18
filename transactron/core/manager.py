@@ -224,15 +224,9 @@ class TransactionManager(Elaboratable):
         runs = defaultdict[MBody, list[Value]](list)
 
         for source in method_map.methods_and_transactions:
-            if source in method_map.methods:
-                run_val = Cat(transaction.run for transaction in method_map.transactions_by_method[MBody(source)]).any()
-                run = Signal()
-                m.d.comb += run.eq(run_val)
-            else:
-                run = source.run
-            for method, (arg, _) in source.method_uses.items():
+            for method, (arg, enable) in source.method_uses.items():
                 args[method._body].append(arg)
-                runs[method._body].append(run)
+                runs[method._body].append(source.run & enable)
 
         return (args, runs)
 
@@ -372,14 +366,10 @@ class TransactionManager(Elaboratable):
         (method_args, method_runs) = self._method_calls(m, method_map)
 
         for method in method_map.methods:
-            if len(method_args[method]) == 1:
-                m.d.comb += method.data_in.eq(method_args[method][0])
-            else:
-                if method.single_caller:
-                    raise RuntimeError(f"Single-caller method '{method.name}' called more than once")
-
-                runs = Cat(method_runs[method])
-                m.d.comb += assign(method.data_in, method.combiner(m, method_args[method], runs), fields=AssignType.ALL)
+            if method.single_caller and len(method_args[method]) > 1:
+                raise RuntimeError(f"Single-caller method '{method.name}' called more than once")
+            runs = Cat(method_runs[method])
+            m.d.comb += assign(method.data_in, method.combiner(m, method_args[method], runs), fields=AssignType.ALL)
 
         m.submodules._transactron_schedulers = ModuleConnector(
             *[self.cc_scheduler(method_map, cgr, cc, porder) for cc in ccs]

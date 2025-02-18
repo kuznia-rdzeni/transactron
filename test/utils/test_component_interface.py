@@ -36,6 +36,7 @@ class TestComponentInterface(TestCase):
                 super().__init__({"iface": In(TBInterface().signature)})
 
         t = TestComponent()
+        t._MustUse__silence = True  # type: ignore
 
         assert isinstance(t.iface.i, Signal)
         assert isinstance(t.iface.s.i, Signal)

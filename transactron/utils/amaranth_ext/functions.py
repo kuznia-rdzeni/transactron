@@ -5,7 +5,7 @@ from amaranth.utils import bits_for, ceil_log2
 from amaranth.lib import data
 from collections.abc import Iterable, Mapping
 
-from amaranth_types.types import ValueLike, ShapeLike
+from amaranth_types.types import ValueLike, ShapeLike, ModuleLike
 from transactron.utils._typing import SignalBundle
 
 __all__ = [
@@ -17,6 +17,7 @@ __all__ = [
     "flatten_signals",
     "shape_of",
     "const_of",
+    "min_value",
 ]
 
 
@@ -132,3 +133,26 @@ def const_of(value: int, shape: ShapeLike) -> Any:
         return shape.from_bits(value)
     else:
         return C(value, Shape.cast(shape))
+
+
+def min_value(m: ModuleLike, values: Iterable[Value]) -> Value:
+    values = list(values)
+    assert all(not value.shape().signed for value in values)  # signed currently unsupported
+    result = Signal(max(len(value) for value in values))
+
+    # extend inputs to constant width
+    new_values = list(Signal.like(result) for _ in values)
+    for sig, value in zip(new_values, values):
+        m.d.comb += sig.eq(value)
+    values = new_values
+
+    for i in reversed(range(0, len(result))):
+        res = Signal()
+        m.d.comb += res.eq(Cat(value[i] for value in values).all())
+        m.d.comb += result[i].eq(res)
+        new_values = list(Signal.like(result) for _ in values)
+        for sig, value in zip(new_values, values):
+            m.d.comb += sig.eq(Mux(value[i] & ~res, -1, value))
+        values = new_values
+
+    return result

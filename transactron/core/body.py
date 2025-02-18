@@ -51,10 +51,13 @@ class Body(TransactionBase["Body"]):
         super().__init__(src_loc=src_loc)
 
         def default_combiner(m: Module, args: Sequence[MethodStruct], runs: Value) -> AssignArg:
-            ret = Signal(from_method_layout(i))
-            for k in OneHotSwitchDynamic(m, runs):
-                m.d.comb += ret.eq(args[k])
-            return ret
+            if len(args) == 1:
+                return args[0]
+            else:
+                ret = Signal(from_method_layout(i))
+                for k in OneHotSwitchDynamic(m, runs):
+                    m.d.comb += ret.eq(args[k])
+                return ret
 
         self.def_order = next(Body.def_counter)
         self.name = name
