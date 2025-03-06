@@ -48,7 +48,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#using-scripts">Using scripts</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#lint-sh">lint.sh</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#build-docs-sh">build_docs.sh</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#tprof-py">tprof.py</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#transactron-prof">transactron-prof</a></li>
 </ul>
 </li>
 </ul>
@@ -107,7 +107,7 @@
 <p>Custom options are:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">--transactron-traces</span></code> – generates trace files readable by <code class="docutils literal notranslate"><span class="pre">gtkwave</span></code>. The trace files are saved in <code class="docutils literal notranslate"><span class="pre">test/__traces__</span></code>.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">--transactron-profile</span></code> – generates Transactron execution profiles, readable by the script named <code class="docutils literal notranslate"><span class="pre">tprof.py</span></code>. The profiles are saved in <code class="docutils literal notranslate"><span class="pre">test/__profiles__</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--transactron-profile</span></code> – generates Transactron execution profiles, readable by the script named <code class="docutils literal notranslate"><span class="pre">transactron-prof</span></code>. The profiles are saved in <code class="docutils literal notranslate"><span class="pre">test/__profiles__</span></code>.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">--transactron-log-filter</span></code> – allows to filter test logs.</p></li>
 </ul>
 </section>
@@ -137,12 +137,12 @@
 <h3>build_docs.sh<a class="headerlink" href="#build-docs-sh" title="Permalink to this heading"></a></h3>
 <p>Generates local documentation using <a class="reference external" href="https://www.sphinx-doc.org/">Sphinx</a>. The generated HTML files are located in <code class="docutils literal notranslate"><span class="pre">build/html</span></code>.</p>
 </section>
-<section id="tprof-py">
-<h3>tprof.py<a class="headerlink" href="#tprof-py" title="Permalink to this heading"></a></h3>
+<section id="transactron-prof">
+<h3>transactron-prof<a class="headerlink" href="#transactron-prof" title="Permalink to this heading"></a></h3>
 <p>Processes Transactron profile files and presents them in a readable way.
 To generate a profile file, the <code class="docutils literal notranslate"><span class="pre">run_tests.py</span></code> script should be used with the <code class="docutils literal notranslate"><span class="pre">--profile</span></code> option.
-The <code class="docutils literal notranslate"><span class="pre">tprof.py</span></code> can then be run as follows:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">scripts</span><span class="o">/</span><span class="n">tprof</span><span class="o">.</span><span class="n">py</span> <span class="n">test</span><span class="o">/</span><span class="n">__profile__</span><span class="o">/</span><span class="n">profile_file</span><span class="o">.</span><span class="n">json</span>
+The script can then be run as follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">transactron</span><span class="o">-</span><span class="n">prof</span> <span class="n">test</span><span class="o">/</span><span class="n">__profile__</span><span class="o">/</span><span class="n">profile_file</span><span class="o">.</span><span class="n">json</span>
 </pre></div>
 </div>
 <p>This displays the profile information about transactions by default.
@@ -159,7 +159,7 @@ When displaying transaction profiles, this option produces a call graph. For eac
 Counters presented in the tree shows information about the calls from the transaction in the root of the tree: if a method is also called by a different transaction, these calls are not counted.
 When displaying method profiles, an inverted call graph is produced: the transactions are in the leaves, and the children nodes are the callers of the method in question.
 In this mode, the <code class="docutils literal notranslate"><span class="pre">locked</span></code> field in the tree shows how many cycles a given method or transaction was responsible for locking the method in the root.</p>
-<p>Other options of <code class="docutils literal notranslate"><span class="pre">tprof.py</span></code> are:</p>
+<p>Other options of <code class="docutils literal notranslate"><span class="pre">transactron-prof</span></code> are:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">--sort</span></code> – selects which column is used for sorting rows.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">--filter-name</span></code> – filters rows by name. Regular expressions can be used.</p></li>
@@ -181,7 +181,7 @@ In this mode, the <code class="docutils literal notranslate"><span class="pre">l
 
   <div role="contentinfo">
     <p>&#169; Copyright Kuźnia Rdzeni, 2025.
-      <span class="lastupdated">Last updated on 21:23 2025-03-04.
+      <span class="lastupdated">Last updated on 19:59 2025-03-06.
       </span></p>
   </div>
 

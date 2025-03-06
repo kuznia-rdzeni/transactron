@@ -2,7 +2,7 @@
 
 ## Introduction
 
-Transactron is an Amaranth library for managing connections between modules in complex projects.
+Transactron is an [Amaranth](https://amaranth-lang.org/) library for managing connections between modules in complex projects.
 It is inspired by the [Bluespec](http://bluespec.com/) programming language (see: [Bluespec wiki](http://wiki.bluespec.com/), [Bluespec compiler](https://github.com/B-Lang-org/bsc)).
 
 The basic idea is to interface hardware modules using _transactions_ and _methods_.
@@ -17,13 +17,13 @@ If multiple transactions try to call the same method in the same clock cycle, th
 In this way, access to methods is coordinated via the transaction system to avoid conflicts.
 
 Methods can communicate with their callers in both directions: from caller to method and back.
-The communication is structured using Amaranth records.
+The communication is structured using Amaranth structures.
 
 ## Basic usage
 
 ### Implementing transactions
 
-The simplest way to implement a transaction as a part of Amaranth `Elaboratable` is by using a `with` block:
+The standard way to implement a transaction as a part of Amaranth `Elaboratable` is by using a `with` block:
 
 ```python
 class MyThing(Elaboratable):
@@ -102,18 +102,27 @@ class MyOtherThing(Elaboratable):
 The `def_method` technique presented above is a convenience syntax, but it works just like other Amaranth `with` blocks.
 In particular, the *Python code* inside the unnamed `def` function is always executed once.
 
-A method defined in one `Elaboratable` is usually passed to other `Elaboratable`s via constructor parameters.
-For example, the `MyThing` constructor could be defined as follows.
-Only methods should be passed around, not entire `Elaboratable`s!
+If a given `Elaboratable` depends on a method defined in another `Elaboratable`, it should declare it in the constructor, but not define it.
+The definition is then provided using `proxy` outside both `Elaboratable`s.
 
 ```python
 class MyThing(Elaboratable):
-    def __init__(self, method: Method):
-        self.method = method
+    def __init__(self):
+        self.method = Method(i=input_layout, o=output_layout)
 
         ...
 
     ...
+
+class LargerThing(Elaboratable):
+    def elaborate(self, platform):
+        m = TModule()
+
+        m.submodules.thing = thing = MyThing()
+        m.submodules.other_thing = other_thing = MyOtherThing()
+        thing.method.proxy(m, other_thing.my_method)
+
+        return m
 ```
 
 ### Method or transaction?
@@ -135,7 +144,7 @@ Such a transaction is included in the library -- it's named `AdapterTrans`.
 
 ### Method argument passing conventions
 
-Even though method arguments are Amaranth records, their use can be avoided in many cases, which results in cleaner code.
+Even though method arguments are Amaranth structures, their use can be avoided in many cases, which results in cleaner code.
 Suppose we have the following layout, which is an input layout for a method called `method`:
 
 ```python
@@ -144,7 +153,7 @@ method = Method(i=layout)
 ```
 
 The method can be called in multiple ways.
-The cleanest and recommended way is to pass each record field using a keyword argument:
+The cleanest and recommended way is to pass each field using a keyword argument:
 
 ```python
 method(m, foo=foo_expr, bar=bar_expr)
@@ -156,10 +165,10 @@ Another way is to pass the arguments using a `dict`:
 method(m, {'foo': foo_expr, 'bar': bar_expr})
 ```
 
-Finally, one can directly pass an Amaranth record:
+Finally, one can directly pass an Amaranth structure:
 
 ```python
-rec = Record(layout)
+rec = Signal(layout)
 m.d.comb += rec.foo.eq(foo_expr)
 m.d.comb += rec.bar.eq(bar_expr)
 method(m, rec)
@@ -186,7 +195,7 @@ method2(m, {'foobar': {'foo': foo_expr, 'bar': bar_expr}, 'baz': baz_expr})
 ### Method definition conventions
 
 When defining methods, two conventions can be used.
-The cleanest and recommended way is to create an argument for each record field:
+The cleanest and recommended way is to create an argument for each field:
 
 ```python
 @def_method(m, method)
@@ -194,11 +203,11 @@ def _(foo: Value, bar: Value):
     ...
 ```
 
-The other is to receive the argument record directly. The `arg` name is required:
+The other is to receive the argument structure directly. The `arg` name is required:
 
 ```python
-def_method(m, method)
-def _(arg: Record):
+@def_method(m, method)
+def _(arg: data.View):
     ...
 ```
 

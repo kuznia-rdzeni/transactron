@@ -20,7 +20,7 @@ Tests are run using `pytest`. Useful things to know are:
 Custom options are:
 
 * `--transactron-traces` -- generates trace files readable by `gtkwave`. The trace files are saved in `test/__traces__`.
-* `--transactron-profile` -- generates Transactron execution profiles, readable by the script named `tprof.py`. The profiles are saved in `test/__profiles__`.
+* `--transactron-profile` -- generates Transactron execution profiles, readable by the script named `transactron-prof`. The profiles are saved in `test/__profiles__`.
 * `--transactron-log-filter` -- allows to filter test logs.
 
 ## Using scripts
@@ -53,14 +53,14 @@ This way you may display the changes `black` would apply to `[filename]` if you 
 
 Generates local documentation using [Sphinx](https://www.sphinx-doc.org/). The generated HTML files are located in `build/html`.
 
-### tprof.py
+### transactron-prof
 
 Processes Transactron profile files and presents them in a readable way.
 To generate a profile file, the `run_tests.py` script should be used with the `--profile` option.
-The `tprof.py` can then be run as follows:
+The script can then be run as follows:
 
 ```
-scripts/tprof.py test/__profile__/profile_file.json
+transactron-prof test/__profile__/profile_file.json
 ```
 
 This displays the profile information about transactions by default.
@@ -79,7 +79,7 @@ Counters presented in the tree shows information about the calls from the transa
 When displaying method profiles, an inverted call graph is produced: the transactions are in the leaves, and the children nodes are the callers of the method in question.
 In this mode, the `locked` field in the tree shows how many cycles a given method or transaction was responsible for locking the method in the root.
 
-Other options of `tprof.py` are:
+Other options of `transactron-prof` are:
 
 * `--sort` -- selects which column is used for sorting rows.
 * `--filter-name` -- filters rows by name. Regular expressions can be used.
