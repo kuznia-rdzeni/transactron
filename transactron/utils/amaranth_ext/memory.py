@@ -9,6 +9,7 @@ from collections.abc import Iterable
 from transactron.utils.amaranth_ext.elaboratables import OneHotMux
 from transactron.utils.amaranth_ext.coding import Encoder
 from transactron.lib import logging
+from transactron.core import TModule
 
 from .. import get_src_loc
 from amaranth_types.types import ShapeLike, ValueLike
@@ -393,7 +394,7 @@ class OneHotCodedILVT(BaseMultiportMemory):
     # a porty zapisu pozwalają na wpięcie addr i enable czyli prawie wszystko, hmmm
     # kwestia też, żeby nikt nie pomyślał że to zwykła pamięć, do której można coś zapisywać
     def elaborate(self, platform):
-        m = Module()
+        m = TModule()
 
         self._frozen = True
 
@@ -510,7 +511,7 @@ class OneHotCodedILVT(BaseMultiportMemory):
                 ]
                 for idx in range(len(self.write_ports))
             ]
-            one_hot = [exclusive_bits[idx] == bypassed_data[idx][index] for idx in range(len(self.write_ports))]
+            one_hot = [Cat(*exclusive_bits[idx]) == bypassed_data[idx][index] for idx in range(len(self.write_ports))]
 
             m.d.comb += read_port.data.eq(Cat(*one_hot))
 
