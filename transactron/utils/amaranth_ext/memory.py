@@ -264,7 +264,7 @@ class MultiportXORMemory(BaseMultiportMemory):
                     read_en_bypass[idx].eq(self.read_ports[idx].en),
                 ]
 
-                single_stage_bypass = Mux(
+                double_stage_bypass = Mux(
                     (read_addr_bypass == write_addr_bypass) & read_en_bypass[idx] & write_en_bypass,
                     write_data_bypass,
                     port.data,
@@ -274,10 +274,10 @@ class MultiportXORMemory(BaseMultiportMemory):
                     read_xors[idx] ^= Mux(
                         (read_addr_bypass == write_regs_addr[index]) & r_write_port.en,
                         write_xor,
-                        single_stage_bypass,
+                        double_stage_bypass,
                     )
                 else:
-                    read_xors[idx] ^= single_stage_bypass
+                    read_xors[idx] ^= double_stage_bypass
 
                 m.d.comb += [port.addr.eq(self.read_ports[idx].addr), port.en.eq(self.read_ports[idx].en)]
 
@@ -388,7 +388,6 @@ class OneHotCodedILVT(BaseMultiportMemory):
 
     """
 
-    # TODO: transparency (teraz wszystko, ale żeby nie zapomnieć)
     # ona nie do końca udostępnia interfejs pamięci, ale czy aż tak bardzo nie?
     # nie pozwala na zapisywanie danych zewnętrznych, ale porty odczytu normalnie produkują dane,
     # a porty zapisu pozwalają na wpięcie addr i enable czyli prawie wszystko, hmmm
@@ -399,10 +398,21 @@ class OneHotCodedILVT(BaseMultiportMemory):
         self._frozen = True
 
         write_addr_sync = [Signal(port.addr.shape()) for port in self.write_ports]  # ta szerokość musi być ustalona
-        # write_data_bypass = [Signal(self.shape) for _ in self.write_ports]
         write_en_sync = [
             Signal() for _ in self.write_ports
         ]  # nie no, bez przesady, en musi być jednobitowy, rzucę cośtam jeśli nie jest
+        write_data_sync = [
+            Signal(self.shape) for _ in self.write_ports
+        ]  # to się nazwya sync, ale będzie zapisywane kombinacyjnie
+
+        write_addr_bypass = [Signal(port.addr.shape()) for port in self.write_ports]  # ta szerokość musi być ustalona
+        write_en_bypass = [Signal() for _ in self.write_ports]
+        write_data_bypass = [Signal(self.shape) for _ in self.write_ports]
+
+        read_addr_bypass = [Signal(port.addr.shape()) for port in self.read_ports]
+        read_en_bypass = [Signal() for _ in self.read_ports]
+
+        bypassed_data = [[Signal(self.shape) for _ in self.read_ports] for _ in self.write_ports]
 
         for index, write_port in enumerate(self.write_ports):
             mem = MultiReadMemory(
@@ -422,9 +432,11 @@ class OneHotCodedILVT(BaseMultiportMemory):
 
             m.d.sync += [
                 write_addr_sync[index].eq(write_port.addr),
-                bank_write_port.addr.eq(write_addr_sync[index]),
+                bank_write_port.addr.eq(write_addr_sync[index]),  # tutaj jakaś niepewność czy dodatkowy rejestr czy nie
+                write_addr_bypass[index].eq(write_addr_sync[index]),
                 write_en_sync[index].eq(write_port.en),
                 bank_write_port.en.eq(write_en_sync[index]),
+                write_en_bypass[index].eq(write_en_sync[index]),
             ]
             # log.debug(m, True, "enable: {}", write_port.en)
             first_feedback_port = len(self.read_ports)
@@ -434,6 +446,8 @@ class OneHotCodedILVT(BaseMultiportMemory):
                         self.read_ports[idx].en
                     ),  # tu na pewno jakaś synchronizacja przy bypassach (transparency)
                     bank_read_ports[idx].addr.eq(self.read_ports[idx].addr),
+                    read_addr_bypass[idx].eq(self.read_ports[idx].addr),
+                    read_en_bypass[idx].eq(self.read_ports[idx].en),
                 ]
             for idx in range(first_feedback_port, len(bank_read_ports)):
                 # mogę tutaj podpiąć odpowiednie adresy i enable
@@ -449,7 +463,7 @@ class OneHotCodedILVT(BaseMultiportMemory):
                 ]
 
         # tutaj będę podpinać data, wczesniej nie mogłam, bo nie istniały pozostałe banki i ich porty
-        for index, write_port in enumerate(self.write_ports):  # halo halo write_port nie jest wykorzystywany
+        for index in range(len(self.write_ports)):
             mem_name = f"bank_{index}"
             mem = m.submodules[mem_name]
 
@@ -464,26 +478,39 @@ class OneHotCodedILVT(BaseMultiportMemory):
                 )
                 for i in range(len(self.write_ports) - 1)
             ]
-            m.d.comb += mem.write_ports[0].data.eq(Cat(*bit_selection))
+            m.d.comb += [
+                write_data_sync[index].eq(Cat(*bit_selection)),
+                mem.write_ports[0].data.eq(write_data_sync[index]),
+            ]
+            m.d.sync += write_data_bypass[index].eq(write_data_sync[index])
+
+            for idx in range(len(self.read_ports)):
+                double_stage_bypass = Mux(
+                    (read_addr_bypass[idx] == write_addr_bypass[index]) & read_en_bypass[idx] & write_en_bypass[index],
+                    write_data_bypass[index],
+                    mem.read_ports[idx].data,
+                )
+
+                m.d.comb += bypassed_data[index][idx].eq(
+                    Mux(
+                        (read_addr_bypass[idx] == write_addr_sync[index]) & write_en_sync[index],
+                        write_data_sync[index],
+                        double_stage_bypass,
+                    )
+                )
 
         for index, read_port in enumerate(self.read_ports):
             # może potem zrobię sama te xory, na razie wystarczą komparatory
             # xors = [Signal() for _ in range(len(self.write_ports))] # chyba (bo ilość wp to długość słowa)
+
             exclusive_bits = [
                 [
-                    (
-                        ~(m.submodules[f"bank_{i}"].read_ports[index].data[idx - 1])
-                        if i < idx
-                        else m.submodules[f"bank_{i+1}"].read_ports[index].data[idx]
-                    )
+                    (~(bypassed_data[i][index][idx - 1]) if i < idx else bypassed_data[i + 1][index][idx])
                     for i in range(len(self.write_ports) - 1)
                 ]
                 for idx in range(len(self.write_ports))
             ]
-            one_hot = [
-                exclusive_bits[idx] == m.submodules[f"bank_{idx}"].read_ports[index]
-                for idx in range(len(self.write_ports))
-            ]
+            one_hot = [exclusive_bits[idx] == bypassed_data[idx][index] for idx in range(len(self.write_ports))]
 
             m.d.comb += read_port.data.eq(Cat(*one_hot))
 

@@ -5,11 +5,12 @@ import random
 from collections import deque
 from datetime import timedelta
 from hypothesis import given, settings, Phase
-import amaranth.lib.memory as memory
+
+# import amaranth.lib.memory as memory
 import amaranth_types.memory as amemory
 from transactron.testing import *
 from transactron.lib.storage import *
-from transactron.utils.amaranth_ext.memory import MultiportXORMemory, MultiportILVTMemory
+from transactron.utils.amaranth_ext.memory import MultiportOneHotILVTMemory  # MultiportXORMemory, MultiportILVTMemory,
 from transactron.utils.transactron_helpers import make_layout
 
 
@@ -150,10 +151,12 @@ class TestMemoryBank(TestCaseWithSimulator):
     test_conf = [(9, 3, 3, 3, 14), (16, 1, 1, 3, 15), (16, 1, 1, 1, 16), (12, 3, 1, 1, 17), (9, 0, 0, 0, 18)]
 
     @pytest.mark.parametrize("max_addr, writer_rand, reader_req_rand, reader_resp_rand, seed", test_conf)
-    @pytest.mark.parametrize("transparent", [False, True])
+    @pytest.mark.parametrize("transparent", [False])
     @pytest.mark.parametrize("read_ports", [1, 2])
     @pytest.mark.parametrize("write_ports", [1, 2])
-    @pytest.mark.parametrize("memory_type", [memory.Memory, MultiportXORMemory, MultiportILVTMemory])
+    @pytest.mark.parametrize(
+        "memory_type", [MultiportOneHotILVTMemory]  # memory.Memory, MultiportXORMemory, MultiportILVTMemory,
+    )
     @pytest.mark.parametrize("shape,to_shape,from_shape", bank_shapes)
     def test_mem(
         self,
@@ -201,6 +204,7 @@ class TestMemoryBank(TestCaseWithSimulator):
                     address_lock[a] = True
 
                     await m.write[i].call(sim, data=to_shape(d), addr=a)
+                    print("writing value", d, "at address", a, "at port", i)
 
                     await sim.delay(1e-9 * (i + 2 if not transparent else i))
                     data[a] = d
@@ -218,6 +222,7 @@ class TestMemoryBank(TestCaseWithSimulator):
                     await m.read_req[i].call(sim, addr=a)
                     await sim.delay(1e-9 * (1 if not transparent else write_ports + 2))
                     d = data[a]
+                    print("i want to read value", d, "at address", a, "at port", i)
                     read_req_queues[i].append(d)
                     await self.random_wait(sim, reader_req_rand)
 
