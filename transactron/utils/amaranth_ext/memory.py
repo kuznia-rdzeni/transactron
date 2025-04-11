@@ -192,7 +192,7 @@ class MultiportXORMemory(BaseMultiportMemory):
         return super().write_port(domain=domain, granularity=granularity, src_loc_at=src_loc_at)
 
     def elaborate(self, platform):
-        m = Module()
+        m = TModule()
 
         self._frozen = True
 
@@ -203,6 +203,7 @@ class MultiportXORMemory(BaseMultiportMemory):
         write_regs_data = [Signal(self.shape) for _ in self.write_ports]
         read_en_bypass = [Signal() for _ in self.read_ports]
 
+        # feedback ports
         for index, write_port in enumerate(self.write_ports):
             m.d.sync += [write_regs_data[index].eq(write_port.data), write_regs_addr[index].eq(write_port.addr)]
             write_xors[index] ^= write_regs_data[index]
@@ -225,6 +226,7 @@ class MultiportXORMemory(BaseMultiportMemory):
                     physical_write_port.addr.eq(write_port.addr),
                 ]
 
+        # real read ports
         for index, write_port in enumerate(self.write_ports):
             write_xor = Signal(self.shape)
             m.d.comb += [write_xor.eq(write_xors[index])]
@@ -302,7 +304,7 @@ class MultiportILVTMemory(BaseMultiportMemory):
     """
 
     def elaborate(self, platform):
-        m = Module()
+        m = TModule()
 
         self._frozen = True
 
@@ -428,27 +430,51 @@ class OneHotCodedILVT(BaseMultiportMemory):
             )
             mem_name = f"bank_{index}"
             m.submodules[mem_name] = mem
-            bank_write_port = mem.write_port()  # granularność w tym przypadku bez sensu zupełnie
-            bank_read_ports = [mem.read_port() for _ in range(len(self.read_ports) + len(self.write_ports) - 1)]
+            bank_write_port = mem.write_port()
+            bank_read_ports = [
+                mem.read_port(transparent_for=[bank_write_port])
+                for _ in range(len(self.read_ports) + len(self.write_ports) - 1)
+            ]
 
             m.d.sync += [
                 write_addr_sync[index].eq(write_port.addr),
-                bank_write_port.addr.eq(write_addr_sync[index]),  # tutaj jakaś niepewność czy dodatkowy rejestr czy nie
+                bank_write_port.addr.eq(
+                    write_port.addr
+                ),  # (write_addr_sync[index]),  # tutaj jakaś niepewność czy dodatkowy rejestr czy nie
                 write_addr_bypass[index].eq(write_addr_sync[index]),
                 write_en_sync[index].eq(write_port.en),
-                bank_write_port.en.eq(write_en_sync[index]),
+                bank_write_port.en.eq(write_port.en),  # (write_en_sync[index]),
                 write_en_bypass[index].eq(write_en_sync[index]),
             ]
-            # log.debug(m, True, "enable: {}", write_port.en)
+
+            log.debug(
+                m,
+                True,
+                "port: {}, w-enable: {}, w-enable_sync: {}, w-enable_bypass: {}",
+                index,
+                write_port.en,
+                write_en_sync[index],
+                write_en_bypass[index],
+            )
+            log.debug(
+                m,
+                True,
+                "port: {}, w-addr: {:x}, w-addr_sync: {:x}, w-addr_bypass: {:x}",
+                index,
+                write_port.addr,
+                write_addr_sync[index],
+                write_addr_bypass[index],
+            )
+
             first_feedback_port = len(self.read_ports)
             for idx in range(first_feedback_port):
                 m.d.sync += [
-                    bank_read_ports[idx].en.eq(
-                        self.read_ports[idx].en
-                    ),  # tu na pewno jakaś synchronizacja przy bypassach (transparency)
-                    bank_read_ports[idx].addr.eq(self.read_ports[idx].addr),
                     read_addr_bypass[idx].eq(self.read_ports[idx].addr),
                     read_en_bypass[idx].eq(self.read_ports[idx].en),
+                ]
+                m.d.comb += [
+                    bank_read_ports[idx].en.eq(self.read_ports[idx].en),
+                    bank_read_ports[idx].addr.eq(self.read_ports[idx].addr),
                 ]
             for idx in range(first_feedback_port, len(bank_read_ports)):
                 # mogę tutaj podpiąć odpowiednie adresy i enable
@@ -458,10 +484,11 @@ class OneHotCodedILVT(BaseMultiportMemory):
                 # tak czy siak to tylko kwestia już odczytanych danych, na razie tylko podpinam wejścia portu
                 i = idx - first_feedback_port
                 k = i + 1 if index < i + 1 else i
-                m.d.sync += [
-                    bank_read_ports[idx].en.eq(self.write_ports[k].en),  # być może może być stale 1
+                m.d.comb += [
+                    bank_read_ports[idx].en.eq(1),  # być może może być stale 1 / self.write_ports[k].en
                     bank_read_ports[idx].addr.eq(self.write_ports[k].addr),
                 ]
+                log.debug(m, True, "bank: {}, r-port: {}, r-addr: {:x}", index, idx, bank_read_ports[idx].addr)
 
         # tutaj będę podpinać data, wczesniej nie mogłam, bo nie istniały pozostałe banki i ich porty
         for index in range(len(self.write_ports)):
@@ -485,12 +512,24 @@ class OneHotCodedILVT(BaseMultiportMemory):
             ]
             m.d.sync += write_data_bypass[index].eq(write_data_sync[index])
 
+            log.debug(m, True, "w-port: {}, write_data_sync: {:x}", index, write_data_sync[index])
+            log.debug(m, True, "w-port: {}, write_data_bypass: {:x}", index, write_data_bypass[index])
+
             for idx in range(len(self.read_ports)):
                 double_stage_bypass = Mux(
                     (read_addr_bypass[idx] == write_addr_bypass[index]) & read_en_bypass[idx] & write_en_bypass[index],
                     write_data_bypass[index],
                     mem.read_ports[idx].data,
                 )
+                log.debug(
+                    m,
+                    True,
+                    "bank: {}, r-port: {}, double_stage cond: {}",
+                    index,
+                    idx,
+                    (read_addr_bypass[idx] == write_addr_bypass[index]) & read_en_bypass[idx] & write_en_bypass[index],
+                )
+                log.debug(m, True, "bank: {}, r-port: {}, double_stage_data: {:x}", index, idx, double_stage_bypass)
 
                 m.d.comb += bypassed_data[index][idx].eq(
                     Mux(
@@ -499,6 +538,15 @@ class OneHotCodedILVT(BaseMultiportMemory):
                         double_stage_bypass,
                     )
                 )
+                log.debug(
+                    m,
+                    True,
+                    "bank: {}, r-port: {}, bypassed final cond: {}",
+                    index,
+                    idx,
+                    (read_addr_bypass[idx] == write_addr_sync[index]) & write_en_sync[index],
+                )
+                log.debug(m, True, "bank: {}, r-port: {}, final_data(?): {:x}", index, idx, bypassed_data[index][idx])
 
         for index, read_port in enumerate(self.read_ports):
             # może potem zrobię sama te xory, na razie wystarczą komparatory
@@ -512,6 +560,11 @@ class OneHotCodedILVT(BaseMultiportMemory):
                 for idx in range(len(self.write_ports))
             ]
             one_hot = [Cat(*exclusive_bits[idx]) == bypassed_data[idx][index] for idx in range(len(self.write_ports))]
+
+            log.debug(
+                m, True, "r-port: {}, r-addr: {:x}, r-addr_bypass: {:x}", index, read_port.addr, read_addr_bypass[index]
+            )
+            log.debug(m, True, "r-port: {:x}, final_data: {}", index, Cat(*one_hot))
 
             m.d.comb += read_port.data.eq(Cat(*one_hot))
 
