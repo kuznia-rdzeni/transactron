@@ -415,7 +415,7 @@ class OneHotCodedILVT(BaseMultiportMemory):
         read_addr_bypass = [Signal(port.addr.shape()) for port in self.read_ports]
         read_en_bypass = [Signal() for _ in self.read_ports]
 
-        bypassed_data = [[Signal(self.shape) for _ in self.read_ports] for _ in self.write_ports]
+        bypassed_data = [[Signal(self.shape) for _ in self.write_ports] for _ in self.read_ports]
 
         for index, write_port in enumerate(self.write_ports):
             mem = MultiReadMemory(
@@ -466,6 +466,7 @@ class OneHotCodedILVT(BaseMultiportMemory):
                 write_addr_bypass[index],
             )
 
+            # real read ports
             first_feedback_port = len(self.read_ports)
             for idx in range(first_feedback_port):
                 m.d.sync += [
@@ -476,6 +477,8 @@ class OneHotCodedILVT(BaseMultiportMemory):
                     bank_read_ports[idx].en.eq(self.read_ports[idx].en),
                     bank_read_ports[idx].addr.eq(self.read_ports[idx].addr),
                 ]
+
+            # feedback ports
             for idx in range(first_feedback_port, len(bank_read_ports)):
                 # mogę tutaj podpiąć odpowiednie adresy i enable
                 # ja potrzebuję tylko 1 BITU
@@ -483,6 +486,7 @@ class OneHotCodedILVT(BaseMultiportMemory):
                 # ale wydaje mi się, że nie mogę, granularność jest tylko przy zapisie, a nie przy odczycie
                 # tak czy siak to tylko kwestia już odczytanych danych, na razie tylko podpinam wejścia portu
                 i = idx - first_feedback_port
+                # funkcja odwrotna do tej z papera
                 k = i + 1 if index < i + 1 else i
                 m.d.comb += [
                     bank_read_ports[idx].en.eq(1),  # być może może być stale 1 / self.write_ports[k].en
@@ -497,7 +501,8 @@ class OneHotCodedILVT(BaseMultiportMemory):
 
             first_feedback_port = len(self.read_ports)
             idx = index + first_feedback_port
-            # tu chyba nie potrezba dodatkowego opóźnienia
+
+            # feedback data
             bit_selection = [
                 (
                     ~(m.submodules[f"bank_{i}"].read_ports[idx - 1].data[index - 1])
@@ -515,56 +520,133 @@ class OneHotCodedILVT(BaseMultiportMemory):
             log.debug(m, True, "w-port: {}, write_data_sync: {:x}", index, write_data_sync[index])
             log.debug(m, True, "w-port: {}, write_data_bypass: {:x}", index, write_data_bypass[index])
 
-            for idx in range(len(self.read_ports)):
-                double_stage_bypass = Mux(
-                    (read_addr_bypass[idx] == write_addr_bypass[index]) & read_en_bypass[idx] & write_en_bypass[index],
-                    write_data_bypass[index],
-                    mem.read_ports[idx].data,
-                )
-                log.debug(
-                    m,
-                    True,
-                    "bank: {}, r-port: {}, double_stage cond: {}",
-                    index,
-                    idx,
-                    (read_addr_bypass[idx] == write_addr_bypass[index]) & read_en_bypass[idx] & write_en_bypass[index],
-                )
-                log.debug(m, True, "bank: {}, r-port: {}, double_stage_data: {:x}", index, idx, double_stage_bypass)
+            # !!!
+            # for idx in range(len(self.read_ports)):
+            #     double_stage_bypass = Mux(
+            #         (read_addr_bypass[idx] == write_addr_bypass[index]) & read_en_bypass[idx]
+            # & write_en_bypass[index],
+            #         write_data_bypass[index],
+            #         mem.read_ports[idx].data,
+            #     )
+            #     log.debug(
+            #         m,
+            #         True,
+            #         "bank: {}, r-port: {}, double_stage cond: {}",
+            #         index,
+            #         idx,
+            #         (read_addr_bypass[idx] == write_addr_bypass[index]) & read_en_bypass[idx]
+            # & write_en_bypass[index],
+            #     )
+            #     log.debug(m, True, "bank: {}, r-port: {}, double_stage_data: {:x}", index, idx, double_stage_bypass)
 
-                m.d.comb += bypassed_data[index][idx].eq(
-                    Mux(
-                        (read_addr_bypass[idx] == write_addr_sync[index]) & write_en_sync[index],
-                        write_data_sync[index],
-                        double_stage_bypass,
-                    )
-                )
-                log.debug(
-                    m,
-                    True,
-                    "bank: {}, r-port: {}, bypassed final cond: {}",
-                    index,
-                    idx,
-                    (read_addr_bypass[idx] == write_addr_sync[index]) & write_en_sync[index],
-                )
-                log.debug(m, True, "bank: {}, r-port: {}, final_data(?): {:x}", index, idx, bypassed_data[index][idx])
+            #     m.d.comb += bypassed_data[index][idx].eq(
+            #         Mux(
+            #             (read_addr_bypass[idx] == write_addr_sync[index]) & write_en_sync[index],
+            #             write_data_sync[index],
+            #             double_stage_bypass,
+            #         )
+            #     )
+            #     log.debug(
+            #         m,
+            #         True,
+            #         "bank: {}, r-port: {}, bypassed final cond: {}",
+            #         index,
+            #         idx,
+            #         (read_addr_bypass[idx] == write_addr_sync[index]) & write_en_sync[index],
+            #     )
+            #     log.debug(m, True, "bank: {}, r-port: {}, final_data(?): {:x}", index, idx, bypassed_data[index][idx])
 
         for index, read_port in enumerate(self.read_ports):
-            # może potem zrobię sama te xory, na razie wystarczą komparatory
-            # xors = [Signal() for _ in range(len(self.write_ports))] # chyba (bo ilość wp to długość słowa)
 
-            exclusive_bits = [
-                [
-                    (~(bypassed_data[i][index][idx - 1]) if i < idx else bypassed_data[i + 1][index][idx])
+            # 3 wersje, żeby synchronizować bypassy
+            exclusive_bits_read = [
+                [  # nie wiem czy to nie powinno być reversed (a może nie, bo cat to łączy dobrze)
+                    (
+                        ~(m.submodules[f"bank_{i}"].read_ports[index].data[idx - 1])
+                        if i < idx
+                        else (m.submodules[f"bank_{i + 1}"].read_ports[index].data[idx])
+                    )
+                    # (~(bypassed_data[i][index][idx - 1]) if i < idx else bypassed_data[i + 1][index][idx])
+                    # czemu akurat tak??
                     for i in range(len(self.write_ports) - 1)
                 ]
                 for idx in range(len(self.write_ports))
             ]
-            one_hot = [Cat(*exclusive_bits[idx]) == bypassed_data[idx][index] for idx in range(len(self.write_ports))]
+
+            exclusive_bits_sync = [
+                [
+                    (~(write_data_sync[i][idx - 1]) if i < idx else write_data_sync[i + 1][idx])
+                    # (~(bypassed_data[i][index][idx - 1]) if i < idx else bypassed_data[i + 1][index][idx])
+                    for i in range(len(self.write_ports) - 1)
+                ]
+                for idx in range(len(self.write_ports))
+            ]
+
+            exclusive_bits_bypass = [
+                [
+                    (~(write_data_bypass[i][idx - 1]) if i < idx else write_data_bypass[i + 1][idx])
+                    # (~(bypassed_data[i][index][idx - 1]) if i < idx else bypassed_data[i + 1][index][idx])
+                    for i in range(len(self.write_ports) - 1)
+                ]
+                for idx in range(len(self.write_ports))
+            ]
+
+            # exclusive_bits_double_stage = [
+            #     [Signal() for _ in range(len(self.write_ports) - 1)] for _ in self.write_ports
+            # ]
+            with m.If(
+                Cat(
+                    *[
+                        ((read_addr_bypass[index] == write_addr_bypass[i]) & read_en_bypass[index] & write_en_bypass[i])
+                        for i in range(len(self.write_ports))
+                    ]
+                ).any()
+            ):
+                log.debug(m, True, "double stage bits from bypass")
+                exclusive_bits_double_stage = exclusive_bits_bypass
+                # tu może być problem z przypisaniem ale chyba wcale nie
+                # i nie wiem czy w ogóle potrzebuję dwóch wymiarów!
+                bypassed_data[index] = [write_data_bypass[i] for i in range(len(self.write_ports))]
+            with m.Else():
+                log.debug(m, True, "double stage bits from read")
+                exclusive_bits_double_stage = exclusive_bits_read
+                bypassed_data[index] = [
+                    m.submodules[f"bank_{i}"].read_ports[index].data for i in range(len(self.write_ports))
+                ]
+
+            with m.If(
+                Cat(
+                    *[
+                        ((read_addr_bypass[index] == write_addr_sync[i]) & write_en_sync[i])
+                        for i in range(len(self.write_ports))
+                    ]
+                ).any()
+            ):
+                log.debug(m, True, "exclusive bits from sync")
+                exclusive_bits = exclusive_bits_sync
+                bypassed_data[index] = [write_data_sync[i] for i in range(len(self.write_ports))]
+            with m.Else():
+                log.debug(m, True, "exclusive bits from double stage")
+                exclusive_bits = exclusive_bits_double_stage
+
+            # exlusive_bits_double_stage = Mux(
+            #     Cat(*[((read_addr_bypass[index] == write_addr_bypass[i]) & read_en_bypass[index]
+            # & write_en_bypass[i]) for i in range(len(self.write_ports))]).any(),
+            #     exclusive_bits_bypass,
+            #     exclusive_bits_read
+            # )
+
+            for o in range(len(self.write_ports)):
+                log.debug(m, True, "exclusive bits {}", Cat(*exclusive_bits[o]))
+                log.debug(m, True, "bypassed data {}", Cat(*bypassed_data[index][o]))
+            # niech bypassed data będzie tym, czym na rysunku
+            # jeszcze kwestia że to jest definiowane jako sygnały, a reszta nie (exclusive_bits)
+            one_hot = [Cat(*exclusive_bits[idx]) == bypassed_data[index][idx] for idx in range(len(self.write_ports))]
 
             log.debug(
                 m, True, "r-port: {}, r-addr: {:x}, r-addr_bypass: {:x}", index, read_port.addr, read_addr_bypass[index]
             )
-            log.debug(m, True, "r-port: {:x}, final_data: {}", index, Cat(*one_hot))
+            log.debug(m, True, "r-port: {:x}, final_data: {:02b}", index, Cat(*one_hot))
 
             m.d.comb += read_port.data.eq(Cat(*one_hot))
 
@@ -582,16 +664,12 @@ class MultiportOneHotILVTMemory(BaseMultiportMemory):
         m.submodules.ilvt = ilvt = OneHotCodedILVT(
             shape=len(self.write_ports),
             depth=self.depth,
-            init=self.init,
-            src_loc_at=self.src_loc + 1,  # ten init jest źle
+            init=self.init,  # ten init jest źle
+            src_loc_at=self.src_loc + 1,
         )
 
         ilvt_write_ports = [ilvt.write_port() for _ in self.write_ports]
         ilvt_read_ports = [ilvt.read_port() for _ in self.read_ports]
-
-        # dummy = Signal()
-        # m.d.comb += dummy.eq(1)
-        # log.debug(m, True, "dummy: {}", dummy)
 
         write_addr_bypass = [Signal(port.addr.shape()) for port in self.write_ports]
         write_data_bypass = [Signal(self.shape) for _ in self.write_ports]
