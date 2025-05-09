@@ -7,16 +7,19 @@ from typing import Optional, Any, final
 from collections.abc import Iterable
 
 from transactron.utils.amaranth_ext.elaboratables import OneHotMux
+from transactron.utils.amaranth_ext.coding import Encoder
+from transactron.core import TModule
 
 from .. import get_src_loc
 from amaranth_types.types import ShapeLike, ValueLike
+import amaranth_types.memory as amemory
 
-__all__ = ["MultiReadMemory", "MultiportXORMemory", "MultiportILVTMemory"]
+__all__ = ["MultiReadMemory", "MultiportXORMemory", "MultiportXORILVTMemory", "MultiportOneHotILVTMemory"]
 
 
 @final
-class MultipleWritePorts(Exception):
-    """Exception raised when a single write memory is being requested multiple write ports."""
+class IncorrectWritePortNumber(Exception):
+    """Exception raised when an incorrect number of write ports has been requested."""
 
 
 class ReadPort:
@@ -133,7 +136,7 @@ class MultiReadMemory(BaseMultiportMemory):
 
     def write_port(self, *, domain: str = "sync", granularity: Optional[int] = None, src_loc_at: int = 0):
         if self.write_ports:
-            raise MultipleWritePorts("Cannot add multiple write ports to a single write memory")
+            raise IncorrectWritePortNumber("Cannot add multiple write ports to a single write memory")
         return super().write_port(domain=domain, granularity=granularity, src_loc_at=src_loc_at)
 
     def elaborate(self, platform):
@@ -187,7 +190,7 @@ class MultiportXORMemory(BaseMultiportMemory):
         return super().write_port(domain=domain, granularity=granularity, src_loc_at=src_loc_at)
 
     def elaborate(self, platform):
-        m = Module()
+        m = TModule()
 
         self._frozen = True
 
@@ -198,6 +201,7 @@ class MultiportXORMemory(BaseMultiportMemory):
         write_regs_data = [Signal(self.shape) for _ in self.write_ports]
         read_en_bypass = [Signal() for _ in self.read_ports]
 
+        # feedback ports
         for index, write_port in enumerate(self.write_ports):
             m.d.sync += [write_regs_data[index].eq(write_port.data), write_regs_addr[index].eq(write_port.addr)]
             write_xors[index] ^= write_regs_data[index]
@@ -220,6 +224,7 @@ class MultiportXORMemory(BaseMultiportMemory):
                     physical_write_port.addr.eq(write_port.addr),
                 ]
 
+        # real read ports
         for index, write_port in enumerate(self.write_ports):
             write_xor = Signal(self.shape)
             m.d.comb += [write_xor.eq(write_xors[index])]
@@ -260,7 +265,7 @@ class MultiportXORMemory(BaseMultiportMemory):
                     read_en_bypass[idx].eq(self.read_ports[idx].en),
                 ]
 
-                single_stage_bypass = Mux(
+                double_stage_bypass = Mux(
                     (read_addr_bypass == write_addr_bypass) & read_en_bypass[idx] & write_en_bypass,
                     write_data_bypass,
                     port.data,
@@ -270,10 +275,10 @@ class MultiportXORMemory(BaseMultiportMemory):
                     read_xors[idx] ^= Mux(
                         (read_addr_bypass == write_regs_addr[index]) & r_write_port.en,
                         write_xor,
-                        single_stage_bypass,
+                        double_stage_bypass,
                     )
                 else:
-                    read_xors[idx] ^= single_stage_bypass
+                    read_xors[idx] ^= double_stage_bypass
 
                 m.d.comb += [port.addr.eq(self.read_ports[idx].addr), port.en.eq(self.read_ports[idx].en)]
 
@@ -285,24 +290,184 @@ class MultiportXORMemory(BaseMultiportMemory):
         return m
 
 
+class OneHotCodedILVT(BaseMultiportMemory):
+    """One-hot-coded Invalidation Live Value Table.
+
+    ILVT returns one-hot-coded ID of the memory bank which stores the current value at the given address.
+    No external data is written to ILVT, it stores only feedback data from the
+    other banks. Correct data is recovered by checking the mutual exclusion condition.
+    ILVT provides a standard memory interface, however passing any value to `data`
+    field of its write ports will be ignored. So will be any provided initial content.
+    This is a specialized memory and should not be treated as regular memory.
+
+    """
+
+    def write_port(self, *, domain: str = "sync", granularity: Optional[int] = None, src_loc_at: int = 0):
+        if granularity is not None:
+            raise ValueError("Granularity is not supported.")
+        return super().write_port(domain=domain, granularity=granularity, src_loc_at=src_loc_at)
+
+    def elaborate(self, platform):
+        m = TModule()
+
+        self._frozen = True
+
+        if Shape(len(self.write_ports)) != self.shape:
+            raise IncorrectWritePortNumber("Number of write ports not equal to ILVT's shape.")
+
+        write_addr_sync = [Signal(port.addr.shape()) for port in self.write_ports]
+        write_en_sync = [Signal() for _ in self.write_ports]
+        write_data_sync = [Signal(self.shape) for _ in self.write_ports]
+
+        write_addr_bypass = [Signal(port.addr.shape()) for port in self.write_ports]
+        write_en_bypass = [Signal() for _ in self.write_ports]
+        write_data_bypass = [Signal(self.shape) for _ in self.write_ports]
+
+        read_addr_bypass = [Signal(port.addr.shape()) for port in self.read_ports]
+        read_en_bypass = [Signal() for _ in self.read_ports]
+
+        bypassed_data = [[Signal(len(self.write_ports) - 1) for _ in self.write_ports] for _ in self.read_ports]
+
+        for index, write_port in enumerate(self.write_ports):
+            mem = MultiReadMemory(
+                shape=len(self.write_ports) - 1,
+                depth=self.depth,
+                init=[],
+                attrs=self.attrs,
+                src_loc_at=self.src_loc,
+            )
+            mem_name = f"bank_{index}"
+            m.submodules[mem_name] = mem
+            bank_write_port = mem.write_port()
+            bank_read_ports = [
+                mem.read_port(transparent_for=[bank_write_port])
+                for _ in range(len(self.read_ports) + len(self.write_ports) - 1)
+            ]
+
+            m.d.sync += [
+                write_addr_sync[index].eq(write_port.addr),
+                bank_write_port.addr.eq(write_port.addr),
+                write_addr_bypass[index].eq(write_addr_sync[index]),
+                write_en_sync[index].eq(write_port.en),
+                bank_write_port.en.eq(write_port.en),
+                write_en_bypass[index].eq(write_en_sync[index]),
+            ]
+
+            # real read ports
+            first_feedback_port = len(self.read_ports)
+            for idx in range(first_feedback_port):
+                m.d.sync += [
+                    read_addr_bypass[idx].eq(self.read_ports[idx].addr),
+                    read_en_bypass[idx].eq(self.read_ports[idx].en),
+                ]
+                m.d.comb += [
+                    bank_read_ports[idx].en.eq(self.read_ports[idx].en),
+                    bank_read_ports[idx].addr.eq(self.read_ports[idx].addr),
+                ]
+
+            # feedback ports
+            for idx in range(first_feedback_port, len(bank_read_ports)):
+                i = idx - first_feedback_port
+                # inverse function from the paper
+                k = i + 1 if index < i + 1 else i
+                m.d.comb += [
+                    bank_read_ports[idx].en.eq(1),
+                    bank_read_ports[idx].addr.eq(self.write_ports[k].addr),
+                ]
+
+        for index in range(len(self.write_ports)):
+            mem_name = f"bank_{index}"
+            mem = m.submodules[mem_name]
+
+            first_feedback_port = len(self.read_ports)
+            idx = index + first_feedback_port
+
+            # feedback data
+            bit_selection = [
+                (
+                    ~(m.submodules[f"bank_{i}"].read_ports[idx - 1].data[index - 1])
+                    if i < index
+                    else m.submodules[f"bank_{i+1}"].read_ports[idx].data[index]
+                )
+                for i in range(len(self.write_ports) - 1)
+            ]
+            m.d.comb += [
+                write_data_sync[index].eq(Cat(*bit_selection)),
+                mem.write_ports[0].data.eq(write_data_sync[index]),
+            ]
+            m.d.sync += write_data_bypass[index].eq(write_data_sync[index])
+
+        for index, read_port in enumerate(self.read_ports):
+
+            for i in range(len(self.write_ports)):
+                m.d.comb += bypassed_data[index][i].eq(
+                    Mux(
+                        (
+                            (read_addr_bypass[index] == write_addr_bypass[i])
+                            & read_en_bypass[index]
+                            & write_en_bypass[i]
+                        ),
+                        write_data_bypass[i],
+                        m.submodules[f"bank_{i}"].read_ports[index].data,
+                    )
+                )
+
+            exclusive_bits = [
+                [
+                    (~(bypassed_data[index][i][idx - 1]) if i < idx else bypassed_data[index][i + 1][idx])
+                    for i in range(len(self.write_ports) - 1)
+                ]
+                for idx in range(len(self.write_ports))
+            ]
+
+            one_hot = [Cat(*exclusive_bits[idx]) == bypassed_data[index][idx] for idx in range(len(self.write_ports))]
+
+            m.d.comb += read_port.data.eq(Cat(*one_hot))
+
+        return m
+
+
 class MultiportILVTMemory(BaseMultiportMemory):
     """Multiport memory based on Invalidation Live Value Table.
 
     Multiple read and write ports can be requested. Memory is built of
     number of write ports memory blocks with multiple read and multi-ported Invalidation Live Value Table.
-    ILVT is a XOR based memory that returns the number of the memory bank in which the current value is stored.
-    Width of data stored in ILVT is the binary logarithm of the number of write ports.
+    ILVT returns the number of the memory bank in which the current value is stored.
     Writing two different values to the same memory address in one cycle has undefined behavior.
-
+    Implementation of ILVT can vary, the proper implementation class
+    should be passed in the constructor.
     """
+
+    def __init__(
+        self,
+        shape: ShapeLike,
+        depth: int,
+        init: Iterable[ValueLike],
+        attrs: Optional[dict[str, str]] = None,
+        src_loc_at: int = 0,
+        memory_type: amemory.AbstractMemoryConstructor[ShapeLike, Value] = memory.Memory,
+    ):
+
+        self.memory_type = memory_type
+        super().__init__(shape=shape, depth=depth, init=init, attrs=attrs, src_loc_at=src_loc_at)
 
     def elaborate(self, platform):
         m = Module()
 
         self._frozen = True
 
-        m.submodules.ilvt = ilvt = MultiportXORMemory(
-            shape=bits_for(len(self.write_ports) - 1), depth=self.depth, init=self.init, src_loc_at=self.src_loc + 1
+        if self.memory_type == MultiportXORMemory or self.memory_type == memory.Memory:
+            shape = bits_for(len(self.write_ports) - 1)
+        elif self.memory_type == OneHotCodedILVT:
+            shape = len(self.write_ports)
+        else:
+            raise ValueError("Unsupported memory type.")
+
+        m.submodules.ilvt = ilvt = self.memory_type(
+            shape=shape,
+            depth=self.depth,
+            init=self.init,
+            src_loc_at=self.src_loc + 1,
         )
 
         ilvt_write_ports = [ilvt.write_port() for _ in self.write_ports]
@@ -322,11 +487,12 @@ class MultiportILVTMemory(BaseMultiportMemory):
             m.d.comb += [
                 write_port.addr.eq(self.write_ports[index].addr),
                 write_port.en.eq(self.write_ports[index].en.any()),
-                write_port.data.eq(index),
+                write_port.data.eq(index),  # ignored in ILVT
             ]
 
+            init = self.init if index == 0 else []
             mem = MultiReadMemory(
-                shape=self.shape, depth=self.depth, init=self.init, attrs=self.attrs, src_loc_at=self.src_loc
+                shape=self.shape, depth=self.depth, init=init, attrs=self.attrs, src_loc_at=self.src_loc
             )
             mem_name = f"bank_{index}"
             m.submodules[mem_name] = mem
@@ -338,6 +504,7 @@ class MultiportILVTMemory(BaseMultiportMemory):
                 bank_write_port.en.eq(self.write_ports[index].en),
                 bank_write_port.data.eq(self.write_ports[index].data),
             ]
+
             for idx, port in enumerate(bank_read_ports):
                 m.d.comb += [
                     port.en.eq(self.read_ports[idx].en),
@@ -353,7 +520,15 @@ class MultiportILVTMemory(BaseMultiportMemory):
             m.d.sync += [read_en_bypass.eq(read_port.en), read_addr_bypass.eq(read_port.addr)]
 
             bank_data = Signal(self.shape)
-            with m.Switch(ilvt_read_ports[index].data):
+            if self.memory_type == OneHotCodedILVT:
+                encoder_name = f"encoder_{index}"
+                m.submodules[encoder_name] = encoder = Encoder(width=len(self.write_ports))
+                m.d.comb += encoder.i.eq(ilvt_read_ports[index].data)
+                switch = encoder.o
+            else:
+                switch = ilvt_read_ports[index].data
+
+            with m.Switch(switch):
                 for value in range(len(self.write_ports)):
                     with m.Case(value):
                         m.d.comb += [bank_data.eq(m.submodules[f"bank_{value}"].read_ports[index].data)]
@@ -370,3 +545,39 @@ class MultiportILVTMemory(BaseMultiportMemory):
             m.d.comb += [read_port.data.eq(Mux(read_en_bypass, new_data, sync_data))]
 
         return m
+
+
+class MultiportOneHotILVTMemory(MultiportILVTMemory):
+    """Multiport memory based on Invalidation Live Value Table that is `OneHotCodedILVT`.
+    Width of data stored in ILVT is the number of write ports - 1.
+    """
+
+    def __init__(
+        self,
+        shape: ShapeLike,
+        depth: int,
+        init: Iterable[ValueLike],
+        attrs: Optional[dict[str, str]] = None,
+        src_loc_at: int = 0,
+    ):
+        super().__init__(
+            shape=shape, depth=depth, init=init, attrs=attrs, src_loc_at=src_loc_at, memory_type=OneHotCodedILVT
+        )
+
+
+class MultiportXORILVTMemory(MultiportILVTMemory):
+    """Multiport memory based on Invalidation Live Value Table which is `MultiportXORMemory`.
+    Width of data stored in ILVT is the binary logarithm of the number of write ports.
+    """
+
+    def __init__(
+        self,
+        shape: ShapeLike,
+        depth: int,
+        init: Iterable[ValueLike],
+        attrs: Optional[dict[str, str]] = None,
+        src_loc_at: int = 0,
+    ):
+        super().__init__(
+            shape=shape, depth=depth, init=init, attrs=attrs, src_loc_at=src_loc_at, memory_type=MultiportXORMemory
+        )

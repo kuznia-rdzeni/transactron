@@ -9,7 +9,7 @@ import amaranth.lib.memory as memory
 import amaranth_types.memory as amemory
 from transactron.testing import *
 from transactron.lib.storage import *
-from transactron.utils.amaranth_ext.memory import MultiportXORMemory, MultiportILVTMemory
+from transactron.utils.amaranth_ext.memory import MultiportXORMemory, MultiportXORILVTMemory, MultiportOneHotILVTMemory
 from transactron.utils.transactron_helpers import make_layout
 
 
@@ -153,7 +153,10 @@ class TestMemoryBank(TestCaseWithSimulator):
     @pytest.mark.parametrize("transparent", [False, True])
     @pytest.mark.parametrize("read_ports", [1, 2])
     @pytest.mark.parametrize("write_ports", [1, 2])
-    @pytest.mark.parametrize("memory_type", [memory.Memory, MultiportXORMemory, MultiportILVTMemory])
+    @pytest.mark.parametrize(
+        "memory_type",
+        [memory.Memory, MultiportXORMemory, MultiportXORILVTMemory, MultiportOneHotILVTMemory],
+    )
     @pytest.mark.parametrize("shape,to_shape,from_shape", bank_shapes)
     def test_mem(
         self,
