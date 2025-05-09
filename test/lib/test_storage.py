@@ -6,11 +6,11 @@ from collections import deque
 from datetime import timedelta
 from hypothesis import given, settings, Phase
 
-# import amaranth.lib.memory as memory
+import amaranth.lib.memory as memory
 import amaranth_types.memory as amemory
 from transactron.testing import *
 from transactron.lib.storage import *
-from transactron.utils.amaranth_ext.memory import MultiportOneHotILVTMemory  # , MultiportXORMemory, MultiportILVTMemory
+from transactron.utils.amaranth_ext.memory import MultiportXORMemory, MultiportXORILVTMemory, MultiportOneHotILVTMemory
 from transactron.utils.transactron_helpers import make_layout
 
 
@@ -156,9 +156,7 @@ class TestMemoryBank(TestCaseWithSimulator):
     @pytest.mark.parametrize("write_ports", [1, 2])
     @pytest.mark.parametrize(
         "memory_type",
-        [
-            MultiportOneHotILVTMemory
-        ],  # memory.Memory, MultiportXORMemory, MultiportILVTMemory, MultiportOneHotILVTMemory
+        [memory.Memory, MultiportXORMemory, MultiportXORILVTMemory, MultiportOneHotILVTMemory],
     )
     @pytest.mark.parametrize("shape,to_shape,from_shape", bank_shapes)
     def test_mem(
@@ -207,7 +205,6 @@ class TestMemoryBank(TestCaseWithSimulator):
                     address_lock[a] = True
 
                     await m.write[i].call(sim, data=to_shape(d), addr=a)
-                    print("writing value", d, "at address", a, "at port", i)
 
                     await sim.delay(1e-9 * (i + 2 if not transparent else i))
                     data[a] = d
