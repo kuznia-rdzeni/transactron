@@ -5,7 +5,6 @@ import random
 from collections import deque
 from datetime import timedelta
 from hypothesis import given, settings, Phase
-
 import amaranth.lib.memory as memory
 import amaranth_types.memory as amemory
 from transactron.testing import *
@@ -222,7 +221,6 @@ class TestMemoryBank(TestCaseWithSimulator):
                     await m.read_req[i].call(sim, addr=a)
                     await sim.delay(1e-9 * (1 if not transparent else write_ports + 2))
                     d = data[a]
-                    print("i want to read value", d, "at address", a, "at port", i)
                     read_req_queues[i].append(d)
                     await self.random_wait(sim, reader_req_rand)
 
