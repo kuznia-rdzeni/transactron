@@ -151,8 +151,8 @@ class TestMemoryBank(TestCaseWithSimulator):
 
     @pytest.mark.parametrize("max_addr, writer_rand, reader_req_rand, reader_resp_rand, seed", test_conf)
     @pytest.mark.parametrize("transparent", [False, True])
-    @pytest.mark.parametrize("read_ports", [1, 2])
-    @pytest.mark.parametrize("write_ports", [1, 2])
+    @pytest.mark.parametrize("read_ports", [1, 4])
+    @pytest.mark.parametrize("write_ports", [1, 4])
     @pytest.mark.parametrize(
         "memory_type",
         [memory.Memory, MultiportXORMemory, MultiportXORILVTMemory, MultiportOneHotILVTMemory],
