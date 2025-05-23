@@ -111,7 +111,8 @@ class TestWideFifo(TestCaseWithSimulator):
 
         self.shape = shape
         self.bits = Shape.cast(shape).width
-        self.circ = SimpleTestCircuit(WideFifo(shape, depth, read_width, write_width))
+        max_width = max(read_width, write_width)
+        self.circ = SimpleTestCircuit(WideFifo(shape, depth * max_width, read_width, write_width))
         self.read_width = read_width
         self.write_width = write_width
 
