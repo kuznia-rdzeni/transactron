@@ -2,6 +2,7 @@ import random
 from collections import deque
 
 from amaranth import *
+import pytest
 from transactron import *
 from transactron.lib.adapters import Adapter
 from transactron.lib.reqres import *
@@ -16,11 +17,13 @@ from transactron.testing import (
 )
 
 
+@pytest.mark.parametrize("port_count", [2, 3])
 class TestSerializer(TestCaseWithSimulator):
-    def setup_method(self):
+    @pytest.fixture(scope="function", autouse=True)
+    def setup_method(self, port_count: int):
         self.test_count = 100
 
-        self.port_count = 2
+        self.port_count = port_count
         self.data_width = 5
 
         self.requestor_rand = 4
@@ -83,8 +86,8 @@ class TestSerializer(TestCaseWithSimulator):
 
         return f
 
-    def test_serial(self):
+    def test_serial(self, port_count: int):
         with self.run_simulation(self.m) as sim:
-            for i in range(self.port_count):
+            for i in range(port_count):
                 sim.add_testbench(self.requestor(i))
                 sim.add_testbench(self.responder(i))
