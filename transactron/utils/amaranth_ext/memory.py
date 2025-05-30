@@ -182,6 +182,18 @@ class MultiportXORMemory(BaseMultiportMemory):
     Writing two different values to the same memory address in one cycle has undefined behavior.
     Write port granularity is not yet supported.
 
+    Board utilization for Lattice ECP5 (depth/width/read_ports/write_ports):
+    | xor | 32/16/3/4 | 32/16/8/8 | 128/32/2/2 | 128/32/4/4 | 128/8/8/8 |
+    | --- | --- | --- | --- | --- | --- |
+    | **FMax (MHz)** | 197.20 | 119.73 | 227.89 | 168.35 | 103.17 |
+    | **logic LUTs** | 2224 | 5656 | 798 | 3911 | 9690 |
+    | **RAM LUTs** | 768 | 3840 | 0   | 0   | 7680 |
+    | **RAMW LUTs** | 384 | 1920 | 0   | 0   | 3840 |
+    | **Total DFFs** | 456 | 1594 | 454 | 1178 | 954 |
+    | **DP16KD** | 0   | 0   | 6   | 28  | 0   |
+    | **TRELLIS_COMB** | 2225 | 11417 | 800 | 3913 | 21211 |
+    | **TRELLIS_RAMW** | 192 | 960 | 0   | 0   | 1920 |
+
     """
 
     def write_port(self, *, domain: str = "sync", granularity: Optional[int] = None, src_loc_at: int = 0):
@@ -549,7 +561,26 @@ class MultiportILVTMemory(BaseMultiportMemory):
 
 class MultiportOneHotILVTMemory(MultiportILVTMemory):
     """Multiport memory based on Invalidation Live Value Table that is `OneHotCodedILVT`.
+
+    Multiple read and write ports can be requested. Memory is built of
+    number of write ports memory blocks with multiple read and multi-ported Invalidation Live Value Table.
+    ILVT returns the number of the memory bank in which the current value is stored.
+    Writing two different values to the same memory address in one cycle has undefined behavior.
+    Implementation of ILVT can vary, the proper implementation class
+    should be passed in the constructor.
     Width of data stored in ILVT is the number of write ports - 1.
+
+    Board utilization for Lattice ECP5 (depth/width/read_ports/write_ports):
+    | one-hot ILVT | 32/16/3/4 | 32/16/8/8 | 128/32/2/2 | 128/32/4/4 | 128/8/8/8 |
+    | --- | --- | --- | --- | --- | --- |
+    | **FMax (MHz)** | 176.21 | 115.67 | 244.68 | 118.13 | 117.55 |
+    | **logic LUTs** | 724 | 6882 | 580 | 2106 | 11040 |
+    | **RAM LUTs** | 576 | 3520 | 192 | 896 | 9984 |
+    | **RAMW LUTs** | 288 | 1760 | 96  | 448 | 4992 |
+    | **Total DFFs** | 376 | 1842 | 330 | 970 | 1330 |
+    | **DP16KD** | 0   | 0   | 4   | 16  | 0   |
+    | **TRELLIS_COMB** | 1589 | 12163 | 870 | 3452 | 26017 |
+    | **TRELLIS_RAMW** | 144 | 880 | 48  | 224 | 2496 |
     """
 
     def __init__(
@@ -567,7 +598,26 @@ class MultiportOneHotILVTMemory(MultiportILVTMemory):
 
 class MultiportXORILVTMemory(MultiportILVTMemory):
     """Multiport memory based on Invalidation Live Value Table which is `MultiportXORMemory`.
+
+    Multiple read and write ports can be requested. Memory is built of
+    number of write ports memory blocks with multiple read and multi-ported Invalidation Live Value Table.
+    ILVT returns the number of the memory bank in which the current value is stored.
+    Writing two different values to the same memory address in one cycle has undefined behavior.
+    Implementation of ILVT can vary, the proper implementation class
+    should be passed in the constructor.
     Width of data stored in ILVT is the binary logarithm of the number of write ports.
+
+    Board utilization for Lattice ECP5 (depth/width/read_ports/write_ports):
+    | xor ILVT | 32/16/3/4 | 32/16/8/8 | 128/32/2/2 | 128/32/4/4 | 128/8/8/8 |
+    | --- | --- | --- | --- | --- | --- |
+    | **FMax (MHz)** | 166.25 | 99.05 | 222.97 | 115.69 | 104.37 |
+    | **logic LUTs** | 1475 | 4047 | 531 | 3301 | 7801 |
+    | **RAM LUTs** | 576 | 3008 | 192 | 896 | 7936 |
+    | **RAMW LUTs** | 288 | 1504 | 96  | 448 | 3968 |
+    | **Total DFFs** | 367 | 1579 | 331 | 959 | 1067 |
+    | **DP16KD** | 0   | 0   | 4   | 16  | 0   |
+    | **TRELLIS_COMB** | 1477 | 8561 | 821 | 3303 | 19707 |
+    | **TRELLIS_RAMW** | 144 | 752 | 48  | 224 | 1984 |
     """
 
     def __init__(
