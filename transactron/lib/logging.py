@@ -10,6 +10,7 @@ from typing import TypeAlias
 from amaranth import *
 from amaranth.tracer import get_src_loc
 
+from ..core import TModule
 from transactron.utils import SrcLoc
 from transactron.utils._typing import ModuleLike, ValueLike
 from transactron.utils.dependencies import DependencyContext, ListKey
@@ -139,9 +140,10 @@ class HardwareLogger:
             logger_name=self.name, level=level, format_str=format, location=src_loc, trigger=trigger_signal
         )
 
+        top_comb = m.d.top_comb if isinstance(m, TModule) else m.d.comb
         for arg in args:
             sig = Signal.like(arg)
-            m.d.top_comb += sig.eq(arg)
+            top_comb += sig.eq(arg)
             record.fields.append(sig)
 
         dependencies = DependencyContext.get()
