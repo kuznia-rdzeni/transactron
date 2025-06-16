@@ -13,7 +13,7 @@ The main advantages of using Transactron are:
 A Transactron module defines a number of *methods*, which represent actions which can be performed by the circuit.
 If an action cannot be performed at a given time (e.g. a pop from an empty FIFO queue), the method is marked as not ready.
 A method can be called by other methods or by *transactions*, which represent single cycle state changes in a circuit.
-A given transaction can only be run when every method called by it is ready.
+A given transaction can only be run when every method it calls is ready.
 When two different transactions call the same method, they are in *conflict*, which indicates a structural hazard.
 Transactron ensures that two conflicting transactions never run in the same clock cycle.
 
