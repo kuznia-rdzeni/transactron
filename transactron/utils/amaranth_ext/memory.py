@@ -566,8 +566,6 @@ class MultiportOneHotILVTMemory(MultiportILVTMemory):
     number of write ports memory blocks with multiple read and multi-ported Invalidation Live Value Table.
     ILVT returns the number of the memory bank in which the current value is stored.
     Writing two different values to the same memory address in one cycle has undefined behavior.
-    Implementation of ILVT can vary, the proper implementation class
-    should be passed in the constructor.
     Width of data stored in ILVT is the number of write ports - 1.
 
     Board utilization for Lattice ECP5 (depth/width/read_ports/write_ports):
@@ -603,8 +601,6 @@ class MultiportXORILVTMemory(MultiportILVTMemory):
     number of write ports memory blocks with multiple read and multi-ported Invalidation Live Value Table.
     ILVT returns the number of the memory bank in which the current value is stored.
     Writing two different values to the same memory address in one cycle has undefined behavior.
-    Implementation of ILVT can vary, the proper implementation class
-    should be passed in the constructor.
     Width of data stored in ILVT is the binary logarithm of the number of write ports.
 
     Board utilization for Lattice ECP5 (depth/width/read_ports/write_ports):
