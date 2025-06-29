@@ -20,10 +20,10 @@ transactron.lib.allocators module
    :undoc-members:
    :show-inheritance:
 
-transactron.lib.buttons module
+transactron.lib.basicio module
 ------------------------------
 
-.. automodule:: transactron.lib.buttons
+.. automodule:: transactron.lib.basicio
    :members:
    :undoc-members:
    :show-inheritance:
