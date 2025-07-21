@@ -1,11 +1,25 @@
 # Transactron
 
 Transactron is a library for [Amaranth HDL](https://amaranth-lang.org/) which makes designing complex digital designs easier.
-It is inspired by [Bluespec](https://github.com/B-Lang-org/bsc) and its concept of guarded atomic actions.
-A Transactron circuit consists of a number of atomic *transactions*, which represent single cycle state changes in a circuit.
-A transaction might depend on different circuit submodules via *methods*, which represent actions which can be performed by a circuit.
-Transactron ensures that transactions are only performed when the used methods are ready for execution and are not simultaneously used by a different, higher priority transaction.
-This mechanism allows constructing circuits which are easily composable and insensitive of latencies.
+It provides an abstraction for ready/valid handshake signals, automatically generates arbitration circuits, and presents an intuitive, object-oriented-like interface to the circuit designer.
+The main advantages of using Transactron are:
+
+* Abstracted handshake signalling makes it easier to design complex, latency-insensitive, pipelined circuits.
+* Object-oriented-like interface allows to encapsulate complex behavior of a module and present a simple interface for its users.
+  The syntax used is friendly for people coming from software development background.
+* Thanks to auto-generated arbitrators and a rich library of reusable components, refactoring circuits is powerful and requires less effort.
+  For example, when constructing pipelines, switching between lock-step, FIFO-coupled or combinational connection is as simple as switching a connector module.
+
+A Transactron module defines a number of *methods*, which represent actions which can be performed by the circuit.
+If an action cannot be performed at a given time (e.g. a pop from an empty FIFO queue), the method is marked as not ready.
+A method can be called by other methods or by *transactions*, which represent single cycle state changes in a circuit.
+A given transaction can only be run when every method it calls is ready.
+When two different transactions call the same method, they are in *conflict*, which indicates a structural hazard.
+Transactron ensures that two conflicting transactions never run in the same clock cycle.
+
+Transactron is inspired by [Bluespec](https://github.com/B-Lang-org/bsc) and its concept of guarded atomic actions.
+However, while Bluespec requires to follow its paradigm strictly down to simple register assignments, Transactron's abstractions are intended to be used at module boundaries, while the actual logic is written in plain Amaranth.
+Transactron is just a library and, as such, allows smooth interoperation with plain Amaranth HDL code.
 
 ## State of the project
 
