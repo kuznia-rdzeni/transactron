@@ -805,23 +805,6 @@ for different kinds of keys.</p>
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">transactron.lib.fifo.</span></span><span class="sig-name descname"><span class="pre">BasicFifo</span></span><a class="headerlink" href="#transactron.lib.fifo.BasicFifo" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Elaboratable</span></code></p>
 <p>Transactional FIFO queue</p>
-<dl class="field-list simple">
-<dt class="field-odd">Attributes</dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>read: Method</strong></dt><dd><p>Reads from the FIFO. Accepts an empty argument, returns a structure.
-Ready only if the FIFO is not empty.</p>
-</dd>
-<dt><strong>peek: Method</strong></dt><dd><p>Returns the element at the front (but not delete). Ready only if the FIFO
-is not empty. The method is nonexclusive.</p>
-</dd>
-<dt><strong>write: Method</strong></dt><dd><p>Writes to the FIFO. Accepts a structure, returns empty result.
-Ready only if the FIFO is not full.</p>
-</dd>
-<dt><strong>clear: Method</strong></dt><dd><p>Clears the FIFO entries. Has priority over <cite>read</cite> and <cite>write</cite> methods.</p>
-</dd>
-</dl>
-</dd>
-</dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="transactron.lib.fifo.BasicFifo.__init__">
 <span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">layout</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/latest/stdlib/data.html#amaranth.lib.data.StructLayout" title="(in Amaranth language &amp; toolchain v0.6.0.dev98)"><span class="pre">amaranth.lib.data.StructLayout</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterable" title="(in Python v3.13)"><span class="pre">collections.abc.Iterable</span></a><span class="p"><span class="pre">[</span></span><span class="pre">LayoutListField</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">depth</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src_loc</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#transactron.lib.fifo.BasicFifo.__init__" title="Permalink to this definition"></a></dt>
@@ -834,6 +817,83 @@ Ready only if the FIFO is not full.</p>
 </dd>
 <dt><strong>src_loc: int | SrcLoc</strong></dt><dd><p>How many stack frames deep the source location is taken from.
 Alternatively, the source location to use instead of the default.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="transactron.lib.fifo.BasicFifo.clear">
+<span class="sig-name descname"><span class="pre">clear</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="transactron.core.html#transactron.core.method.Method" title="transactron.core.method.Method"><span class="pre">Method</span></a></em><a class="headerlink" href="#transactron.lib.fifo.BasicFifo.clear" title="Permalink to this definition"></a></dt>
+<dd><p>Clears the FIFO entries.</p>
+<p>The FIFO is empty in the next cycle after this method runs, even when
+<cite>write</cite> is called simultaneously with <cite>clear</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>m: TModule</strong></dt><dd><p>Transactron module.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="transactron.lib.fifo.BasicFifo.peek">
+<span class="sig-name descname"><span class="pre">peek</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="transactron.core.html#transactron.core.method.Method" title="transactron.core.method.Method"><span class="pre">Method</span></a></em><a class="headerlink" href="#transactron.lib.fifo.BasicFifo.peek" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the element at the front.</p>
+<p>Ready only if the FIFO is not empty. The method is nonexclusive.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>m: TModule</strong></dt><dd><p>Transactron module.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>MethodStruct</dt><dd><p>Data with layout <cite>layout</cite>.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="transactron.lib.fifo.BasicFifo.read">
+<span class="sig-name descname"><span class="pre">read</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="transactron.core.html#transactron.core.method.Method" title="transactron.core.method.Method"><span class="pre">Method</span></a></em><a class="headerlink" href="#transactron.lib.fifo.BasicFifo.read" title="Permalink to this definition"></a></dt>
+<dd><p>Reads from the FIFO.</p>
+<p>Returns data at the front of the FIFO, as specified by the data layout
+<cite>layout</cite>. Ready only if the FIFO is not empty.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>m: TModule</strong></dt><dd><p>Transactron module.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>MethodStruct</dt><dd><p>Data with layout <cite>layout</cite>.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="transactron.lib.fifo.BasicFifo.write">
+<span class="sig-name descname"><span class="pre">write</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="transactron.core.html#transactron.core.method.Method" title="transactron.core.method.Method"><span class="pre">Method</span></a></em><a class="headerlink" href="#transactron.lib.fifo.BasicFifo.write" title="Permalink to this definition"></a></dt>
+<dd><p>Writes to the FIFO.</p>
+<p>Accepts arguments as specified by the data layout <cite>layout</cite>. Ready only if
+the FIFO is not full.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>m: TModule</strong></dt><dd><p>Transactron module.</p>
+</dd>
+<dt><strong>**kwargs: ValueLike</strong></dt><dd><p>Arguments as specified by the data layout.</p>
 </dd>
 </dl>
 </dd>
@@ -2410,7 +2470,7 @@ call graph indicates it could.</p>
 
   <div role="contentinfo">
     <p>&#169; Copyright Kuźnia Rdzeni, 2025.
-      <span class="lastupdated">Last updated on 21:02 2025-07-30.
+      <span class="lastupdated">Last updated on 21:41 2025-07-30.
       </span></p>
   </div>
 
