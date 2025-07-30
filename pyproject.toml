@@ -28,15 +28,18 @@ classifiers = [
 "Bug Tracker" = "https://github.com/kuznia-rdzeni/transactron/issues"
 
 [project.optional-dependencies]
+test = [
+    "pytest == 8.0.0",
+    "pytest-xdist == 3.5.0",
+    "hypothesis == 6.99.6",
+]
 dev = [
+    # Testing
+    "transactron[test]",
     # Linting
     "pyright == 1.1.393",
     "flake8 == 7.0.0",
     "black == 24.4.2",
-    # Testing
-    "pytest == 8.0.0",
-    "pytest-xdist == 3.5.0",
-    "hypothesis == 6.99.6",
     # Documentation
     "pep8-naming == 0.13.3",
     "Sphinx == 5.1.1",

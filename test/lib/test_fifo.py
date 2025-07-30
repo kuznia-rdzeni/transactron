@@ -7,11 +7,9 @@ from transactron.lib import AdapterTrans, BasicFifo
 from transactron.lib.fifo import WideFifo
 from transactron.utils.amaranth_ext import const_of
 
-from transactron.testing import TestCaseWithSimulator, TestbenchIO, data_layout, TestbenchContext
+from transactron.testing import TestCaseWithSimulator, TestbenchIO, data_layout, TestbenchContext, SimpleTestCircuit
 from collections import deque
 import random
-
-from transactron.testing.infrastructure import SimpleTestCircuit
 
 
 class BasicFifoTestCircuit(Elaboratable):
