@@ -84,6 +84,14 @@ transactron.lib.simultaneous module
    :undoc-members:
    :show-inheritance:
 
+transactron.lib.stack module
+----------------------------
+
+.. automodule:: transactron.lib.stack
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 transactron.lib.storage module
 ------------------------------
 
