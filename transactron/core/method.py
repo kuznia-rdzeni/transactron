@@ -1,4 +1,4 @@
-from collections.abc import Sequence
+from collections.abc import Iterable, Sequence
 import enum
 
 from transactron.utils import *
@@ -343,6 +343,13 @@ class Methods(Sequence[Method]):
     @property
     def layout_out(self):
         return self._layout_out
+
+    def proxy(self, methods: Iterable[Method]):
+        methods = list(methods)
+        if len(methods) != len(self):
+            raise ValueError(f"Invalid number of methods: {len(self)} expected, {len(methods)} provided")
+        for self_method, method in zip(self, methods):
+            self_method.proxy(method)
 
     def __call__(
         self, m: TModule, arg: Optional[AssignArg] = None, /, enable_call: ValueLike = C(1), **kwargs: AssignArg

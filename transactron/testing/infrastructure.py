@@ -84,10 +84,10 @@ class SimpleTestCircuit(Elaboratable, Generic[_T_HasElaborate]):
                     mc_dict[name] = mc
                 return tb_dict, ModuleConnector(*mc_dict)
             elif isinstance(container, Methods):
-                tb_list = [TestbenchIO(adapter_type(method)) for method in container]
+                tb_list = [TestbenchIO(adapter_type.create(method)) for method in container]
                 return list(tb_list), ModuleConnector(*tb_list)
             else:
-                tb = TestbenchIO(adapter_type(container))
+                tb = TestbenchIO(adapter_type.create(container))
                 return tb, tb
 
         m = Module()

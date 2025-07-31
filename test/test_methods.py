@@ -164,7 +164,7 @@ class TestDefMethods(TestCaseWithSimulator):
 
 
 class AdapterCircuit(Elaboratable):
-    def __init__(self, module, methods):
+    def __init__(self, module, methods: list[Method]):
         self.module = module
         self.methods = methods
 
@@ -173,7 +173,7 @@ class AdapterCircuit(Elaboratable):
 
         m.submodules += self.module
         for method in self.methods:
-            m.submodules += AdapterTrans(method)
+            m.submodules += AdapterTrans.create(method)
 
         return m
 
@@ -316,16 +316,7 @@ class TestInvalidMethods(TestCase):
             def elaborate(self, platform):
                 return TModule()
 
-        class Circuit(Elaboratable):
-            def elaborate(self, platform):
-                m = TModule()
-
-                m.submodules.undefined = undefined = Undefined()
-                m.submodules.adapter = AdapterTrans(undefined.meth)
-
-                return m
-
-        self.assert_re("not defined", Circuit())
+        self.assert_re("not defined", SimpleTestCircuit(Undefined()))
 
 
 WIDTH = 8
@@ -364,7 +355,7 @@ class QuadrupleCircuit(Elaboratable):
         m = TModule()
 
         m.submodules.quadruple = self.quadruple
-        m.submodules.tb = self.tb = TestbenchIO(AdapterTrans(self.quadruple.quadruple))
+        m.submodules.tb = self.tb = TestbenchIO(AdapterTrans.create(self.quadruple.quadruple))
 
         return m
 
@@ -404,12 +395,10 @@ class ConditionalCallCircuit(Elaboratable):
     def elaborate(self, platform):
         m = TModule()
 
-        meth = Method(i=data_layout(1))
+        m.submodules.tb = self.tb = TestbenchIO(AdapterTrans(i=data_layout(1)))
+        m.submodules.out = self.out = TestbenchIO(Adapter())
 
-        m.submodules.tb = self.tb = TestbenchIO(AdapterTrans(meth))
-        m.submodules.out = self.out = TestbenchIO(Adapter.create())
-
-        @def_method(m, meth)
+        @def_method(m, self.tb.adapter.iface)
         def _(arg):
             with m.If(arg):
                 self.out.adapter.iface(m)
@@ -421,12 +410,10 @@ class ConditionalMethodCircuit1(Elaboratable):
     def elaborate(self, platform):
         m = TModule()
 
-        meth = Method()
-
         self.ready = Signal()
-        m.submodules.tb = self.tb = TestbenchIO(AdapterTrans(meth))
+        m.submodules.tb = self.tb = TestbenchIO(AdapterTrans())
 
-        @def_method(m, meth, ready=self.ready)
+        @def_method(m, self.tb.adapter.iface, ready=self.ready)
         def _(arg):
             pass
 
@@ -437,14 +424,12 @@ class ConditionalMethodCircuit2(Elaboratable):
     def elaborate(self, platform):
         m = TModule()
 
-        meth = Method()
-
         self.ready = Signal()
-        m.submodules.tb = self.tb = TestbenchIO(AdapterTrans(meth))
+        m.submodules.tb = self.tb = TestbenchIO(AdapterTrans())
 
         with m.If(self.ready):
 
-            @def_method(m, meth)
+            @def_method(m, self.tb.adapter.iface)
             def _(arg):
                 pass
 
@@ -456,7 +441,7 @@ class ConditionalTransactionCircuit1(Elaboratable):
         m = TModule()
 
         self.ready = Signal()
-        m.submodules.tb = self.tb = TestbenchIO(Adapter.create())
+        m.submodules.tb = self.tb = TestbenchIO(Adapter())
 
         with Transaction().body(m, request=self.ready):
             self.tb.adapter.iface(m)
@@ -469,7 +454,7 @@ class ConditionalTransactionCircuit2(Elaboratable):
         m = TModule()
 
         self.ready = Signal()
-        m.submodules.tb = self.tb = TestbenchIO(Adapter.create())
+        m.submodules.tb = self.tb = TestbenchIO(Adapter())
 
         with m.If(self.ready):
             with Transaction().body(m):
@@ -545,8 +530,8 @@ class NonexclusiveMethodCircuit(Elaboratable):
             m.d.comb += self.running.eq(1)
             return {"data": self.data}
 
-        m.submodules.t1 = self.t1 = TestbenchIO(AdapterTrans(method))
-        m.submodules.t2 = self.t2 = TestbenchIO(AdapterTrans(method))
+        m.submodules.t1 = self.t1 = TestbenchIO(AdapterTrans.create(method))
+        m.submodules.t2 = self.t2 = TestbenchIO(AdapterTrans.create(method))
 
         return m
 
@@ -612,8 +597,8 @@ class TwoNonexclusiveConflictCircuit(Elaboratable):
             m.d.comb += self.running2.eq(1)
             return method_in(m)
 
-        m.submodules.t1 = self.t1 = TestbenchIO(AdapterTrans(method1))
-        m.submodules.t2 = self.t2 = TestbenchIO(AdapterTrans(method2))
+        m.submodules.t1 = self.t1 = TestbenchIO(AdapterTrans.create(method1))
+        m.submodules.t2 = self.t2 = TestbenchIO(AdapterTrans.create(method2))
 
         return m
 
@@ -656,8 +641,8 @@ class CustomCombinerMethodCircuit(Elaboratable):
             m.d.comb += self.running.eq(1)
             return {"data": data}
 
-        m.submodules.t1 = self.t1 = TestbenchIO(AdapterTrans(method))
-        m.submodules.t2 = self.t2 = TestbenchIO(AdapterTrans(method))
+        m.submodules.t1 = self.t1 = TestbenchIO(AdapterTrans.create(method))
+        m.submodules.t2 = self.t2 = TestbenchIO(AdapterTrans.create(method))
 
         return m
 

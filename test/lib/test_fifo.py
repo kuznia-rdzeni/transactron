@@ -3,8 +3,7 @@ import pytest
 from amaranth import *
 from amaranth.lib import data
 
-from transactron.lib import BasicFifo
-from transactron.lib.fifo import WideFifo
+from transactron.lib.fifo import BasicFifo, WideFifo
 from transactron.utils.amaranth_ext import const_of
 
 from transactron.testing import TestCaseWithSimulator, data_layout, TestbenchContext, SimpleTestCircuit
