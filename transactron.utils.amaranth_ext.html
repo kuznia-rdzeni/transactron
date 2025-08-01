@@ -465,6 +465,44 @@ on the second position.</p>
 
 </dd></dl>
 
+<dl class="py class">
+<dt class="sig sig-object py" id="transactron.utils.amaranth_ext.elaboratables.OneHotRoundRobin">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">transactron.utils.amaranth_ext.elaboratables.</span></span><span class="sig-name descname"><span class="pre">OneHotRoundRobin</span></span><a class="headerlink" href="#transactron.utils.amaranth_ext.elaboratables.OneHotRoundRobin" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Elaboratable</span></code></p>
+<p>Scheduler</p>
+<p>An implementation of a round-robin scheduler, which is used in the
+transaction subsystem. It is based on Amaranth’s round-robin scheduler
+but instead of using binary numbers, it uses one-hot encoding for the
+<cite>grant</cite> output signal.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Attributes</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>requests: Signal(count), in</strong></dt><dd><p>Signals that something (e.g. a transaction) wants to run. When i-th
+bit is high, then the i-th agent requests the grant signal.</p>
+</dd>
+<dt><strong>grant: Signal(count), out</strong></dt><dd><p>Signals that something (e.g. transaction) is granted to run. It uses
+one-hot encoding.</p>
+</dd>
+<dt><strong>valid</strong><span class="classifier">Signal(1), out</span></dt><dd><p>Signal that <cite>grant</cite> signals are valid.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.utils.amaranth_ext.elaboratables.OneHotRoundRobin.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">count</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.utils.amaranth_ext.elaboratables.OneHotRoundRobin.__init__" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>count</strong><span class="classifier">int</span></dt><dd><p>Number of agents between which the scheduler should arbitrate.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 <dl class="py function">
 <dt class="sig sig-object py" id="transactron.utils.amaranth_ext.elaboratables.OneHotSwitch">
 <span class="sig-prename descclassname"><span class="pre">transactron.utils.amaranth_ext.elaboratables.</span></span><span class="sig-name descname"><span class="pre">OneHotSwitch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">m</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ModuleLike</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/latest/reference.html#amaranth.hdl.Value" title="(in Amaranth language &amp; toolchain v0.6.0.dev98)"><span class="pre">Value</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.utils.amaranth_ext.elaboratables.OneHotSwitch" title="Permalink to this definition"></a></dt>
@@ -655,44 +693,6 @@ otherwise, i.e. if no requests are active.</p>
 <dt class="sig sig-object py" id="transactron.utils.amaranth_ext.elaboratables.RoundRobin.__init__">
 <span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">count</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.utils.amaranth_ext.elaboratables.RoundRobin.__init__" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="transactron.utils.amaranth_ext.elaboratables.Scheduler">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">transactron.utils.amaranth_ext.elaboratables.</span></span><span class="sig-name descname"><span class="pre">Scheduler</span></span><a class="headerlink" href="#transactron.utils.amaranth_ext.elaboratables.Scheduler" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Elaboratable</span></code></p>
-<p>Scheduler</p>
-<p>An implementation of a round-robin scheduler, which is used in the
-transaction subsystem. It is based on Amaranth’s round-robin scheduler
-but instead of using binary numbers, it uses one-hot encoding for the
-<cite>grant</cite> output signal.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Attributes</dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>requests: Signal(count), in</strong></dt><dd><p>Signals that something (e.g. a transaction) wants to run. When i-th
-bit is high, then the i-th agent requests the grant signal.</p>
-</dd>
-<dt><strong>grant: Signal(count), out</strong></dt><dd><p>Signals that something (e.g. transaction) is granted to run. It uses
-one-hot encoding.</p>
-</dd>
-<dt><strong>valid</strong><span class="classifier">Signal(1), out</span></dt><dd><p>Signal that <cite>grant</cite> signals are valid.</p>
-</dd>
-</dl>
-</dd>
-</dl>
-<dl class="py method">
-<dt class="sig sig-object py" id="transactron.utils.amaranth_ext.elaboratables.Scheduler.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">count</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.utils.amaranth_ext.elaboratables.Scheduler.__init__" title="Permalink to this definition"></a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>count</strong><span class="classifier">int</span></dt><dd><p>Number of agents between which the scheduler should arbitrate.</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
 
 </dd></dl>
 
@@ -1295,7 +1295,7 @@ The entries of <cite>data</cite> must be of the same width.</p>
 
   <div role="contentinfo">
     <p>&#169; Copyright Kuźnia Rdzeni, 2025.
-      <span class="lastupdated">Last updated on 16:07 2025-08-01.
+      <span class="lastupdated">Last updated on 17:16 2025-08-01.
       </span></p>
   </div>
 
