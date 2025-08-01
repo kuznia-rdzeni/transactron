@@ -60,11 +60,11 @@ class TestScheduler(TestCaseWithSimulator):
         assert len(sched.grant) == cnt
         assert len(sched.valid) == 1
 
-    async def sim_step(self, sim, sched: Scheduler, request: int, expected_grant: int):
-        sim.set(sched.requests, request)
+    async def sim_step(self, sim, sched: Scheduler, ready: int, expected_grant: int):
+        sim.set(sched.requests, ready)
         _, _, valid, grant = await sim.tick().sample(sched.valid, sched.grant)
 
-        if request == 0:
+        if ready == 0:
             assert not valid
         else:
             assert grant == expected_grant
@@ -241,10 +241,10 @@ class TransactionPriorityTestCircuit(PriorityTestCircuit):
         transaction1 = Transaction()
         transaction2 = Transaction()
 
-        with transaction1.body(m, request=self.r1):
+        with transaction1.body(m, ready=self.r1):
             m.d.comb += self.t1.eq(1)
 
-        with transaction2.body(m, request=self.r2):
+        with transaction2.body(m, ready=self.r2):
             m.d.comb += self.t2.eq(1)
 
         self.make_relations(transaction1, transaction2)
@@ -326,9 +326,9 @@ class NestedTransactionsTestCircuit(SchedulingTestCircuit):
         tm = TransactionModule(m)
 
         with tm.context():
-            with Transaction().body(m, request=self.r1):
+            with Transaction().body(m, ready=self.r1):
                 m.d.comb += self.t1.eq(1)
-                with Transaction().body(m, request=self.r2):
+                with Transaction().body(m, ready=self.r2):
                     m.d.comb += self.t2.eq(1)
 
         return tm
@@ -394,11 +394,11 @@ class ScheduleBeforeTestCircuit(SchedulingTestCircuit):
             pass
 
         with tm.context():
-            with (t1 := Transaction()).body(m, request=self.r1):
+            with (t1 := Transaction()).body(m, ready=self.r1):
                 method(m)
                 m.d.comb += self.t1.eq(1)
 
-            with (t2 := Transaction()).body(m, request=self.r2 & t1.grant):
+            with (t2 := Transaction()).body(m, ready=self.r2 & t1.run):
                 method(m)
                 m.d.comb += self.t2.eq(1)
 

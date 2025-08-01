@@ -65,11 +65,11 @@ def condition(m: TModule, *, nonblocking: bool = False, priority: bool = False):
         nonlocal last
         if last:
             raise RuntimeError("Condition clause added after catch-all")
-        req = Signal()
-        m.d.top_comb += req.eq(cond if cond is not None else ~Cat(*conds).any())
-        conds.append(req)
+        ready = Signal()
+        m.d.top_comb += ready.eq(cond if cond is not None else ~Cat(*conds).any())
+        conds.append(ready)
         name = f"{this.name}_cond{len(transactions)}"
-        with (transaction := Transaction(name=name, src_loc=src_loc)).body(m, request=req):
+        with (transaction := Transaction(name=name, src_loc=src_loc)).body(m, ready=ready):
             yield
         if transactions and priority:
             transactions[-1].schedule_before(transaction._body)

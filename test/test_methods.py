@@ -458,7 +458,7 @@ class ConditionalTransactionCircuit1(Elaboratable):
         self.ready = Signal()
         m.submodules.tb = self.tb = TestbenchIO(Adapter.create())
 
-        with Transaction().body(m, request=self.ready):
+        with Transaction().body(m, ready=self.ready):
             self.tb.adapter.iface(m)
 
         return m
@@ -725,11 +725,11 @@ class DataDependentConditionalCircuit(Elaboratable):
         def _(data):
             m.d.comb += self.out_m.eq(1)
 
-        with Transaction().body(m, request=self.req_t1):
+        with Transaction().body(m, ready=self.req_t1):
             m.d.comb += self.out_t1.eq(1)
             self.method(m, data=self.in_t1)
 
-        with Transaction().body(m, request=self.req_t2):
+        with Transaction().body(m, ready=self.req_t2):
             m.d.comb += self.out_t2.eq(1)
             self.method(m, data=self.in_t2)
 

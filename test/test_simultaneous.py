@@ -101,16 +101,16 @@ class TestUnsatisfiableTriangle(TestCaseWithSimulator):
 
 
 class HelperConnect(Elaboratable):
-    def __init__(self, source: Method, target: Method, request: Signal, data: int):
+    def __init__(self, source: Method, target: Method, ready: Signal, data: int):
         self.source = source
         self.target = target
-        self.request = request
+        self.ready = ready
         self.data = data
 
     def elaborate(self, platform):
         m = TModule()
 
-        with Transaction().body(m, request=self.request):
+        with Transaction().body(m, ready=self.ready):
             self.target(m, self.data ^ self.source(m).data)
 
         return m

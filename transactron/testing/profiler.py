@@ -14,7 +14,7 @@ def profiler_process(transaction_manager: TransactionManager, profile: Profile):
         method_map = MethodMap(transaction_manager.transactions)
         profile.transactions_and_methods = profile_data.transactions_and_methods
 
-        transaction_sample_layout = StructLayout({"request": 1, "runnable": 1, "grant": 1})
+        transaction_sample_layout = StructLayout({"ready": 1, "runnable": 1, "run": 1})
 
         async for _, _, *data in (
             sim.tick()
@@ -32,9 +32,9 @@ def profiler_process(transaction_manager: TransactionManager, profile: Profile):
 
             for transaction, tsample in zip(method_map.transactions, transaction_data):
                 samples.transactions[get_id(transaction)] = TransactionSamples(
-                    bool(tsample.request),
+                    bool(tsample.ready),
                     bool(tsample.runnable),
-                    bool(tsample.grant),
+                    bool(tsample.run),
                 )
 
             for method, run in zip(method_map.methods, method_data):

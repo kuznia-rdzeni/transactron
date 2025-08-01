@@ -158,17 +158,17 @@ class TransactionSamples:
 
     Attributes
     ----------
-    request: bool
-        The value of the transaction's ``request`` signal.
+    ready: bool
+        The value of the transaction's ``ready`` signal.
     runnable: bool
         The value of the transaction's ``runnable`` signal.
-    grant: bool
-        The value of the transaction's ``grant`` signal.
+    run: bool
+        The value of the transaction's ``run`` signal.
     """
 
-    request: bool
+    ready: bool
     runnable: bool
-    grant: bool
+    run: bool
 
 
 @dataclass
@@ -227,11 +227,11 @@ class CycleProfile:
         cprof = CycleProfile()
 
         for transaction_id, transaction_samples in samples.transactions.items():
-            if transaction_samples.grant:
+            if transaction_samples.run:
                 cprof.running[transaction_id] = None
-            elif transaction_samples.request and transaction_samples.runnable:
+            elif transaction_samples.ready and transaction_samples.runnable:
                 for transaction2_id in data.transaction_conflicts[transaction_id]:
-                    if samples.transactions[transaction2_id].grant:
+                    if samples.transactions[transaction2_id].run:
                         cprof.locked[transaction_id] = transaction2_id
 
         running = set(cprof.running)

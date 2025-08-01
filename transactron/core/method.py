@@ -38,9 +38,9 @@ class Method(TransactionBase["Transaction | Method"]):
 
     A `Method` serves to interface a module with external `Transaction`\\s
     or `Method`\\s. It can be called by at most once in a given clock cycle.
-    When a given `Method` is required by multiple `Transaction`\\s
+    When a given `Method` is called by multiple `Transaction`\\s
     (either directly, or indirectly via another `Method`) simultenaously,
-    at most one of them is granted by the `TransactionManager`, and the rest
+    at most one of them is run by the `TransactionManager`, and the rest
     of them must wait. (Non-exclusive methods are an exception to this
     behavior.) Calling a `Method` always takes a single clock cycle.
 

@@ -56,17 +56,17 @@ class TransactionSignalsLocation:
 
     Attributes
     ----------
-    request: list[str]
-        The location of the ``request`` signal.
+    ready: list[str]
+        The location of the ``ready`` signal.
     runnable: list[str]
         The location of the ``runnable`` signal.
-    grant: list[str]
-        The location of the ``grant`` signal.
+    run: list[str]
+        The location of the ``run`` signal.
     """
 
-    request: list[str]
+    ready: list[str]
     runnable: list[str]
-    grant: list[str]
+    run: list[str]
 
 
 @dataclass_json
@@ -193,12 +193,10 @@ def collect_transaction_method_signals(
     get_id = IdGenerator()
 
     for transaction in method_map.transactions:
-        request_loc = get_signal_location(transaction.ready, name_map)
+        ready_loc = get_signal_location(transaction.ready, name_map)
         runnable_loc = get_signal_location(transaction.runnable, name_map)
-        grant_loc = get_signal_location(transaction.run, name_map)
-        transaction_signals_location[get_id(transaction)] = TransactionSignalsLocation(
-            request_loc, runnable_loc, grant_loc
-        )
+        run_loc = get_signal_location(transaction.run, name_map)
+        transaction_signals_location[get_id(transaction)] = TransactionSignalsLocation(ready_loc, runnable_loc, run_loc)
 
     for method in method_map.methods:
         run_loc = get_signal_location(method.run, name_map)

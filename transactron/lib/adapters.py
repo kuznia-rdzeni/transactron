@@ -42,10 +42,9 @@ class AdapterTrans(AdapterBase):
     Attributes
     ----------
     en: Signal, in
-        Activates the transaction (sets the `request` signal).
+        Activates the transaction (sets the `ready` signal).
     done: Signal, out
-        Signals that the transaction is performed (returns the `grant`
-        signal).
+        Signals that the transaction is performed (returns the `run` signal).
     data_in: View, in
         Data passed to the `iface` method.
     data_out: View, out
@@ -72,7 +71,7 @@ class AdapterTrans(AdapterBase):
         data_in = Signal.like(self.data_in)
         m.d.comb += data_in.eq(self.data_in)
 
-        with Transaction(name=f"AdapterTrans_{self.iface.name}", src_loc=self.src_loc).body(m, request=self.en):
+        with Transaction(name=f"AdapterTrans_{self.iface.name}", src_loc=self.src_loc).body(m, ready=self.en):
             data_out = self.iface(m, data_in)
             m.d.top_comb += self.data_out.eq(data_out)
             m.d.comb += self.done.eq(1)

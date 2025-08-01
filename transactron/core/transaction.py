@@ -23,12 +23,12 @@ class Transaction(TransactionBase["Transaction | Method"]):
     A `Transaction` represents a task which needs to be regularly done.
     Execution of a `Transaction` always lasts a single clock cycle.
     A `Transaction` signals readiness for execution by setting the
-    `request` signal. If the conditions for its execution are met, it
-    can be granted by the `TransactionManager`.
+    `ready` signal. If the conditions for its execution are met, it
+    can be run by the `TransactionManager`.
 
     A `Transaction` can, as part of its execution, call a number of
-    `Method`\\s. A `Transaction` can be granted only if every `Method`
-    it runs is ready.
+    `Method`\\s. A `Transaction` can be run only if every `Method`
+    it calls is ready.
 
     A `Transaction` cannot execute concurrently with another, conflicting
     `Transaction`. Conflicts between `Transaction`\\s are either explicit
@@ -45,14 +45,13 @@ class Transaction(TransactionBase["Transaction | Method"]):
     ----------
     name: str
         Name of this `Transaction`.
-    request: Signal, in
+    ready: Signal, in
         Signals that the transaction wants to run. If omitted, the transaction
         is always ready. Defined in the constructor.
     runnable: Signal, out
         Signals that all used methods are ready.
-    grant: Signal, out
-        Signals that the transaction is granted by the `TransactionManager`,
-        and all used methods are called.
+    run: Signal, out
+        Signals that the transaction is run by the `TransactionManager`.
     """
 
     _body_ptr: Optional["Body"] = None
@@ -75,9 +74,9 @@ class Transaction(TransactionBase["Transaction | Method"]):
         self.name = name or tracer.get_var_name(depth=2, default=owner_name)
         manager = DependencyContext.get().get_dependency(TransactionManagerKey())
         manager._add_transaction(self)
-        self.request = Signal(name=self.owned_name + "_request")
+        self.ready = Signal(name=self.owned_name + "_ready")
         self.runnable = Signal(name=self.owned_name + "_runnable")
-        self.grant = Signal(name=self.owned_name + "_grant")
+        self.run = Signal(name=self.owned_name + "_run")
 
     @property
     def _body(self) -> TBody:
@@ -91,26 +90,26 @@ class Transaction(TransactionBase["Transaction | Method"]):
         if value.data_in.shape().size != 0 or value.data_out.shape().size != 0:
             raise ValueError(f"Transaction body {value.name} has invalid interface")
         self._body_ptr = value
-        m.d.comb += self.request.eq(value.ready)
+        m.d.comb += self.ready.eq(value.ready)
         m.d.comb += self.runnable.eq(value.runnable)
-        m.d.comb += self.grant.eq(value.run)
+        m.d.comb += self.run.eq(value.run)
 
     @contextmanager
-    def body(self, m: TModule, *, request: ValueLike = C(1)) -> Iterator["Transaction"]:
+    def body(self, m: TModule, *, ready: ValueLike = C(1)) -> Iterator["Transaction"]:
         """Defines the `Transaction` body.
 
         This context manager allows to conveniently define the actions
-        performed by a `Transaction` when it's granted. Each assignment
-        added to a domain under `body` is guarded by the `grant` signal.
+        performed by a `Transaction` when it's running. Each assignment
+        added to a domain under `body` is guarded by the `run` signal.
         Combinational assignments which do not need to be guarded by
-        `grant` can be added to `m.d.top_comb` or `m.d.av_comb` instead of
+        `run` can be added to `m.d.top_comb` or `m.d.av_comb` instead of
         `m.d.comb`. `Method` calls can be performed under `body`.
 
         Parameters
         ----------
         m: TModule
             The module where the `Transaction` is defined.
-        request: Signal
+        ready: Signal
             Indicates that the `Transaction` wants to be executed. By
             default it is `Const(1)`, so it wants to be executed in
             every clock cycle.
@@ -124,7 +123,7 @@ class Transaction(TransactionBase["Transaction | Method"]):
         )
         self._set_impl(m, impl)
 
-        m.d.av_comb += impl.ready.eq(request)
+        m.d.av_comb += impl.ready.eq(ready)
         with impl.context(m):
             with m.AvoidedIf(impl.run):
                 yield self
@@ -133,4 +132,4 @@ class Transaction(TransactionBase["Transaction | Method"]):
         return "(transaction {})".format(self.name)
 
     def debug_signals(self) -> ValueBundle:
-        return [self.request, self.runnable, self.grant]
+        return [self.ready, self.runnable, self.run]

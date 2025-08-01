@@ -230,12 +230,12 @@ def _(foo: Value, bar: Value):
 
 ### Readiness signals
 
-If a transaction is not always ready for execution (for example, because of the dependence on some resource), a `request` parameter should be used.
+If a transaction is not always ready for execution (for example, because of the dependence on some resource), a `ready` parameter should be used.
 An Amaranth single-bit expression should be passed.
 When the `request` parameter is not passed, the transaction is always requesting execution.
 
 ```python
-        with Transaction().body(m, request=expr):
+        with Transaction().body(m, ready=expr):
 ```
 
 Methods have a similar mechanism, which uses the `ready` parameter on `def_method`:
@@ -246,7 +246,7 @@ Methods have a similar mechanism, which uses the `ready` parameter on `def_metho
             ...
 ```
 
-The `request` signal typically should only depend on the internal state of an `Elaboratable`.
+The `ready` signal typically should only depend on the internal state of an `Elaboratable`.
 Other dependencies risk introducing combinational loops.
 In certain occasions, it is possible to relax this requirement; see e.g. [Scheduling order](#scheduling-order).
 
@@ -270,7 +270,7 @@ Its role is to allow to improve circuit performance by omitting unneeded multipl
 This is done by adding two additional, special combinatorial domains, `av_comb` and `top_comb`.
 
 Statements added to the `av_comb` domain (the "avoiding" domain) are not executed when under a false `m.If`, but are executed when under a false `m.AvoidedIf`.
-Transaction and method bodies are internally guarded by an `m.AvoidedIf` with the transaction `grant` or method `run` signal.
+Transaction and method bodies are internally guarded by an `m.AvoidedIf` with the `run` signal of the transaction or method.
 Therefore combinational assignments added to `av_comb` work even if the transaction or method definition containing the assignments are not running.
 Because combinational signals usually don't induce state changes, this is often safe to do and improves performance.
 
