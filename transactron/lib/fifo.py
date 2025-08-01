@@ -182,6 +182,15 @@ class WideFifo(Elaboratable):
         Clears the FIFO entries. Has priority over `read` and `write` methods.
     """
 
+    class Data:
+        """Allows to access internal data in simulation."""
+
+        def __init__(self, fifo: "WideFifo"):
+            self._fifo = fifo
+
+        def __getitem__(self, index: int):
+            return self._fifo._storage[index % self._fifo.max_width].data[index // self._fifo.max_width]
+
     def __init__(
         self,
         shape: ShapeLike,
@@ -197,8 +206,7 @@ class WideFifo(Elaboratable):
         shape: ShapeLike
             Shape of the data stored in the queue.
         depth: int
-            Depth of the FIFO. The number of elements which can be stored in the queue
-            is `depth * max(read_width, write_width)`.
+            Depth of the FIFO. Must be a multiple of `max(read_width, write_width)`.
         read_width: int
             Number of elements which can be simultaneously read from the queue.
         write_width: int, optional
@@ -211,6 +219,14 @@ class WideFifo(Elaboratable):
         if write_width is None:
             write_width = read_width
 
+        self.read_width = read_width
+        self.write_width = write_width
+        self.max_width = max(read_width, write_width)
+        self.depth = depth
+
+        if depth % self.max_width != 0:
+            raise ValueError(f"WideFifo depth {depth} not a multiple of {self.max_width}")
+
         self.shape = shape
         self.read_layout = data.StructLayout(
             {"count": range(read_width + 1), "data": data.ArrayLayout(shape, read_width)}
@@ -218,42 +234,43 @@ class WideFifo(Elaboratable):
         self.write_layout = data.StructLayout(
             {"count": range(write_width + 1), "data": data.ArrayLayout(shape, write_width)}
         )
-        self.read_width = read_width
-        self.write_width = write_width
-        self.depth = depth
-
         self.read = Method(i=[("count", range(read_width + 1))], o=self.read_layout, src_loc=src_loc)
         self.peek = Method(o=self.read_layout, src_loc=src_loc)
         self.write = Method(i=self.write_layout, src_loc=src_loc)
         self.clear = Method(src_loc=src_loc)
 
+        self.data = WideFifo.Data(self)
+
     def elaborate(self, platform):
         m = TModule()
 
-        max_width = max(self.read_width, self.write_width)
+        max_width = self.max_width
+        fifo_depth = self.depth // max_width
 
-        storage = [memory.Memory(shape=self.shape, depth=self.depth, init=[]) for _ in range(max_width)]
+        self._storage = [memory.Memory(shape=self.shape, depth=fifo_depth, init=[]) for _ in range(max_width)]
 
-        for i, mem in enumerate(storage):
+        for i, mem in enumerate(self._storage):
             m.submodules[f"storage{i}"] = mem
 
-        write_ports = [mem.write_port() for mem in storage]
-        read_ports = [mem.read_port(domain="sync", transparent_for=[port]) for mem, port in zip(storage, write_ports)]
+        write_ports = [mem.write_port() for mem in self._storage]
+        read_ports = [
+            mem.read_port(domain="sync", transparent_for=[port]) for mem, port in zip(self._storage, write_ports)
+        ]
 
-        write_row = Signal(range(self.depth))
+        write_row = Signal(range(fifo_depth))
         write_col = Signal(range(max_width))
-        read_row = Signal(range(self.depth))
+        read_row = Signal(range(fifo_depth))
         read_col = Signal(range(max_width))
 
-        next_read_row = Signal(range(self.depth))
+        next_read_row = Signal(range(fifo_depth))
         next_read_col = Signal(range(max_width))
 
-        incr_read_row = Signal(range(self.depth))
-        incr_next_read_row = Signal(range(self.depth))
-        incr_write_row = Signal(range(self.depth))
+        incr_read_row = Signal(range(fifo_depth))
+        incr_next_read_row = Signal(range(fifo_depth))
+        incr_write_row = Signal(range(fifo_depth))
 
-        level = Signal(range(max_width * self.depth + 1))
-        remaining = Signal(range(max_width * self.depth + 1))
+        level = Signal(range(max_width * fifo_depth + 1))
+        remaining = Signal(range(max_width * fifo_depth + 1))
 
         read_available = Signal(range(self.read_width + 1))
         write_available = Signal(range(self.write_width + 1))
@@ -261,12 +278,12 @@ class WideFifo(Elaboratable):
         read_count = Signal(range(self.read_width + 1))
         write_count = Signal(range(self.write_width + 1))
 
-        m.d.comb += incr_read_row.eq(mod_incr(read_row, self.depth))
-        m.d.comb += incr_next_read_row.eq(mod_incr(next_read_row, self.depth))
-        m.d.comb += incr_write_row.eq(mod_incr(write_row, self.depth))
+        m.d.comb += incr_read_row.eq(mod_incr(read_row, fifo_depth))
+        m.d.comb += incr_next_read_row.eq(mod_incr(next_read_row, fifo_depth))
+        m.d.comb += incr_write_row.eq(mod_incr(write_row, fifo_depth))
 
         m.d.sync += level.eq(level - read_count + write_count)
-        m.d.comb += remaining.eq(max_width * self.depth - level)
+        m.d.comb += remaining.eq(max_width * fifo_depth - level)
 
         m.d.comb += read_available.eq(Mux(level > self.read_width, self.read_width, level))
         m.d.comb += write_available.eq(Mux(remaining > self.write_width, self.write_width, remaining))
