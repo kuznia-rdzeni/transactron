@@ -2229,33 +2229,6 @@ Alternatively, the source location to use instead of the default.</p>
 <section id="module-transactron.lib.transformers">
 <span id="transactron-lib-transformers-module"></span><h2>transactron.lib.transformers module<a class="headerlink" href="#module-transactron.lib.transformers" title="Permalink to this heading"></a></h2>
 <dl class="py class">
-<dt class="sig sig-object py" id="transactron.lib.transformers.CatTrans">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">transactron.lib.transformers.</span></span><span class="sig-name descname"><span class="pre">CatTrans</span></span><a class="headerlink" href="#transactron.lib.transformers.CatTrans" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Elaboratable</span></code></p>
-<p>Concatenating transaction.</p>
-<p>Concatenates the results of two methods and passes the result to the
-third method.</p>
-<dl class="py method">
-<dt class="sig sig-object py" id="transactron.lib.transformers.CatTrans.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">src1</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="transactron.core.html#transactron.core.method.Method" title="transactron.core.method.Method"><span class="pre">Method</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">src2</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="transactron.core.html#transactron.core.method.Method" title="transactron.core.method.Method"><span class="pre">Method</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">dst</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="transactron.core.html#transactron.core.method.Method" title="transactron.core.method.Method"><span class="pre">Method</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.lib.transformers.CatTrans.__init__" title="Permalink to this definition"></a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>src1: Method</strong></dt><dd><p>First input method.</p>
-</dd>
-<dt><strong>src2: Method</strong></dt><dd><p>Second input method.</p>
-</dd>
-<dt><strong>dst: Method</strong></dt><dd><p>The method which receives the concatenation of the results of input
-methods.</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
 <dt class="sig sig-object py" id="transactron.lib.transformers.Collector">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">transactron.lib.transformers.</span></span><span class="sig-name descname"><span class="pre">Collector</span></span><a class="headerlink" href="#transactron.lib.transformers.Collector" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Elaboratable</span></code>, <a class="reference internal" href="#transactron.lib.transformers.Unifier" title="transactron.lib.transformers.Unifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">Unifier</span></code></a></p>
@@ -2580,7 +2553,7 @@ call graph indicates it could.</p>
 
   <div role="contentinfo">
     <p>&#169; Copyright Kuźnia Rdzeni, 2025.
-      <span class="lastupdated">Last updated on 07:53 2025-07-31.
+      <span class="lastupdated">Last updated on 15:55 2025-08-01.
       </span></p>
   </div>
 
