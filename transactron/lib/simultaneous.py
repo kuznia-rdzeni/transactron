@@ -1,10 +1,10 @@
 from amaranth import *
+from amaranth_types import ValueLike
 
 from ..utils import SrcLoc
 from ..core import TModule, Transaction, Body
 from contextlib import contextmanager
 from typing import Optional
-from transactron.utils import ValueLike
 
 __all__ = [
     "condition",

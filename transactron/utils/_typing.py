@@ -13,16 +13,9 @@ from typing import (
 from collections.abc import Iterable, Mapping
 from amaranth import *
 from amaranth.lib.data import StructLayout, View
-from amaranth_types import *
-from amaranth_types import _ModuleBuilderDomainsLike
+from amaranth_types import ShapeLike, ValueLike
 
 __all__ = [
-    "FragmentLike",
-    "ValueLike",
-    "ShapeLike",
-    "StatementLike",
-    "SwitchKey",
-    "SrcLoc",
     "MethodLayout",
     "MethodStruct",
     "ValueBundle",
@@ -36,9 +29,6 @@ __all__ = [
     "ROGraph",
     "Graph",
     "GraphCC",
-    "_ModuleBuilderDomainsLike",
-    "ModuleLike",
-    "HasElaborate",
     "HasDebugSignals",
 ]
 

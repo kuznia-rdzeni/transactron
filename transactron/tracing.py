@@ -8,8 +8,7 @@ from amaranth.hdl import Elaboratable, Fragment, Instance
 from amaranth.hdl._xfrm import FragmentTransformer
 from amaranth.hdl import _dsl, _ir, _mem, _xfrm
 from amaranth.lib import memory  # type: ignore
-from amaranth_types import SrcLoc
-from transactron.utils import HasElaborate
+from amaranth_types import SrcLoc, HasElaborate
 from . import core
 
 

@@ -7,10 +7,13 @@ from amaranth.lib.data import StructLayout
 from transactron.core.tmodule import CtrlPath, TModule
 from transactron.core.transaction_base import TransactionBase
 
-from transactron.utils import *
 from amaranth import *
+from amaranth_types import ValueLike, ModuleLike, SrcLoc
 from typing import TYPE_CHECKING, ClassVar, NewType, NotRequired, Optional, Callable, TypedDict, Unpack, final
+from transactron.utils.amaranth_ext.elaboratables import OneHotSwitchDynamic
 from transactron.utils.assign import AssignArg
+from transactron.utils.transactron_helpers import from_method_layout, method_def_helper
+from transactron.utils._typing import MethodStruct
 
 if TYPE_CHECKING:
     from .method import Method

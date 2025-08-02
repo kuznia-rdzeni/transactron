@@ -9,10 +9,10 @@ from typing import TypeAlias
 
 from amaranth import *
 from amaranth.tracer import get_src_loc
+from amaranth_types import ModuleLike, ValueLike
 
 from ..core import TModule
 from transactron.utils import SrcLoc
-from transactron.utils._typing import ModuleLike, ValueLike
 from transactron.utils.dependencies import DependencyContext, ListKey
 
 

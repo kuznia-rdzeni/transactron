@@ -2,7 +2,8 @@ import sys
 from contextlib import contextmanager
 from typing import Optional, Any, Concatenate, TypeGuard, TypeVar
 from collections.abc import Callable, Mapping, Sequence
-from ._typing import ROGraph, GraphCC, SrcLoc, MethodLayout, MethodStruct, ShapeLike, LayoutList, LayoutListField
+from ._typing import ROGraph, GraphCC, MethodLayout, MethodStruct, LayoutList, LayoutListField
+from amaranth_types import SrcLoc, ShapeLike
 from inspect import Parameter, signature
 from itertools import count
 from amaranth import *
@@ -20,6 +21,7 @@ __all__ = [
     "method_def_helper",
     "mock_def_helper",
     "async_mock_def_helper",
+    "SrcLoc",
     "get_src_loc",
     "from_method_layout",
     "make_layout",

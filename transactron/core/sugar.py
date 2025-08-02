@@ -1,5 +1,6 @@
 from collections.abc import Sequence, Callable
 from amaranth import *
+from amaranth_types import ValueLike
 from typing import Optional, Concatenate, ParamSpec, Unpack
 from transactron.core.body import BodyParams
 from transactron.utils import *

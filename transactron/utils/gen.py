@@ -5,6 +5,7 @@ from typing import Optional, TypeAlias
 from amaranth import *
 from amaranth.back import verilog
 from amaranth.hdl import Fragment
+from amaranth_types import AbstractInterface
 
 from transactron.core import TransactionManager
 from transactron.core.keys import TransactionManagerKey
@@ -13,7 +14,6 @@ from transactron.lib.metrics import HardwareMetricsManager
 from transactron.lib import logging
 from transactron.utils.dependencies import DependencyContext
 from transactron.utils.idgen import IdGenerator
-from transactron.utils._typing import AbstractInterface
 from transactron.profiler import ProfileData
 
 from typing import TYPE_CHECKING

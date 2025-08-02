@@ -4,6 +4,7 @@ import enum
 from transactron.utils import *
 from amaranth import *
 from amaranth import tracer
+from amaranth_types import ValueLike
 from typing import TYPE_CHECKING, Annotated, Optional, Iterator, TypeAlias, TypeVar, Unpack, overload
 from .transaction_base import *
 from contextlib import contextmanager

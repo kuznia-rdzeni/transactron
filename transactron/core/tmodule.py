@@ -1,10 +1,10 @@
 from enum import Enum, auto
 from dataclasses import dataclass, replace
 from amaranth import *
+from amaranth_types import StatementLike, ModuleLike, ValueLike, SwitchKey
 from typing import Optional, Self, NoReturn
 from contextlib import contextmanager
 from amaranth.hdl._dsl import FSM
-from transactron.utils import *
 
 __all__ = ["TModule"]
 

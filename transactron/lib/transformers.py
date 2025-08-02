@@ -1,4 +1,5 @@
 from amaranth import *
+from amaranth_types import ValueLike, ModuleLike, HasElaborate
 
 from transactron.utils.transactron_helpers import get_src_loc
 from ..core import *
@@ -6,12 +7,9 @@ from ..utils import SrcLoc
 from typing import Optional, Protocol
 from collections.abc import Callable
 from transactron.utils import (
-    ValueLike,
     assign,
     AssignType,
-    ModuleLike,
     MethodStruct,
-    HasElaborate,
     MethodLayout,
     RecordDict,
 )

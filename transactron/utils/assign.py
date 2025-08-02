@@ -5,7 +5,7 @@ from amaranth import *
 from amaranth.hdl import ShapeLike, ValueCastable
 from amaranth.hdl._ast import ArrayProxy, Slice
 from amaranth.lib import data
-from ._typing import ValueLike
+from amaranth_types import ValueLike
 
 if TYPE_CHECKING:
     from amaranth.hdl._ast import Assign

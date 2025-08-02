@@ -2,10 +2,10 @@ from collections.abc import Generator, Iterable
 from amaranth import *
 from amaranth.lib.data import View, StructLayout
 from amaranth.sim._async import SimulatorContext, TestbenchContext
+from amaranth_types import ValueLike
 from typing import Any, Optional
 
 from transactron.lib import AdapterBase
-from transactron.utils import ValueLike
 from .functions import MethodData
 
 

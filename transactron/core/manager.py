@@ -7,7 +7,7 @@ from amaranth.lib.wiring import Component, connect, flipped
 from itertools import chain, filterfalse, product
 import networkx
 
-from amaranth_types import AbstractComponent
+from amaranth_types import AbstractComponent, ValueLike, HasElaborate
 
 from transactron.utils import *
 from transactron.utils.transactron_helpers import _graph_ccs

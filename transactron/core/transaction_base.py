@@ -6,10 +6,9 @@ from typing import (
     TypeVar,
     runtime_checkable,
 )
-from amaranth import *
+from amaranth_types import SrcLoc
 
 from transactron.graph import Owned
-from transactron.utils import *
 
 
 __all__ = ["TransactionBase", "Priority"]
