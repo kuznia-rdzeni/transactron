@@ -23,7 +23,7 @@ from .method_mock import MethodMock
 from transactron import Method, Methods
 from transactron.lib import AdapterTrans
 from transactron.core.keys import TransactionManagerKey
-from transactron.core import TransactionModule
+from transactron.core import TransactronContextElaboratable
 from transactron.utils import ModuleConnector, HasElaborate, auto_debug_signals, HasDebugSignals
 
 
@@ -123,7 +123,7 @@ class SimpleTestCircuit(Elaboratable, Generic[_T_HasElaborate]):
 class _TestModule(Elaboratable):
     def __init__(self, tested_module: HasElaborate, add_transaction_module: bool):
         self.tested_module = (
-            TransactionModule(tested_module, dependency_manager=DependencyContext.get())
+            TransactronContextElaboratable(tested_module, dependency_manager=DependencyContext.get())
             if add_transaction_module
             else tested_module
         )

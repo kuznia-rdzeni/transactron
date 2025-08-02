@@ -5,7 +5,7 @@ from transactron.core import (
     Method,
     Transaction,
     TransactionManager,
-    TransactionModule,
+    TransactronContextElaboratable,
     def_method,
 )
 from transactron.core.tmodule import CtrlPath
@@ -88,7 +88,7 @@ class TestExclusiveConflictRemoval(TestCaseWithSimulator):
         circ = ExclusiveConflictRemovalCircuit()
 
         tm = TransactionManager()
-        dut = TransactionModule(circ, DependencyContext.get(), tm)
+        dut = TransactronContextElaboratable(circ, DependencyContext.get(), tm)
 
         with self.run_simulation(dut, add_transaction_module=False):
             pass

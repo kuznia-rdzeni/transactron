@@ -181,7 +181,7 @@ class AdapterCircuit(Elaboratable):
 class TestInvalidMethods(TestCase):
     def assert_re(self, msg, m):
         with pytest.raises(RuntimeError, match=msg):
-            Fragment.get(TransactionModule(m), platform=None)
+            Fragment.get(TransactronContextElaboratable(m), platform=None)
 
     def test_twice(self):
         class Twice(Elaboratable):
@@ -225,7 +225,7 @@ class TestInvalidMethods(TestCase):
 
                 return m
 
-        Fragment.get(TransactionModule(Twice()), platform=None)
+        Fragment.get(TransactronContextElaboratable(Twice()), platform=None)
 
     def test_diamond(self):
         class Diamond(Elaboratable):
