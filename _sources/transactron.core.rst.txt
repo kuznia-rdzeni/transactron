@@ -12,6 +12,14 @@ transactron.core.body module
    :undoc-members:
    :show-inheritance:
 
+transactron.core.context module
+-------------------------------
+
+.. automodule:: transactron.core.context
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 transactron.core.keys module
 ----------------------------
 
