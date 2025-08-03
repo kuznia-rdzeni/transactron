@@ -313,9 +313,9 @@ are never granted in the same clock cycle.</p>
 <p>Transactional method.</p>
 <p>A <cite>Method</cite> serves to interface a module with external <cite>Transaction</cite>s
 or <cite>Method</cite>s. It can be called by at most once in a given clock cycle.
-When a given <cite>Method</cite> is required by multiple <cite>Transaction</cite>s
+When a given <cite>Method</cite> is called by multiple <cite>Transaction</cite>s
 (either directly, or indirectly via another <cite>Method</cite>) simultenaously,
-at most one of them is granted by the <cite>TransactionManager</cite>, and the rest
+at most one of them is run by the <cite>TransactionManager</cite>, and the rest
 of them must wait. (Non-exclusive methods are an exception to this
 behavior.) Calling a <cite>Method</cite> always takes a single clock cycle.</p>
 <p>Data is combinationally transferred between to and from <cite>Method</cite>s
@@ -796,11 +796,11 @@ statements together.</p></li>
 <p>A <cite>Transaction</cite> represents a task which needs to be regularly done.
 Execution of a <cite>Transaction</cite> always lasts a single clock cycle.
 A <cite>Transaction</cite> signals readiness for execution by setting the
-<cite>request</cite> signal. If the conditions for its execution are met, it
-can be granted by the <cite>TransactionManager</cite>.</p>
+<cite>ready</cite> signal. If the conditions for its execution are met, it
+can be run by the <cite>TransactionManager</cite>.</p>
 <p>A <cite>Transaction</cite> can, as part of its execution, call a number of
-<cite>Method</cite>s. A <cite>Transaction</cite> can be granted only if every <cite>Method</cite>
-it runs is ready.</p>
+<cite>Method</cite>s. A <cite>Transaction</cite> can be run only if every <cite>Method</cite>
+it calls is ready.</p>
 <p>A <cite>Transaction</cite> cannot execute concurrently with another, conflicting
 <cite>Transaction</cite>. Conflicts between <cite>Transaction</cite>s are either explicit
 or implicit. An explicit conflict is added using the <cite>add_conflict</cite>
@@ -815,13 +815,12 @@ The used methods should be called inside the <cite>body</cite>’s
 <dd class="field-odd"><dl class="simple">
 <dt><strong>name: str</strong></dt><dd><p>Name of this <cite>Transaction</cite>.</p>
 </dd>
-<dt><strong>request: Signal, in</strong></dt><dd><p>Signals that the transaction wants to run. If omitted, the transaction
+<dt><strong>ready: Signal, in</strong></dt><dd><p>Signals that the transaction wants to run. If omitted, the transaction
 is always ready. Defined in the constructor.</p>
 </dd>
 <dt><strong>runnable: Signal, out</strong></dt><dd><p>Signals that all used methods are ready.</p>
 </dd>
-<dt><strong>grant: Signal, out</strong></dt><dd><p>Signals that the transaction is granted by the <cite>TransactionManager</cite>,
-and all used methods are called.</p>
+<dt><strong>run: Signal, out</strong></dt><dd><p>Signals that the transaction is run by the <cite>TransactionManager</cite>.</p>
 </dd>
 </dl>
 </dd>
@@ -847,20 +846,20 @@ Alternatively, the source location to use instead of the default.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="transactron.core.transaction.Transaction.body">
-<span class="sig-name descname"><span class="pre">body</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">m:</span> <span class="pre">~transactron.core.tmodule.TModule</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">request:</span> <span class="pre">amaranth.hdl._ast.Value</span> <span class="pre">|</span> <span class="pre">int</span> <span class="pre">|</span> <span class="pre">enum.Enum</span> <span class="pre">|</span> <span class="pre">amaranth.hdl._ast.ValueCastable</span> <span class="pre">=</span> <span class="pre">(const</span> <span class="pre">1'd1)</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Iterator" title="(in Python v3.13)"><span class="pre">Iterator</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#transactron.core.transaction.Transaction" title="transactron.core.transaction.Transaction"><span class="pre">Transaction</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#transactron.core.transaction.Transaction.body" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">body</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">m:</span> <span class="pre">~transactron.core.tmodule.TModule</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ready:</span> <span class="pre">amaranth.hdl._ast.Value</span> <span class="pre">|</span> <span class="pre">int</span> <span class="pre">|</span> <span class="pre">enum.Enum</span> <span class="pre">|</span> <span class="pre">amaranth.hdl._ast.ValueCastable</span> <span class="pre">=</span> <span class="pre">(const</span> <span class="pre">1'd1)</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Iterator" title="(in Python v3.13)"><span class="pre">Iterator</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#transactron.core.transaction.Transaction" title="transactron.core.transaction.Transaction"><span class="pre">Transaction</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#transactron.core.transaction.Transaction.body" title="Permalink to this definition"></a></dt>
 <dd><p>Defines the <cite>Transaction</cite> body.</p>
 <p>This context manager allows to conveniently define the actions
-performed by a <cite>Transaction</cite> when it’s granted. Each assignment
-added to a domain under <cite>body</cite> is guarded by the <cite>grant</cite> signal.
+performed by a <cite>Transaction</cite> when it’s running. Each assignment
+added to a domain under <cite>body</cite> is guarded by the <cite>run</cite> signal.
 Combinational assignments which do not need to be guarded by
-<cite>grant</cite> can be added to <cite>m.d.top_comb</cite> or <cite>m.d.av_comb</cite> instead of
+<cite>run</cite> can be added to <cite>m.d.top_comb</cite> or <cite>m.d.av_comb</cite> instead of
 <cite>m.d.comb</cite>. <cite>Method</cite> calls can be performed under <cite>body</cite>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>m: TModule</strong></dt><dd><p>The module where the <cite>Transaction</cite> is defined.</p>
 </dd>
-<dt><strong>request: Signal</strong></dt><dd><p>Indicates that the <cite>Transaction</cite> wants to be executed. By
+<dt><strong>ready: Signal</strong></dt><dd><p>Indicates that the <cite>Transaction</cite> wants to be executed. By
 default it is <cite>Const(1)</cite>, so it wants to be executed in
 every clock cycle.</p>
 </dd>
@@ -1024,7 +1023,7 @@ but mutually exclusive, with this <cite>Transaction</cite> or <cite>Method</cite
 
   <div role="contentinfo">
     <p>&#169; Copyright Kuźnia Rdzeni, 2025.
-      <span class="lastupdated">Last updated on 13:38 2025-08-03.
+      <span class="lastupdated">Last updated on 13:45 2025-08-03.
       </span></p>
   </div>
 
