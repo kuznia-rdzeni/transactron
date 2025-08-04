@@ -76,6 +76,14 @@ transactron.utils.transactron\_helpers module
    :undoc-members:
    :show-inheritance:
 
+transactron.utils.typing module
+-------------------------------
+
+.. automodule:: transactron.utils.typing
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Module contents
 ---------------
 
