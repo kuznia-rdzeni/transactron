@@ -97,7 +97,7 @@ class ArgumentsToResultsZipper(Elaboratable):
             results = forwarder.read(m)
             return {"args": args, "results": results}
 
-        self.peek_arg.proxy(fifo.peek)
+        self.peek_arg.provide(fifo.peek)
 
         return m
 
@@ -183,6 +183,6 @@ class Serializer(Elaboratable):
                 pending_requests.read(m)
                 return self.serialized_resp_method(m)
 
-        self.clear.proxy(pending_requests.clear)
+        self.clear.provide(pending_requests.clear)
 
         return m

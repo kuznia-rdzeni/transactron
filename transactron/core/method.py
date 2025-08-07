@@ -145,18 +145,16 @@ class Method(TransactionBase["Transaction | Method"]):
             raise ValueError(f"Method {value.name} has different interface than {self.name}")
         self._body_ptr = value
 
-    def proxy(self, method: "Method"):
-        """Define as a proxy for another method.
+    def provide(self, method: "Method"):
+        """Provide method definition using another method.
 
-        The calls to this method will be forwarded to `method`.
+        The calls to this method will be forwarded to `method`. Input and
+        output data layouts of this method and `method` must match.
 
         Parameters
         ----------
-        m : TModule
-            Module in which operations on signals should be executed,
-            `proxy` uses the combinational domain only.
         method : Method
-            Method for which this method is a proxy for.
+            Definition of `method` will be provided to this method.
         """
         self._set_impl(method)
 
@@ -345,12 +343,22 @@ class Methods(Sequence[Method]):
     def layout_out(self):
         return self._layout_out
 
-    def proxy(self, methods: Iterable[Method]):
+    def provide(self, methods: Iterable[Method]):
+        """Provide methods' definition using another set of methods.
+
+        The calls to `i`-th method will be forwarded to `i`-th method of
+        `methods` using `Method.provide`.
+
+        Parameters
+        ----------
+        methods : Iterable[Method]
+            Definitions of `methods` will be provided to this method.
+        """
         methods = list(methods)
         if len(methods) != len(self):
             raise ValueError(f"Invalid number of methods: {len(self)} expected, {len(methods)} provided")
         for self_method, method in zip(self, methods):
-            self_method.proxy(method)
+            self_method.provide(method)
 
     def __call__(
         self, m: TModule, arg: Optional[AssignArg] = None, /, enable_call: ValueLike = C(1), **kwargs: AssignArg

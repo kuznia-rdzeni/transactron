@@ -316,8 +316,8 @@ class ConnectTrans(Elaboratable):
             Alternatively, the source location to use instead of the default.
         """
         ct = ConnectTrans(method1.layout_in, method1.layout_out, src_loc=get_src_loc(src_loc))
-        ct.method1.proxy(method1)
-        ct.method2.proxy(method2)
+        ct.method1.provide(method1)
+        ct.method2.provide(method2)
         return ct
 
     def elaborate(self, platform):
@@ -408,9 +408,9 @@ class CrossbarConnectTrans(Elaboratable):
             o_layout=methods1[0].layout_out,
         )
         for cct_method1, method1 in zip(cct.methods1, methods1):
-            cct_method1.proxy(method1)
+            cct_method1.provide(method1)
         for cct_method2, method2 in zip(cct.methods2, methods2):
-            cct_method2.proxy(method2)
+            cct_method2.provide(method2)
         return cct
 
     def elaborate(self, platform):
