@@ -138,11 +138,11 @@
 </li>
         <li><a href="transactron.lib.html#transactron.lib.connectors.ConnectTrans.__init__">(transactron.lib.connectors.ConnectTrans method)</a>
 </li>
+        <li><a href="transactron.lib.html#transactron.lib.connectors.CrossbarConnectTrans.__init__">(transactron.lib.connectors.CrossbarConnectTrans method)</a>
+</li>
         <li><a href="transactron.lib.html#transactron.lib.connectors.FIFO.__init__">(transactron.lib.connectors.FIFO method)</a>
 </li>
         <li><a href="transactron.lib.html#transactron.lib.connectors.Forwarder.__init__">(transactron.lib.connectors.Forwarder method)</a>
-</li>
-        <li><a href="transactron.lib.html#transactron.lib.connectors.ManyToOneConnectTrans.__init__">(transactron.lib.connectors.ManyToOneConnectTrans method)</a>
 </li>
         <li><a href="transactron.lib.html#transactron.lib.connectors.Pipe.__init__">(transactron.lib.connectors.Pipe method)</a>
 </li>
@@ -437,8 +437,6 @@
         <li><a href="transactron.utils.html#transactron.utils.dependencies.SimpleKey.combine">(transactron.utils.dependencies.SimpleKey method)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="transactron.core.html#transactron.core.body.AdapterBodyParams.combiner">combiner (transactron.core.body.AdapterBodyParams attribute)</a>
 
       <ul>
@@ -451,6 +449,8 @@
 </li>
       <li><a href="transactron.lib.html#transactron.lib.simultaneous.condition">condition() (in module transactron.lib.simultaneous)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="transactron.lib.html#transactron.lib.connectors.Connect">Connect (class in transactron.lib.connectors)</a>
 </li>
       <li><a href="transactron.lib.html#transactron.lib.connectors.ConnectTrans">ConnectTrans (class in transactron.lib.connectors)</a>
@@ -474,6 +474,24 @@
       <li><a href="transactron.lib.html#transactron.lib.adapters.Adapter.create">create() (transactron.lib.adapters.Adapter static method)</a>
 
       <ul>
+        <li><a href="transactron.lib.html#transactron.lib.adapters.AdapterTrans.create">(transactron.lib.adapters.AdapterTrans static method)</a>
+</li>
+        <li><a href="transactron.lib.html#transactron.lib.connectors.ConnectTrans.create">(transactron.lib.connectors.ConnectTrans static method)</a>
+</li>
+        <li><a href="transactron.lib.html#transactron.lib.connectors.CrossbarConnectTrans.create">(transactron.lib.connectors.CrossbarConnectTrans static method)</a>
+</li>
+        <li><a href="transactron.lib.html#transactron.lib.transformers.Collector.create">(transactron.lib.transformers.Collector static method)</a>
+</li>
+        <li><a href="transactron.lib.html#transactron.lib.transformers.MethodFilter.create">(transactron.lib.transformers.MethodFilter static method)</a>
+</li>
+        <li><a href="transactron.lib.html#transactron.lib.transformers.MethodMap.create">(transactron.lib.transformers.MethodMap static method)</a>
+</li>
+        <li><a href="transactron.lib.html#transactron.lib.transformers.MethodProduct.create">(transactron.lib.transformers.MethodProduct static method)</a>
+</li>
+        <li><a href="transactron.lib.html#transactron.lib.transformers.MethodTryProduct.create">(transactron.lib.transformers.MethodTryProduct static method)</a>
+</li>
+        <li><a href="transactron.lib.html#transactron.lib.transformers.NonexclusiveWrapper.create">(transactron.lib.transformers.NonexclusiveWrapper static method)</a>
+</li>
         <li><a href="transactron.utils.amaranth_ext.html#transactron.utils.amaranth_ext.elaboratables.MultiPriorityEncoder.create">(transactron.utils.amaranth_ext.elaboratables.MultiPriorityEncoder static method)</a>
 </li>
         <li><a href="transactron.utils.amaranth_ext.html#transactron.utils.amaranth_ext.elaboratables.RingMultiPriorityEncoder.create">(transactron.utils.amaranth_ext.elaboratables.RingMultiPriorityEncoder static method)</a>
@@ -485,6 +503,8 @@
         <li><a href="transactron.utils.amaranth_ext.html#transactron.utils.amaranth_ext.elaboratables.RingMultiPriorityEncoder.create_simple">(transactron.utils.amaranth_ext.elaboratables.RingMultiPriorityEncoder static method)</a>
 </li>
       </ul></li>
+      <li><a href="transactron.lib.html#transactron.lib.connectors.CrossbarConnectTrans">CrossbarConnectTrans (class in transactron.lib.connectors)</a>
+</li>
       <li><a href="transactron.core.html#transactron.core.body.Body.ctrl_path">ctrl_path (transactron.core.body.Body attribute)</a>
 
       <ul>
@@ -849,6 +869,12 @@
 </li>
       <li><a href="transactron.core.html#transactron.core.tmodule.TModule.If">If() (transactron.core.tmodule.TModule method)</a>
 </li>
+      <li><a href="transactron.lib.html#transactron.lib.adapters.Adapter.iface">iface (transactron.lib.adapters.Adapter attribute)</a>
+
+      <ul>
+        <li><a href="transactron.lib.html#transactron.lib.adapters.AdapterTrans.iface">(transactron.lib.adapters.AdapterTrans attribute)</a>
+</li>
+      </ul></li>
       <li><a href="transactron.html#transactron.graph.Direction.IN">IN (transactron.graph.Direction attribute)</a>
 </li>
       <li><a href="transactron.lib.html#transactron.lib.metrics.HwCounter.incr">incr (transactron.lib.metrics.HwCounter attribute)</a>
@@ -859,10 +885,10 @@
       </ul></li>
       <li><a href="transactron.core.html#transactron.core.transaction_base.TransactionBase.independent_list">independent_list (transactron.core.transaction_base.TransactionBase attribute)</a>
 </li>
-      <li><a href="transactron.lib.html#transactron.lib.logging.HardwareLogger.info">info() (transactron.lib.logging.HardwareLogger method)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="transactron.lib.html#transactron.lib.logging.HardwareLogger.info">info() (transactron.lib.logging.HardwareLogger method)</a>
+</li>
       <li><a href="transactron.html#transactron.graph.Direction.INOUT">INOUT (transactron.graph.Direction attribute)</a>
 </li>
       <li><a href="transactron.lib.html#transactron.lib.basicio.InputSampler">InputSampler (class in transactron.lib.basicio)</a>
@@ -963,8 +989,6 @@
 </li>
       <li><a href="transactron.testing.html#transactron.testing.tick_count.make_tick_count_process">make_tick_count_process() (in module transactron.testing.tick_count)</a>
 </li>
-      <li><a href="transactron.lib.html#transactron.lib.connectors.ManyToOneConnectTrans">ManyToOneConnectTrans (class in transactron.lib.connectors)</a>
-</li>
       <li><a href="transactron.utils.amaranth_ext.html#transactron.utils.amaranth_ext.functions.max_value">max_value() (in module transactron.utils.amaranth_ext.functions)</a>
 </li>
       <li><a href="transactron.lib.html#transactron.lib.storage.MemoryBank">MemoryBank (class in transactron.lib.storage)</a>
@@ -974,11 +998,11 @@
       <li><a href="transactron.core.html#transactron.core.method.Method">Method (class in transactron.core.method)</a>
 </li>
       <li><a href="transactron.lib.html#transactron.lib.transformers.Transformer.method">method (transactron.lib.transformers.Transformer attribute)</a>
-
-      <ul>
-        <li><a href="transactron.lib.html#transactron.lib.transformers.Unifier.method">(transactron.lib.transformers.Unifier attribute)</a>
 </li>
-      </ul></li>
+      <li><a href="transactron.lib.html#transactron.lib.connectors.ConnectTrans.method1">method1 (transactron.lib.connectors.ConnectTrans attribute)</a>
+</li>
+      <li><a href="transactron.lib.html#transactron.lib.connectors.ConnectTrans.method2">method2 (transactron.lib.connectors.ConnectTrans attribute)</a>
+</li>
       <li><a href="transactron.core.html#transactron.core.body.Body.method_calls">method_calls (transactron.core.body.Body attribute)</a>
 </li>
       <li><a href="transactron.utils.html#transactron.utils.transactron_helpers.method_def_helper">method_def_helper() (in module transactron.utils.transactron_helpers)</a>
@@ -1002,6 +1026,10 @@
       <li><a href="transactron.core.html#transactron.core.method.Methods">Methods (class in transactron.core.method)</a>
 </li>
       <li><a href="transactron.html#transactron.profiler.ProfileSamples.methods">methods (transactron.profiler.ProfileSamples attribute)</a>
+</li>
+      <li><a href="transactron.lib.html#transactron.lib.connectors.CrossbarConnectTrans.methods1">methods1 (transactron.lib.connectors.CrossbarConnectTrans attribute)</a>
+</li>
+      <li><a href="transactron.lib.html#transactron.lib.connectors.CrossbarConnectTrans.methods2">methods2 (transactron.lib.connectors.CrossbarConnectTrans attribute)</a>
 </li>
       <li><a href="transactron.html#transactron.profiler.MethodSamples">MethodSamples (class in transactron.profiler)</a>
 </li>
@@ -1275,7 +1303,11 @@
       <li><a href="transactron.core.html#transactron.core.method.MethodDir.PROVIDED">PROVIDED (transactron.core.method.MethodDir attribute)</a>
 </li>
       <li><a href="transactron.core.html#transactron.core.method.Method.proxy">proxy() (transactron.core.method.Method method)</a>
+
+      <ul>
+        <li><a href="transactron.core.html#transactron.core.method.Methods.proxy">(transactron.core.method.Methods method)</a>
 </li>
+      </ul></li>
       <li><a href="transactron.html#transactron.graph.OwnershipGraph.prune">prune() (transactron.graph.OwnershipGraph method)</a>
 </li>
       <li><a href="transactron.lib.html#transactron.lib.basicio.OutputBuffer.put">put (transactron.lib.basicio.OutputBuffer attribute)</a>
@@ -2064,7 +2096,7 @@
 
   <div role="contentinfo">
     <p>&#169; Copyright Kuźnia Rdzeni, 2025.
-      <span class="lastupdated">Last updated on 09:22 2025-08-04.
+      <span class="lastupdated">Last updated on 11:23 2025-08-07.
       </span></p>
   </div>
 
