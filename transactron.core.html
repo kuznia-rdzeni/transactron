@@ -472,17 +472,15 @@ transactions.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="transactron.core.method.Method.proxy">
-<span class="sig-name descname"><span class="pre">proxy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#transactron.core.method.Method" title="transactron.core.method.Method"><span class="pre">Method</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.core.method.Method.proxy" title="Permalink to this definition"></a></dt>
-<dd><p>Define as a proxy for another method.</p>
-<p>The calls to this method will be forwarded to <cite>method</cite>.</p>
+<dt class="sig sig-object py" id="transactron.core.method.Method.provide">
+<span class="sig-name descname"><span class="pre">provide</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#transactron.core.method.Method" title="transactron.core.method.Method"><span class="pre">Method</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.core.method.Method.provide" title="Permalink to this definition"></a></dt>
+<dd><p>Provide method definition using another method.</p>
+<p>The calls to this method will be forwarded to <cite>method</cite>. Input and
+output data layouts of this method and <cite>method</cite> must match.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>m</strong><span class="classifier">TModule</span></dt><dd><p>Module in which operations on signals should be executed,
-<cite>proxy</cite> uses the combinational domain only.</p>
-</dd>
-<dt><strong>method</strong><span class="classifier">Method</span></dt><dd><p>Method for which this method is a proxy for.</p>
+<dt><strong>method</strong><span class="classifier">Method</span></dt><dd><p>Definition of <cite>method</cite> will be provided to this method.</p>
 </dd>
 </dl>
 </dd>
@@ -532,9 +530,20 @@ transactions.</p>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="transactron.core.method.Methods.proxy">
-<span class="sig-name descname"><span class="pre">proxy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">methods</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterable" title="(in Python v3.13)"><span class="pre">Iterable</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#transactron.core.method.Method" title="transactron.core.method.Method"><span class="pre">Method</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.core.method.Methods.proxy" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<dt class="sig sig-object py" id="transactron.core.method.Methods.provide">
+<span class="sig-name descname"><span class="pre">provide</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">methods</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterable" title="(in Python v3.13)"><span class="pre">Iterable</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#transactron.core.method.Method" title="transactron.core.method.Method"><span class="pre">Method</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.core.method.Methods.provide" title="Permalink to this definition"></a></dt>
+<dd><p>Provide methods’ definition using another set of methods.</p>
+<p>The calls to <cite>i</cite>-th method will be forwarded to <cite>i</cite>-th method of
+<cite>methods</cite> using <cite>Method.provide</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>methods</strong><span class="classifier">Iterable[Method]</span></dt><dd><p>Definitions of <cite>methods</cite> will be provided to this method.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
 
 </dd></dl>
 
@@ -1028,7 +1037,7 @@ but mutually exclusive, with this <cite>Transaction</cite> or <cite>Method</cite
 
   <div role="contentinfo">
     <p>&#169; Copyright Kuźnia Rdzeni, 2025.
-      <span class="lastupdated">Last updated on 11:23 2025-08-07.
+      <span class="lastupdated">Last updated on 07:31 2025-08-14.
       </span></p>
   </div>
 
