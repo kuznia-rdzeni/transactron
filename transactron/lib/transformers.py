@@ -137,7 +137,7 @@ class MethodMap(Elaboratable, TransformerOneTarget):
         tr = MethodMap(
             target.layout_in, target.layout_out, i_transform=i_transform, o_transform=o_transform, src_loc=src_loc
         )
-        tr.target.proxy(target)
+        tr.target.provide(target)
         return tr
 
     def elaborate(self, platform):
@@ -233,7 +233,7 @@ class MethodFilter(Elaboratable, TransformerOneTarget):
         tr = MethodFilter(
             target.layout_in, target.layout_out, condition, default, use_condition=use_condition, src_loc=src_loc
         )
-        tr.target.proxy(target)
+        tr.target.provide(target)
         return tr
 
     def elaborate(self, platform):
@@ -329,7 +329,7 @@ class MethodProduct(Elaboratable, Unifier):
             combiner=combiner,
             src_loc=src_loc,
         )
-        tr.targets.proxy(targets)
+        tr.targets.provide(targets)
         return tr
 
     def elaborate(self, platform):
@@ -415,7 +415,7 @@ class MethodTryProduct(Elaboratable, Unifier):
         targets = list(targets)
         src_loc = get_src_loc(src_loc)
         tr = MethodTryProduct(len(targets), targets[0].layout_in, targets[0].layout_out, combiner, src_loc=src_loc)
-        tr.targets.proxy(targets)
+        tr.targets.provide(targets)
         return tr
 
     def elaborate(self, platform):
@@ -472,7 +472,7 @@ class Collector(Elaboratable, Unifier):
         targets = list(targets)
         src_loc = get_src_loc(src_loc)
         tr = Collector(len(targets), targets[0].layout_out)
-        tr.targets.proxy(targets)
+        tr.targets.provide(targets)
         return tr
 
     def elaborate(self, platform):
@@ -481,7 +481,7 @@ class Collector(Elaboratable, Unifier):
         m.submodules.forwarder = forwarder = Forwarder(self.method.layout_out, src_loc=self.src_loc)
         m.submodules.connect = CrossbarConnectTrans.create(self.targets, forwarder.write, src_loc=self.src_loc)
 
-        self.method.proxy(forwarder.read)
+        self.method.provide(forwarder.read)
 
         return m
 
@@ -525,7 +525,7 @@ class NonexclusiveWrapper(Elaboratable, TransformerOneTarget):
         """
         src_loc = get_src_loc(src_loc)
         tr = NonexclusiveWrapper(target.layout_in, target.layout_out)
-        tr.target.proxy(target)
+        tr.target.provide(target)
         return tr
 
     def elaborate(self, platform):

@@ -90,7 +90,7 @@ class AdapterTrans(AdapterBase):
         """
         src_loc = get_src_loc(src_loc)
         adapter = AdapterTrans(i=method.layout_in, o=method.layout_out, src_loc=src_loc)
-        adapter.iface.proxy(method)
+        adapter.iface.provide(method)
         return adapter
 
     def elaborate(self, platform):
@@ -181,7 +181,7 @@ class Adapter(AdapterBase):
         """
         src_loc = get_src_loc(src_loc)
         adapter = Adapter(i=method.layout_in, o=method.layout_out, src_loc=src_loc, **kwargs)
-        method.proxy(adapter.iface)
+        method.provide(adapter.iface)
         return adapter
 
     def update_args(self, **kwargs: Unpack[AdapterBodyParams]):
