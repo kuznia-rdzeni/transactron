@@ -28,6 +28,7 @@ The library is in alpha stage of development, but is already well tested because
 ## Documentation
 
 The [documentation](https://kuznia-rdzeni.github.io/transactron/) is automatically generated using [Sphinx](https://www.sphinx-doc.org/).
+It includes a [tutorial](https://kuznia-rdzeni.github.io/transactron/getting-started.html), which demonstrates how to start developing hardware using Transactron.
 
 ## Contributing
 
