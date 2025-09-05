@@ -14,9 +14,9 @@ class ValidateArgumentsTestCircuit(Elaboratable):
     def elaborate(self, platform):
         m = Module()
 
-        self.method = TestbenchIO(Adapter.create(i=data_layout(1), o=data_layout(1)).set(with_validate_arguments=True))
-        self.caller1 = TestbenchIO(AdapterTrans(self.method.adapter.iface))
-        self.caller2 = TestbenchIO(AdapterTrans(self.method.adapter.iface))
+        self.method = TestbenchIO(Adapter(i=data_layout(1), o=data_layout(1)).set(with_validate_arguments=True))
+        self.caller1 = TestbenchIO(AdapterTrans.create(self.method.adapter.iface))
+        self.caller2 = TestbenchIO(AdapterTrans.create(self.method.adapter.iface))
 
         m.submodules += [self.method, self.caller1, self.caller2]
 

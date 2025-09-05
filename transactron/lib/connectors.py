@@ -1,3 +1,4 @@
+from collections.abc import Iterable
 from amaranth import *
 from amaranth.lib.data import View
 import amaranth.lib.fifo
@@ -11,7 +12,7 @@ __all__ = [
     "Forwarder",
     "Connect",
     "ConnectTrans",
-    "ManyToOneConnectTrans",
+    "CrossbarConnectTrans",
     "Pipe",
 ]
 
@@ -279,8 +280,31 @@ class ConnectTrans(Elaboratable):
     layouts.
     """
 
-    def __init__(self, method1: Method, method2: Method, *, src_loc: int | SrcLoc = 0):
+    method1: Required[Method]
+    method2: Required[Method]
+
+    def __init__(self, i_layout: MethodLayout = (), o_layout: MethodLayout = (), *, src_loc: int | SrcLoc = 0):
         """
+        Parameters
+        ----------
+        i_layout: method layout, optional
+            Input layout of `method1`, output layout of `method2`. If not
+            provided, empty layout is used.
+        o_layout: method layout, optional
+            Output layout of `method1`, input layout of `method2`. If not
+            provided, empty layout is used.
+        src_loc: int | SrcLoc
+            How many stack frames deep the source location is taken from.
+            Alternatively, the source location to use instead of the default.
+        """
+        self.method1 = Method(i=i_layout, o=o_layout)
+        self.method2 = Method(i=o_layout, o=i_layout)
+        self.src_loc = get_src_loc(src_loc)
+
+    @staticmethod
+    def create(method1: Method, method2: Method, *, src_loc: int | SrcLoc = 0):
+        """Creates a `ConnectTrans` which connects two given methods.
+
         Parameters
         ----------
         method1: Method
@@ -291,9 +315,10 @@ class ConnectTrans(Elaboratable):
             How many stack frames deep the source location is taken from.
             Alternatively, the source location to use instead of the default.
         """
-        self.method1 = method1
-        self.method2 = method2
-        self.src_loc = get_src_loc(src_loc)
+        ct = ConnectTrans(method1.layout_in, method1.layout_out, src_loc=get_src_loc(src_loc))
+        ct.method1.provide(method1)
+        ct.method2.provide(method2)
+        return ct
 
     def elaborate(self, platform):
         m = TModule()
@@ -308,37 +333,91 @@ class ConnectTrans(Elaboratable):
         return m
 
 
-class ManyToOneConnectTrans(Elaboratable):
-    """Many-to-one method connection.
+class CrossbarConnectTrans(Elaboratable):
+    """Crossbar method connection.
 
-    Connects each of a set of methods to another method using separate
-    transactions. Equivalent to a set of `ConnectTrans`.
+    Connects each of a set of methods to each one from another set using
+    separate transactions. Equivalent to a set of `ConnectTrans`.
     """
 
-    def __init__(self, *, get_results: list[Method], put_result: Method, src_loc: int | SrcLoc = 0):
+    methods1: Required[Methods]
+    methods2: Required[Methods]
+
+    def __init__(
+        self,
+        count1: int = 1,
+        count2: int = 1,
+        i_layout: MethodLayout = (),
+        o_layout: MethodLayout = (),
+        *,
+        src_loc: int | SrcLoc = 0,
+    ):
         """
         Parameters
         ----------
-        get_results: list[Method]
-            Methods to be connected to the `put_result` method.
-        put_result: Method
-            Common method for each of the connections created.
+        count1: int, optional
+            Size of `methods1`. Defaults to 1 if not provided.
+        count2: int, optional
+            Size of `methods2`. Defaults to 1 if not provided.
+        i_layout: method layout
+            Input layout of `methods1`, output layout of `methods2`. If not
+            provided, empty layout is used.
+        o_layout: method layout
+            Output layout of `methods1`, input layout of `methods2`. If not
+            provided, empty layout is used.
         src_loc: int | SrcLoc
             How many stack frames deep the source location is taken from.
             Alternatively, the source location to use instead of the default.
         """
-        self.get_results = get_results
-        self.m_put_result = put_result
-
-        self.count = len(self.get_results)
+        self.methods1 = Methods(count1, i=i_layout, o=o_layout)
+        self.methods2 = Methods(count2, i=o_layout, o=i_layout)
         self.src_loc = get_src_loc(src_loc)
+
+    @staticmethod
+    def create(
+        methods1: Method | Iterable[Method],
+        methods2: Method | Iterable[Method],
+        *,
+        src_loc: int | SrcLoc = 0,
+    ):
+        """Creates a `CrossbarConnectTrans` which connects two sets of methods.
+
+        Parameters
+        ----------
+        method1: Method | Iterable[Method]
+            First method or set of methods.
+        method2: Method | Iterable[Method]
+            Second method or set of methods.
+        src_loc: int | SrcLoc
+            How many stack frames deep the source location is taken from.
+            Alternatively, the source location to use instead of the default.
+        """
+        if isinstance(methods1, Method):
+            methods1 = [methods1]
+        if isinstance(methods2, Method):
+            methods2 = [methods2]
+
+        methods1 = list(methods1)
+        methods2 = list(methods2)
+
+        cct = CrossbarConnectTrans(
+            src_loc=get_src_loc(src_loc),
+            count1=len(methods1),
+            count2=len(methods2),
+            i_layout=methods1[0].layout_in,
+            o_layout=methods1[0].layout_out,
+        )
+        for cct_method1, method1 in zip(cct.methods1, methods1):
+            cct_method1.provide(method1)
+        for cct_method2, method2 in zip(cct.methods2, methods2):
+            cct_method2.provide(method2)
+        return cct
 
     def elaborate(self, platform):
         m = TModule()
 
-        for i in range(self.count):
-            m.submodules[f"ManyToOneConnectTrans_input_{i}"] = ConnectTrans(
-                self.m_put_result, self.get_results[i], src_loc=self.src_loc
-            )
+        for i, method1 in enumerate(self.methods1):
+            for j, method2 in enumerate(self.methods2):
+                m.submodules[f"connect_{i}_{j}"] = ConnectTrans.create(method1, method2, src_loc=self.src_loc)
 
         return m

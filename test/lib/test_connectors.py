@@ -120,27 +120,13 @@ class TestPipe(TestFifoBase):
         self.do_test_fifo(Pipe, writer_rand=0, reader_rand=0)
 
 
-class ManyToOneConnectTransTestCircuit(Elaboratable):
-    inputs: Required[list[Method]]
-    output: Required[Method]
-
-    def __init__(self, count: int, layout: MethodLayout):
-        self.inputs = [Method(o=layout) for _ in range(count)]
-        self.output = Method(i=layout)
-
-    def elaborate(self, platform):
-        m = TModule()
-        m.submodules.fu_arbitration = ManyToOneConnectTrans(get_results=self.inputs, put_result=self.output)
-        return m
-
-
-class TestManyToOneConnectTrans(TestCaseWithSimulator):
+class TestCrossbarConnectTrans(TestCaseWithSimulator):
     def initialize(self):
         f1_size = 14
         f2_size = 3
         self.lay = [("field1", f1_size), ("field2", f2_size)]
 
-        self.m = SimpleTestCircuit(ManyToOneConnectTransTestCircuit(self.count, self.lay))
+        self.m = SimpleTestCircuit(CrossbarConnectTrans(self.count, 1, [], self.lay))
         random.seed(14)
 
         self.inputs = []
@@ -166,7 +152,7 @@ class TestManyToOneConnectTrans(TestCaseWithSimulator):
         async def producer(sim: TestbenchContext):
             inputs = self.inputs[i]
             for field1, field2 in inputs:
-                await self.m.inputs[i].call(sim, field1=field1, field2=field2)
+                await self.m.methods1[i].call(sim, field1=field1, field2=field2)
                 await self.random_wait(sim, self.max_wait)
             self.producer_end[i] = True
 
@@ -174,7 +160,7 @@ class TestManyToOneConnectTrans(TestCaseWithSimulator):
 
     async def consumer(self, sim: TestbenchContext):
         while not all(self.producer_end):
-            result = await self.m.output.call(sim)
+            result = await self.m.methods2[0].call(sim)
 
             t = (result.field1, result.field2)
             assert self.expected_output[t]

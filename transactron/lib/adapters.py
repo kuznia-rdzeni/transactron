@@ -35,8 +35,11 @@ class AdapterBase(Component):
 class AdapterTrans(AdapterBase):
     """Adapter transaction.
 
-    Creates a transaction controlled by plain Amaranth signals. Allows to
-    expose a method to plain Amaranth code, including testbenches.
+    Creates a transaction controlled by plain Amaranth signals which calls
+    a single method, `iface`. Allows to expose a method to plain Amaranth
+    code, including testbenches.
+
+    To expose an existing method, construct the `AdapterTrans` using `create`.
 
     Attributes
     ----------
@@ -50,18 +53,45 @@ class AdapterTrans(AdapterBase):
         Data returned from the `iface` method.
     """
 
-    def __init__(self, iface: Method, *, src_loc: int | SrcLoc = 0):
+    iface: Required[Method]
+    """The method called by the `AdapterTrans`."""
+
+    def __init__(
+        self, name: Optional[str] = None, i: MethodLayout = [], o: MethodLayout = [], src_loc: int | SrcLoc = 0
+    ):
         """
         Parameters
         ----------
-        iface: Method
+        name: str, optional
+            Name for the created method.
+        i: MethodLayout, optional
+            Input layout of the created method.
+        o: MethodLayout, optional
+            Output layout of the created method.
+        src_loc: int | SrcLoc
+            How many stack frames deep the source location is taken from.
+            Alternatively, the source location to use instead of the default.
+        """
+        self.src_loc = get_src_loc(src_loc)
+        method = Method(name=name, i=i, o=o, src_loc=self.src_loc)
+        super().__init__(method, method.layout_in, method.layout_out)
+
+    @staticmethod
+    def create(method: Method, *, src_loc: int | SrcLoc = 0):
+        """Creates an `AdapterTrans` which calls a given method.
+
+        Parameters
+        ----------
+        method: Method
             The method to be called by the transaction.
         src_loc: int | SrcLoc
             How many stack frames deep the source location is taken from.
             Alternatively, the source location to use instead of the default.
         """
-        super().__init__(iface, iface.layout_in, iface.layout_out)
-        self.src_loc = get_src_loc(src_loc)
+        src_loc = get_src_loc(src_loc)
+        adapter = AdapterTrans(i=method.layout_in, o=method.layout_out, src_loc=src_loc)
+        adapter.iface.provide(method)
+        return adapter
 
     def elaborate(self, platform):
         m = TModule()
@@ -84,6 +114,9 @@ class Adapter(AdapterBase):
     Creates a method controlled by plain Amaranth signals. One of the
     possible uses is to mock a method in a testbench.
 
+    To control an existing (but not yet defined) method, construct the
+    `Adapter` using `create`.
+
     Attributes
     ----------
     en: Signal, in
@@ -98,30 +131,58 @@ class Adapter(AdapterBase):
         Hooks for `validate_arguments`.
     """
 
-    def __init__(self, method: Method, /, **kwargs: Unpack[AdapterBodyParams]):
-        """
-        Parameters
-        ----------
-        **kwargs
-            Keyword arguments for Method that will be created.
-            See transactron.core.Method.__init__ for parameters description.
-        """
+    iface: Provided[Method]
+    """The method defined and controlled by the `Adapter`."""
 
-        super().__init__(method, method.layout_out, method.layout_in)
-        self.validators: list[tuple[View[StructLayout], Signal]] = []
-        self.with_validate_arguments: bool = False
-        self.kwargs = kwargs
-
-    @staticmethod
-    def create(
+    def __init__(
+        self,
         name: Optional[str] = None,
         i: MethodLayout = [],
         o: MethodLayout = [],
         src_loc: int | SrcLoc = 0,
         **kwargs: Unpack[AdapterBodyParams],
     ):
+        """
+        Parameters
+        ----------
+        name: str, optional
+            Name for the created method.
+        i: MethodLayout, optional
+            Input layout of the created method.
+        o: MethodLayout, optional
+            Output layout of the created method.
+        src_loc: int | SrcLoc
+            How many stack frames deep the source location is taken from.
+            Alternatively, the source location to use instead of the default.
+        **kwargs
+            Keyword arguments for `Method` body that will be created.
+            See `transactron.core.Method.body` for parameters description.
+        """
         method = Method(name=name, i=i, o=o, src_loc=get_src_loc(src_loc))
-        return Adapter(method, **kwargs)
+        super().__init__(method, method.layout_out, method.layout_in)
+        self.validators: list[tuple[View[StructLayout], Signal]] = []
+        self.with_validate_arguments: bool = False
+        self.kwargs = kwargs
+
+    @staticmethod
+    def create(method: Method, /, *, src_loc: int | SrcLoc = 0, **kwargs: Unpack[AdapterBodyParams]):
+        """Creates an `Adapter` which defines a given method.
+
+        Parameters
+        ----------
+        method: Method
+            `Method` to be controlled by the `Adapter`.
+        src_loc: int | SrcLoc
+            How many stack frames deep the source location is taken from.
+            Alternatively, the source location to use instead of the default.
+        **kwargs
+            Keyword arguments for `Method` body that will be created.
+            See `transactron.core.Method.body` for parameters description.
+        """
+        src_loc = get_src_loc(src_loc)
+        adapter = Adapter(i=method.layout_in, o=method.layout_out, src_loc=src_loc, **kwargs)
+        method.provide(adapter.iface)
+        return adapter
 
     def update_args(self, **kwargs: Unpack[AdapterBodyParams]):
         self.kwargs.update(kwargs)

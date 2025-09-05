@@ -129,9 +129,9 @@ class TransitivityTestCircuit(Elaboratable):
 
         m.submodules.c1 = c1 = Connect([("data", 2)])
         m.submodules.c2 = c2 = Connect([("data", 2)])
-        self.source1.proxy(c1.write)
-        self.source2.proxy(c1.write)
-        m.submodules.ct = ConnectTrans(c2.read, self.target)
+        self.source1.provide(c1.write)
+        self.source2.provide(c1.write)
+        m.submodules.ct = ConnectTrans.create(c2.read, self.target)
         m.submodules.hc1 = HelperConnect(c1.read, c2.write, self.req1, 1)
         m.submodules.hc2 = HelperConnect(c1.read, c2.write, self.req2, 2)
 
@@ -140,7 +140,7 @@ class TransitivityTestCircuit(Elaboratable):
 
 class TestTransitivity(TestCaseWithSimulator):
     def test_transitivity(self):
-        target = TestbenchIO(Adapter.create(i=[("data", 2)]))
+        target = TestbenchIO(Adapter(i=[("data", 2)]))
         req1 = Signal()
         req2 = Signal()
 

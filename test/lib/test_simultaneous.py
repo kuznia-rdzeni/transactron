@@ -49,7 +49,7 @@ class TestCondition(TestCaseWithSimulator):
     @pytest.mark.parametrize("priority", [False, True])
     @pytest.mark.parametrize("catchall", [False, True])
     def test_condition(self, nonblocking: bool, priority: bool, catchall: bool):
-        target = TestbenchIO(Adapter.create(i=[("cond", 2)]))
+        target = TestbenchIO(Adapter(i=[("cond", 2)]))
 
         circ = SimpleTestCircuit(
             ConditionTestCircuit(target.adapter.iface, nonblocking=nonblocking, priority=priority, catchall=catchall),

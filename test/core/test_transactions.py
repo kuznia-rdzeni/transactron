@@ -59,10 +59,10 @@ class TransactionConflictTestCircuit(Elaboratable):
     def elaborate(self, platform):
         m = TModule()
         tm = TransactronContextElaboratable(m, DependencyContext.get(), TransactionManager(self.scheduler))
-        adapter = Adapter.create(i=data_layout(32), o=data_layout(32))
+        adapter = Adapter(i=data_layout(32), o=data_layout(32))
         m.submodules.out = self.out = TestbenchIO(adapter)
-        m.submodules.in1 = self.in1 = TestbenchIO(AdapterTrans(adapter.iface))
-        m.submodules.in2 = self.in2 = TestbenchIO(AdapterTrans(adapter.iface))
+        m.submodules.in1 = self.in1 = TestbenchIO(AdapterTrans.create(adapter.iface))
+        m.submodules.in2 = self.in2 = TestbenchIO(AdapterTrans.create(adapter.iface))
         return tm
 
 

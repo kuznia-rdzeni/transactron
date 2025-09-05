@@ -4,7 +4,7 @@ from amaranth_types import ValueLike, ModuleLike, HasElaborate
 from transactron.utils.transactron_helpers import get_src_loc
 from ..core import *
 from ..utils import SrcLoc
-from typing import Optional, Protocol
+from typing import Iterable, Optional, Protocol
 from collections.abc import Callable
 from transactron.utils import (
     assign,
@@ -13,7 +13,7 @@ from transactron.utils import (
     MethodLayout,
     RecordDict,
 )
-from .connectors import Forwarder, ManyToOneConnectTrans
+from .connectors import Forwarder, CrossbarConnectTrans
 from .simultaneous import condition
 
 __all__ = [
@@ -32,18 +32,13 @@ class Transformer(HasElaborate, Protocol):
     """Method transformer abstract class.
 
     Method transformers construct a new method which utilizes other methods.
-
-    Attributes
-    ----------
-    method: Method
-        The method.
     """
 
-    method: Method
+    method: Provided[Method]
+    """Method created by the transformer."""
 
     def use(self, m: ModuleLike):
-        """
-        Returns the method and adds the transformer to a module.
+        """Returns the method and adds the transformer to a module.
 
         Parameters
         ----------
@@ -54,13 +49,21 @@ class Transformer(HasElaborate, Protocol):
         return self.method
 
 
-class Unifier(Transformer, Protocol):
-    method: Method
+class TransformerOneTarget(Transformer, Protocol):
+    target: Required[Method]
+    """Method called by the transformer."""
 
+
+class TransformerMultiTarget(Transformer, Protocol):
+    targets: Required[Methods]
+    """Methods called by the transformer."""
+
+
+class Unifier(TransformerMultiTarget, Protocol):
     def __init__(self, targets: list[Method]): ...
 
 
-class MethodMap(Elaboratable, Transformer):
+class MethodMap(Elaboratable, TransformerOneTarget):
     """Bidirectional map for methods.
 
     Takes a target method and creates a transformed method which calls the
@@ -68,16 +71,12 @@ class MethodMap(Elaboratable, Transformer):
     functions. The mapping functions take two parameters, a `Module` and the
     structure being transformed. Alternatively, a `Method` can be
     passed.
-
-    Attributes
-    ----------
-    method: Method
-        The transformed method.
     """
 
     def __init__(
         self,
-        target: Method,
+        i_layout: MethodLayout = (),
+        o_layout: MethodLayout = (),
         *,
         i_transform: Optional[tuple[MethodLayout, Callable[[TModule, MethodStruct], RecordDict]]] = None,
         o_transform: Optional[tuple[MethodLayout, Callable[[TModule, MethodStruct], RecordDict]]] = None,
@@ -86,8 +85,10 @@ class MethodMap(Elaboratable, Transformer):
         """
         Parameters
         ----------
-        target: Method
-            The target method.
+        i_layout: MethodLayout
+            Input layout of the `target` method.
+        o_layout: MethodLayout
+            Output layout of the `target` method.
         i_transform: (method layout, function or Method), optional
             Input mapping function. If specified, it should be a pair of a
             function and a input layout for the transformed method.
@@ -101,15 +102,43 @@ class MethodMap(Elaboratable, Transformer):
             Alternatively, the source location to use instead of the default.
         """
         if i_transform is None:
-            i_transform = (target.layout_in, lambda _, x: x)
+            i_transform = (i_layout, lambda _, x: x)
         if o_transform is None:
-            o_transform = (target.layout_out, lambda _, x: x)
+            o_transform = (o_layout, lambda _, x: x)
 
-        self.target = target
+        self.target = Method(i=i_layout, o=o_layout)
         src_loc = get_src_loc(src_loc)
         self.method = Method(i=i_transform[0], o=o_transform[0], src_loc=src_loc)
         self.i_fun = i_transform[1]
         self.o_fun = o_transform[1]
+
+    @staticmethod
+    def create(
+        target: Method,
+        *,
+        i_transform: Optional[tuple[MethodLayout, Callable[[TModule, MethodStruct], RecordDict]]] = None,
+        o_transform: Optional[tuple[MethodLayout, Callable[[TModule, MethodStruct], RecordDict]]] = None,
+        src_loc: int | SrcLoc = 0,
+    ):
+        """
+        Parameters
+        ----------
+        target: Method
+            The target method.
+        i_transform: (method layout, function or Method), optional
+            See constructor.
+        o_transform: (method layout, function or Method), optional
+            See constructor.
+        src_loc: int | SrcLoc
+            How many stack frames deep the source location is taken from.
+            Alternatively, the source location to use instead of the default.
+        """
+        src_loc = get_src_loc(src_loc)
+        tr = MethodMap(
+            target.layout_in, target.layout_out, i_transform=i_transform, o_transform=o_transform, src_loc=src_loc
+        )
+        tr.target.provide(target)
+        return tr
 
     def elaborate(self, platform):
         m = TModule()
@@ -121,7 +150,7 @@ class MethodMap(Elaboratable, Transformer):
         return m
 
 
-class MethodFilter(Elaboratable, Transformer):
+class MethodFilter(Elaboratable, TransformerOneTarget):
     """Method filter.
 
     Takes a target method and creates a method which calls the target method
@@ -129,20 +158,17 @@ class MethodFilter(Elaboratable, Transformer):
     parameters, a module and the input structure of the method. Non-zero
     return value is interpreted as true. Alternatively to using a function,
     a `Method` can be passed as a condition.
+
     By default, the target method is locked for use even if it is not called.
     If this is not the desired effect, set `use_condition` to True, but this will
     cause that the provided method will be `single_caller` and all other `condition`
     drawbacks will be in place (e.g. risk of exponential complexity).
-
-    Attributes
-    ----------
-    method: Method
-        The transformed method.
     """
 
     def __init__(
         self,
-        target: Method,
+        i_layout: MethodLayout,
+        o_layout: MethodLayout,
         condition: Callable[[TModule, MethodStruct], ValueLike],
         default: Optional[RecordDict] = None,
         *,
@@ -152,8 +178,10 @@ class MethodFilter(Elaboratable, Transformer):
         """
         Parameters
         ----------
-        target: Method
-            The target method.
+        i_layout: MethodLayout
+            Input layout of the `target` method.
+        o_layout: MethodLayout
+            Output layout of the `target` method.
         condition: function or Method
             The condition which, when true, allows the call to `target`. When
             false, `default` is returned.
@@ -168,17 +196,45 @@ class MethodFilter(Elaboratable, Transformer):
             How many stack frames deep the source location is taken from.
             Alternatively, the source location to use instead of the default.
         """
-        if default is None:
-            default = Signal.like(target.data_out)
-
-        self.target = target
+        self.target = Method(i=i_layout, o=o_layout)
         self.use_condition = use_condition
         src_loc = get_src_loc(src_loc)
-        self.method = Method(i=target.layout_in, o=target.layout_out, src_loc=src_loc)
+        self.method = Method(i=i_layout, o=o_layout, src_loc=src_loc)
         self.condition = condition
-        self.default = default
+        self.default = default if default is not None else Signal(self.target.layout_out)
 
         assert not (use_condition and isinstance(condition, Method))
+
+    @staticmethod
+    def create(
+        target: Method,
+        condition: Callable[[TModule, MethodStruct], ValueLike],
+        default: Optional[RecordDict] = None,
+        *,
+        use_condition: bool = False,
+        src_loc: int | SrcLoc = 0,
+    ):
+        """
+        Parameters
+        ----------
+        target: Method
+            The target method.
+        condition: function or Method
+            See constructor.
+        default: Value or dict, optional
+            See constructor.
+        use_condition : bool
+            See constructor.
+        src_loc: int | SrcLoc
+            How many stack frames deep the source location is taken from.
+            Alternatively, the source location to use instead of the default.
+        """
+        src_loc = get_src_loc(src_loc)
+        tr = MethodFilter(
+            target.layout_in, target.layout_out, condition, default, use_condition=use_condition, src_loc=src_loc
+        )
+        tr.target.provide(target)
+        return tr
 
     def elaborate(self, platform):
         m = TModule()
@@ -203,26 +259,34 @@ class MethodFilter(Elaboratable, Transformer):
 
 
 class MethodProduct(Elaboratable, Unifier):
+    """Method product.
+
+    Takes arbitrary, non-zero number of target methods, and constructs
+    a method which calls all of the target methods using the same
+    argument. The return value of the resulting method is, by default,
+    the return value of the first of the target methods. A combiner
+    function can be passed, which can compute the return value from
+    the results of every target method.
+    """
+
     def __init__(
         self,
-        targets: list[Method],
+        count: int = 1,
+        i_layout: MethodLayout = (),
+        o_layout: MethodLayout = (),
         combiner: Optional[tuple[MethodLayout, Callable[[TModule, list[MethodStruct]], RecordDict]]] = None,
         *,
         src_loc: int | SrcLoc = 0,
     ):
-        """Method product.
-
-        Takes arbitrary, non-zero number of target methods, and constructs
-        a method which calls all of the target methods using the same
-        argument. The return value of the resulting method is, by default,
-        the return value of the first of the target methods. A combiner
-        function can be passed, which can compute the return value from
-        the results of every target method.
-
+        """
         Parameters
         ----------
-        targets: list[Method]
-            A list of methods to be called.
+        count: int
+            The number of target methods.
+        i_layout: MethodLayout
+            Input layout of the `targets` methods.
+        o_layout: MethodLayout
+            Output layout of the `targets` methods.
         combiner: (int or method layout, function), optional
             A pair of the output layout and the combiner function. The
             combiner function takes two parameters: a `Module` and
@@ -230,18 +294,43 @@ class MethodProduct(Elaboratable, Unifier):
         src_loc: int | SrcLoc
             How many stack frames deep the source location is taken from.
             Alternatively, the source location to use instead of the default.
-
-        Attributes
-        ----------
-        method: Method
-            The product method.
         """
         if combiner is None:
-            combiner = (targets[0].layout_out, lambda _, x: x[0])
-        self.targets = targets
+            combiner = (o_layout, lambda _, x: x[0])
+        self.targets = Methods(count, i=i_layout, o=o_layout)
         self.combiner = combiner
         src_loc = get_src_loc(src_loc)
-        self.method = Method(i=targets[0].layout_in, o=combiner[0], src_loc=src_loc)
+        self.method = Method(i=i_layout, o=combiner[0], src_loc=src_loc)
+
+    @staticmethod
+    def create(
+        targets: Iterable[Method],
+        combiner: Optional[tuple[MethodLayout, Callable[[TModule, list[MethodStruct]], RecordDict]]] = None,
+        *,
+        src_loc: int | SrcLoc = 0,
+    ):
+        """
+        Parameters
+        ----------
+        targets: Iterable[Method]
+            The target methods.
+        combiner: (int or method layout, function), optional
+            See constructor.
+        src_loc: int | SrcLoc
+            How many stack frames deep the source location is taken from.
+            Alternatively, the source location to use instead of the default.
+        """
+        targets = list(targets)
+        src_loc = get_src_loc(src_loc)
+        tr = MethodProduct(
+            len(targets),
+            i_layout=targets[0].layout_in,
+            o_layout=targets[0].layout_out,
+            combiner=combiner,
+            src_loc=src_loc,
+        )
+        tr.targets.provide(targets)
+        return tr
 
     def elaborate(self, platform):
         m = TModule()
@@ -257,48 +346,77 @@ class MethodProduct(Elaboratable, Unifier):
 
 
 class MethodTryProduct(Elaboratable, Unifier):
+    """Method product with optional calling.
+
+    Takes arbitrary, non-zero number of target methods, and constructs
+    a method which tries to call all of the target methods using the same
+    argument. The methods which are not ready are not called. The return
+    value of the resulting method is, by default, empty. A combiner
+    function can be passed, which can compute the return value from the
+    results of every target method.
+    """
+
     def __init__(
         self,
-        targets: list[Method],
+        count: int = 1,
+        i_layout: MethodLayout = (),
+        o_layout: MethodLayout = (),
         combiner: Optional[
             tuple[MethodLayout, Callable[[TModule, list[tuple[Value, MethodStruct]]], RecordDict]]
         ] = None,
         *,
         src_loc: int | SrcLoc = 0,
     ):
-        """Method product with optional calling.
-
-        Takes arbitrary, non-zero number of target methods, and constructs
-        a method which tries to call all of the target methods using the same
-        argument. The methods which are not ready are not called. The return
-        value of the resulting method is, by default, empty. A combiner
-        function can be passed, which can compute the return value from the
-        results of every target method.
-
+        """
         Parameters
         ----------
-        targets: list[Method]
-            A list of methods to be called.
+        count: int
+            The number of target methods.
+        i_layout: MethodLayout
+            Input layout of the `targets` methods.
+        o_layout: MethodLayout
+            Output layout of the `targets` methods.
         combiner: (int or method layout, function), optional
             A pair of the output layout and the combiner function. The
-            combiner function takes two parameters: a `Module` and
+            combiner function takes two parameters: a `TModule` and
             a list of pairs. Each pair contains a bit which signals
             that a given call succeeded, and the result of the call.
         src_loc: int | SrcLoc
             How many stack frames deep the source location is taken from.
             Alternatively, the source location to use instead of the default.
-
-        Attributes
-        ----------
-        method: Method
-            The product method.
         """
         if combiner is None:
             combiner = ([], lambda _, __: {})
-        self.targets = targets
+        self.targets = Methods(count, i=i_layout, o=o_layout)
         self.combiner = combiner
         self.src_loc = get_src_loc(src_loc)
-        self.method = Method(i=targets[0].layout_in, o=combiner[0], src_loc=self.src_loc)
+        self.method = Method(i=i_layout, o=combiner[0], src_loc=self.src_loc)
+
+    @staticmethod
+    def create(
+        targets: Iterable[Method],
+        combiner: Optional[
+            tuple[MethodLayout, Callable[[TModule, list[tuple[Value, MethodStruct]]], RecordDict]]
+        ] = None,
+        *,
+        src_loc: int | SrcLoc = 0,
+    ):
+        """
+        Parameters
+        ----------
+        targets: Iterable[Method]
+            The target methods.
+        combiner: (int or method layout, function), optional
+            See constructor.
+        src_loc: int | SrcLoc
+            How many stack frames deep the source location is taken from.
+            Alternatively, the source location to use instead of the default.
+        """
+        targets = list(targets)
+        src_loc = get_src_loc(src_loc)
+        tr = MethodTryProduct(len(targets), targets[0].layout_in, targets[0].layout_out, combiner, src_loc=src_loc)
+        tr.targets.provide(targets)
+        return tr
 
     def elaborate(self, platform):
         m = TModule()
@@ -322,47 +440,53 @@ class Collector(Elaboratable, Unifier):
     Creates method that collects results of many methods with identical
     layouts. Each call of this method will return a single result of one
     of the provided methods.
-
-    Attributes
-    ----------
-    method: Method
-        Method which returns single result of provided methods.
     """
 
-    def __init__(self, targets: list[Method], *, src_loc: int | SrcLoc = 0):
+    def __init__(self, count: int = 1, o_layout: MethodLayout = (), *, src_loc: int | SrcLoc = 0):
         """
         Parameters
         ----------
-        method_list: list[Method]
-            List of methods from which results will be collected.
+        count: int
+            The number of target methods.
+        o_layout: MethodLayout
+            Output layout of the `targets` methods.
         src_loc: int | SrcLoc
             How many stack frames deep the source location is taken from.
             Alternatively, the source location to use instead of the default.
         """
-        self.method_list = targets
-        layout = targets[0].layout_out
         self.src_loc = get_src_loc(src_loc)
-        self.method = Method(o=layout, src_loc=self.src_loc)
+        self.targets = Methods(count, o=o_layout, src_loc=self.src_loc)
+        self.method = Method(o=o_layout, src_loc=self.src_loc)
 
-        for method in targets:
-            if layout != method.layout_out:
-                raise Exception("Not all methods have this same layout")
+    @staticmethod
+    def create(targets: Iterable[Method], *, src_loc: int | SrcLoc = 0):
+        """
+        Parameters
+        ----------
+        targets: Iterable[Method]
+            Methods from which results will be collected.
+        src_loc: int | SrcLoc
+            How many stack frames deep the source location is taken from.
+            Alternatively, the source location to use instead of the default.
+        """
+        targets = list(targets)
+        src_loc = get_src_loc(src_loc)
+        tr = Collector(len(targets), targets[0].layout_out)
+        tr.targets.provide(targets)
+        return tr
 
     def elaborate(self, platform):
         m = TModule()
 
         m.submodules.forwarder = forwarder = Forwarder(self.method.layout_out, src_loc=self.src_loc)
+        m.submodules.connect = CrossbarConnectTrans.create(self.targets, forwarder.write, src_loc=self.src_loc)
 
-        m.submodules.connect = ManyToOneConnectTrans(
-            get_results=[get for get in self.method_list], put_result=forwarder.write, src_loc=self.src_loc
-        )
-
-        self.method.proxy(forwarder.read)
+        self.method.provide(forwarder.read)
 
         return m
 
 
-class NonexclusiveWrapper(Elaboratable, Transformer):
+class NonexclusiveWrapper(Elaboratable, TransformerOneTarget):
     """Nonexclusive wrapper around a method.
 
     Useful when you can assume, for external reasons, that a given method will
@@ -372,9 +496,37 @@ class NonexclusiveWrapper(Elaboratable, Transformer):
     Possible use case is unifying parallel pipelines with the same latency.
     """
 
-    def __init__(self, target: Method):
-        self.target = target
-        self.method = Method.like(target)
+    def __init__(self, i_layout: MethodLayout = (), o_layout: MethodLayout = (), *, src_loc: int | SrcLoc = 0):
+        """
+        Parameters
+        ----------
+        i_layout: MethodLayout
+            Input layout of the `target` method.
+        o_layout: MethodLayout
+            Output layout of the `target` method.
+        src_loc: int | SrcLoc
+            How many stack frames deep the source location is taken from.
+            Alternatively, the source location to use instead of the default.
+        """
+        src_loc = get_src_loc(src_loc)
+        self.target = Method(i=i_layout, o=o_layout, src_loc=src_loc)
+        self.method = Method(i=i_layout, o=o_layout, src_loc=src_loc)
+
+    @staticmethod
+    def create(target: Method, *, src_loc: int | SrcLoc = 0):
+        """
+        Parameters
+        ----------
+        target: Method
+            The target method.
+        src_loc: int | SrcLoc
+            How many stack frames deep the source location is taken from.
+            Alternatively, the source location to use instead of the default.
+        """
+        src_loc = get_src_loc(src_loc)
+        tr = NonexclusiveWrapper(target.layout_in, target.layout_out)
+        tr.target.provide(target)
+        return tr
 
     def elaborate(self, platform):
         m = TModule()
