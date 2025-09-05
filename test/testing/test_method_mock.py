@@ -5,8 +5,7 @@ from amaranth.lib.data import StructLayout
 import pytest
 
 from transactron import *
-from transactron.testing import TestCaseWithSimulator, TestbenchContext
-from transactron.testing.infrastructure import SimpleTestCircuit
+from transactron.testing import TestCaseWithSimulator, TestbenchContext, SimpleTestCircuit
 from transactron.testing.method_mock import MethodMock, def_method_mock
 from transactron.lib import *
 
