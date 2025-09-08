@@ -9,53 +9,53 @@ transactron.utils.amaranth\_ext.coding module
 
 .. automodule:: transactron.utils.amaranth_ext.coding
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 transactron.utils.amaranth\_ext.component\_interface module
 -----------------------------------------------------------
 
 .. automodule:: transactron.utils.amaranth_ext.component_interface
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 transactron.utils.amaranth\_ext.elaboratables module
 ----------------------------------------------------
 
 .. automodule:: transactron.utils.amaranth_ext.elaboratables
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 transactron.utils.amaranth\_ext.functions module
 ------------------------------------------------
 
 .. automodule:: transactron.utils.amaranth_ext.functions
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 transactron.utils.amaranth\_ext.memory module
 ---------------------------------------------
 
 .. automodule:: transactron.utils.amaranth_ext.memory
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 transactron.utils.amaranth\_ext.shifter module
 ----------------------------------------------
 
 .. automodule:: transactron.utils.amaranth_ext.shifter
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Module contents
 ---------------
 
 .. automodule:: transactron.utils.amaranth_ext
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:

@@ -1,28 +1,27 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Development environment &mdash; Transactron documentation</title>
-      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  <!--[if lt IE 9]>
-    <script src="_static/js/html5shiv.min.js"></script>
-  <![endif]-->
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
   
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/jquery.js"></script>
-        <script src="_static/underscore.js"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="_static/doctools.js"></script>
-        <script src="https://unpkg.com/mermaid@9.4.0/dist/mermaid.min.js"></script>
-        <script>mermaid.initialize({startOnLoad:true});</script>
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="https://unpkg.com/mermaid@9.4.0/dist/mermaid.min.js"></script>
+      <script>mermaid.initialize({startOnLoad:true});</script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Documentation for Transactron" href="transactions.html" />
-    <link rel="prev" title="Transactron" href="index.html" /> 
+    <link rel="prev" title="transactron.utils.amaranth_ext package" href="transactron.utils.amaranth_ext.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -30,18 +29,25 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="index.html" class="icon icon-home"> Transactron documentation
-            <img src="_static/logo-banner.svg" class="logo" alt="Logo"/>
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Transactron documentation
+              <img src="_static/logo-banner.svg" class="logo" alt="Logo"/>
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="transactions.html">Documentation for Transactron</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Development environment</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#setting-up">Setting up</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#running-tests">Running tests</a></li>
@@ -53,8 +59,6 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="transactions.html">Documentation for Transactron</a></li>
-<li class="toctree-l1"><a class="reference internal" href="api.html">API</a></li>
 </ul>
 
         </div>
@@ -70,8 +74,8 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
-      <li>Development environment</li>
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Development environment</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/development-environment.md.txt" rel="nofollow"> View page source</a>
       </li>
@@ -82,9 +86,9 @@
            <div itemprop="articleBody">
              
   <section id="development-environment">
-<h1>Development environment<a class="headerlink" href="#development-environment" title="Permalink to this heading"></a></h1>
+<h1>Development environment<a class="headerlink" href="#development-environment" title="Link to this heading"></a></h1>
 <section id="setting-up">
-<h2>Setting up<a class="headerlink" href="#setting-up" title="Permalink to this heading"></a></h2>
+<h2>Setting up<a class="headerlink" href="#setting-up" title="Link to this heading"></a></h2>
 <p>In order to prepare the development environment, please follow the steps below:</p>
 <ol class="arabic simple">
 <li><p>Install the Python 3.11 interpreter and pip package manager.</p>
@@ -97,7 +101,7 @@
 </ol>
 </section>
 <section id="running-tests">
-<h2>Running tests<a class="headerlink" href="#running-tests" title="Permalink to this heading"></a></h2>
+<h2>Running tests<a class="headerlink" href="#running-tests" title="Link to this heading"></a></h2>
 <p>Tests are run using <code class="docutils literal notranslate"><span class="pre">pytest</span></code>. Useful things to know are:</p>
 <ul class="simple">
 <li><p>To speed up running tests, multiple worker threads can be used – use option <code class="docutils literal notranslate"><span class="pre">-n</span> <span class="pre">auto</span></code>.</p></li>
@@ -112,10 +116,10 @@
 </ul>
 </section>
 <section id="using-scripts">
-<h2>Using scripts<a class="headerlink" href="#using-scripts" title="Permalink to this heading"></a></h2>
+<h2>Using scripts<a class="headerlink" href="#using-scripts" title="Link to this heading"></a></h2>
 <p>The development environment contains a number of scripts which are run in CI, but are also intended for local use. They are:</p>
 <section id="lint-sh">
-<h3>lint.sh<a class="headerlink" href="#lint-sh" title="Permalink to this heading"></a></h3>
+<h3>lint.sh<a class="headerlink" href="#lint-sh" title="Link to this heading"></a></h3>
 <p>Checks the code formatting and typing. It should be run as follows:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">scripts</span><span class="o">/</span><span class="n">lint</span><span class="o">.</span><span class="n">sh</span> <span class="n">subcommand</span> <span class="p">[</span><span class="n">filename</span><span class="o">...</span><span class="p">]</span>
 </pre></div>
@@ -134,11 +138,11 @@
 <p>This way you may display the changes <code class="docutils literal notranslate"><span class="pre">black</span></code> would apply to <code class="docutils literal notranslate"><span class="pre">[filename]</span></code> if you chose the <code class="docutils literal notranslate"><span class="pre">format</span></code> option for <code class="docutils literal notranslate"><span class="pre">lint.sh</span></code> script. This may help you locate the formatting issues.</p>
 </section>
 <section id="build-docs-sh">
-<h3>build_docs.sh<a class="headerlink" href="#build-docs-sh" title="Permalink to this heading"></a></h3>
+<h3>build_docs.sh<a class="headerlink" href="#build-docs-sh" title="Link to this heading"></a></h3>
 <p>Generates local documentation using <a class="reference external" href="https://www.sphinx-doc.org/">Sphinx</a>. The generated HTML files are located in <code class="docutils literal notranslate"><span class="pre">build/html</span></code>.</p>
 </section>
 <section id="transactron-prof">
-<h3>transactron-prof<a class="headerlink" href="#transactron-prof" title="Permalink to this heading"></a></h3>
+<h3>transactron-prof<a class="headerlink" href="#transactron-prof" title="Link to this heading"></a></h3>
 <p>Processes Transactron profile files and presents them in a readable way.
 To generate a profile file, the <code class="docutils literal notranslate"><span class="pre">run_tests.py</span></code> script should be used with the <code class="docutils literal notranslate"><span class="pre">--profile</span></code> option.
 The script can then be run as follows:</p>
@@ -173,15 +177,14 @@ In this mode, the <code class="docutils literal notranslate"><span class="pre">l
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="index.html" class="btn btn-neutral float-left" title="Transactron" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="transactions.html" class="btn btn-neutral float-right" title="Documentation for Transactron" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="transactron.utils.amaranth_ext.html" class="btn btn-neutral float-left" title="transactron.utils.amaranth_ext package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
 
   <hr/>
 
   <div role="contentinfo">
     <p>&#169; Copyright Kuźnia Rdzeni, 2025.
-      <span class="lastupdated">Last updated on 07:31 2025-08-14.
+      <span class="lastupdated">Last updated on 08:27 2025-09-08.
       </span></p>
   </div>
 

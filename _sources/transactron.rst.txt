@@ -21,29 +21,29 @@ transactron.graph module
 
 .. automodule:: transactron.graph
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 transactron.profiler module
 ---------------------------
 
 .. automodule:: transactron.profiler
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 transactron.tracing module
 --------------------------
 
 .. automodule:: transactron.tracing
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Module contents
 ---------------
 
 .. automodule:: transactron
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:

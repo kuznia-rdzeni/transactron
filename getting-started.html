@@ -1,0 +1,477 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Getting started &mdash; Transactron documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="https://unpkg.com/mermaid@9.4.0/dist/mermaid.min.js"></script>
+      <script>mermaid.initialize({startOnLoad:true});</script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Documentation for Transactron" href="transactions.html" />
+    <link rel="prev" title="Transactron" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Transactron documentation
+              <img src="_static/logo-banner.svg" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Getting started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#installing-transactron">Installing Transactron</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#controlling-leds-and-switches">Controlling LEDs and switches</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#method-readiness">Method readiness</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#transaction-conflicts">Transaction conflicts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#connecting-transactions-as-submodules">Connecting transactions as submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#data-structures">Data structures</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#rpn-calculator">RPN calculator</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="transactions.html">Documentation for Transactron</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development-environment.html">Development environment</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Transactron documentation</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Getting started</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/getting-started.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="getting-started">
+<h1>Getting started<a class="headerlink" href="#getting-started" title="Link to this heading"></a></h1>
+<p>This tutorial serves to gently introduce basics of developing hardware using Transactron.</p>
+<section id="installing-transactron">
+<h2>Installing Transactron<a class="headerlink" href="#installing-transactron" title="Link to this heading"></a></h2>
+<p>To install the latest release of Transactron, run:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ pip install --upgrade transactron
+</pre></div>
+</div>
+<p>For the purpose of this tutorial, the <a class="reference external" href="https://github.com/amaranth-lang/amaranth-boards">amaranth-boards</a> package is suggested to interact with your favorite FPGA dev board.
+As <code class="docutils literal notranslate"><span class="pre">amaranth-boards</span></code> is not regularly released to <code class="docutils literal notranslate"><span class="pre">pypi</span></code>, it is recommended to install the latest development snapshot:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ pip install &quot;amaranth-boards@git+https://github.com/amaranth-lang/amaranth-boards.git&quot;
+</pre></div>
+</div>
+</section>
+<section id="controlling-leds-and-switches">
+<h2>Controlling LEDs and switches<a class="headerlink" href="#controlling-leds-and-switches" title="Link to this heading"></a></h2>
+<p>The following example demonstrates the use of Transactron for interacting with basic inputs/outputs on FPGA development boards.
+It defines a circuit which allows to control a LED using a switch.
+Please bear with the triviality for now: things will get more interesting later.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">amaranth</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">amaranth.lib.data</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">data</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">transactron</span><span class="w"> </span><span class="kn">import</span> <span class="n">TModule</span><span class="p">,</span> <span class="n">Transaction</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">transactron.lib.basicio</span><span class="w"> </span><span class="kn">import</span> <span class="n">InputSampler</span><span class="p">,</span> <span class="n">OutputBuffer</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">LedControl</span><span class="p">(</span><span class="n">Elaboratable</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">elaborate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">platform</span><span class="p">):</span>
+        <span class="n">m</span> <span class="o">=</span> <span class="n">TModule</span><span class="p">()</span>
+
+        <span class="n">switch</span> <span class="o">=</span> <span class="n">platform</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="s2">&quot;switch&quot;</span><span class="p">)</span>
+        <span class="n">led</span> <span class="o">=</span> <span class="n">platform</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="s2">&quot;led&quot;</span><span class="p">)</span>
+
+        <span class="n">layout</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">StructLayout</span><span class="p">({</span><span class="s2">&quot;val&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">})</span>
+
+        <span class="n">m</span><span class="o">.</span><span class="n">submodules</span><span class="o">.</span><span class="n">switch_sampler</span> <span class="o">=</span> <span class="n">switch_sampler</span> <span class="o">=</span> <span class="n">InputSampler</span><span class="p">(</span><span class="n">layout</span><span class="p">,</span> <span class="n">synchronize</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">m</span><span class="o">.</span><span class="n">d</span><span class="o">.</span><span class="n">comb</span> <span class="o">+=</span> <span class="n">switch_sampler</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">val</span><span class="o">.</span><span class="n">eq</span><span class="p">(</span><span class="n">switch</span><span class="o">.</span><span class="n">i</span><span class="p">)</span>
+
+        <span class="n">m</span><span class="o">.</span><span class="n">submodules</span><span class="o">.</span><span class="n">led_buffer</span> <span class="o">=</span> <span class="n">led_buffer</span> <span class="o">=</span> <span class="n">OutputBuffer</span><span class="p">(</span><span class="n">layout</span><span class="p">,</span> <span class="n">synchronize</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">m</span><span class="o">.</span><span class="n">d</span><span class="o">.</span><span class="n">comb</span> <span class="o">+=</span> <span class="n">led</span><span class="o">.</span><span class="n">o</span><span class="o">.</span><span class="n">eq</span><span class="p">(</span><span class="n">led_buffer</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">val</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="n">Transaction</span><span class="p">()</span><span class="o">.</span><span class="n">body</span><span class="p">(</span><span class="n">m</span><span class="p">):</span>
+            <span class="n">led_buffer</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="n">switch_sampler</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">m</span><span class="p">)</span><span class="o">.</span><span class="n">val</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">m</span>
+</pre></div>
+</div>
+<p>Transactron components are standard Amaranth <a class="reference external" href="https://amaranth-lang.org/docs/amaranth/v0.5.4/guide.html#lang-elaboration" title="Amaranth language &amp; toolchain 0.5.4">elaboratables</a>.
+The main difference is that in the <code class="docutils literal notranslate"><span class="pre">elaborate</span></code> method, <a class="reference internal" href="transactron.core.html#transactron.core.tmodule.TModule" title="transactron.core.tmodule.TModule"><code class="xref py py-class docutils literal notranslate"><span class="pre">TModule</span></code></a> should be used instead of <code class="docutils literal notranslate"><span class="pre">Module</span></code>.</p>
+<p>To expose an input to Transactron code, the <a class="reference internal" href="transactron.lib.html#transactron.lib.basicio.InputSampler" title="transactron.lib.basicio.InputSampler"><code class="xref py py-class docutils literal notranslate"><span class="pre">InputSampler</span></code></a> component is added as a submodule.
+To use it, a method layout must be specified, which here is an instance of <a class="reference external" href="https://amaranth-lang.org/docs/amaranth/v0.5.4/stdlib/data.html#amaranth.lib.data.StructLayout" title="(in Amaranth language &amp; toolchain v0.5.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">StructLayout</span></code></a>.
+The <code class="docutils literal notranslate"><span class="pre">data</span></code> attribute then needs to be combinationally connected to the input to be exposed.
+The <a class="reference internal" href="transactron.lib.html#transactron.lib.basicio.InputSampler.get" title="transactron.lib.basicio.InputSampler.get"><code class="xref py py-attr docutils literal notranslate"><span class="pre">get</span></code></a> method then allows to access the input from Transactron code using a method call.
+The <a class="reference internal" href="transactron.lib.html#transactron.lib.basicio.OutputBuffer" title="transactron.lib.basicio.OutputBuffer"><code class="xref py py-class docutils literal notranslate"><span class="pre">OutputBuffer</span></code></a> component exposes an output instead.
+It provides a <a class="reference internal" href="transactron.lib.html#transactron.lib.basicio.OutputBuffer.put" title="transactron.lib.basicio.OutputBuffer.put"><code class="xref py py-attr docutils literal notranslate"><span class="pre">put</span></code></a> method.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">synchronize=True</span></code> constructor parameter for <a class="reference internal" href="transactron.lib.html#transactron.lib.basicio.InputSampler" title="transactron.lib.basicio.InputSampler"><code class="xref py py-class docutils literal notranslate"><span class="pre">InputSampler</span></code></a> and <a class="reference internal" href="transactron.lib.html#transactron.lib.basicio.OutputBuffer" title="transactron.lib.basicio.OutputBuffer"><code class="xref py py-class docutils literal notranslate"><span class="pre">OutputBuffer</span></code></a> is used because FPGA dev board I/O is not synchronous to the global clock.
+It is not needed for synchronous signals.</p>
+</div>
+<p>Transactron methods can only be called from within transaction (or method) definitions.
+Here, we define a simple transaction by constructing a <a class="reference internal" href="transactron.core.html#transactron.core.transaction.Transaction" title="transactron.core.transaction.Transaction"><code class="xref py py-class docutils literal notranslate"><span class="pre">Transaction</span></code></a> object and immediately calling <a class="reference internal" href="transactron.core.html#transactron.core.transaction.Transaction.body" title="transactron.core.transaction.Transaction.body"><code class="xref py py-meth docutils literal notranslate"><span class="pre">body()</span></code></a>.
+Inside the body, the <a class="reference internal" href="transactron.lib.html#transactron.lib.basicio.OutputBuffer.put" title="transactron.lib.basicio.OutputBuffer.put"><code class="xref py py-attr docutils literal notranslate"><span class="pre">put</span></code></a> method is called to set the LED value to the one received from the switch using the <a class="reference internal" href="transactron.lib.html#transactron.lib.basicio.InputSampler.get" title="transactron.lib.basicio.InputSampler.get"><code class="xref py py-attr docutils literal notranslate"><span class="pre">get</span></code></a> method.
+Because of the layout definition <code class="docutils literal notranslate"><span class="pre">layout</span></code>, both the <code class="docutils literal notranslate"><span class="pre">put</span></code> parameter and the field of the structure returned from <code class="docutils literal notranslate"><span class="pre">get</span></code> are named <code class="docutils literal notranslate"><span class="pre">val</span></code>.
+The transaction defined here will run in every cycle, ensuring that the LED always shows the value of the switch.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Other than method calls, transaction and method bodies can contain arbitrary Python and Amaranth code.
+The Python code of the definition is run once, while Amaranth [assignments]{inv:#lang-assigns} are active only in cycles when the defined transaction or method runs.
+This will be showcased in later part of the tutorial.</p>
+</div>
+<p>The example component can be synthesized and programmed to your FPGA dev board using the following code.
+The code uses the Digilent Arty A7 board.
+For it to work, Vivado and <code class="docutils literal notranslate"><span class="pre">xc3sprog</span></code> need to be installed.
+To use it with a different dev board, an appropriate platform needs to be imported instead and the correct toolchain for the board needs to be installed.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">transactron</span><span class="w"> </span><span class="kn">import</span> <span class="n">TransactronContextElaboratable</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">amaranth_boards.arty_a7</span><span class="w"> </span><span class="kn">import</span> <span class="n">ArtyA7_35Platform</span>
+
+<span class="n">ArtyA7_35Platform</span><span class="p">()</span><span class="o">.</span><span class="n">build</span><span class="p">(</span><span class="n">TransactronContextElaboratable</span><span class="p">(</span><span class="n">LedControl</span><span class="p">()),</span> <span class="n">do_program</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Please notice <a class="reference internal" href="transactron.core.html#transactron.core.context.TransactronContextElaboratable" title="transactron.core.context.TransactronContextElaboratable"><code class="xref py py-class docutils literal notranslate"><span class="pre">TransactronContextElaboratable</span></code></a>, which is used to wrap the <code class="docutils literal notranslate"><span class="pre">LedControl</span></code> elaboratable.
+It provides the context required by Transactron code, including the transaction manager.
+Without the wrapper, synthesis will fail.
+Typically, there should be only one <a class="reference internal" href="transactron.core.html#transactron.core.context.TransactronContextElaboratable" title="transactron.core.context.TransactronContextElaboratable"><code class="xref py py-class docutils literal notranslate"><span class="pre">TransactronContextElaboratable</span></code></a> for the entire project.</p>
+</section>
+<section id="method-readiness">
+<h2>Method readiness<a class="headerlink" href="#method-readiness" title="Link to this heading"></a></h2>
+<p>For now, our example is not very interesting.
+We will now spice it up a little by adding triggers to our input and output.
+The input of <a class="reference internal" href="transactron.lib.html#transactron.lib.basicio.InputSampler" title="transactron.lib.basicio.InputSampler"><code class="xref py py-class docutils literal notranslate"><span class="pre">InputSampler</span></code></a> can be sampled only in cycles when the trigger is active; same with setting the output of <a class="reference internal" href="transactron.lib.html#transactron.lib.basicio.OutputBuffer" title="transactron.lib.basicio.OutputBuffer"><code class="xref py py-class docutils literal notranslate"><span class="pre">OutputBuffer</span></code></a>.
+The triggers will be controlled by board buttons.</p>
+<div class="highlight-default notranslate" id="ledcontrol2"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">amaranth</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">amaranth.lib.data</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">data</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">transactron</span><span class="w"> </span><span class="kn">import</span> <span class="n">TModule</span><span class="p">,</span> <span class="n">Transaction</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">transactron.lib.basicio</span><span class="w"> </span><span class="kn">import</span> <span class="n">InputSampler</span><span class="p">,</span> <span class="n">OutputBuffer</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">LedControl</span><span class="p">(</span><span class="n">Elaboratable</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">elaborate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">platform</span><span class="p">):</span>
+        <span class="n">m</span> <span class="o">=</span> <span class="n">TModule</span><span class="p">()</span>
+
+        <span class="n">switch</span> <span class="o">=</span> <span class="n">platform</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="s2">&quot;switch&quot;</span><span class="p">)</span>
+        <span class="n">led</span> <span class="o">=</span> <span class="n">platform</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="s2">&quot;led&quot;</span><span class="p">)</span>
+        <span class="n">btn_switch</span> <span class="o">=</span> <span class="n">platform</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="s2">&quot;button&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">btn_led</span> <span class="o">=</span> <span class="n">platform</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="s2">&quot;button&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="n">layout</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">StructLayout</span><span class="p">({</span><span class="s2">&quot;val&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">})</span>
+
+        <span class="n">m</span><span class="o">.</span><span class="n">submodules</span><span class="o">.</span><span class="n">switch_sampler</span> <span class="o">=</span> <span class="n">switch_sampler</span> <span class="o">=</span> <span class="n">InputSampler</span><span class="p">(</span><span class="n">layout</span><span class="p">,</span> <span class="n">synchronize</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">polarity</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">m</span><span class="o">.</span><span class="n">d</span><span class="o">.</span><span class="n">comb</span> <span class="o">+=</span> <span class="n">switch_sampler</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">val</span><span class="o">.</span><span class="n">eq</span><span class="p">(</span><span class="n">switch</span><span class="o">.</span><span class="n">i</span><span class="p">)</span>
+        <span class="n">m</span><span class="o">.</span><span class="n">d</span><span class="o">.</span><span class="n">comb</span> <span class="o">+=</span> <span class="n">switch_sampler</span><span class="o">.</span><span class="n">trigger</span><span class="o">.</span><span class="n">eq</span><span class="p">(</span><span class="n">btn_switch</span><span class="o">.</span><span class="n">i</span><span class="p">)</span>
+
+        <span class="n">m</span><span class="o">.</span><span class="n">submodules</span><span class="o">.</span><span class="n">led_buffer</span> <span class="o">=</span> <span class="n">led_buffer</span> <span class="o">=</span> <span class="n">OutputBuffer</span><span class="p">(</span><span class="n">layout</span><span class="p">,</span> <span class="n">synchronize</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">polarity</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">m</span><span class="o">.</span><span class="n">d</span><span class="o">.</span><span class="n">comb</span> <span class="o">+=</span> <span class="n">led</span><span class="o">.</span><span class="n">o</span><span class="o">.</span><span class="n">eq</span><span class="p">(</span><span class="n">led_buffer</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">val</span><span class="p">)</span>
+        <span class="n">m</span><span class="o">.</span><span class="n">d</span><span class="o">.</span><span class="n">comb</span> <span class="o">+=</span> <span class="n">led_buffer</span><span class="o">.</span><span class="n">trigger</span><span class="o">.</span><span class="n">eq</span><span class="p">(</span><span class="n">btn_led</span><span class="o">.</span><span class="n">i</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="n">Transaction</span><span class="p">()</span><span class="o">.</span><span class="n">body</span><span class="p">(</span><span class="n">m</span><span class="p">):</span>
+            <span class="n">led_buffer</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="n">switch_sampler</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">m</span><span class="p">)</span><span class="o">.</span><span class="n">val</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">m</span>
+</pre></div>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>The code assumes that the buttons on the FPGA dev board are active high (pulled down), as is the case on the Arty A7 board.
+If the buttons on your dev board are active low (pulled up), change the <code class="docutils literal notranslate"><span class="pre">polarity</span></code> parameters to <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p>
+</div>
+<p>Please notice that flipping the switch now does not result in changes of the LED state unless the trigger buttons are both pressed.
+This is because the transaction body now does not run in every cycle.
+Instead it runs only in the cycles when both called methods (<a class="reference internal" href="transactron.lib.html#transactron.lib.basicio.InputSampler.get" title="transactron.lib.basicio.InputSampler.get"><code class="xref py py-attr docutils literal notranslate"><span class="pre">get</span></code></a> and <a class="reference internal" href="transactron.lib.html#transactron.lib.basicio.OutputBuffer.put" title="transactron.lib.basicio.OutputBuffer.put"><code class="xref py py-attr docutils literal notranslate"><span class="pre">put</span></code></a>) are ready, which is controlled by respective trigger buttons <code class="docutils literal notranslate"><span class="pre">btn_switch</span></code> and <code class="docutils literal notranslate"><span class="pre">btn_led</span></code>.</p>
+<p>Also notice that the transaction definition did not need to be changed for this change in behavior.
+This is because, for a transaction to run in a given clock cycle, every method called by the transaction must be ready in that cycle.
+This condition is implicit in transaction definitions.
+It allows to safely change prerequisite conditions for calling methods without modifying the caller code.</p>
+</section>
+<section id="transaction-conflicts">
+<h2>Transaction conflicts<a class="headerlink" href="#transaction-conflicts" title="Link to this heading"></a></h2>
+<p>In the following example we have two switches controlling the state of a single LED.
+Each of the switches has its own trigger button, but the LED output is always triggered.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">amaranth</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">amaranth.lib.data</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">data</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">transactron</span><span class="w"> </span><span class="kn">import</span> <span class="n">TModule</span><span class="p">,</span> <span class="n">Transaction</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">transactron.lib.basicio</span><span class="w"> </span><span class="kn">import</span> <span class="n">InputSampler</span><span class="p">,</span> <span class="n">OutputBuffer</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">LedControl</span><span class="p">(</span><span class="n">Elaboratable</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">elaborate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">platform</span><span class="p">):</span>
+        <span class="n">m</span> <span class="o">=</span> <span class="n">TModule</span><span class="p">()</span>
+
+        <span class="n">switch1</span> <span class="o">=</span> <span class="n">platform</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="s2">&quot;switch&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">switch2</span> <span class="o">=</span> <span class="n">platform</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="s2">&quot;switch&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">led</span> <span class="o">=</span> <span class="n">platform</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="s2">&quot;led&quot;</span><span class="p">)</span>
+        <span class="n">btn_switch1</span> <span class="o">=</span> <span class="n">platform</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="s2">&quot;button&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">btn_switch2</span> <span class="o">=</span> <span class="n">platform</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="s2">&quot;button&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="n">layout</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">StructLayout</span><span class="p">({</span><span class="s2">&quot;val&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">})</span>
+
+        <span class="n">m</span><span class="o">.</span><span class="n">submodules</span><span class="o">.</span><span class="n">switch1_sampler</span> <span class="o">=</span> <span class="n">switch1_sampler</span> <span class="o">=</span> <span class="n">InputSampler</span><span class="p">(</span><span class="n">layout</span><span class="p">,</span> <span class="n">synchronize</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">polarity</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">m</span><span class="o">.</span><span class="n">d</span><span class="o">.</span><span class="n">comb</span> <span class="o">+=</span> <span class="n">switch1_sampler</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">val</span><span class="o">.</span><span class="n">eq</span><span class="p">(</span><span class="n">switch1</span><span class="o">.</span><span class="n">i</span><span class="p">)</span>
+        <span class="n">m</span><span class="o">.</span><span class="n">d</span><span class="o">.</span><span class="n">comb</span> <span class="o">+=</span> <span class="n">switch1_sampler</span><span class="o">.</span><span class="n">trigger</span><span class="o">.</span><span class="n">eq</span><span class="p">(</span><span class="n">btn_switch1</span><span class="o">.</span><span class="n">i</span><span class="p">)</span>
+
+        <span class="n">m</span><span class="o">.</span><span class="n">submodules</span><span class="o">.</span><span class="n">switch2_sampler</span> <span class="o">=</span> <span class="n">switch2_sampler</span> <span class="o">=</span> <span class="n">InputSampler</span><span class="p">(</span><span class="n">layout</span><span class="p">,</span> <span class="n">synchronize</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">polarity</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">m</span><span class="o">.</span><span class="n">d</span><span class="o">.</span><span class="n">comb</span> <span class="o">+=</span> <span class="n">switch2_sampler</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">val</span><span class="o">.</span><span class="n">eq</span><span class="p">(</span><span class="n">switch2</span><span class="o">.</span><span class="n">i</span><span class="p">)</span>
+        <span class="n">m</span><span class="o">.</span><span class="n">d</span><span class="o">.</span><span class="n">comb</span> <span class="o">+=</span> <span class="n">switch2_sampler</span><span class="o">.</span><span class="n">trigger</span><span class="o">.</span><span class="n">eq</span><span class="p">(</span><span class="n">btn_switch2</span><span class="o">.</span><span class="n">i</span><span class="p">)</span>
+
+        <span class="n">m</span><span class="o">.</span><span class="n">submodules</span><span class="o">.</span><span class="n">led_buffer</span> <span class="o">=</span> <span class="n">led_buffer</span> <span class="o">=</span> <span class="n">OutputBuffer</span><span class="p">(</span><span class="n">layout</span><span class="p">,</span> <span class="n">synchronize</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">m</span><span class="o">.</span><span class="n">d</span><span class="o">.</span><span class="n">comb</span> <span class="o">+=</span> <span class="n">led</span><span class="o">.</span><span class="n">o</span><span class="o">.</span><span class="n">eq</span><span class="p">(</span><span class="n">led_buffer</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">val</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="n">Transaction</span><span class="p">()</span><span class="o">.</span><span class="n">body</span><span class="p">(</span><span class="n">m</span><span class="p">):</span>
+            <span class="n">led_buffer</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="n">switch1_sampler</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">m</span><span class="p">)</span><span class="o">.</span><span class="n">val</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="n">Transaction</span><span class="p">()</span><span class="o">.</span><span class="n">body</span><span class="p">(</span><span class="n">m</span><span class="p">):</span>
+            <span class="n">led_buffer</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="n">switch2_sampler</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">m</span><span class="p">)</span><span class="o">.</span><span class="n">val</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">m</span>
+</pre></div>
+</div>
+<p>Pressing the first button changes the state of the LED to the state of the first switch.
+The same thing happens with the second button and the second switch.
+Now try pressing both buttons at once.
+The state of the LED should now show the state of one of the switches, and the other one should be ignored.</p>
+<p>What happens is that we now have two different transactions, both trying to call <code class="docutils literal notranslate"><span class="pre">led_buffer.put</span></code>.
+Method calls are exclusive: in each clock cycle, at most one running transaction can call a given method.
+When only one of the buttons is pressed, only one of the <code class="docutils literal notranslate"><span class="pre">switchN_sampler.get</span></code> methods is ready, and the transaction that calls the ready method is run.
+But when both buttons are pressed, both transactions are runnable, but they can’t both run in the same clock cycle because of the <code class="docutils literal notranslate"><span class="pre">led_buffer.put</span></code> call.
+A situation like this is called a transaction conflict.</p>
+<p>Transactron automatically ensures that conflicting transactions are never run in the same clock cycle.
+Resolving transaction conflicts is performed by an arbitration circuit generated by the transaction manager.
+This circuit is an implicit part of every project using Transactron.</p>
+</section>
+<section id="connecting-transactions-as-submodules">
+<h2>Connecting transactions as submodules<a class="headerlink" href="#connecting-transactions-as-submodules" title="Link to this heading"></a></h2>
+<p>Did you notice that the two transactions in the previous example are almost identical?
+Both of them call some method (the <code class="docutils literal notranslate"><span class="pre">get</span></code> method of a sampler) and pass the result immediately to another method (the <code class="docutils literal notranslate"><span class="pre">put</span></code> method of a buffer).
+This pattern occurs so often in Transactron that there is a library component for it, <a class="reference internal" href="transactron.lib.html#transactron.lib.connectors.ConnectTrans" title="transactron.lib.connectors.ConnectTrans"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConnectTrans</span></code></a>.
+Import it:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">transactron.lib.connectors</span><span class="w"> </span><span class="kn">import</span> <span class="n">ConnectTrans</span>
+</pre></div>
+</div>
+<p>Now replace the two transaction definitions with:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span>        <span class="n">m</span><span class="o">.</span><span class="n">submodules</span> <span class="o">+=</span> <span class="n">ConnectTrans</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">led_buffer</span><span class="o">.</span><span class="n">put</span><span class="p">,</span> <span class="n">switch1_sampler</span><span class="o">.</span><span class="n">get</span><span class="p">)</span>
+        <span class="n">m</span><span class="o">.</span><span class="n">submodules</span> <span class="o">+=</span> <span class="n">ConnectTrans</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">led_buffer</span><span class="o">.</span><span class="n">put</span><span class="p">,</span> <span class="n">switch2_sampler</span><span class="o">.</span><span class="n">get</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The synthesized circuit should work exactly like before.</p>
+<p>Notice that we didn’t use <code class="docutils literal notranslate"><span class="pre">val</span></code> to reference the parameter of <code class="docutils literal notranslate"><span class="pre">put</span></code> or the field of the result of <code class="docutils literal notranslate"><span class="pre">get</span></code>.
+This is because <a class="reference internal" href="transactron.lib.html#transactron.lib.connectors.ConnectTrans" title="transactron.lib.connectors.ConnectTrans"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConnectTrans</span></code></a> works at the level of structures, not individual fields.
+The connection requires that the output layout of <code class="docutils literal notranslate"><span class="pre">get</span></code> and the input layout of <code class="docutils literal notranslate"><span class="pre">put</span></code> are both the same layout.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>In <code class="docutils literal notranslate"><span class="pre">ConnectTrans.create(method1,</span> <span class="pre">method2)</span></code>, the output of <code class="docutils literal notranslate"><span class="pre">method2</span></code> is connected to the input of <code class="docutils literal notranslate"><span class="pre">method1</span></code>.
+But at the same time, the output of <code class="docutils literal notranslate"><span class="pre">method1</span></code> is also connected to the input of <code class="docutils literal notranslate"><span class="pre">method1</span></code>: the connection is bidirectional.
+In this example, both the input layout of <code class="docutils literal notranslate"><span class="pre">get</span></code> and the output layout of <code class="docutils literal notranslate"><span class="pre">put</span></code> is empty, so everything works as expected.</p>
+<p>As a consequence, the method arguments of <a class="reference internal" href="transactron.lib.html#transactron.lib.connectors.ConnectTrans.create" title="transactron.lib.connectors.ConnectTrans.create"><code class="xref py py-meth docutils literal notranslate"><span class="pre">create()</span></code></a> can be swapped without changing the resulting behavior.</p>
+</div>
+</section>
+<section id="data-structures">
+<h2>Data structures<a class="headerlink" href="#data-structures" title="Link to this heading"></a></h2>
+<p>Try flipping a switch when the corresponding button is pressed.
+You will see that the LED state is immediately updated.
+For the state to change only in the instant one of the buttons is pressed, an <code class="docutils literal notranslate"><span class="pre">edge=True</span></code> parameter should be added to the constructor of <a class="reference internal" href="transactron.lib.html#transactron.lib.basicio.InputSampler" title="transactron.lib.basicio.InputSampler"><code class="xref py py-class docutils literal notranslate"><span class="pre">InputSampler</span></code></a>.
+This will make the button sampler to be edge sensitive instead of level sensitive.
+The connecting transactions will therefore run only for a single cycle after the button is pressed, rather than continuously.</p>
+<p>With that possibility, let’s now revisit <a class="reference internal" href="#ledcontrol2">the example with a single switch</a>, but spice it up even further by adding a data structure between the switch sampler and the LED buffer: a FIFO queue.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">amaranth</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">amaranth.lib.data</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">data</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">transactron</span><span class="w"> </span><span class="kn">import</span> <span class="n">TModule</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">transactron.lib.basicio</span><span class="w"> </span><span class="kn">import</span> <span class="n">InputSampler</span><span class="p">,</span> <span class="n">OutputBuffer</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">transactron.lib.connectors</span><span class="w"> </span><span class="kn">import</span> <span class="n">ConnectTrans</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">transactron.lib.fifo</span><span class="w"> </span><span class="kn">import</span> <span class="n">BasicFifo</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">LedControl</span><span class="p">(</span><span class="n">Elaboratable</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">elaborate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">platform</span><span class="p">):</span>
+        <span class="n">m</span> <span class="o">=</span> <span class="n">TModule</span><span class="p">()</span>
+
+        <span class="n">switch</span> <span class="o">=</span> <span class="n">platform</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="s2">&quot;switch&quot;</span><span class="p">)</span>
+        <span class="n">led</span> <span class="o">=</span> <span class="n">platform</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="s2">&quot;led&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">led_fifo_write</span> <span class="o">=</span> <span class="n">platform</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="s2">&quot;led&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">led_fifo_read</span> <span class="o">=</span> <span class="n">platform</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="s2">&quot;led&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">btn_switch</span> <span class="o">=</span> <span class="n">platform</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="s2">&quot;button&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">btn_led</span> <span class="o">=</span> <span class="n">platform</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="s2">&quot;button&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="n">layout</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">StructLayout</span><span class="p">({</span><span class="s2">&quot;val&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">})</span>
+
+        <span class="n">m</span><span class="o">.</span><span class="n">submodules</span><span class="o">.</span><span class="n">switch_sampler</span> <span class="o">=</span> <span class="n">switch_sampler</span> <span class="o">=</span> <span class="n">InputSampler</span><span class="p">(</span><span class="n">layout</span><span class="p">,</span> <span class="n">synchronize</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">polarity</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">edge</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">m</span><span class="o">.</span><span class="n">d</span><span class="o">.</span><span class="n">comb</span> <span class="o">+=</span> <span class="n">switch_sampler</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">val</span><span class="o">.</span><span class="n">eq</span><span class="p">(</span><span class="n">switch</span><span class="o">.</span><span class="n">i</span><span class="p">)</span>
+        <span class="n">m</span><span class="o">.</span><span class="n">d</span><span class="o">.</span><span class="n">comb</span> <span class="o">+=</span> <span class="n">switch_sampler</span><span class="o">.</span><span class="n">trigger</span><span class="o">.</span><span class="n">eq</span><span class="p">(</span><span class="n">btn_switch</span><span class="o">.</span><span class="n">i</span><span class="p">)</span>
+
+        <span class="n">m</span><span class="o">.</span><span class="n">submodules</span><span class="o">.</span><span class="n">led_buffer</span> <span class="o">=</span> <span class="n">led_buffer</span> <span class="o">=</span> <span class="n">OutputBuffer</span><span class="p">(</span><span class="n">layout</span><span class="p">,</span> <span class="n">synchronize</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">polarity</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">edge</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">m</span><span class="o">.</span><span class="n">d</span><span class="o">.</span><span class="n">comb</span> <span class="o">+=</span> <span class="n">led</span><span class="o">.</span><span class="n">o</span><span class="o">.</span><span class="n">eq</span><span class="p">(</span><span class="n">led_buffer</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">val</span><span class="p">)</span>
+        <span class="n">m</span><span class="o">.</span><span class="n">d</span><span class="o">.</span><span class="n">comb</span> <span class="o">+=</span> <span class="n">led_buffer</span><span class="o">.</span><span class="n">trigger</span><span class="o">.</span><span class="n">eq</span><span class="p">(</span><span class="n">btn_led</span><span class="o">.</span><span class="n">i</span><span class="p">)</span>
+
+        <span class="n">m</span><span class="o">.</span><span class="n">submodules</span><span class="o">.</span><span class="n">fifo</span> <span class="o">=</span> <span class="n">fifo</span> <span class="o">=</span> <span class="n">BasicFifo</span><span class="p">(</span><span class="n">layout</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+        <span class="n">m</span><span class="o">.</span><span class="n">d</span><span class="o">.</span><span class="n">comb</span> <span class="o">+=</span> <span class="n">led_fifo_write</span><span class="o">.</span><span class="n">o</span><span class="o">.</span><span class="n">eq</span><span class="p">(</span><span class="n">fifo</span><span class="o">.</span><span class="n">write</span><span class="o">.</span><span class="n">ready</span><span class="p">)</span>
+        <span class="n">m</span><span class="o">.</span><span class="n">d</span><span class="o">.</span><span class="n">comb</span> <span class="o">+=</span> <span class="n">led_fifo_read</span><span class="o">.</span><span class="n">o</span><span class="o">.</span><span class="n">eq</span><span class="p">(</span><span class="n">fifo</span><span class="o">.</span><span class="n">read</span><span class="o">.</span><span class="n">ready</span><span class="p">)</span>
+
+        <span class="n">m</span><span class="o">.</span><span class="n">submodules</span> <span class="o">+=</span> <span class="n">ConnectTrans</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">fifo</span><span class="o">.</span><span class="n">write</span><span class="p">,</span> <span class="n">switch_sampler</span><span class="o">.</span><span class="n">get</span><span class="p">)</span>
+        <span class="n">m</span><span class="o">.</span><span class="n">submodules</span> <span class="o">+=</span> <span class="n">ConnectTrans</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">led_buffer</span><span class="o">.</span><span class="n">put</span><span class="p">,</span> <span class="n">fifo</span><span class="o">.</span><span class="n">read</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">m</span>
+</pre></div>
+</div>
+<p>The FIFO component <a class="reference internal" href="transactron.lib.html#transactron.lib.fifo.BasicFifo" title="transactron.lib.fifo.BasicFifo"><code class="xref py py-class docutils literal notranslate"><span class="pre">BasicFifo</span></code></a> provides, among others, the two methods <a class="reference internal" href="transactron.lib.html#transactron.lib.fifo.BasicFifo.write" title="transactron.lib.fifo.BasicFifo.write"><code class="xref py py-attr docutils literal notranslate"><span class="pre">write</span></code></a> and <a class="reference internal" href="transactron.lib.html#transactron.lib.fifo.BasicFifo.read" title="transactron.lib.fifo.BasicFifo.read"><code class="xref py py-attr docutils literal notranslate"><span class="pre">read</span></code></a>.
+The <code class="docutils literal notranslate"><span class="pre">write</span></code> method inserts new data to the back of the queue, while <code class="docutils literal notranslate"><span class="pre">read</span></code> returns data at the front of the queue and removes it.
+Both of these methods are ready only when the respective actions can be correctly performed: <code class="docutils literal notranslate"><span class="pre">write</span></code> requires the queue not to be full, while <code class="docutils literal notranslate"><span class="pre">read</span></code> requires it to be nonempty.
+This way, Transactron automatically provides backpressure, which can help prevent overflow and underflow.</p>
+<p>To illustrate this, the readiness signals of <code class="docutils literal notranslate"><span class="pre">write</span></code> and <code class="docutils literal notranslate"><span class="pre">read</span></code> are connected to LEDs number 1 and 2.
+At the beginning only the <code class="docutils literal notranslate"><span class="pre">write</span></code> method is ready.
+Pressing the first button runs the <code class="docutils literal notranslate"><span class="pre">write</span></code> method, which inserts the current value of the switch into the FIFO and makes the <code class="docutils literal notranslate"><span class="pre">read</span></code> method ready.
+After a few more presses of the first button the FIFO gets filled up, after which the <code class="docutils literal notranslate"><span class="pre">write</span></code> method is no longer ready.
+Further presses of the first button will now have no effect.</p>
+<p>Pressing the second button will remove a value from the FIFO and display it on the first LED.
+The second button can be pressed until the FIFO is emptied.
+Pressing it again will not alter the state of the first LED.
+Try playing with the button and the switch some more.</p>
+<p>Try swapping the <a class="reference internal" href="transactron.lib.html#transactron.lib.fifo.BasicFifo" title="transactron.lib.fifo.BasicFifo"><code class="xref py py-class docutils literal notranslate"><span class="pre">BasicFifo</span></code></a> for a <a class="reference internal" href="transactron.lib.html#transactron.lib.stack.Stack" title="transactron.lib.stack.Stack"><code class="xref py py-class docutils literal notranslate"><span class="pre">Stack</span></code></a>.
+For that, only the import and class name need to be changed.</p>
+</section>
+<section id="rpn-calculator">
+<h2>RPN calculator<a class="headerlink" href="#rpn-calculator" title="Link to this heading"></a></h2>
+<p>We will now implement a larger example: a reverse Polish notation (RPN) calculator.
+In this notation, operations are entered postfix, and parentheses are not needed: the expression (2 + 3) * 4 becomes 2 3 + 4 * in RPN.
+The algorithm for computing the value of RPN expressions reads symbols (numbers and operators) from left to right and uses a stack to store intermediate results.
+When a number is read, it is pushed to the stack.
+Reading an operator causes two numbers to be popped from the stack, and the result to be pushed back.</p>
+<p>Hardware which implements a RPN calculator needs to be able to perform these two kinds of operations.
+The stack data structure in Transactron standard library, <a class="reference internal" href="transactron.lib.html#transactron.lib.stack.Stack" title="transactron.lib.stack.Stack"><code class="xref py py-class docutils literal notranslate"><span class="pre">Stack</span></code></a>, can perform at most one push and one pop per clock cycle.
+So, if used directly, performing a RPN operation would require more than one clock cycle.
+Instead, we will create a specialized stack structure, which will store the top value of the stack in a register so that a single clock cycle will suffice.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">amaranth</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">transactron</span><span class="w"> </span><span class="kn">import</span> <span class="n">TModule</span><span class="p">,</span> <span class="n">Method</span><span class="p">,</span> <span class="n">def_method</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">transactron.lib.stack</span><span class="w"> </span><span class="kn">import</span> <span class="n">Stack</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">RpnStack</span><span class="p">(</span><span class="n">Elaboratable</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shape</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="n">shape</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">layout</span> <span class="o">=</span> <span class="p">[(</span><span class="s2">&quot;val&quot;</span><span class="p">,</span> <span class="n">shape</span><span class="p">)]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">peek</span> <span class="o">=</span> <span class="n">Method</span><span class="p">(</span><span class="n">o</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">layout</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">peek2</span> <span class="o">=</span> <span class="n">Method</span><span class="p">(</span><span class="n">o</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">layout</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">push</span> <span class="o">=</span> <span class="n">Method</span><span class="p">(</span><span class="n">i</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">layout</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pop_set_top</span> <span class="o">=</span> <span class="n">Method</span><span class="p">(</span><span class="n">i</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">layout</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">elaborate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">platform</span><span class="p">):</span>
+        <span class="n">m</span> <span class="o">=</span> <span class="n">TModule</span><span class="p">()</span>
+
+        <span class="n">m</span><span class="o">.</span><span class="n">submodules</span><span class="o">.</span><span class="n">stack</span> <span class="o">=</span> <span class="n">stack</span> <span class="o">=</span> <span class="n">Stack</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">layout</span><span class="p">,</span> <span class="mi">32</span><span class="p">)</span>
+
+        <span class="n">top</span> <span class="o">=</span> <span class="n">Signal</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="n">nonempty</span> <span class="o">=</span> <span class="n">Signal</span><span class="p">()</span>
+
+        <span class="nd">@def_method</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek</span><span class="p">,</span> <span class="n">ready</span><span class="o">=</span><span class="n">nonempty</span><span class="p">,</span> <span class="n">nonexclusive</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">_</span><span class="p">():</span>
+            <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;val&quot;</span><span class="p">:</span> <span class="n">top</span><span class="p">}</span>
+
+        <span class="nd">@def_method</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">peek2</span><span class="p">,</span> <span class="n">nonexclusive</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">_</span><span class="p">():</span>
+            <span class="k">return</span> <span class="n">stack</span><span class="o">.</span><span class="n">peek</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
+
+        <span class="nd">@def_method</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">push</span><span class="p">)</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">_</span><span class="p">(</span><span class="n">val</span><span class="p">):</span>
+            <span class="n">m</span><span class="o">.</span><span class="n">d</span><span class="o">.</span><span class="n">sync</span> <span class="o">+=</span> <span class="n">nonempty</span><span class="o">.</span><span class="n">eq</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">m</span><span class="o">.</span><span class="n">d</span><span class="o">.</span><span class="n">sync</span> <span class="o">+=</span> <span class="n">top</span><span class="o">.</span><span class="n">eq</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+            <span class="k">with</span> <span class="n">m</span><span class="o">.</span><span class="n">If</span><span class="p">(</span><span class="n">nonempty</span><span class="p">):</span>
+                <span class="n">stack</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="n">top</span><span class="p">)</span>
+
+        <span class="nd">@def_method</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pop_set_top</span><span class="p">)</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">_</span><span class="p">(</span><span class="n">val</span><span class="p">):</span>
+            <span class="n">m</span><span class="o">.</span><span class="n">d</span><span class="o">.</span><span class="n">sync</span> <span class="o">+=</span> <span class="n">top</span><span class="o">.</span><span class="n">eq</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+            <span class="n">stack</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">push</span><span class="o">.</span><span class="n">add_conflict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pop_set_top</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">m</span>
+</pre></div>
+</div>
+<p>In the constructor we declare methods provided by our component.
+The <code class="docutils literal notranslate"><span class="pre">peek</span></code> and <code class="docutils literal notranslate"><span class="pre">peek2</span></code> methods will return the top of the stack and the element immediately below it, both methods will not take any parameters.
+The <code class="docutils literal notranslate"><span class="pre">push</span></code> method will insert a new element to the stack, while <code class="docutils literal notranslate"><span class="pre">pop_set_top</span></code> will remove one element and change the value of the one below it.</p>
+<p>The methods are defined inside <code class="docutils literal notranslate"><span class="pre">elaborate</span></code> using the <a class="reference internal" href="transactron.lib.html#transactron.lib.stack.Stack" title="transactron.lib.stack.Stack"><code class="xref py py-class docutils literal notranslate"><span class="pre">Stack</span></code></a> component and two additional registers, <code class="docutils literal notranslate"><span class="pre">top</span></code> and <code class="docutils literal notranslate"><span class="pre">nonempty</span></code>.
+Methods are defined using <a class="reference internal" href="transactron.core.html#transactron.core.sugar.def_method" title="transactron.core.sugar.def_method"><code class="xref py py-class docutils literal notranslate"><span class="pre">def_method</span></code></a> decorator syntax.
+The method definition is written using Python <code class="docutils literal notranslate"><span class="pre">def</span></code> function syntax.
+It works much like the <code class="docutils literal notranslate"><span class="pre">body</span></code> context manager used for defining transactions – the Python code inside the definition is evaluated exactly once.
+Method inputs are passed as parameters, while the result is provided using <code class="docutils literal notranslate"><span class="pre">return</span></code> as a <code class="docutils literal notranslate"><span class="pre">dict</span></code>.</p>
+<p>The first method, <code class="docutils literal notranslate"><span class="pre">peek</span></code>, returns the value at the top of the stack, which is stored in the register <code class="docutils literal notranslate"><span class="pre">top</span></code>.
+It is ready only when the stack is not empty.
+The <code class="docutils literal notranslate"><span class="pre">nonexclusive=True</span></code> parameter to <code class="docutils literal notranslate"><span class="pre">def_method</span></code> allows this method to be called by multiple transactions in a single clock cycle.
+This is justified by the fact that <code class="docutils literal notranslate"><span class="pre">peek</span></code> does not alter the state of the component in any way.</p>
+<p>TODO: to be continued…</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="Transactron" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="transactions.html" class="btn btn-neutral float-right" title="Documentation for Transactron" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright Kuźnia Rdzeni, 2025.
+      <span class="lastupdated">Last updated on 08:27 2025-09-08.
+      </span></p>
+  </div>
+
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

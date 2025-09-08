@@ -1,23 +1,23 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>transactron &mdash; Transactron documentation</title>
-      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  <!--[if lt IE 9]>
-    <script src="_static/js/html5shiv.min.js"></script>
-  <![endif]-->
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
   
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/jquery.js"></script>
-        <script src="_static/underscore.js"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="_static/doctools.js"></script>
-        <script src="https://unpkg.com/mermaid@9.4.0/dist/mermaid.min.js"></script>
-        <script>mermaid.initialize({startOnLoad:true});</script>
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="https://unpkg.com/mermaid@9.4.0/dist/mermaid.min.js"></script>
+      <script>mermaid.initialize({startOnLoad:true});</script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" /> 
@@ -28,21 +28,26 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="index.html" class="icon icon-home"> Transactron documentation
-            <img src="_static/logo-banner.svg" class="logo" alt="Logo"/>
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Transactron documentation
+              <img src="_static/logo-banner.svg" class="logo" alt="Logo"/>
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul>
-<li class="toctree-l1"><a class="reference internal" href="development-environment.html">Development environment</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="transactions.html">Documentation for Transactron</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api.html">API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development-environment.html">Development environment</a></li>
 </ul>
 
         </div>
@@ -58,8 +63,8 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
-      <li>transactron</li>
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">transactron</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/modules.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -70,7 +75,7 @@
            <div itemprop="articleBody">
              
   <section id="transactron">
-<h1>transactron<a class="headerlink" href="#transactron" title="Permalink to this heading"></a></h1>
+<h1>transactron<a class="headerlink" href="#transactron" title="Link to this heading"></a></h1>
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="transactron.html">transactron package</a><ul>
@@ -145,9 +150,131 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="transactron.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="transactron.html#module-transactron.graph">transactron.graph module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="transactron.html#module-transactron.profiler">transactron.profiler module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="transactron.html#module-transactron.tracing">transactron.tracing module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="transactron.html#module-transactron.graph">transactron.graph module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="transactron.html#transactron.graph.Direction"><code class="docutils literal notranslate"><span class="pre">Direction</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="transactron.html#transactron.graph.Direction.IN"><code class="docutils literal notranslate"><span class="pre">Direction.IN</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.html#transactron.graph.Direction.INOUT"><code class="docutils literal notranslate"><span class="pre">Direction.INOUT</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.html#transactron.graph.Direction.NONE"><code class="docutils literal notranslate"><span class="pre">Direction.NONE</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.html#transactron.graph.Direction.OUT"><code class="docutils literal notranslate"><span class="pre">Direction.OUT</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.html#transactron.graph.Direction.__new__"><code class="docutils literal notranslate"><span class="pre">Direction.__new__()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="transactron.html#transactron.graph.Owned"><code class="docutils literal notranslate"><span class="pre">Owned</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="transactron.html#transactron.graph.Owned.__init__"><code class="docutils literal notranslate"><span class="pre">Owned.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.html#transactron.graph.Owned.name"><code class="docutils literal notranslate"><span class="pre">Owned.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.html#transactron.graph.Owned.owned_name"><code class="docutils literal notranslate"><span class="pre">Owned.owned_name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.html#transactron.graph.Owned.owner"><code class="docutils literal notranslate"><span class="pre">Owned.owner</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="transactron.html#transactron.graph.OwnershipGraph"><code class="docutils literal notranslate"><span class="pre">OwnershipGraph</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="transactron.html#transactron.graph.OwnershipGraph.__init__"><code class="docutils literal notranslate"><span class="pre">OwnershipGraph.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.html#transactron.graph.OwnershipGraph.dump"><code class="docutils literal notranslate"><span class="pre">OwnershipGraph.dump()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.html#transactron.graph.OwnershipGraph.dump_dot"><code class="docutils literal notranslate"><span class="pre">OwnershipGraph.dump_dot()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.html#transactron.graph.OwnershipGraph.dump_elk"><code class="docutils literal notranslate"><span class="pre">OwnershipGraph.dump_elk()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.html#transactron.graph.OwnershipGraph.dump_mermaid"><code class="docutils literal notranslate"><span class="pre">OwnershipGraph.dump_mermaid()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.html#transactron.graph.OwnershipGraph.get_hier_name"><code class="docutils literal notranslate"><span class="pre">OwnershipGraph.get_hier_name()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.html#transactron.graph.OwnershipGraph.get_name"><code class="docutils literal notranslate"><span class="pre">OwnershipGraph.get_name()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.html#transactron.graph.OwnershipGraph.insert_edge"><code class="docutils literal notranslate"><span class="pre">OwnershipGraph.insert_edge()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.html#transactron.graph.OwnershipGraph.insert_node"><code class="docutils literal notranslate"><span class="pre">OwnershipGraph.insert_node()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.html#transactron.graph.OwnershipGraph.mermaid_direction"><code class="docutils literal notranslate"><span class="pre">OwnershipGraph.mermaid_direction</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.html#transactron.graph.OwnershipGraph.prune"><code class="docutils literal notranslate"><span class="pre">OwnershipGraph.prune()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.html#transactron.graph.OwnershipGraph.remember"><code class="docutils literal notranslate"><span class="pre">OwnershipGraph.remember()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.html#transactron.graph.OwnershipGraph.remember_field"><code class="docutils literal notranslate"><span class="pre">OwnershipGraph.remember_field()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="transactron.html#module-transactron.profiler">transactron.profiler module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="transactron.html#transactron.profiler.MethodSamples"><code class="docutils literal notranslate"><span class="pre">MethodSamples</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="transactron.html#transactron.profiler.MethodSamples.__init__"><code class="docutils literal notranslate"><span class="pre">MethodSamples.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.html#transactron.profiler.MethodSamples.run"><code class="docutils literal notranslate"><span class="pre">MethodSamples.run</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="transactron.html#transactron.profiler.Profile"><code class="docutils literal notranslate"><span class="pre">Profile</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="transactron.html#transactron.profiler.Profile.__init__"><code class="docutils literal notranslate"><span class="pre">Profile.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.html#transactron.profiler.Profile.analyze_methods"><code class="docutils literal notranslate"><span class="pre">Profile.analyze_methods()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.html#transactron.profiler.Profile.analyze_transactions"><code class="docutils literal notranslate"><span class="pre">Profile.analyze_transactions()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.html#transactron.profiler.Profile.cycles"><code class="docutils literal notranslate"><span class="pre">Profile.cycles</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.html#transactron.profiler.Profile.decode"><code class="docutils literal notranslate"><span class="pre">Profile.decode()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.html#transactron.profiler.Profile.encode"><code class="docutils literal notranslate"><span class="pre">Profile.encode()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.html#transactron.profiler.Profile.from_dict"><code class="docutils literal notranslate"><span class="pre">Profile.from_dict()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.html#transactron.profiler.Profile.from_json"><code class="docutils literal notranslate"><span class="pre">Profile.from_json()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.html#transactron.profiler.Profile.schema"><code class="docutils literal notranslate"><span class="pre">Profile.schema()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.html#transactron.profiler.Profile.to_dict"><code class="docutils literal notranslate"><span class="pre">Profile.to_dict()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.html#transactron.profiler.Profile.to_json"><code class="docutils literal notranslate"><span class="pre">Profile.to_json()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.html#transactron.profiler.Profile.transactions_and_methods"><code class="docutils literal notranslate"><span class="pre">Profile.transactions_and_methods</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="transactron.html#transactron.profiler.ProfileData"><code class="docutils literal notranslate"><span class="pre">ProfileData</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="transactron.html#transactron.profiler.ProfileData.__init__"><code class="docutils literal notranslate"><span class="pre">ProfileData.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.html#transactron.profiler.ProfileData.make"><code class="docutils literal notranslate"><span class="pre">ProfileData.make()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.html#transactron.profiler.ProfileData.method_parents"><code class="docutils literal notranslate"><span class="pre">ProfileData.method_parents</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.html#transactron.profiler.ProfileData.transaction_conflicts"><code class="docutils literal notranslate"><span class="pre">ProfileData.transaction_conflicts</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.html#transactron.profiler.ProfileData.transactions_and_methods"><code class="docutils literal notranslate"><span class="pre">ProfileData.transactions_and_methods</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.html#transactron.profiler.ProfileData.transactions_by_method"><code class="docutils literal notranslate"><span class="pre">ProfileData.transactions_by_method</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="transactron.html#transactron.profiler.ProfileInfo"><code class="docutils literal notranslate"><span class="pre">ProfileInfo</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="transactron.html#transactron.profiler.ProfileInfo.__init__"><code class="docutils literal notranslate"><span class="pre">ProfileInfo.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.html#transactron.profiler.ProfileInfo.from_dict"><code class="docutils literal notranslate"><span class="pre">ProfileInfo.from_dict()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.html#transactron.profiler.ProfileInfo.from_json"><code class="docutils literal notranslate"><span class="pre">ProfileInfo.from_json()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.html#transactron.profiler.ProfileInfo.is_transaction"><code class="docutils literal notranslate"><span class="pre">ProfileInfo.is_transaction</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.html#transactron.profiler.ProfileInfo.name"><code class="docutils literal notranslate"><span class="pre">ProfileInfo.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.html#transactron.profiler.ProfileInfo.schema"><code class="docutils literal notranslate"><span class="pre">ProfileInfo.schema()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.html#transactron.profiler.ProfileInfo.src_loc"><code class="docutils literal notranslate"><span class="pre">ProfileInfo.src_loc</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.html#transactron.profiler.ProfileInfo.to_dict"><code class="docutils literal notranslate"><span class="pre">ProfileInfo.to_dict()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.html#transactron.profiler.ProfileInfo.to_json"><code class="docutils literal notranslate"><span class="pre">ProfileInfo.to_json()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="transactron.html#transactron.profiler.ProfileSamples"><code class="docutils literal notranslate"><span class="pre">ProfileSamples</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="transactron.html#transactron.profiler.ProfileSamples.__init__"><code class="docutils literal notranslate"><span class="pre">ProfileSamples.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.html#transactron.profiler.ProfileSamples.methods"><code class="docutils literal notranslate"><span class="pre">ProfileSamples.methods</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.html#transactron.profiler.ProfileSamples.transactions"><code class="docutils literal notranslate"><span class="pre">ProfileSamples.transactions</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="transactron.html#transactron.profiler.RunStat"><code class="docutils literal notranslate"><span class="pre">RunStat</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="transactron.html#transactron.profiler.RunStat.__init__"><code class="docutils literal notranslate"><span class="pre">RunStat.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.html#transactron.profiler.RunStat.locked"><code class="docutils literal notranslate"><span class="pre">RunStat.locked</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.html#transactron.profiler.RunStat.make"><code class="docutils literal notranslate"><span class="pre">RunStat.make()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.html#transactron.profiler.RunStat.name"><code class="docutils literal notranslate"><span class="pre">RunStat.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.html#transactron.profiler.RunStat.run"><code class="docutils literal notranslate"><span class="pre">RunStat.run</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.html#transactron.profiler.RunStat.src_loc"><code class="docutils literal notranslate"><span class="pre">RunStat.src_loc</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="transactron.html#transactron.profiler.RunStatNode"><code class="docutils literal notranslate"><span class="pre">RunStatNode</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="transactron.html#transactron.profiler.RunStatNode.__init__"><code class="docutils literal notranslate"><span class="pre">RunStatNode.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.html#transactron.profiler.RunStatNode.callers"><code class="docutils literal notranslate"><span class="pre">RunStatNode.callers</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.html#transactron.profiler.RunStatNode.make"><code class="docutils literal notranslate"><span class="pre">RunStatNode.make()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.html#transactron.profiler.RunStatNode.stat"><code class="docutils literal notranslate"><span class="pre">RunStatNode.stat</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="transactron.html#transactron.profiler.TransactionSamples"><code class="docutils literal notranslate"><span class="pre">TransactionSamples</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="transactron.html#transactron.profiler.TransactionSamples.__init__"><code class="docutils literal notranslate"><span class="pre">TransactionSamples.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.html#transactron.profiler.TransactionSamples.ready"><code class="docutils literal notranslate"><span class="pre">TransactionSamples.ready</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.html#transactron.profiler.TransactionSamples.run"><code class="docutils literal notranslate"><span class="pre">TransactionSamples.run</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.html#transactron.profiler.TransactionSamples.runnable"><code class="docutils literal notranslate"><span class="pre">TransactionSamples.runnable</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="transactron.html#module-transactron.tracing">transactron.tracing module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="transactron.html#transactron.tracing.TracingEnabler"><code class="docutils literal notranslate"><span class="pre">TracingEnabler</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="transactron.html#transactron.tracing.TracingFragment"><code class="docutils literal notranslate"><span class="pre">TracingFragment</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="transactron.html#transactron.tracing.TracingFragment.get"><code class="docutils literal notranslate"><span class="pre">TracingFragment.get()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.html#transactron.tracing.TracingFragment.prepare"><code class="docutils literal notranslate"><span class="pre">TracingFragment.prepare()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.html#transactron.tracing.TracingFragment.subfragments"><code class="docutils literal notranslate"><span class="pre">TracingFragment.subfragments</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="transactron.html#transactron.tracing.TracingFragmentTransformer"><code class="docutils literal notranslate"><span class="pre">TracingFragmentTransformer</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="transactron.html#transactron.tracing.TracingFragmentTransformer.on_fragment"><code class="docutils literal notranslate"><span class="pre">TracingFragmentTransformer.on_fragment()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="transactron.html#transactron.tracing.TracingInstance"><code class="docutils literal notranslate"><span class="pre">TracingInstance</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="transactron.html#transactron.tracing.TracingInstance.get"><code class="docutils literal notranslate"><span class="pre">TracingInstance.get()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="transactron.html#module-transactron">Module contents</a></li>
 </ul>
 </li>
@@ -164,7 +291,7 @@
 
   <div role="contentinfo">
     <p>&#169; Copyright Kuźnia Rdzeni, 2025.
-      <span class="lastupdated">Last updated on 07:31 2025-08-14.
+      <span class="lastupdated">Last updated on 08:27 2025-09-08.
       </span></p>
   </div>
 

@@ -1,28 +1,28 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Documentation for Transactron &mdash; Transactron documentation</title>
-      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  <!--[if lt IE 9]>
-    <script src="_static/js/html5shiv.min.js"></script>
-  <![endif]-->
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
   
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/jquery.js"></script>
-        <script src="_static/underscore.js"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="_static/doctools.js"></script>
-        <script src="https://unpkg.com/mermaid@9.4.0/dist/mermaid.min.js"></script>
-        <script>mermaid.initialize({startOnLoad:true});</script>
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="https://unpkg.com/mermaid@9.4.0/dist/mermaid.min.js"></script>
+      <script>mermaid.initialize({startOnLoad:true});</script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="API" href="api.html" />
-    <link rel="prev" title="Development environment" href="development-environment.html" /> 
+    <link rel="prev" title="Getting started" href="getting-started.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -30,19 +30,23 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="index.html" class="icon icon-home"> Transactron documentation
-            <img src="_static/logo-banner.svg" class="logo" alt="Logo"/>
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Transactron documentation
+              <img src="_static/logo-banner.svg" class="logo" alt="Logo"/>
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="development-environment.html">Development environment</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Documentation for Transactron</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#introduction">Introduction</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#basic-usage">Basic usage</a><ul>
@@ -66,6 +70,7 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="api.html">API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development-environment.html">Development environment</a></li>
 </ul>
 
         </div>
@@ -81,8 +86,8 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
-      <li>Documentation for Transactron</li>
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Documentation for Transactron</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/transactions.md.txt" rel="nofollow"> View page source</a>
       </li>
@@ -93,9 +98,9 @@
            <div itemprop="articleBody">
              
   <section id="documentation-for-transactron">
-<h1>Documentation for Transactron<a class="headerlink" href="#documentation-for-transactron" title="Permalink to this heading"></a></h1>
+<h1>Documentation for Transactron<a class="headerlink" href="#documentation-for-transactron" title="Link to this heading"></a></h1>
 <section id="introduction">
-<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this heading"></a></h2>
+<h2>Introduction<a class="headerlink" href="#introduction" title="Link to this heading"></a></h2>
 <p>Transactron is an <a class="reference external" href="https://amaranth-lang.org/">Amaranth</a> library for managing connections between modules in complex projects.
 It is inspired by the <a class="reference external" href="http://bluespec.com/">Bluespec</a> programming language (see: <a class="reference external" href="http://wiki.bluespec.com/">Bluespec wiki</a>, <a class="reference external" href="https://github.com/B-Lang-org/bsc">Bluespec compiler</a>).</p>
 <p>The basic idea is to interface hardware modules using <em>transactions</em> and <em>methods</em>.
@@ -111,9 +116,9 @@ In this way, access to methods is coordinated via the transaction system to avoi
 The communication is structured using Amaranth structures.</p>
 </section>
 <section id="basic-usage">
-<h2>Basic usage<a class="headerlink" href="#basic-usage" title="Permalink to this heading"></a></h2>
+<h2>Basic usage<a class="headerlink" href="#basic-usage" title="Link to this heading"></a></h2>
 <section id="implementing-transactions">
-<h3>Implementing transactions<a class="headerlink" href="#implementing-transactions" title="Permalink to this heading"></a></h3>
+<h3>Implementing transactions<a class="headerlink" href="#implementing-transactions" title="Link to this heading"></a></h3>
 <p>The standard way to implement a transaction as a part of Amaranth <code class="docutils literal notranslate"><span class="pre">Elaboratable</span></code> is by using a <code class="docutils literal notranslate"><span class="pre">with</span></code> block:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">MyThing</span><span class="p">(</span><span class="n">Elaboratable</span><span class="p">):</span>
     <span class="o">...</span>
@@ -144,7 +149,7 @@ This is implemented in hardware via multiplexers.
 Please remember that this is not a Python <code class="docutils literal notranslate"><span class="pre">if</span></code> statement – the <em>Python code</em> inside the <code class="docutils literal notranslate"><span class="pre">with</span></code> block is always executed once.</p>
 </section>
 <section id="implementing-methods">
-<h3>Implementing methods<a class="headerlink" href="#implementing-methods" title="Permalink to this heading"></a></h3>
+<h3>Implementing methods<a class="headerlink" href="#implementing-methods" title="Link to this heading"></a></h3>
 <p>As methods are used as a way to communicate with other <code class="docutils literal notranslate"><span class="pre">Elaboratable</span></code>s, they are typically declared in the <code class="docutils literal notranslate"><span class="pre">Elaboratable</span></code>’s constructor, and then defined in the <code class="docutils literal notranslate"><span class="pre">elaborate</span></code> method:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">MyOtherThing</span><span class="p">(</span><span class="n">Elaboratable</span><span class="p">):</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -211,7 +216,7 @@ The definition is then provided using <code class="docutils literal notranslate"
 </div>
 </section>
 <section id="method-or-transaction">
-<h3>Method or transaction?<a class="headerlink" href="#method-or-transaction" title="Permalink to this heading"></a></h3>
+<h3>Method or transaction?<a class="headerlink" href="#method-or-transaction" title="Link to this heading"></a></h3>
 <p>Sometimes, there might be two alternative ways to implement some functionality:</p>
 <ul class="simple">
 <li><p>Using a transaction, which calls methods on other <code class="docutils literal notranslate"><span class="pre">Elaboratable</span></code>s.</p></li>
@@ -227,7 +232,7 @@ This is because if a functionality is implemented as a method, and a transaction
 Such a transaction is included in the library – it’s named <code class="docutils literal notranslate"><span class="pre">AdapterTrans</span></code>.</p>
 </section>
 <section id="method-argument-passing-conventions">
-<h3>Method argument passing conventions<a class="headerlink" href="#method-argument-passing-conventions" title="Permalink to this heading"></a></h3>
+<h3>Method argument passing conventions<a class="headerlink" href="#method-argument-passing-conventions" title="Link to this heading"></a></h3>
 <p>Even though method arguments are Amaranth structures, their use can be avoided in many cases, which results in cleaner code.
 Suppose we have the following layout, which is an input layout for a method called <code class="docutils literal notranslate"><span class="pre">method</span></code>:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">layout</span> <span class="o">=</span> <span class="p">[(</span><span class="s2">&quot;foo&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;bar&quot;</span><span class="p">,</span> <span class="mi">32</span><span class="p">)]</span>
@@ -266,7 +271,7 @@ Take the following definitions:</p>
 </div>
 </section>
 <section id="method-definition-conventions">
-<h3>Method definition conventions<a class="headerlink" href="#method-definition-conventions" title="Permalink to this heading"></a></h3>
+<h3>Method definition conventions<a class="headerlink" href="#method-definition-conventions" title="Link to this heading"></a></h3>
 <p>When defining methods, two conventions can be used.
 The cleanest and recommended way is to create an argument for each field:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@def_method</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">method</span><span class="p">)</span>
@@ -282,7 +287,7 @@ The cleanest and recommended way is to create an argument for each field:</p>
 </div>
 </section>
 <section id="method-return-value-conventions">
-<h3>Method return value conventions<a class="headerlink" href="#method-return-value-conventions" title="Permalink to this heading"></a></h3>
+<h3>Method return value conventions<a class="headerlink" href="#method-return-value-conventions" title="Link to this heading"></a></h3>
 <p>The <code class="docutils literal notranslate"><span class="pre">dict</span></code> syntax can be used for returning values from methods.
 Take the following method declaration:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">method3</span> <span class="o">=</span> <span class="n">Method</span><span class="p">(</span><span class="n">i</span><span class="o">=</span><span class="n">layout</span><span class="p">,</span> <span class="n">o</span><span class="o">=</span><span class="n">layout2</span><span class="p">)</span>
@@ -296,7 +301,7 @@ Take the following method declaration:</p>
 </div>
 </section>
 <section id="readiness-signals">
-<h3>Readiness signals<a class="headerlink" href="#readiness-signals" title="Permalink to this heading"></a></h3>
+<h3>Readiness signals<a class="headerlink" href="#readiness-signals" title="Link to this heading"></a></h3>
 <p>If a transaction is not always ready for execution (for example, because of the dependence on some resource), a <code class="docutils literal notranslate"><span class="pre">ready</span></code> parameter should be used.
 An Amaranth single-bit expression should be passed.
 When the <code class="docutils literal notranslate"><span class="pre">request</span></code> parameter is not passed, the transaction is always requesting execution.</p>
@@ -311,11 +316,11 @@ When the <code class="docutils literal notranslate"><span class="pre">request</s
 </div>
 <p>The <code class="docutils literal notranslate"><span class="pre">ready</span></code> signal typically should only depend on the internal state of an <code class="docutils literal notranslate"><span class="pre">Elaboratable</span></code>.
 Other dependencies risk introducing combinational loops.
-In certain occasions, it is possible to relax this requirement; see e.g. <a class="reference internal" href="#scheduling-order"><span class="std std-doc">Scheduling order</span></a>.</p>
+In certain occasions, it is possible to relax this requirement; see e.g. <a class="reference internal" href="#scheduling-order">Scheduling order</a>.</p>
 </section>
 </section>
 <section id="the-library">
-<h2>The library<a class="headerlink" href="#the-library" title="Permalink to this heading"></a></h2>
+<h2>The library<a class="headerlink" href="#the-library" title="Link to this heading"></a></h2>
 <p>The transaction framework is designed to facilitate code re-use.
 It includes a library, which contains <code class="docutils literal notranslate"><span class="pre">Elaboratable</span></code>s providing useful methods and transactions.
 The most useful ones are:</p>
@@ -327,9 +332,9 @@ These are very useful in testbenches.</p></li>
 </ul>
 </section>
 <section id="advanced-concepts">
-<h2>Advanced concepts<a class="headerlink" href="#advanced-concepts" title="Permalink to this heading"></a></h2>
+<h2>Advanced concepts<a class="headerlink" href="#advanced-concepts" title="Link to this heading"></a></h2>
 <section id="special-combinational-domains">
-<h3>Special combinational domains<a class="headerlink" href="#special-combinational-domains" title="Permalink to this heading"></a></h3>
+<h3>Special combinational domains<a class="headerlink" href="#special-combinational-domains" title="Link to this heading"></a></h3>
 <p>Transactron defines its own variant of Amaranth modules, called <code class="docutils literal notranslate"><span class="pre">TModule</span></code>.
 Its role is to allow to improve circuit performance by omitting unneeded multiplexers in combinational circuits.
 This is done by adding two additional, special combinatorial domains, <code class="docutils literal notranslate"><span class="pre">av_comb</span></code> and <code class="docutils literal notranslate"><span class="pre">top_comb</span></code>.</p>
@@ -342,7 +347,7 @@ This allows for cleaner code, as combinational assignments which logically belon
 <p>An important caveat of the special domains is that, just like with normal domains, a signal assigned in one of them cannot be assigned in others.</p>
 </section>
 <section id="scheduling-order">
-<h3>Scheduling order<a class="headerlink" href="#scheduling-order" title="Permalink to this heading"></a></h3>
+<h3>Scheduling order<a class="headerlink" href="#scheduling-order" title="Link to this heading"></a></h3>
 <p>When writing multiple methods and transactions in the same <code class="docutils literal notranslate"><span class="pre">Elaboratable</span></code>, sometimes some dependency between them needs to exist.
 For example, in the <code class="docutils literal notranslate"><span class="pre">Forwarder</span></code> module in the library, forwarding can take place only if both <code class="docutils literal notranslate"><span class="pre">read</span></code> and <code class="docutils literal notranslate"><span class="pre">write</span></code> are executed simultaneously.
 This requirement is handled by making the the <code class="docutils literal notranslate"><span class="pre">read</span></code> method’s readiness depend on the execution of the <code class="docutils literal notranslate"><span class="pre">write</span></code> method.
@@ -362,7 +367,7 @@ For example, if <code class="docutils literal notranslate"><span class="pre">fir
 </div>
 </section>
 <section id="conflicts">
-<h3>Conflicts<a class="headerlink" href="#conflicts" title="Permalink to this heading"></a></h3>
+<h3>Conflicts<a class="headerlink" href="#conflicts" title="Link to this heading"></a></h3>
 <p>In some situations it might be useful to make some methods or transactions mutually exclusive with others.
 Two conflicting transactions or methods can’t execute simultaneously: only one or the other runs in a given clock cycle.</p>
 <p>Conflicts are defined similarly to scheduling orders:</p>
@@ -381,7 +386,7 @@ The conflicting transactions have a dependency in the transaction scheduler, whi
 Therefore, use of this feature requires consideration.</p>
 </section>
 <section id="transaction-and-method-nesting">
-<h3>Transaction and method nesting<a class="headerlink" href="#transaction-and-method-nesting" title="Permalink to this heading"></a></h3>
+<h3>Transaction and method nesting<a class="headerlink" href="#transaction-and-method-nesting" title="Link to this heading"></a></h3>
 <p>Transaction and method bodies can be nested. For example:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">Transaction</span><span class="p">()</span><span class="o">.</span><span class="n">body</span><span class="p">(</span><span class="n">m</span><span class="p">):</span>
     <span class="c1"># Transaction body.</span>
@@ -401,7 +406,7 @@ Nesting implies scheduling order: the nested transaction or method is considered
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="development-environment.html" class="btn btn-neutral float-left" title="Development environment" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="getting-started.html" class="btn btn-neutral float-left" title="Getting started" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="api.html" class="btn btn-neutral float-right" title="API" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
@@ -409,7 +414,7 @@ Nesting implies scheduling order: the nested transaction or method is considered
 
   <div role="contentinfo">
     <p>&#169; Copyright Kuźnia Rdzeni, 2025.
-      <span class="lastupdated">Last updated on 07:31 2025-08-14.
+      <span class="lastupdated">Last updated on 08:27 2025-09-08.
       </span></p>
   </div>
 

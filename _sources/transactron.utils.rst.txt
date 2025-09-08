@@ -17,77 +17,77 @@ transactron.utils.assign module
 
 .. automodule:: transactron.utils.assign
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 transactron.utils.data\_repr module
 -----------------------------------
 
 .. automodule:: transactron.utils.data_repr
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 transactron.utils.debug\_signals module
 ---------------------------------------
 
 .. automodule:: transactron.utils.debug_signals
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 transactron.utils.depcache module
 ---------------------------------
 
 .. automodule:: transactron.utils.depcache
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 transactron.utils.dependencies module
 -------------------------------------
 
 .. automodule:: transactron.utils.dependencies
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 transactron.utils.gen module
 ----------------------------
 
 .. automodule:: transactron.utils.gen
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 transactron.utils.idgen module
 ------------------------------
 
 .. automodule:: transactron.utils.idgen
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 transactron.utils.transactron\_helpers module
 ---------------------------------------------
 
 .. automodule:: transactron.utils.transactron_helpers
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 transactron.utils.typing module
 -------------------------------
 
 .. automodule:: transactron.utils.typing
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Module contents
 ---------------
 
 .. automodule:: transactron.utils
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:

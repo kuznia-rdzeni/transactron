@@ -9,109 +9,109 @@ transactron.lib.adapters module
 
 .. automodule:: transactron.lib.adapters
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 transactron.lib.allocators module
 ---------------------------------
 
 .. automodule:: transactron.lib.allocators
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 transactron.lib.basicio module
 ------------------------------
 
 .. automodule:: transactron.lib.basicio
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 transactron.lib.connectors module
 ---------------------------------
 
 .. automodule:: transactron.lib.connectors
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 transactron.lib.dependencies module
 -----------------------------------
 
 .. automodule:: transactron.lib.dependencies
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 transactron.lib.fifo module
 ---------------------------
 
 .. automodule:: transactron.lib.fifo
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 transactron.lib.logging module
 ------------------------------
 
 .. automodule:: transactron.lib.logging
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 transactron.lib.metrics module
 ------------------------------
 
 .. automodule:: transactron.lib.metrics
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 transactron.lib.reqres module
 -----------------------------
 
 .. automodule:: transactron.lib.reqres
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 transactron.lib.simultaneous module
 -----------------------------------
 
 .. automodule:: transactron.lib.simultaneous
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 transactron.lib.stack module
 ----------------------------
 
 .. automodule:: transactron.lib.stack
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 transactron.lib.storage module
 ------------------------------
 
 .. automodule:: transactron.lib.storage
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 transactron.lib.transformers module
 -----------------------------------
 
 .. automodule:: transactron.lib.transformers
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Module contents
 ---------------
 
 .. automodule:: transactron.lib
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:

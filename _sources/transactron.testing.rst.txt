@@ -9,69 +9,69 @@ transactron.testing.functions module
 
 .. automodule:: transactron.testing.functions
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 transactron.testing.infrastructure module
 -----------------------------------------
 
 .. automodule:: transactron.testing.infrastructure
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 transactron.testing.input\_generation module
 --------------------------------------------
 
 .. automodule:: transactron.testing.input_generation
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 transactron.testing.logging module
 ----------------------------------
 
 .. automodule:: transactron.testing.logging
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 transactron.testing.method\_mock module
 ---------------------------------------
 
 .. automodule:: transactron.testing.method_mock
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 transactron.testing.profiler module
 -----------------------------------
 
 .. automodule:: transactron.testing.profiler
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 transactron.testing.testbenchio module
 --------------------------------------
 
 .. automodule:: transactron.testing.testbenchio
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 transactron.testing.tick\_count module
 --------------------------------------
 
 .. automodule:: transactron.testing.tick_count
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Module contents
 ---------------
 
 .. automodule:: transactron.testing
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
