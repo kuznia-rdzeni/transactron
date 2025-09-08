@@ -1,12 +1,10 @@
 import datetime
-from sphinx_rtd_theme import get_html_theme_path
+import importlib.metadata
+import re
 
 # -- General configuration -----------------------------------------------------
 
 general_theme = "sphinx_rtd_theme"
-
-# Documentation theme.
-theme_path = get_html_theme_path() + "/" + general_theme
 
 # Minimal Sphinx version.
 needs_sphinx = "5.1.0"
@@ -106,13 +104,21 @@ autodoc_class_signature = "separated"
 # Auto generate anchors for # - ### headers
 myst_heading_anchors = 3
 
+# Enable common MyST extensions for extended Markdown syntax
+myst_enable_extensions = ["colon_fence"]
+
 # Compatibility with Amaranth docstrings
 rst_prolog = """
 .. role:: py(code)
    :language: python
 """
 
+_amaranth_versions = [
+    m[1] for s in importlib.metadata.requires("transactron") if (m := re.fullmatch(r"amaranth[>=]+(.*)", s))
+]
+_amaranth_version = f"v{_amaranth_versions[0]}" if _amaranth_versions else "latest"
+
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),
-    "amaranth": ("https://amaranth-lang.org/docs/amaranth/latest/", None),
+    "amaranth": ("https://amaranth-lang.org/docs/amaranth/v0.5.4/", None),
 }

@@ -5,7 +5,8 @@
 maxdepth: 3
 ---
 
-development-environment.md
+getting-started.md
 transactions.md
 api.md
+development-environment.md
 ```
