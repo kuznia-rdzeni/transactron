@@ -52,6 +52,14 @@ transactron.testing.profiler module
    :show-inheritance:
    :undoc-members:
 
+transactron.testing.test\_circuit module
+----------------------------------------
+
+.. automodule:: transactron.testing.test_circuit
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 transactron.testing.testbenchio module
 --------------------------------------
 

@@ -117,22 +117,6 @@ executing. It is equivalent to:</p>
 </dd></dl>
 
 <dl class="py class">
-<dt class="sig sig-object py" id="transactron.testing.infrastructure.SimpleTestCircuit">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">transactron.testing.infrastructure.</span></span><span class="sig-name descname"><span class="pre">SimpleTestCircuit</span></span><a class="headerlink" href="#transactron.testing.infrastructure.SimpleTestCircuit" title="Link to this definition"></a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Elaboratable</span></code>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Generic" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Generic</span></code></a>[<code class="xref py py-obj docutils literal notranslate"><span class="pre">_T_HasElaborate</span></code>]</p>
-<dl class="py method">
-<dt class="sig sig-object py" id="transactron.testing.infrastructure.SimpleTestCircuit.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dut</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">_T_HasElaborate</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.testing.infrastructure.SimpleTestCircuit.__init__" title="Link to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="transactron.testing.infrastructure.SimpleTestCircuit.debug_signals">
-<span class="sig-name descname"><span class="pre">debug_signals</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#transactron.testing.infrastructure.SimpleTestCircuit.debug_signals" title="Link to this definition"></a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
 <dt class="sig sig-object py" id="transactron.testing.infrastructure.TestCaseWithSimulator">
 <em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">transactron.testing.infrastructure.</span></span><span class="sig-name descname"><span class="pre">TestCaseWithSimulator</span></span><a class="headerlink" href="#transactron.testing.infrastructure.TestCaseWithSimulator" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
@@ -317,6 +301,25 @@ between different mocks and testbench processes.</p>
 <dt class="sig sig-object py" id="transactron.testing.profiler.profiler_process">
 <span class="sig-prename descclassname"><span class="pre">transactron.testing.profiler.</span></span><span class="sig-name descname"><span class="pre">profiler_process</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">transaction_manager</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="transactron.core.html#transactron.core.manager.TransactionManager" title="transactron.core.manager.TransactionManager"><span class="pre">TransactionManager</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">profile</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="transactron.html#transactron.profiler.Profile" title="transactron.profiler.Profile"><span class="pre">Profile</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.testing.profiler.profiler_process" title="Link to this definition"></a></dt>
 <dd></dd></dl>
+
+</section>
+<section id="module-transactron.testing.test_circuit">
+<span id="transactron-testing-test-circuit-module"></span><h2>transactron.testing.test_circuit module<a class="headerlink" href="#module-transactron.testing.test_circuit" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="transactron.testing.test_circuit.SimpleTestCircuit">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">transactron.testing.test_circuit.</span></span><span class="sig-name descname"><span class="pre">SimpleTestCircuit</span></span><a class="headerlink" href="#transactron.testing.test_circuit.SimpleTestCircuit" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Elaboratable</span></code>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Generic" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Generic</span></code></a>[<code class="xref py py-obj docutils literal notranslate"><span class="pre">_T_HasElaborate</span></code>]</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.testing.test_circuit.SimpleTestCircuit.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dut</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">_T_HasElaborate</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.testing.test_circuit.SimpleTestCircuit.__init__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.testing.test_circuit.SimpleTestCircuit.debug_signals">
+<span class="sig-name descname"><span class="pre">debug_signals</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#transactron.testing.test_circuit.SimpleTestCircuit.debug_signals" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
 
 </section>
 <section id="module-transactron.testing.testbenchio">
@@ -533,7 +536,7 @@ methods were not enabled. In case we only want to focus on the cycles when one o
 
   <div role="contentinfo">
     <p>&#169; Copyright Kuźnia Rdzeni, 2025.
-      <span class="lastupdated">Last updated on 08:27 2025-09-08.
+      <span class="lastupdated">Last updated on 08:38 2025-09-08.
       </span></p>
   </div>
 
