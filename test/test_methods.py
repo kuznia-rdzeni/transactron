@@ -772,3 +772,34 @@ class TestDataDependentConditionalMethod(TestCaseWithSimulator):
 
     def test_random_kwarg(self):
         self.base_random(lambda data: data != self.bad_number)
+
+
+class ProvideOutsideElaborateTestCircuit(Elaboratable):
+    def __init__(self):
+        self.m1 = Method(i=data_layout(8), o=data_layout(8))
+        self.m2 = Method.like(self.m1)
+        self.m1.provide(self.m2)
+
+    def elaborate(self, platform):
+        m = TModule()
+
+        @def_method(m, self.m2)
+        def _(data):
+            return {"data": data}
+
+        return m
+
+
+class TestProvide(TestCaseWithSimulator):
+    def test_provide_outside_elaborate(self):
+        random.seed(14)
+        dut = SimpleTestCircuit(ProvideOutsideElaborateTestCircuit())
+
+        async def process(sim):
+            for _ in range(100):
+                v = random.randrange(256)
+                res = await dut.m1.call(sim, data=v)
+                assert res["data"] == v
+
+        with self.run_simulation(dut) as sim:
+            sim.add_testbench(process)
