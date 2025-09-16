@@ -10,6 +10,7 @@ from transactron.utils.transactron_helpers import get_caller_class_name, get_src
 from .keys import *
 from contextlib import contextmanager
 from .body import Body, TBody
+from .keys import TransactionsKey
 from .tmodule import TModule
 from .transaction_base import TransactionBase
 
@@ -76,8 +77,7 @@ class Transaction(TransactionBase["Transaction | Method"]):
         super().__init__(src_loc=get_src_loc(src_loc))
         self.owner, owner_name = get_caller_class_name(default="$transaction")
         self.name = name or tracer.get_var_name(depth=2, default=owner_name)
-        manager = DependencyContext.get().get_dependency(TransactionManagerKey())
-        manager._add_transaction(self)
+        DependencyContext.get().add_dependency(TransactionsKey(), self)
         self.ready = Signal(name=self.owned_name + "_ready")
         self.runnable = Signal(name=self.owned_name + "_runnable")
         self.run = Signal(name=self.owned_name + "_run")

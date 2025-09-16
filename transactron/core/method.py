@@ -12,7 +12,7 @@ from transactron.utils.assign import AssignArg
 from transactron.utils.typing import type_self_add_1pos_kwargs_as
 
 from .body import Body, BodyParams, MBody
-from .keys import TransactionManagerKey, ProvidedMethodsKey
+from .keys import DefinedMethodsKey, ProvidedMethodsKey
 from .tmodule import TModule
 from .transaction_base import TransactionBase
 
@@ -235,8 +235,7 @@ class Method(TransactionBase["Transaction | Method"]):
             with m.AvoidedIf(body.run):
                 yield body.data_in
 
-        manager = DependencyContext.get().get_dependency(TransactionManagerKey())
-        manager._add_method(self)
+        DependencyContext.get().add_dependency(DefinedMethodsKey(), self)
 
     def __call__(
         self, m: TModule, arg: Optional[AssignArg] = None, /, enable_call: ValueLike = C(1), **kwargs: AssignArg

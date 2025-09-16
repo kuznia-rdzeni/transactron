@@ -15,7 +15,7 @@ from transactron.graph import OwnershipGraph, Direction
 from .transaction_base import Priority, Relation, RelationBase
 from .body import Body, TBody, MBody
 from .transaction import Transaction
-from .keys import ProvidedMethodsKey
+from .keys import DefinedMethodsKey, ProvidedMethodsKey, TransactionsKey
 from .method import Method
 from .tmodule import TModule
 from .schedulers import eager_deterministic_cc_scheduler
@@ -84,15 +84,7 @@ class TransactionManager(Elaboratable):
     """
 
     def __init__(self, cc_scheduler: TransactionScheduler = eager_deterministic_cc_scheduler):
-        self.transactions: list[Transaction] = []
-        self.methods: list[Method] = []
         self.cc_scheduler = cc_scheduler
-
-    def _add_transaction(self, transaction: Transaction):
-        self.transactions.append(transaction)
-
-    def _add_method(self, method: Method):
-        self.methods.append(method)
 
     @staticmethod
     def _conflict_graph(method_map: MethodMap) -> tuple[TransactionGraph, PriorityOrder]:
@@ -312,15 +304,20 @@ class TransactionManager(Elaboratable):
             methods[transaction] = method
 
         # step 5: construct merged transactions
-        for group in final_simultaneous:
-            name = "_".join([t.name for t in group])
-            with Transaction(name=name).body(m):
-                for transaction in group:
-                    methods[transaction](m)
+        with DependencyContext(DependencyManager()):
+            for group in final_simultaneous:
+                name = "_".join([t.name for t in group])
+                with Transaction(name=name).body(m):
+                    for transaction in group:
+                        methods[transaction](m)
+            self.transactions += DependencyContext.get().get_dependency(TransactionsKey())
 
         return m
 
     def elaborate(self, platform):
+        self.transactions = DependencyContext.get().get_dependency(TransactionsKey())
+        self.methods = DependencyContext.get().get_dependency(DefinedMethodsKey())
+
         for elem in chain(self.transactions, self.methods):
             for relation in elem.relations:
                 elem._body.relations.append(RelationBase(**{**dataclass_asdict(relation), "end": relation.end._body}))

@@ -10,7 +10,7 @@ import contextlib
 
 from collections import deque
 from typing import Iterable, Callable
-from transactron.core.keys import TransactionManagerKey
+from transactron.core.keys import TransactionsKey
 
 from transactron.testing import TestCaseWithSimulator, TestbenchIO, data_layout
 
@@ -25,11 +25,7 @@ from transactron.utils.dependencies import DependencyContext, DependencyManager
 
 class TestNames(TestCase):
     def test_names(self):
-        mgr = TransactionManager()
-        mgr._MustUse__silence = True  # type: ignore
-
-        with DependencyContext(DependencyManager()) as ctx:
-            ctx.manager.add_dependency(TransactionManagerKey(), mgr)
+        with DependencyContext(DependencyManager()):
 
             class T(Elaboratable):
                 def __init__(self):
@@ -37,8 +33,11 @@ class TestNames(TestCase):
                     Transaction()
 
             T()
-            assert mgr.transactions[0].name == "T"
 
+            transactions = DependencyContext.get().get_dependency(TransactionsKey())
+            assert transactions[0].name == "T"
+
+        with DependencyContext(DependencyManager()):
             t = Transaction(name="x")
             assert t.name == "x"
 
@@ -392,3 +391,24 @@ class TestSingleCaller(TestCaseWithSimulator):
         with pytest.raises(RuntimeError):
             with self.run_simulation(m):
                 pass
+
+
+class TransactionOutsideElaborateTestCircuit(Elaboratable):
+    def __init__(self):
+        self.t = Transaction()
+
+    def elaborate(self, platform):
+        m = TModule()
+
+        with self.t.body(m):
+            pass
+
+        return m
+
+
+class TestTransactionOutsideElaborate(TestCaseWithSimulator):
+    def test_transaction_outside_elaborate(self):
+        m = TransactionOutsideElaborateTestCircuit()
+
+        with self.run_simulation(m):
+            pass
