@@ -12,7 +12,7 @@ from transactron.utils.assign import AssignArg
 from transactron.utils.typing import type_self_add_1pos_kwargs_as
 
 from .body import Body, BodyParams, MBody
-from .keys import TransactionManagerKey
+from .keys import TransactionManagerKey, ProvidedMethodsKey
 from .tmodule import TModule
 from .transaction_base import TransactionBase
 
@@ -157,9 +157,7 @@ class Method(TransactionBase["Transaction | Method"]):
             Definition of `method` will be provided to this method.
         """
         self._set_impl(method)
-
-        manager = DependencyContext.get().get_dependency(TransactionManagerKey())
-        manager._add_proxy_method(self)
+        DependencyContext.get().add_dependency(ProvidedMethodsKey(), self)
 
     @contextmanager
     def body(
