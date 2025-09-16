@@ -267,21 +267,18 @@ class TestTransactionPriorities(TestCaseWithSimulator):
 class NestedTransactionsTestCircuit(SchedulingTestCircuit):
     def elaborate(self, platform):
         m = TModule()
-        tm = TransactronContextElaboratable(m)
 
-        with tm.context():
-            with Transaction().body(m, ready=self.r1):
-                m.d.comb += self.t1.eq(1)
-                with Transaction().body(m, ready=self.r2):
-                    m.d.comb += self.t2.eq(1)
+        with Transaction().body(m, ready=self.r1):
+            m.d.comb += self.t1.eq(1)
+            with Transaction().body(m, ready=self.r2):
+                m.d.comb += self.t2.eq(1)
 
-        return tm
+        return m
 
 
 class NestedMethodsTestCircuit(SchedulingTestCircuit):
     def elaborate(self, platform):
         m = TModule()
-        tm = TransactronContextElaboratable(m)
 
         method1 = Method()
         method2 = Method()
@@ -294,14 +291,13 @@ class NestedMethodsTestCircuit(SchedulingTestCircuit):
             def _():
                 m.d.comb += self.t2.eq(1)
 
-        with tm.context():
-            with Transaction().body(m):
-                method1(m)
+        with Transaction().body(m):
+            method1(m)
 
-            with Transaction().body(m):
-                method2(m)
+        with Transaction().body(m):
+            method2(m)
 
-        return tm
+        return m
 
 
 @pytest.mark.parametrize("circuit", [NestedTransactionsTestCircuit, NestedMethodsTestCircuit])
@@ -329,7 +325,6 @@ class TestNested(TestCaseWithSimulator):
 class ScheduleBeforeTestCircuit(SchedulingTestCircuit):
     def elaborate(self, platform):
         m = TModule()
-        tm = TransactronContextElaboratable(m)
 
         method = Method()
 
@@ -337,18 +332,17 @@ class ScheduleBeforeTestCircuit(SchedulingTestCircuit):
         def _():
             pass
 
-        with tm.context():
-            with (t1 := Transaction()).body(m, ready=self.r1):
-                method(m)
-                m.d.comb += self.t1.eq(1)
+        with (t1 := Transaction()).body(m, ready=self.r1):
+            method(m)
+            m.d.comb += self.t1.eq(1)
 
-            with (t2 := Transaction()).body(m, ready=self.r2 & t1.run):
-                method(m)
-                m.d.comb += self.t2.eq(1)
+        with (t2 := Transaction()).body(m, ready=self.r2 & t1.run):
+            method(m)
+            m.d.comb += self.t2.eq(1)
 
-            t1.schedule_before(t2)
+        t1.schedule_before(t2)
 
-        return tm
+        return m
 
 
 class TestScheduleBefore(TestCaseWithSimulator):
