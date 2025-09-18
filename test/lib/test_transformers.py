@@ -145,7 +145,7 @@ class TestMethodProduct(TestCaseWithSimulator):
         if add_combiner:
             combiner = (layout, lambda _, vs: {"data": sum(x.data for x in vs)})
 
-        m = SimpleTestCircuit(MethodProduct(targets, layout, layout, combiner))
+        m = SimpleTestCircuit(MethodProduct(layout, (layout,) * targets, combiner))
 
         method_en = [False] * targets
 
@@ -194,7 +194,7 @@ class TestMethodTryProduct(TestCaseWithSimulator):
         if add_combiner:
             combiner = (layout, lambda _, vs: {"data": sum(Mux(s, r, 0) for (s, r) in vs)})
 
-        m = SimpleTestCircuit(MethodTryProduct(targets, layout, layout, combiner))
+        m = SimpleTestCircuit(MethodTryProduct(layout, (layout,) * targets, combiner))
 
         method_en = [False] * targets
 

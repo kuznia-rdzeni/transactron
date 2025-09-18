@@ -5,7 +5,7 @@ from transactron.utils.transactron_helpers import get_src_loc
 from ..core import *
 from ..utils import SrcLoc
 from typing import Iterable, Optional, Protocol
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from transactron.utils import (
     assign,
     AssignType,
@@ -55,7 +55,7 @@ class TransformerOneTarget(Transformer, Protocol):
 
 
 class TransformerMultiTarget(Transformer, Protocol):
-    targets: Required[Methods]
+    targets: Required[Sequence[Method]]
     """Methods called by the transformer."""
 
 
@@ -271,9 +271,8 @@ class MethodProduct(Elaboratable, Unifier):
 
     def __init__(
         self,
-        count: int = 1,
         i_layout: MethodLayout = (),
-        o_layout: MethodLayout = (),
+        o_layouts: Iterable[MethodLayout] = (),
         combiner: Optional[tuple[MethodLayout, Callable[[TModule, list[MethodStruct]], RecordDict]]] = None,
         *,
         src_loc: int | SrcLoc = 0,
@@ -281,12 +280,10 @@ class MethodProduct(Elaboratable, Unifier):
         """
         Parameters
         ----------
-        count: int
-            The number of target methods.
         i_layout: MethodLayout
             Input layout of the `targets` methods.
-        o_layout: MethodLayout
-            Output layout of the `targets` methods.
+        o_layouts: Iterable[MethodLayout]
+            Output layouts of each of the `targets` methods.
         combiner: (int or method layout, function), optional
             A pair of the output layout and the combiner function. The
             combiner function takes two parameters: a `Module` and
@@ -295,9 +292,10 @@ class MethodProduct(Elaboratable, Unifier):
             How many stack frames deep the source location is taken from.
             Alternatively, the source location to use instead of the default.
         """
+        o_layouts = tuple(o_layouts)
         if combiner is None:
-            combiner = (o_layout, lambda _, x: x[0])
-        self.targets = Methods(count, i=i_layout, o=o_layout)
+            combiner = (o_layouts[0], lambda _, x: x[0])
+        self.targets = [Method(i=i_layout, o=o_layout) for o_layout in o_layouts]
         self.combiner = combiner
         src_loc = get_src_loc(src_loc)
         self.method = Method(i=i_layout, o=combiner[0], src_loc=src_loc)
@@ -323,13 +321,13 @@ class MethodProduct(Elaboratable, Unifier):
         targets = list(targets)
         src_loc = get_src_loc(src_loc)
         tr = MethodProduct(
-            len(targets),
             i_layout=targets[0].layout_in,
-            o_layout=targets[0].layout_out,
+            o_layouts=[target.layout_out for target in targets],
             combiner=combiner,
             src_loc=src_loc,
         )
-        tr.targets.provide(targets)
+        for m1, m2 in zip(tr.targets, targets):
+            m1.provide(m2)
         return tr
 
     def elaborate(self, platform):
@@ -358,9 +356,8 @@ class MethodTryProduct(Elaboratable, Unifier):
 
     def __init__(
         self,
-        count: int = 1,
         i_layout: MethodLayout = (),
-        o_layout: MethodLayout = (),
+        o_layouts: Iterable[MethodLayout] = (),
         combiner: Optional[
             tuple[MethodLayout, Callable[[TModule, list[tuple[Value, MethodStruct]]], RecordDict]]
         ] = None,
@@ -370,12 +367,10 @@ class MethodTryProduct(Elaboratable, Unifier):
         """
         Parameters
         ----------
-        count: int
-            The number of target methods.
         i_layout: MethodLayout
             Input layout of the `targets` methods.
-        o_layout: MethodLayout
-            Output layout of the `targets` methods.
+        o_layouts: Iterable[MethodLayout]
+            Output layouts of each of the `targets` methods.
         combiner: (int or method layout, function), optional
             A pair of the output layout and the combiner function. The
             combiner function takes two parameters: a `TModule` and
@@ -387,7 +382,7 @@ class MethodTryProduct(Elaboratable, Unifier):
         """
         if combiner is None:
             combiner = ([], lambda _, __: {})
-        self.targets = Methods(count, i=i_layout, o=o_layout)
+        self.targets = [Method(i=i_layout, o=o_layout) for o_layout in o_layouts]
         self.combiner = combiner
         self.src_loc = get_src_loc(src_loc)
         self.method = Method(i=i_layout, o=combiner[0], src_loc=self.src_loc)
@@ -414,8 +409,11 @@ class MethodTryProduct(Elaboratable, Unifier):
         """
         targets = list(targets)
         src_loc = get_src_loc(src_loc)
-        tr = MethodTryProduct(len(targets), targets[0].layout_in, targets[0].layout_out, combiner, src_loc=src_loc)
-        tr.targets.provide(targets)
+        tr = MethodTryProduct(
+            targets[0].layout_in, [target.layout_out for target in targets], combiner, src_loc=src_loc
+        )
+        for m1, m2 in zip(tr.targets, targets):
+            m1.provide(m2)
         return tr
 
     def elaborate(self, platform):
@@ -472,7 +470,8 @@ class Collector(Elaboratable, Unifier):
         targets = list(targets)
         src_loc = get_src_loc(src_loc)
         tr = Collector(len(targets), targets[0].layout_out)
-        tr.targets.provide(targets)
+        for m1, m2 in zip(tr.targets, targets):
+            m1.provide(m2)
         return tr
 
     def elaborate(self, platform):
