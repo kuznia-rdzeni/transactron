@@ -235,6 +235,14 @@ class Method(TransactionBase["Transaction | Method"]):
             with m.AvoidedIf(body.run):
                 yield body.data_in
 
+        # Assigned here instead of the transaction manager because:
+        # - The waveforms will be available in the module which defined the method.
+        # - This simulates faster in pysim.
+        m.d.comb += self.ready.eq(body.ready)
+        m.d.comb += self.run.eq(body.run)
+        m.d.comb += self.data_in.eq(body.data_in)
+        m.d.comb += self.data_out.eq(body.data_out)
+
         DependencyContext.get().add_dependency(DefinedMethodsKey(), self)
 
     def __call__(
