@@ -344,8 +344,10 @@ class TransactionManager(Elaboratable):
         for elem in method_map.methods_and_transactions:
             elem._set_method_uses(m)
 
+        # Signals assigned here because `method.provide` sometimes needs to be used without a TModule.
+        # Unfortunately, assignments across modules seem to cause a performance hit in pysim.
         provided_methods = DependencyContext.get().get_dependency(ProvidedMethodsKey())
-        for method in chain(self.methods, provided_methods):
+        for method in chain(provided_methods):
             m.d.comb += method.ready.eq(method._body.ready)
             m.d.comb += method.run.eq(method._body.run)
             m.d.comb += method.data_in.eq(method._body.data_in)
