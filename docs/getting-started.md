@@ -51,7 +51,7 @@ The transaction defined here will run in every cycle, ensuring that the LED alwa
 
 :::{note}
 Other than method calls, transaction and method bodies can contain arbitrary Python and Amaranth code.
-The Python code of the definition is run once, while Amaranth [assignments]{inv:#lang-assigns} are active only in cycles when the defined transaction or method runs.
+The Python code of the definition is run once, while Amaranth [assignments](inv:#lang-assigns) are active only in cycles when the defined transaction or method runs.
 This will be showcased in later part of the tutorial.
 :::
 
@@ -184,7 +184,7 @@ For that, only the import and class name need to be changed.
 
 ## RPN calculator
 
-We will now implement a larger example: a reverse Polish notation (RPN) calculator.
+We will now implement a larger example: a [reverse Polish notation](https://en.wikipedia.org/wiki/Reverse_Polish_notation) (RPN) calculator.
 In this notation, operations are entered postfix, and parentheses are not needed: the expression (2 + 3) * 4 becomes 2 3 + 4 * in RPN.
 The algorithm for computing the value of RPN expressions reads symbols (numbers and operators) from left to right and uses a stack to store intermediate results.
 When a number is read, it is pushed to the stack.
@@ -200,7 +200,9 @@ Instead, we will create a specialized stack structure, which will store the top 
 
 In the constructor we declare methods provided by our component.
 The `peek` and `peek2` methods will return the top of the stack and the element immediately below it, both methods will not take any parameters.
+They take no parameters and return a single value `val`.
 The `push` method will insert a new element to the stack, while `pop_set_top` will remove one element and change the value of the one below it.
+These two methods take a single parameter `val` and return nothing.
 
 The methods are defined inside `elaborate` using the {py:class}`~transactron.lib.stack.Stack` component and two additional registers, `top` and `nonempty`.
 Methods are defined using {py:class}`~transactron.core.sugar.def_method` decorator syntax.
@@ -208,10 +210,45 @@ The method definition is written using Python `def` function syntax.
 It works much like the `body` context manager used for defining transactions -- the Python code inside the definition is evaluated exactly once.
 Method inputs are passed as parameters, while the result is provided using `return` as a `dict`.
 
+:::{warning}
+Remember that `return` is a Python control flow statement, not an Amaranth one.
+Using `return` inside Amaranth's control flow blocks (such as [If/Elif/Else](inv:#lang-if)) will silently discard the rest of the function's code.
+:::
+
 The first method, `peek`, returns the value at the top of the stack, which is stored in the register `top`.
 It is ready only when the stack is not empty.
 The `nonexclusive=True` parameter to `def_method` allows this method to be called by multiple transactions in a single clock cycle.
 This is justified by the fact that `peek` does not alter the state of the component in any way.
+The method `peek2`, which delegates its functionality to {py:attr}`~transactron.lib.stack.Stack.peek`, is also nonexclusive.
 
-TODO: to be continued...
+The next two methods modify the state of the component.
+The `push` method sets the `top` value to the argument `val` and pushes the old `top` value to the stack.
+Because of the {py:attr}`~transactron.lib.stack.Stack.write` call, it will not be ready if the stack is full.
+Similarly, the `pop_set_top` also modifies the `top` value, but simultaneously removes an element from the stack using {py:attr}`~transactron.lib.stack.Stack.read`.
+It will not be ready if the stack is empty.
+
+Because both `push` and `pop_set_top` methods overwrite the `top` value, calling them both in the same clock cycle will lead to an inconsistent result.
+To prevent this from happening, a transaction conflict is manually added using {py:meth}`~transactron.core.transaction_base.TransactionBase.add_conflict`.
+
+:::{note}
+Conflicts have a cost.
+Other than reduction of throughput caused by reduced parallelism, adding conflicts can increase the complexity of the implicit arbitration circuit.
+This can, in some cases, decrease the maximum clock frequency.
+To avoid adding conflicts, one can sometimes rewrite method definitions so that calling them in the same clock cycle is equivalent to some sequence of calls in different clock cycles.
+:::
+
+We will now use the `RpnStack` component to create our RPN calculator.
+
+```{literalinclude} _code/rpn.py
+```
+
+In this example, board switches are used to enter binary numbers, while LEDs present the value on the top of the calculator's stack.
+Adjust the `width` value to the amount of LEDs and switches available on your FPGA development board.
+Like in the [data structure example](#data-structures), switches and LEDs are connected to the appropriate `RpnStack` methods using {py:class}`~transactron.lib.connectors.ConnectTrans`.
+As peeking does not modify the stack, the LED buffer has no trigger -- the connecting transaction will therefore run in every cycle in which the stack is nonempty.
+
+Addition and multiplication operations are triggered using buttons connected to input samplers.
+These don't sample any value, and therefore calling {py:attr}`~transactron.lib.basicio.InputSampler.get` does not return any value -- but still cause the calling transaction to run only when the button is pressed.
+To perform an operation, operands are taken from the stack using `peek` and `peek2`, while the result is put back on the stack using `pop_set_top`.
+This has the combined effect of removing the two operands from the stack and pushing the result.
 
