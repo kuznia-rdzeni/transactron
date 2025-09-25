@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from dataclasses_json import dataclass_json
-from typing import Optional, TypeAlias
+from typing import Iterable, Optional, TypeAlias
 
 from amaranth import *
 from amaranth.back import verilog
@@ -13,6 +13,7 @@ from transactron.core.manager import MethodMap
 from transactron.lib.metrics import HardwareMetricsManager
 from transactron.lib import logging
 from transactron.utils.dependencies import DependencyContext
+from transactron.utils.gen_hacks import fixup_vivado_transparent_memories
 from transactron.utils.idgen import IdGenerator
 from transactron.profiler import ProfileData
 
@@ -226,7 +227,11 @@ def collect_logs(name_map: "SignalDict") -> list[GeneratedLog]:
 
 
 def generate_verilog(
-    elaboratable: Elaboratable, ports: Optional[list[Value]] = None, top_name: str = "top"
+    elaboratable: Elaboratable,
+    ports: Optional[list[Value]] = None,
+    top_name: str = "top",
+    *,
+    enable_hacks: Iterable[str] = {},
 ) -> tuple[str, GenerationInfo]:
     # The ports logic is copied (and simplified) from amaranth.back.verilog.convert.
     # Unfortunately, the convert function doesn't return the name map.
@@ -237,8 +242,12 @@ def generate_verilog(
     elif ports is None:
         raise TypeError("The `generate_verilog()` function requires a `ports=` argument")
 
-    fragment = Fragment.get(elaboratable, platform=None).prepare(ports=ports)
-    verilog_text, name_map = verilog.convert_fragment(fragment, name=top_name, emit_src=True, strip_internal_attrs=True)
+    design = Fragment.get(elaboratable, platform=None).prepare(ports=ports)
+
+    if "fixup_vivado_transparent_memories" in enable_hacks:
+        fixup_vivado_transparent_memories(design)
+
+    verilog_text, name_map = verilog.convert_fragment(design, name=top_name, emit_src=True, strip_internal_attrs=True)
 
     transaction_manager = DependencyContext.get().get_dependency(TransactionManagerKey())
     transaction_signals, method_signals = collect_transaction_method_signals(
