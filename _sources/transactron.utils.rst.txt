@@ -60,6 +60,14 @@ transactron.utils.gen module
    :show-inheritance:
    :undoc-members:
 
+transactron.utils.gen\_hacks module
+-----------------------------------
+
+.. automodule:: transactron.utils.gen_hacks
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 transactron.utils.idgen module
 ------------------------------
 
