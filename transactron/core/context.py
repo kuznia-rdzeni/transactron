@@ -57,8 +57,8 @@ class TransactronContextElaboratable(Elaboratable):
         with silence_mustuse(self.manager.get_dependency(TransactionManagerKey())):
             with self.context():
                 elaboratable = Fragment.get(self.elaboratable, platform)
-                transaction_manager = self.manager.get_dependency(TransactionManagerKey())
-                elab_transaction_manager = Fragment.get(transaction_manager, platform)
+                self.transaction_manager = self.manager.get_dependency(TransactionManagerKey())
+                elab_transaction_manager = Fragment.get(self.transaction_manager, platform)
 
         m = Module()
 
