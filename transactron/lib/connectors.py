@@ -97,6 +97,8 @@ class Forwarder(Elaboratable):
     ----------
     read: Method
         The read method. Accepts an empty argument, returns a structure.
+    peek: Method, nonexclusive
+        Like `read`, but doesn't take the value from `Forwarder`.
     write: Method
         The write method. Accepts a structure, returns empty result.
     """
@@ -113,11 +115,12 @@ class Forwarder(Elaboratable):
         """
         src_loc = get_src_loc(src_loc)
         self.read = Method(o=layout, src_loc=src_loc)
+        self.peek = Method(o=layout, src_loc=src_loc)
         self.write = Method(i=layout, src_loc=src_loc)
         self.clear = Method(src_loc=src_loc)
-        self.head = Signal.like(self.read.data_out)
 
         self.clear.add_conflict(self.read, Priority.LEFT)
+        self.clear.add_conflict(self.peek, Priority.LEFT)
         self.clear.add_conflict(self.write, Priority.LEFT)
 
     def elaborate(self, platform):
@@ -126,9 +129,9 @@ class Forwarder(Elaboratable):
         reg = Signal.like(self.read.data_out)
         reg_valid = Signal()
         read_value = Signal.like(self.read.data_out)
-        m.d.comb += self.head.eq(read_value)
 
         self.write.schedule_before(self.read)  # to avoid combinational loops
+        self.write.schedule_before(self.peek)
 
         @def_method(m, self.write, ready=~reg_valid)
         def _(arg):
@@ -142,6 +145,10 @@ class Forwarder(Elaboratable):
         @def_method(m, self.read, ready=reg_valid | self.write.run)
         def _():
             m.d.sync += reg_valid.eq(0)
+            return read_value
+
+        @def_method(m, self.peek, ready=reg_valid | self.write.run, nonexclusive=True)
+        def _():
             return read_value
 
         @def_method(m, self.clear)
@@ -168,27 +175,32 @@ class Pipe(Elaboratable):
     read: Method
         Reads from the pipe. Accepts an empty argument, returns a structure.
         Ready only if the pipe is not empty.
+    peek: Method, nonexclusive
+        Like `read`, but doesn't take the value from pipe.
     write: Method
         Writes to the pipe. Accepts a structure, returns empty result.
         Ready only if the pipe is not full.
-    clean: Method
+    clear: Method
         Cleans the pipe. Has priority over `read` and `write` methods.
     """
 
-    def __init__(self, layout: MethodLayout):
+    def __init__(self, layout: MethodLayout, *, src_loc: int | SrcLoc = 0):
         """
         Parameters
         ----------
         layout: record layout
             The format of records forwarded.
         """
-        self.read = Method(o=layout)
-        self.write = Method(i=layout)
-        self.clean = Method()
+        src_loc = get_src_loc(src_loc)
+        self.read = Method(o=layout, src_loc=src_loc)
+        self.peek = Method(o=layout, src_loc=src_loc)
+        self.write = Method(i=layout, src_loc=src_loc)
+        self.clear = Method()
         self.head = Signal.like(self.read.data_out)
 
-        self.clean.add_conflict(self.read, Priority.LEFT)
-        self.clean.add_conflict(self.write, Priority.LEFT)
+        self.clear.add_conflict(self.read, Priority.LEFT)
+        self.clear.add_conflict(self.peek, Priority.LEFT)
+        self.clear.add_conflict(self.write, Priority.LEFT)
 
     def elaborate(self, platform):
         m = TModule()
@@ -197,10 +209,15 @@ class Pipe(Elaboratable):
         reg_valid = Signal()
 
         self.read.schedule_before(self.write)  # to avoid combinational loops
+        self.peek.schedule_before(self.write)
 
         @def_method(m, self.read, ready=reg_valid)
         def _():
             m.d.sync += reg_valid.eq(0)
+            return reg
+
+        @def_method(m, self.peek, ready=reg_valid, nonexclusive=True)
+        def _():
             return reg
 
         @def_method(m, self.write, ready=~reg_valid | self.read.run)
@@ -208,7 +225,7 @@ class Pipe(Elaboratable):
             m.d.sync += reg.eq(arg)
             m.d.sync += reg_valid.eq(1)
 
-        @def_method(m, self.clean)
+        @def_method(m, self.clear)
         def _():
             m.d.sync += reg_valid.eq(0)
 
