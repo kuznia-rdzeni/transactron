@@ -311,6 +311,15 @@ class Method(TransactionBase["Transaction | Method"]):
             raise RuntimeError(f"Method '{self.name}' can't be called twice from the same caller '{caller.name}'")
         caller.method_calls[self].append((m.ctrl_path, arg_rec, enable_sig))
 
+        is_conditional = (
+            not isinstance(enable_call, Const)
+            or enable_call.value != 1
+            or len(m.ctrl_path.path) > len(caller.ctrl_path.path) + 1
+        )
+        print(is_conditional, enable_call, m.ctrl_path, caller.ctrl_path)
+        if is_conditional:
+            caller.conditional_calls.add(self)
+
         if self not in caller.method_uses:
             arg_rec_use = Signal(self.layout_in)
             arg_rec_enable_sig = Signal()

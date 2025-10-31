@@ -222,6 +222,18 @@ class TransactionManager(Elaboratable):
 
         return (args, runs)
 
+    @staticmethod
+    def _conditionally_called_methods(method_map: MethodMap) -> set[MBody]:
+        ret: set[MBody] = set()
+
+        for (transaction, method), ancestors in method_map.ancestors_by_call.items():
+            for callee, caller in zip(ancestors, (*ancestors[1:], transaction)):
+                if callee in [method._body for method in caller.conditional_calls]:
+                    ret.add(method)
+                    break
+
+        return ret
+
     def _simultaneous(self):
         method_map = MethodMap(self.transactions)
 
@@ -250,7 +262,13 @@ class TransactionManager(Elaboratable):
 
         simultaneous = set[frozenset[TBody]]()
 
+        conditionally_called_methods = self._conditionally_called_methods(method_map)
+
         for elem in method_map.methods_and_transactions:
+            if elem.simultaneous_list and elem in conditionally_called_methods:
+                raise RuntimeError(
+                    f"Simultaneity constraint for conditionally called method '{elem.name}' not supported"
+                )
             pruned_sim = False
             for sim_elem in elem.simultaneous_list:
                 if sim_elem not in method_map.methods_and_transactions:

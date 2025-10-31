@@ -40,6 +40,7 @@ class Body(TransactionBase["Body"]):
     ctrl_path: CtrlPath = CtrlPath(-1, [])
     method_uses: dict["Method", tuple[MethodStruct, Signal]]
     method_calls: defaultdict["Method", list[tuple[CtrlPath, MethodStruct, ValueLike]]]
+    conditional_calls: set["Method"]
 
     def __init__(
         self,
@@ -80,6 +81,7 @@ class Body(TransactionBase["Body"]):
         )
         self.method_uses = {}
         self.method_calls = defaultdict(list)
+        self.conditional_calls = set()
 
         if self.nonexclusive:
             assert len(self.data_in.as_value()) == 0 or self.combiner is not None
