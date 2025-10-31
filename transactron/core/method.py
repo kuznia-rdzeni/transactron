@@ -316,7 +316,6 @@ class Method(TransactionBase["Transaction | Method"]):
             or enable_call.value != 1
             or len(m.ctrl_path.path) > len(caller.ctrl_path.path) + 1
         )
-        print(is_conditional, enable_call, m.ctrl_path, caller.ctrl_path)
         if is_conditional:
             caller.conditional_calls.add(self)
 
