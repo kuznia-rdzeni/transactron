@@ -100,6 +100,46 @@ class TestUnsatisfiableTriangle(TestCaseWithSimulator):
                 pass
 
 
+class NoSimultaneousConditionalTestCircuit(Elaboratable):
+    def __init__(self, use_enable: bool):
+        self.cond = Signal()
+        self.method_a = Method()
+        self.method_b = Method()
+        self.use_enable = use_enable
+
+    def elaborate(self, platform):
+        m = TModule()
+
+        internal_method = Method()
+
+        @def_method(m, self.method_a)
+        def _():
+            if self.use_enable:
+                self.method_b(m, enable_call=self.cond)
+            else:
+                with m.If(self.cond):
+                    self.method_b(m)
+
+        empty_method(m, internal_method)
+        empty_method(m, self.method_b)
+
+        internal_method.simultaneous(self.method_b)
+
+        return m
+
+
+class TestNoSimultaneousConditional(TestCaseWithSimulator):
+    @pytest.mark.parametrize("use_enable", [False, True])
+    def test_no_simultaneous_conditional(self, use_enable: bool):
+        # In current implementation using simultaneous transactions with conditional calls is forbidden.
+        # This may change in the future.
+        circ = SimpleTestCircuit(NoSimultaneousConditionalTestCircuit(use_enable))
+
+        with pytest.raises(RuntimeError):
+            with self.run_simulation(circ) as _:
+                pass
+
+
 class HelperConnect(Elaboratable):
     def __init__(self, source: Method, target: Method, ready: Signal, data: int):
         self.source = source
