@@ -20,6 +20,7 @@ from transactron.lib import Adapter, AdapterTrans
 from transactron.core import Priority
 from transactron.core.schedulers import trivial_roundrobin_cc_scheduler, eager_deterministic_cc_scheduler
 from transactron.core.manager import TransactionScheduler
+from transactron.testing.test_circuit import SimpleTestCircuit
 from transactron.utils.dependencies import DependencyContext, DependencyManager
 
 
@@ -261,6 +262,35 @@ class TestTransactionPriorities(TestCaseWithSimulator):
         with cm:
             with self.run_simulation(m):
                 pass
+
+
+class UnusedRelationTestCircuit(Elaboratable):
+    def __init__(self):
+        self.method = Method()
+
+    def elaborate(self, platform):
+        m = TModule()
+
+        unused_method = Method()
+
+        @def_method(m, self.method)
+        def _():
+            pass
+
+        @def_method(m, unused_method)
+        def _():
+            pass
+
+        self.method.add_conflict(unused_method)
+
+        return m
+
+
+class TestUnusedRelation(TestCaseWithSimulator):
+    def test_unused_relation(self):
+        m = SimpleTestCircuit(UnusedRelationTestCircuit())
+        with self.run_simulation(m):
+            pass
 
 
 class NestedTransactionsTestCircuit(SchedulingTestCircuit):
