@@ -166,6 +166,7 @@ class TransactionManager(Elaboratable):
             Relation(start=elem, **dataclass_asdict(relation))
             for elem in method_map.methods_and_transactions
             for relation in elem.relations
+            if relation.end in method_map.methods_and_transactions  # prune relations with uncalled methods
         ]
 
         for relation in relations:
