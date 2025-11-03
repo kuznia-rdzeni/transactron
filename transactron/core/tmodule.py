@@ -75,7 +75,7 @@ class PathEdge:
     par: int = 0
 
 
-@dataclass
+@dataclass(frozen=True)
 class CtrlPath:
     """Describes a path in Amaranth's control tree.
 
@@ -89,6 +89,30 @@ class CtrlPath:
 
     module: int
     path: list[PathEdge]
+
+    def is_prefix(self, other: "CtrlPath"):
+        """Decides if this path is a prefix of some other path.
+
+        Arguments
+        ---------
+        other : CtrlPath
+            The other path this path is compared to.
+        """
+        return (
+            self.module == other.module
+            and len(self.path) <= len(other.path)
+            and other.path[: len(self.path)] == self.path
+        )
+
+    def is_proper_prefix(self, other: "CtrlPath"):
+        """Decides if this path is a proper prefix of some other path.
+
+        Arguments
+        ---------
+        other : CtrlPath
+            The other path this path is compared to.
+        """
+        return self.is_prefix(other) and self != other
 
     def exclusive_with(self, other: "CtrlPath"):
         """Decides if this path is mutually exclusive with some other path.
