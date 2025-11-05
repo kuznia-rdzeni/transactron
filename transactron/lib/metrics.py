@@ -10,7 +10,7 @@ from amaranth.utils import bits_for, ceil_log2, exact_log2
 
 from transactron.utils import OneHotSwitchDynamic, ValueBundle
 from transactron import Method, Methods, def_methods, TModule
-from transactron.lib import FIFO, AsyncMemoryBank, logging
+from transactron.lib import WideFifo, AsyncMemoryBank, logging
 from transactron.utils.amaranth_ext.functions import and_value, max_value, min_value, or_value, sum_value, popcount
 from transactron.utils.dependencies import ListKey, DependencyContext, SimpleKey
 
@@ -525,7 +525,7 @@ class FIFOLatencyMeasurer(Elaboratable):
     """
 
     def __init__(
-        self, fully_qualified_name: str, description: str = "", *, slots_number: int, max_latency: int, ways: int = 1
+        self, fully_qualified_name: str, description: str = "", *, slots_number: int, max_latency: int, max_start_count: int = 1, max_stop_count: Optional[int] = None, ways: int = 1
     ):
         """
         Parameters
@@ -535,22 +535,38 @@ class FIFOLatencyMeasurer(Elaboratable):
         description: str
             A human-readable description of the metric's functionality.
         slots_number: int
-            A number of events that the module can track simultaneously.
+            A number of events that the module can track simultaneously
+            per module user.
         max_latency: int
             The maximum latency of an event. Used to set signal widths and
             number of buckets in the histogram. If a latency turns to be
             bigger than the maximum, it will overflow and result in a false
             measurement.
-        ways: int
-            The number of users of this metric.
+        max_start_count: int
+            The maximum number of event starts that can be registered from
+            a single user in a single clock cycle.
+        max_stop_count: int, optional
+            The maximum number of event stops that can be registered from
+            a single user in a single clock cycle. If omitted, assumed to
+            be equal to `max_start_count`.
+        ways: int, optional
+            The number of users of this metric. If omitted, assumed to be
+            equal to 1.
         """
+        if max_stop_count is None:
+            max_stop_count = max_start_count
+
         self.fully_qualified_name = fully_qualified_name
         self.description = description
-        self.slots_number = slots_number
         self.max_latency = max_latency
+        self.max_start_count = max_start_count
+        self.max_stop_count = max_stop_count
+        max_count = max(max_start_count, max_stop_count)
+        # slots_number is rounded up to a multiple of max_count because of WideFifo requirements
+        self.slots_number = (slots_number + (max_count - 1)) // max_count * max_count
 
-        self.start = HwMetric.wrap_method(Methods(ways))
-        self.stop = HwMetric.wrap_method(Methods(ways))
+        self.start = HwMetric.wrap_method(Methods(ways, i=[("count", range(max_start_count + 1))]))
+        self.stop = HwMetric.wrap_method(Methods(ways, i=[("count", range(max_stop_count + 1))]))
 
         # This bucket count gives us the best possible granularity.
         bucket_count = bits_for(self.max_latency) + 1
@@ -559,7 +575,7 @@ class FIFOLatencyMeasurer(Elaboratable):
             self.description,
             bucket_count=bucket_count,
             sample_width=bits_for(self.max_latency),
-            ways=ways,
+            ways=ways*max_stop_count,
         )
 
     def elaborate(self, platform):
@@ -570,7 +586,7 @@ class FIFOLatencyMeasurer(Elaboratable):
 
         epoch_width = bits_for(self.max_latency)
 
-        self.fifos = [FIFO([("epoch", epoch_width)], self.slots_number) for _ in range(len(self.start))]
+        self.fifos = [WideFifo(epoch_width, self.slots_number, self.max_stop_count, self.max_start_count) for _ in range(len(self.start))]
         for k in range(len(self.start)):
             m.submodules[f"fifo{k}"] = self.fifos[k]
 
@@ -581,13 +597,13 @@ class FIFOLatencyMeasurer(Elaboratable):
         m.d.sync += epoch.eq(epoch + 1)
 
         @def_methods(m, self.start)
-        def _(k: int):
-            self.fifos[k].write(m, epoch)
+        def _(k: int, count: Value):
+            self.fifos[k].write(m, count, [])
 
         @def_methods(m, self.stop)
-        def _(k: int):
-            ret = self.fifos[k].read(m)
-            # The result of substracting two unsigned n-bit is a signed (n+1)-bit value,
+        def _(k: int, count: Value):
+            ret = self.fifos[k].read(m, count)
+            # The result of subtracting two unsigned n-bit is a signed (n+1)-bit value,
             # so we need to cast the result and discard the most significant bit.
             duration = (epoch - ret.epoch).as_unsigned()[:-1]
             self.histogram.add[k](m, duration)
