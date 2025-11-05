@@ -616,6 +616,7 @@ class WideFIFOLatencyMeasurer(Elaboratable):
         def _(k: int, count: Value):
             ret = self.fifos[k].read(m, count=count)
             for i in range(self.max_stop_count):
+                # When used correctly, ret.count == count
                 with m.If(i < ret.count):
                     # The result of subtracting two unsigned n-bit is a signed (n+1)-bit value,
                     # so we need to cast the result and discard the most significant bit.

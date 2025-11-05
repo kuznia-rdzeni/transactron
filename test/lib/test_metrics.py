@@ -1,10 +1,10 @@
 import functools
 import json
 import random
-import queue
 import pytest
-from typing import Type
+from typing import Type, Optional
 from enum import IntFlag, IntEnum, auto, Enum
+from collections import deque
 
 from amaranth import *
 from amaranth.lib.data import ArrayLayout
@@ -326,6 +326,7 @@ class TestLatencyMeasurerBase(TestCaseWithSimulator):
 
 
 @pytest.mark.parametrize("ways", [1, 4])
+@pytest.mark.parametrize("max_count", [None, 1, 4])
 @pytest.mark.parametrize(
     "slots_number, expected_consumer_wait",
     [
@@ -338,15 +339,23 @@ class TestLatencyMeasurerBase(TestCaseWithSimulator):
     ],
 )
 class TestFIFOLatencyMeasurer(TestLatencyMeasurerBase):
-    def test_latency_measurer(self, slots_number: int, expected_consumer_wait: float, ways: int):
+    def test_latency_measurer(
+        self, slots_number: int, expected_consumer_wait: float, ways: int, max_count: Optional[int]
+    ):
         random.seed(42)
 
         DependencyContext.get().add_dependency(HwMetricsEnabledKey(), True)
-        m = SimpleTestCircuit(FIFOLatencyMeasurer("latency", slots_number=slots_number, max_latency=300, ways=ways))
+        if max_count is not None:
+            dut = WideFIFOLatencyMeasurer(
+                "latency", slots_number=slots_number, max_latency=300, ways=ways, max_start_count=max_count
+            )
+        else:
+            dut = FIFOLatencyMeasurer("latency", slots_number=slots_number, max_latency=300, ways=ways)
+        m = SimpleTestCircuit(dut)
 
         latencies: list[int] = []
 
-        event_queue = [queue.Queue() for _ in range(ways)]
+        event_queue = [deque() for _ in range(ways)]
 
         finish = [False for _ in range(ways)]
 
@@ -354,9 +363,15 @@ class TestFIFOLatencyMeasurer(TestLatencyMeasurerBase):
             ticks = DependencyContext.get().get_dependency(TicksKey())
 
             for _ in range(200 // ways):
-                await m.start[way].call(sim)
+                if max_count is not None:
+                    count = random.randrange(1, max_count + 1)
+                    await m.start[way].call(sim, count=count)
+                else:
+                    count = 1
+                    await m.start[way].call(sim)
 
-                event_queue[way].put(sim.get(ticks))
+                for _ in range(count):
+                    event_queue[way].append(sim.get(ticks))
                 await self.random_wait_geom(sim, 0.8)
 
             finish[way] = True
@@ -365,9 +380,15 @@ class TestFIFOLatencyMeasurer(TestLatencyMeasurerBase):
             ticks = DependencyContext.get().get_dependency(TicksKey())
 
             while not finish[way]:
-                await m.stop[way].call(sim)
+                if max_count is not None:
+                    count = random.randrange(1, min(max_count, max(1, len(event_queue[way]))) + 1)
+                    await m.stop[way].call(sim, count=count)
+                else:
+                    count = 1
+                    await m.stop[way].call(sim)
 
-                latencies.append(sim.get(ticks) - event_queue[way].get())
+                for _ in range(count):
+                    latencies.append(sim.get(ticks) - event_queue[way].popleft())
 
                 await self.random_wait_geom(sim, 1.0 / expected_consumer_wait)
 
