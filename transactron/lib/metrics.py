@@ -21,6 +21,7 @@ __all__ = [
     "HwCounter",
     "TaggedCounter",
     "HwExpHistogram",
+    "WideFIFOLatencyMeasurer",
     "FIFOLatencyMeasurer",
     "TaggedLatencyMeasurer",
     "HardwareMetricsManager",
@@ -514,7 +515,7 @@ class HwExpHistogram(Elaboratable, HwMetric):
     """
 
 
-class FIFOLatencyMeasurer(Elaboratable):
+class WideFIFOLatencyMeasurer(Elaboratable):
     """
     Measures duration between two events, e.g. request processing latency.
     It can track multiple events at the same time, i.e. the second event can
@@ -525,7 +526,15 @@ class FIFOLatencyMeasurer(Elaboratable):
     """
 
     def __init__(
-        self, fully_qualified_name: str, description: str = "", *, slots_number: int, max_latency: int, max_start_count: int = 1, max_stop_count: Optional[int] = None, ways: int = 1
+        self,
+        fully_qualified_name: str,
+        description: str = "",
+        *,
+        slots_number: int,
+        max_latency: int,
+        max_start_count: int = 1,
+        max_stop_count: Optional[int] = None,
+        ways: int = 1,
     ):
         """
         Parameters
@@ -575,7 +584,7 @@ class FIFOLatencyMeasurer(Elaboratable):
             self.description,
             bucket_count=bucket_count,
             sample_width=bits_for(self.max_latency),
-            ways=ways*max_stop_count,
+            ways=ways * max_stop_count,
         )
 
     def elaborate(self, platform):
@@ -586,7 +595,10 @@ class FIFOLatencyMeasurer(Elaboratable):
 
         epoch_width = bits_for(self.max_latency)
 
-        self.fifos = [WideFifo(epoch_width, self.slots_number, self.max_stop_count, self.max_start_count) for _ in range(len(self.start))]
+        self.fifos = [
+            WideFifo(epoch_width, self.slots_number, self.max_stop_count, self.max_start_count)
+            for _ in range(len(self.start))
+        ]
         for k in range(len(self.start)):
             m.submodules[f"fifo{k}"] = self.fifos[k]
 
@@ -598,15 +610,113 @@ class FIFOLatencyMeasurer(Elaboratable):
 
         @def_methods(m, self.start)
         def _(k: int, count: Value):
-            self.fifos[k].write(m, count, [])
+            self.fifos[k].write(m, count=count, data=[epoch] * self.max_start_count)
 
         @def_methods(m, self.stop)
         def _(k: int, count: Value):
-            ret = self.fifos[k].read(m, count)
-            # The result of subtracting two unsigned n-bit is a signed (n+1)-bit value,
-            # so we need to cast the result and discard the most significant bit.
-            duration = (epoch - ret.epoch).as_unsigned()[:-1]
-            self.histogram.add[k](m, duration)
+            ret = self.fifos[k].read(m, count=count)
+            for i in range(self.max_stop_count):
+                with m.If(i < ret.count):
+                    # The result of subtracting two unsigned n-bit is a signed (n+1)-bit value,
+                    # so we need to cast the result and discard the most significant bit.
+                    duration = (epoch - ret.data[i]).as_unsigned()[:-1]
+                    self.histogram.add[k * self.max_stop_count + i](m, duration)
+
+        return m
+
+    start: Methods
+    """
+    Registers the start of an event. Can be called before the previous events
+    finish. If there are no slots available, the method will be blocked.
+
+    Should be called in the body of either a transaction or a method.
+
+    Parameters
+    ----------
+    m: TModule
+        Transactron module
+    count: ValueLike
+        Number of registered events.
+    """
+
+    stop: Methods
+    """
+    Registers the end of the oldest event (the FIFO order). If there are no
+    started events in the queue, the method will block.
+
+    Should be called in the body of either a transaction or a method.
+
+    Parameters
+    ----------
+    m: TModule
+        Transactron module
+    count: ValueLike
+        Number of registered events.
+    """
+
+
+class FIFOLatencyMeasurer(Elaboratable):
+    """
+    Measures duration between two events, e.g. request processing latency.
+    It can track multiple events at the same time, i.e. the second event can
+    be registered as started, before the first finishes. However, they must be
+    processed in the FIFO order.
+
+    The module exposes an exponential histogram of the measured latencies.
+    """
+
+    def __init__(
+        self, fully_qualified_name: str, description: str = "", *, slots_number: int, max_latency: int, ways: int = 1
+    ):
+        """
+        Parameters
+        ----------
+        fully_qualified_name: str
+            The fully qualified name of the metric.
+        description: str
+            A human-readable description of the metric's functionality.
+        slots_number: int
+            A number of events that the module can track simultaneously
+            per module user.
+        max_latency: int
+            The maximum latency of an event. Used to set signal widths and
+            number of buckets in the histogram. If a latency turns to be
+            bigger than the maximum, it will overflow and result in a false
+            measurement.
+        ways: int, optional
+            The number of users of this metric. If omitted, assumed to be
+            equal to 1.
+        """
+        self.fully_qualified_name = fully_qualified_name
+        self.description = description
+        self.slots_number = slots_number
+        self.max_latency = max_latency
+        self.ways = ways
+
+        self.start = HwMetric.wrap_method(Methods(ways))
+        self.stop = HwMetric.wrap_method(Methods(ways))
+
+        self._impl = WideFIFOLatencyMeasurer(
+            fully_qualified_name,
+            description,
+            slots_number=slots_number,
+            max_latency=max_latency,
+            ways=self.ways,
+        )
+        self.histogram = self._impl.histogram
+
+    def elaborate(self, platform):
+        m = TModule()
+
+        m.submodules.impl = self._impl
+
+        @def_methods(m, self.start)
+        def _(k: int):
+            self._impl.start[k](m, count=1)
+
+        @def_methods(m, self.stop)
+        def _(k: int):
+            self._impl.stop[k](m, count=1)
 
         return m
 
