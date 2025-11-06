@@ -189,7 +189,7 @@ class WideFifo(Elaboratable):
             self._fifo = fifo
 
         def __getitem__(self, index: int):
-            return self._fifo._storage[index % self._fifo.max_width].data[index // self._fifo.max_width]
+            return self._fifo._storage[index % self._fifo.col_count].data[index // self._fifo.col_count]
 
     def __init__(
         self,
@@ -221,11 +221,11 @@ class WideFifo(Elaboratable):
 
         self.read_width = read_width
         self.write_width = write_width
-        self.max_width = max(read_width, write_width)
+        self.col_count = max(read_width, write_width)
         self.depth = depth
 
-        if depth % self.max_width != 0:
-            raise ValueError(f"WideFifo depth {depth} not a multiple of {self.max_width}")
+        if depth % self.col_count != 0:
+            raise ValueError(f"WideFifo depth {depth} not a multiple of {self.col_count}")
 
         self.shape = shape
         self.read_layout = data.StructLayout(
@@ -234,20 +234,30 @@ class WideFifo(Elaboratable):
         self.write_layout = data.StructLayout(
             {"count": range(write_width + 1), "data": data.ArrayLayout(shape, write_width)}
         )
+        self.idx_layout = data.StructLayout(
+            {"col": range(self.col_count), "row": range(self.row_count)}  # col less significant for monotonicity
+        )
         self.read = Method(i=[("count", range(read_width + 1))], o=self.read_layout, src_loc=src_loc)
         self.peek = Method(o=self.read_layout, src_loc=src_loc)
         self.write = Method(i=self.write_layout, src_loc=src_loc)
         self.clear = Method(src_loc=src_loc)
 
+        self.read_idx = Signal(self.idx_layout)
+        self.write_idx = Signal(self.idx_layout)
+
         self.data = WideFifo.Data(self)
+
+    @property
+    def row_count(self):
+        return self.depth // self.col_count
 
     def elaborate(self, platform):
         m = TModule()
 
-        max_width = self.max_width
-        fifo_depth = self.depth // max_width
+        col_count = self.col_count
+        row_count = self.row_count
 
-        self._storage = [memory.Memory(shape=self.shape, depth=fifo_depth, init=[]) for _ in range(max_width)]
+        self._storage = [memory.Memory(shape=self.shape, depth=row_count, init=[]) for _ in range(col_count)]
 
         for i, mem in enumerate(self._storage):
             m.submodules[f"storage{i}"] = mem
@@ -257,20 +267,17 @@ class WideFifo(Elaboratable):
             mem.read_port(domain="sync", transparent_for=[port]) for mem, port in zip(self._storage, write_ports)
         ]
 
-        write_row = Signal(range(fifo_depth))
-        write_col = Signal(range(max_width))
-        read_row = Signal(range(fifo_depth))
-        read_col = Signal(range(max_width))
+        write_idx = self.write_idx
+        read_idx = self.read_idx
 
-        next_read_row = Signal(range(fifo_depth))
-        next_read_col = Signal(range(max_width))
+        next_read_idx = Signal(self.idx_layout)
 
-        incr_read_row = Signal(range(fifo_depth))
-        incr_next_read_row = Signal(range(fifo_depth))
-        incr_write_row = Signal(range(fifo_depth))
+        incr_read_row = Signal(range(row_count))
+        incr_next_read_row = Signal(range(row_count))
+        incr_write_row = Signal(range(row_count))
 
-        level = Signal(range(max_width * fifo_depth + 1))
-        remaining = Signal(range(max_width * fifo_depth + 1))
+        level = Signal(range(col_count * row_count + 1))
+        remaining = Signal(range(col_count * row_count + 1))
 
         read_available = Signal(range(self.read_width + 1))
         write_available = Signal(range(self.write_width + 1))
@@ -278,62 +285,59 @@ class WideFifo(Elaboratable):
         read_count = Signal(range(self.read_width + 1))
         write_count = Signal(range(self.write_width + 1))
 
-        m.d.comb += incr_read_row.eq(mod_incr(read_row, fifo_depth))
-        m.d.comb += incr_next_read_row.eq(mod_incr(next_read_row, fifo_depth))
-        m.d.comb += incr_write_row.eq(mod_incr(write_row, fifo_depth))
+        m.d.comb += incr_read_row.eq(mod_incr(read_idx.row, row_count))
+        m.d.comb += incr_next_read_row.eq(mod_incr(next_read_idx.row, row_count))
+        m.d.comb += incr_write_row.eq(mod_incr(write_idx.row, row_count))
 
         m.d.sync += level.eq(level - read_count + write_count)
-        m.d.comb += remaining.eq(max_width * fifo_depth - level)
+        m.d.comb += remaining.eq(col_count * row_count - level)
 
         m.d.comb += read_available.eq(Mux(level > self.read_width, self.read_width, level))
         m.d.comb += write_available.eq(Mux(remaining > self.write_width, self.write_width, remaining))
 
         for i, port in enumerate(read_ports):
-            m.d.comb += port.addr.eq(Mux(i >= next_read_col, next_read_row, incr_next_read_row))
+            m.d.comb += port.addr.eq(Mux(i >= next_read_idx.col, next_read_idx.row, incr_next_read_row))
 
         for i, port in enumerate(write_ports):
-            m.d.comb += port.addr.eq(Mux(i >= write_col, write_row, incr_write_row))
+            m.d.comb += port.addr.eq(Mux(i >= write_idx.col, write_idx.row, incr_write_row))
 
         read_data = [port.data for port in read_ports]
-        head = rotate_vec_right(read_data, read_col)[: self.read_width]
+        head = rotate_vec_right(read_data, read_idx.col)[: self.read_width]
 
         head_sig = [Signal.like(item) for item in head]
         for item_sig, item in zip(head_sig, head):
             m.d.comb += item_sig.eq(item)
 
-        def incr_row_col(new_row: Value, new_col: Value, row: Value, col: Value, incr_row: Value, count: Value):
-            chg_row = Signal.like(new_row)
-            chg_col = Signal.like(new_col)
-            with m.If(col + count >= max_width):
-                m.d.comb += chg_row.eq(incr_row)
-                m.d.comb += chg_col.eq(col + count - max_width)
+        def incr_row_col(idx: data.View, incr_row: Value, count: Value):
+            chg_idx = Signal(self.idx_layout)
+            with m.If(idx.col + count >= col_count):
+                m.d.comb += chg_idx.row.eq(incr_row)
+                m.d.comb += chg_idx.col.eq(idx.col + count - col_count)
             with m.Else():
-                m.d.comb += chg_row.eq(row)
-                m.d.comb += chg_col.eq(col + count)
-            return [new_row.eq(chg_row), new_col.eq(chg_col)]
+                m.d.comb += chg_idx.row.eq(idx.row)
+                m.d.comb += chg_idx.col.eq(idx.col + count)
+            return chg_idx
 
         @def_method(m, self.write, remaining != 0, validate_arguments=lambda count, data: count <= remaining)
         def _(count, data):
-            ext_data = list(data) + [const_of(0, self.shape)] * (max_width - self.write_width)
-            shifted_data = rotate_vec_left(ext_data, write_col)
-            ens = Signal(max_width)
-            m.d.comb += ens.eq(Cat(i < count for i in range(max_width)))
-            m.d.comb += Cat(port.en for port in write_ports).eq(rotate_left(ens, write_col))
-            m.d.av_comb += [write_ports[i].data.eq(shifted_data[i]) for i in range(max_width)]
+            ext_data = list(data) + [const_of(0, self.shape)] * (col_count - self.write_width)
+            shifted_data = rotate_vec_left(ext_data, write_idx.col)
+            ens = Signal(col_count)
+            m.d.comb += ens.eq(Cat(i < count for i in range(col_count)))
+            m.d.comb += Cat(port.en for port in write_ports).eq(rotate_left(ens, write_idx.col))
+            m.d.av_comb += [write_ports[i].data.eq(shifted_data[i]) for i in range(col_count)]
             m.d.comb += write_count.eq(count)
-            m.d.sync += incr_row_col(write_row, write_col, write_row, write_col, incr_write_row, count)
+            m.d.sync += write_idx.eq(incr_row_col(write_idx, incr_write_row, count))
 
-        # The next_read_{row,col} signals contain the value written to read_{row,col} registers in the next cycle.
+        # The next_read_idx signals contain the value written to read_idx registers in the next cycle.
         # They following assignments are the defaults, which are overridden in the read method.
-        m.d.comb += next_read_row.eq(read_row)
-        m.d.comb += next_read_col.eq(read_col)
-        m.d.sync += read_row.eq(next_read_row)
-        m.d.sync += read_col.eq(next_read_col)
+        m.d.comb += next_read_idx.eq(read_idx)
+        m.d.sync += read_idx.eq(next_read_idx)
 
         @def_method(m, self.read, level != 0)
         def _(count):
             m.d.comb += read_count.eq(Mux(count > read_available, read_available, count))
-            m.d.comb += incr_row_col(next_read_row, next_read_col, read_row, read_col, incr_read_row, read_count)
+            m.d.comb += next_read_idx.eq(incr_row_col(read_idx, incr_read_row, read_count))
             return {"count": read_count, "data": head}
 
         @def_method(m, self.peek, level != 0, nonexclusive=True)
@@ -342,10 +346,8 @@ class WideFifo(Elaboratable):
 
         @def_method(m, self.clear)
         def _() -> None:
-            m.d.sync += write_row.eq(0)
-            m.d.sync += write_col.eq(0)
-            m.d.sync += read_row.eq(0)
-            m.d.sync += read_col.eq(0)
+            m.d.sync += write_idx.eq(0)
+            m.d.sync += read_idx.eq(0)
             m.d.sync += level.eq(0)
 
         return m

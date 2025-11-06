@@ -80,6 +80,7 @@ class TestWideFifo(TestCaseWithSimulator):
             await self.circ.write.call(sim, count=count, data=data)
             await sim.delay(2e-9)  # Ensures following code runs after peek_verifier and target
             self.expq.extend(data[:count])
+            self.write_idx += count
 
         self.done = True
 
@@ -92,6 +93,7 @@ class TestWideFifo(TestCaseWithSimulator):
             if v is not None:
                 assert v.count == min(count, len(self.expq))
                 assert v.data[: v.count] == [self.expq.popleft() for _ in range(v.count)]
+                self.read_idx += v.count
 
     async def peek_verifier(self, sim: TestbenchContext):
         while not self.done or self.expq:
@@ -101,6 +103,15 @@ class TestWideFifo(TestCaseWithSimulator):
                 assert v.data[: v.count] == [self.expq[i] for i in range(v.count)]
             else:
                 assert not self.expq
+
+    async def idx_verifier(self, sim: TestbenchContext):
+        def idx_from_int(k: int):
+            return {"col": k % self.circ._dut.col_count, "row": k % self.circ._dut.depth // self.circ._dut.col_count}
+
+        while not self.done or self.expq:
+            _, _, read_idx, write_idx = await sim.tick().sample(self.circ._dut.read_idx, self.circ._dut.write_idx)
+            assert read_idx == idx_from_int(self.read_idx)
+            assert write_idx == idx_from_int(self.write_idx)
 
     @pytest.mark.parametrize("shape", [4, data.ArrayLayout(2, 2)])
     @pytest.mark.parametrize("depth", [2, 5])
@@ -114,6 +125,8 @@ class TestWideFifo(TestCaseWithSimulator):
         self.circ = SimpleTestCircuit(WideFifo(shape, depth * max_width, read_width, write_width))
         self.read_width = read_width
         self.write_width = write_width
+        self.read_idx = 0
+        self.write_idx = 0
 
         self.expq = deque()
         self.done = False
@@ -122,3 +135,4 @@ class TestWideFifo(TestCaseWithSimulator):
             sim.add_testbench(self.source)
             sim.add_testbench(self.target)
             sim.add_testbench(self.peek_verifier)
+            sim.add_testbench(self.idx_verifier)
