@@ -1427,14 +1427,16 @@ processed in the FIFO order.</p>
 </dd>
 <dt><strong>description: str</strong></dt><dd><p>A human-readable description of the metric’s functionality.</p>
 </dd>
-<dt><strong>slots_number: int</strong></dt><dd><p>A number of events that the module can track simultaneously.</p>
+<dt><strong>slots_number: int</strong></dt><dd><p>A number of events that the module can track simultaneously
+per module user.</p>
 </dd>
 <dt><strong>max_latency: int</strong></dt><dd><p>The maximum latency of an event. Used to set signal widths and
 number of buckets in the histogram. If a latency turns to be
 bigger than the maximum, it will overflow and result in a false
 measurement.</p>
 </dd>
-<dt><strong>ways: int</strong></dt><dd><p>The number of users of this metric.</p>
+<dt><strong>ways: int, optional</strong></dt><dd><p>The number of users of this metric. If omitted, assumed to be
+equal to 1.</p>
 </dd>
 </dl>
 </dd>
@@ -1949,6 +1951,86 @@ measurement.</p>
 <dt><strong>m: TModule</strong></dt><dd><p>Transactron module</p>
 </dd>
 <dt><strong>slot: ValueLike</strong></dt><dd><p>The slot tag of the event.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="transactron.lib.metrics.WideFIFOLatencyMeasurer">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">transactron.lib.metrics.</span></span><span class="sig-name descname"><span class="pre">WideFIFOLatencyMeasurer</span></span><a class="headerlink" href="#transactron.lib.metrics.WideFIFOLatencyMeasurer" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Elaboratable</span></code></p>
+<p>Measures duration between two events, e.g. request processing latency.
+It can track multiple events at the same time, i.e. the second event can
+be registered as started, before the first finishes. However, they must be
+processed in the FIFO order.</p>
+<p>The module exposes an exponential histogram of the measured latencies.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.lib.metrics.WideFIFOLatencyMeasurer.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fully_qualified_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">description</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">slots_number</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_latency</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_start_count</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_stop_count</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ways</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.lib.metrics.WideFIFOLatencyMeasurer.__init__" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>fully_qualified_name: str</strong></dt><dd><p>The fully qualified name of the metric.</p>
+</dd>
+<dt><strong>description: str</strong></dt><dd><p>A human-readable description of the metric’s functionality.</p>
+</dd>
+<dt><strong>slots_number: int</strong></dt><dd><p>A number of events that the module can track simultaneously
+per module user.</p>
+</dd>
+<dt><strong>max_latency: int</strong></dt><dd><p>The maximum latency of an event. Used to set signal widths and
+number of buckets in the histogram. If a latency turns to be
+bigger than the maximum, it will overflow and result in a false
+measurement.</p>
+</dd>
+<dt><strong>max_start_count: int</strong></dt><dd><p>The maximum number of event starts that can be registered from
+a single user in a single clock cycle.</p>
+</dd>
+<dt><strong>max_stop_count: int, optional</strong></dt><dd><p>The maximum number of event stops that can be registered from
+a single user in a single clock cycle. If omitted, assumed to
+be equal to <cite>max_start_count</cite>.</p>
+</dd>
+<dt><strong>ways: int, optional</strong></dt><dd><p>The number of users of this metric. If omitted, assumed to be
+equal to 1.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="transactron.lib.metrics.WideFIFOLatencyMeasurer.start">
+<span class="sig-name descname"><span class="pre">start</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="transactron.core.html#transactron.core.method.Methods" title="transactron.core.method.Methods"><span class="pre">Methods</span></a></em><a class="headerlink" href="#transactron.lib.metrics.WideFIFOLatencyMeasurer.start" title="Link to this definition"></a></dt>
+<dd><p>Registers the start of an event. Can be called before the previous events
+finish. If there are no slots available, the method will be blocked.</p>
+<p>Should be called in the body of either a transaction or a method.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>m: TModule</strong></dt><dd><p>Transactron module</p>
+</dd>
+<dt><strong>count: ValueLike</strong></dt><dd><p>Number of registered events.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="transactron.lib.metrics.WideFIFOLatencyMeasurer.stop">
+<span class="sig-name descname"><span class="pre">stop</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="transactron.core.html#transactron.core.method.Methods" title="transactron.core.method.Methods"><span class="pre">Methods</span></a></em><a class="headerlink" href="#transactron.lib.metrics.WideFIFOLatencyMeasurer.stop" title="Link to this definition"></a></dt>
+<dd><p>Registers the end of the oldest event (the FIFO order). If there are no
+started events in the queue, the method will block.</p>
+<p>Should be called in the body of either a transaction or a method.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>m: TModule</strong></dt><dd><p>Transactron module</p>
+</dd>
+<dt><strong>count: ValueLike</strong></dt><dd><p>Number of registered events.</p>
 </dd>
 </dl>
 </dd>
@@ -2756,7 +2838,7 @@ Alternatively, the source location to use instead of the default.</p>
 
   <div role="contentinfo">
     <p>&#169; Copyright Kuźnia Rdzeni, 2025.
-      <span class="lastupdated">Last updated on 09:33 2025-11-06.
+      <span class="lastupdated">Last updated on 09:33 2025-11-07.
       </span></p>
   </div>
 
