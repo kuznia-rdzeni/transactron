@@ -437,19 +437,42 @@ class TransactionManager(Elaboratable):
             print("")
 
     def visual_graph(self, fragment):
+        from ..lib.connectors import ConnectTrans  # circular
         graph = OwnershipGraph(fragment)
         method_map = MethodMap(self.transactions)
-        for method, transactions in method_map.transactions_by_method.items():
-            if len(method.data_in.as_value()) > len(method.data_out.as_value()):
-                direction = Direction.IN
-            elif method.data_in.shape().size < method.data_out.shape().size:
-                direction = Direction.OUT
-            else:
-                direction = Direction.INOUT
-            graph.insert_node(method)
-            for transaction in transactions:
-                graph.insert_node(transaction)
-                graph.insert_edge(transaction, method, direction)
+        for transaction, methods in method_map.methods_by_transaction.items():
+            if isinstance(transaction.owner, ConnectTrans):
+                m1 = transaction.owner.method1._body
+                m2 = transaction.owner.method2._body
+                if len(m1.data_in.as_value()) < len(m2.data_in.as_value()):
+                    direction = Direction.IN
+                elif len(m1.data_in.as_value()) > len(m2.data_in.as_value()):
+                    direction = Direction.OUT
+                else:
+                    direction = Direction.INOUT
+                graph.insert_node(m1)
+                graph.insert_node(m2)
+                graph.insert_edge(m1, m2, direction)
+                continue
+            if isinstance(transaction.owner, TransactionManager):
+                print(f"Dropping simultaneous transactions {transaction.name=}")
+                continue
+            if len(methods) > 10:
+                print(f"Dropping highly connected transaction {transaction.owner=} {transaction.name=} {[m.name for m in methods]=}")
+                continue
+
+            graph.insert_node(transaction)
+            for method in methods:
+                if method.name.startswith('_'):
+                    continue
+                if len(method.data_in.as_value()) < len(method.data_out.as_value()):
+                    direction = Direction.IN
+                elif len(method.data_in.as_value()) > len(method.data_out.as_value()):
+                    direction = Direction.OUT
+                else:
+                    direction = Direction.INOUT
+                graph.insert_node(method)
+                graph.insert_edge(method, transaction, direction)
 
         return graph
 
