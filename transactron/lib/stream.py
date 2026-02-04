@@ -9,21 +9,15 @@ from ..utils.data_repr import data_layout
 
 
 __all__ = [
-    "StreamMethodProducer",
-    "StreamMethodConsumer",
+    "StreamSink",
+    "StreamSource",
 ]
 
 
-class StreamMethodProducer(wiring.Component):
-    """Adapter from stream producer to method.
+class StreamSink(wiring.Component):
+    """Adapter from stream sink to method.
 
-    Creates a method from an Amaranth stream producer. The method `read` is ready
-    when the stream has valid data (`valid` is high), and calling the method
-    consumes the data by asserting the stream's `ready` signal.
-
-    This adapter follows the Amaranth stream data transfer rules:
-    - The producer must not wait for `ready` to assert `valid`
-    - The producer must keep `payload` stable while `valid` and not `ready`
+    Stream sink that provides data via method calls.
 
     Attributes
     ----------
@@ -77,13 +71,10 @@ class StreamMethodProducer(wiring.Component):
         return m
 
 
-class StreamMethodConsumer(wiring.Component):
-    """Adapter from method to stream consumer.
+class StreamSource(wiring.Component):
+    """Adapter from method to stream source.
 
-    Creates a method that sends data to an Amaranth stream consumer. The method
-    uses a buffer to ensure compliance with Amaranth stream data transfer rules,
-    which require that once `valid` is asserted, it must remain high and `payload`
-    must remain stable until the transfer completes (both `valid` and `ready` are high).
+    Stream source that accepts data via method calls.
 
     The buffering ensures that:
     - Data from the method call is captured and held stable

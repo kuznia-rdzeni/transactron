@@ -5,7 +5,7 @@ from amaranth.lib.wiring import In, Out
 from amaranth.lib.data import StructLayout
 
 from transactron import *
-from transactron.lib.stream import StreamMethodProducer, StreamMethodConsumer
+from transactron.lib.stream import StreamSink, StreamSource
 from transactron.testing import (
     SimpleTestCircuit,
     TestCaseWithSimulator,
@@ -14,14 +14,14 @@ from transactron.testing import (
 )
 
 
-class TestStreamMethodProducer(TestCaseWithSimulator):
+class TestStreamSink(TestCaseWithSimulator):
     def setup_method(self):
         self.data_width = 8
         random.seed(42)
 
     def test_simple_read(self):
-        producer = StreamMethodProducer(self.data_width)
-        m = SimpleTestCircuit(producer)
+        sink = StreamSink(self.data_width)
+        m = SimpleTestCircuit(sink)
 
         async def testbench(sim: TestbenchContext):
             # Test 1: Stream has no data initially
@@ -30,8 +30,8 @@ class TestStreamMethodProducer(TestCaseWithSimulator):
 
             # Test 2: Provide data on the stream
             test_value = 42
-            sim.set(producer.i.valid, 1)
-            sim.set(producer.i.payload, test_value)
+            sim.set(sink.i.valid, 1)
+            sim.set(sink.i.payload, test_value)
             await sim.tick()
 
             # Now the method should be able to read
@@ -41,8 +41,8 @@ class TestStreamMethodProducer(TestCaseWithSimulator):
             # Test 3: Multiple reads
             for i in range(10):
                 test_value = i * 7 % (2**self.data_width)
-                sim.set(producer.i.valid, 1)
-                sim.set(producer.i.payload, test_value)
+                sim.set(sink.i.valid, 1)
+                sim.set(sink.i.payload, test_value)
                 await sim.tick()
 
                 result = await m.read.call(sim)
@@ -54,15 +54,15 @@ class TestStreamMethodProducer(TestCaseWithSimulator):
     def test_struct_layout(self):
         """Test with a structured payload"""
         struct_layout = StructLayout({"field1": 8, "field2": 4, "field3": 16})
-        producer = StreamMethodProducer(struct_layout)
-        m = SimpleTestCircuit(producer)
+        sink = StreamSink(struct_layout)
+        m = SimpleTestCircuit(sink)
 
         async def testbench(sim: TestbenchContext):
             # Set structured data
-            sim.set(producer.i.valid, 1)
-            sim.set(producer.i.payload.field1, 0xAB)
-            sim.set(producer.i.payload.field2, 0x5)
-            sim.set(producer.i.payload.field3, 0x1234)
+            sim.set(sink.i.valid, 1)
+            sim.set(sink.i.payload.field1, 0xAB)
+            sim.set(sink.i.payload.field2, 0x5)
+            sim.set(sink.i.payload.field3, 0x1234)
             await sim.tick()
 
             result = await m.read.call(sim)
@@ -74,47 +74,47 @@ class TestStreamMethodProducer(TestCaseWithSimulator):
             sim.add_testbench(testbench)
 
 
-class TestStreamMethodConsumer(TestCaseWithSimulator):
+class TestStreamSource(TestCaseWithSimulator):
     def setup_method(self):
         self.data_width = 8
         random.seed(42)
 
     def test_simple_write(self):
-        consumer = StreamMethodConsumer(self.data_width)
-        m = SimpleTestCircuit(consumer)
+        source = StreamSource(self.data_width)
+        m = SimpleTestCircuit(source)
 
         async def testbench(sim: TestbenchContext):
             # Initially, stream should not be valid
-            assert sim.get(consumer.o.valid) == 0
+            assert sim.get(source.o.valid) == 0
 
             # Write data through the method
             test_value = 42
             await m.write.call(sim, data=test_value)
 
             # After the write, stream should be valid
-            assert sim.get(consumer.o.valid) == 1
-            assert sim.get(consumer.o.payload) == test_value
+            assert sim.get(source.o.valid) == 1
+            assert sim.get(source.o.payload) == test_value
 
             # Consumer accepts the data
-            sim.set(consumer.o.ready, 1)
+            sim.set(source.o.ready, 1)
             await sim.tick()
 
-            assert sim.get(consumer.o.valid) == 0
+            assert sim.get(source.o.valid) == 0
 
         with self.run_simulation(m) as sim:
             sim.add_testbench(testbench)
 
     def test_buffering(self):
         """Test that buffering works correctly"""
-        consumer = StreamMethodConsumer(self.data_width)
-        m = SimpleTestCircuit(consumer)
+        source = StreamSource(self.data_width)
+        m = SimpleTestCircuit(source)
 
         async def testbench(sim: TestbenchContext):
             await m.write.call(sim, data=10)
 
             # Stream should be valid with the data
-            assert sim.get(consumer.o.valid) == 1
-            assert sim.get(consumer.o.payload) == 10
+            assert sim.get(source.o.valid) == 1
+            assert sim.get(source.o.payload) == 10
 
             # Try to write again without consumer ready - should not be possible
             # because buffer is full
@@ -122,46 +122,46 @@ class TestStreamMethodConsumer(TestCaseWithSimulator):
             assert result is None, "Write should not be ready when buffer is full"
 
             # Consumer accepts the data
-            sim.set(consumer.o.ready, 1)
+            sim.set(source.o.ready, 1)
             await sim.tick()
 
             # Now stream should be invalid and we can write again
-            assert sim.get(consumer.o.valid) == 0
-            sim.set(consumer.o.ready, 0)
+            assert sim.get(source.o.valid) == 0
+            sim.set(source.o.ready, 0)
 
             await m.write.call(sim, data=20)
 
-            assert sim.get(consumer.o.valid) == 1
-            assert sim.get(consumer.o.payload) == 20
+            assert sim.get(source.o.valid) == 1
+            assert sim.get(source.o.payload) == 20
 
         with self.run_simulation(m) as sim:
             sim.add_testbench(testbench)
 
     def test_simultaneous_write_and_ready(self):
         """Test writing when consumer is ready in the same cycle"""
-        consumer = StreamMethodConsumer(self.data_width)
-        m = SimpleTestCircuit(consumer)
+        source = StreamSource(self.data_width)
+        m = SimpleTestCircuit(source)
 
         async def testbench(sim: TestbenchContext):
             # Write a value and have buffer full
             await m.write.call(sim, data=10)
 
             # Stream should be valid with first value
-            assert sim.get(consumer.o.valid) == 1
-            assert sim.get(consumer.o.payload) == 10
+            assert sim.get(source.o.valid) == 1
+            assert sim.get(source.o.payload) == 10
 
             # Consumer becomes ready, and we write at the same time
             # This should work because buffer is emptied in the same cycle
-            sim.set(consumer.o.ready, 1)
+            sim.set(source.o.ready, 1)
             result = await m.write.call_try(sim, data=20)
             assert result is not None, "Write should succeed when buffer is being emptied"
 
             # After the tick, the second write should have completed
             # Stream should still be valid but ready should be deasserted (next value is here)
-            sim.set(consumer.o.ready, 0)
+            sim.set(source.o.ready, 0)
 
-            assert sim.get(consumer.o.valid) == 1
-            assert sim.get(consumer.o.payload) == 20
+            assert sim.get(source.o.valid) == 1
+            assert sim.get(source.o.payload) == 20
 
         with self.run_simulation(m) as sim:
             sim.add_testbench(testbench)
@@ -169,29 +169,29 @@ class TestStreamMethodConsumer(TestCaseWithSimulator):
     def test_struct_layout(self):
         """Test with a structured layout"""
         struct_layout = StructLayout({"field1": 8, "field2": 4, "field3": 16})
-        consumer = StreamMethodConsumer(struct_layout)
-        m = SimpleTestCircuit(consumer)
+        source = StreamSource(struct_layout)
+        m = SimpleTestCircuit(source)
 
         async def testbench(sim: TestbenchContext):
             # Write structured data
             await m.write.call(sim, data={"field1": 0xAB, "field2": 0x5, "field3": 0x1234})
             await sim.tick()
 
-            assert sim.get(consumer.o.valid) == 1
-            assert sim.get(consumer.o.payload.field1) == 0xAB
-            assert sim.get(consumer.o.payload.field2) == 0x5
-            assert sim.get(consumer.o.payload.field3) == 0x1234
+            assert sim.get(source.o.valid) == 1
+            assert sim.get(source.o.payload.field1) == 0xAB
+            assert sim.get(source.o.payload.field2) == 0x5
+            assert sim.get(source.o.payload.field3) == 0x1234
 
-            sim.set(consumer.o.ready, 1)
+            sim.set(source.o.ready, 1)
             await sim.tick()
 
-            assert sim.get(consumer.o.valid) == 0
+            assert sim.get(source.o.valid) == 0
 
         with self.run_simulation(m) as sim:
             sim.add_testbench(testbench)
 
 
-class TestStreamMethodIntegration(TestCaseWithSimulator):
+class TestStreamIntegration(TestCaseWithSimulator):
     """Test producer and consumer working together"""
 
     def setup_method(self):
@@ -217,16 +217,16 @@ class TestStreamMethodIntegration(TestCaseWithSimulator):
 
             def elaborate(self, platform):
                 m = TModule()
-                m.submodules.producer = producer = StreamMethodProducer(self.shape)
-                m.submodules.consumer = consumer = StreamMethodConsumer(self.shape)
+                m.submodules.sink = sink = StreamSink(self.shape)
+                m.submodules.source = source = StreamSource(self.shape)
 
-                wiring.connect(m.main_module, wiring.flipped(self.i), producer.i)
-                wiring.connect(m.main_module, wiring.flipped(self.o), consumer.o)
+                wiring.connect(m.main_module, wiring.flipped(self.i), sink.i)
+                wiring.connect(m.main_module, wiring.flipped(self.o), source.o)
 
                 # Connect the streams through a transaction
                 with Transaction().body(m):
-                    data = producer.read(m)
-                    consumer.write(m, data=data.data)
+                    data = sink.read(m)
+                    source.write(m, data=data.data)
 
                 return m
 
@@ -277,15 +277,15 @@ class TestStreamMethodIntegration(TestCaseWithSimulator):
 
             def elaborate(self, platform):
                 m = TModule()
-                m.submodules.producer = producer = StreamMethodProducer(self.shape)
-                m.submodules.consumer = consumer = StreamMethodConsumer(self.shape)
+                m.submodules.sink = sink = StreamSink(self.shape)
+                m.submodules.source = source = StreamSource(self.shape)
 
-                wiring.connect(m.main_module, wiring.flipped(self.i), producer.i)
-                wiring.connect(m.main_module, wiring.flipped(self.o), consumer.o)
+                wiring.connect(m.main_module, wiring.flipped(self.i), sink.i)
+                wiring.connect(m.main_module, wiring.flipped(self.o), source.o)
 
                 with Transaction().body(m):
-                    data = producer.read(m)
-                    consumer.write(m, data=data.data)
+                    data = sink.read(m)
+                    source.write(m, data=data.data)
 
                 return m
 
@@ -332,18 +332,18 @@ class TestStreamMethodIntegration(TestCaseWithSimulator):
             def elaborate(self, platform):
                 m = TModule()
 
-                m.submodules.producer = producer = StreamMethodProducer(self.shape)
-                m.submodules.consumer = consumer = StreamMethodConsumer(self.shape)
+                m.submodules.sink = sink = StreamSink(self.shape)
+                m.submodules.source = source = StreamSource(self.shape)
 
-                wiring.connect(m.main_module, producer.i, consumer.o)
+                wiring.connect(m.main_module, sink.i, source.o)
 
                 @def_method(m, self.write)
                 def _(data):
-                    return consumer.write(m, data=data)
+                    return source.write(m, data=data)
 
                 @def_method(m, self.read)
                 def _():
-                    return producer.read(m)
+                    return sink.read(m)
 
                 return m
 
