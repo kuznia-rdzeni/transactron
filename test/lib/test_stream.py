@@ -1,4 +1,5 @@
 import random
+from collections import deque
 
 from amaranth import *
 from amaranth.lib import stream, wiring
@@ -351,14 +352,14 @@ class TestStreamIntegration(TestCaseWithSimulator):
         circuit = SimpleTestCircuit(m)
 
         async def stream_writer(sim: TestbenchContext):
-            i = 0
-            while i < len(test_data):
+            data = deque(test_data)
+            while data:
                 if random.random() >= p_producer:
                     await sim.tick()
                     continue
 
-                if await circuit.write.call_try(sim, data=test_data[i]) is not None:
-                    i += 1
+                if await circuit.write.call_try(sim, data=data[0]) is not None:
+                    data.popleft()
 
         async def stream_reader(sim: TestbenchContext):
             collected_data = []
