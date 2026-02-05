@@ -1,27 +1,29 @@
+from typing import Protocol
+
 from amaranth import *
 from amaranth.lib import stream, wiring
 from amaranth.lib.wiring import In, Out
-from amaranth_types import ShapeLike, HasElaborate
+from amaranth_types import HasElaborate, ShapeLike
 
 from ..core import *
 from ..utils import SrcLoc, get_src_loc
 from ..utils.data_repr import data_layout
 
-
 __all__ = [
     "StreamSink",
     "StreamSource",
+    "StreamModuleWrapper",
 ]
 
 
 class StreamSink(wiring.Component):
-    """Adapter from stream sink to method.
+    """Adapter from Amaranth's lib.stream sink to method.
 
-    Stream sink that provides data via method calls.
+    Amaranth's lib.stream sink that provides data via method calls.
 
     Attributes
     ----------
-    i: stream.Interface, in
+    i: amaranth.lib.stream.Interface, in
         The input stream interface. The adapter reads from this stream.
     read: Method
         The read method. Returns the data from the stream's payload.
@@ -72,9 +74,9 @@ class StreamSink(wiring.Component):
 
 
 class StreamSource(wiring.Component):
-    """Adapter from method to stream source.
+    """Adapter from method to Amaranth's lib.stream source.
 
-    Stream source that accepts data via method calls.
+    Amaranth's lib.stream source that accepts data via method calls.
 
     The buffering ensures that:
     - Data from the method call is captured and held stable
@@ -83,7 +85,7 @@ class StreamSource(wiring.Component):
 
     Attributes
     ----------
-    o: stream.Interface, out
+    o: amaranth.lib.stream.Interface, out
         The output stream interface. The adapter writes to this stream.
     write: Method
         The write method. Accepts data and sends it to the stream.
@@ -129,15 +131,15 @@ class StreamSource(wiring.Component):
         return m
 
 
-class StreamHasElaborate(HasElaborate):
-    """Marker interface for modules wrapped by `StreamModuleWrapper`."""
+class StreamHasElaborate(HasElaborate, Protocol):
+    """Protocol for modules wrapped by `StreamModuleWrapper`."""
 
     i: stream.Interface
     o: stream.Interface
 
 
 class StreamModuleWrapper(Elaboratable):
-    """Wraps a module with stream interfaces to provide method interfaces.
+    """Wraps a module with Amaranth's lib.stream interfaces to provide method interfaces.
 
     Attributes
     ----------
@@ -181,12 +183,7 @@ class StreamModuleWrapper(Elaboratable):
         wiring.connect(m.main_module, source.o, module.i)
         wiring.connect(m.main_module, module.o, sink.i)
 
-        @def_method(m, self.write)
-        def _(data):
-            return source.write(m, data)
-
-        @def_method(m, self.read)
-        def _():
-            return sink.read(m)
+        self.write.provide(source.write)
+        self.read.provide(sink.read)
 
         return m

@@ -1,16 +1,19 @@
 import random
+
 from amaranth import *
 from amaranth.lib import stream, wiring
-from amaranth.lib.wiring import In, Out
 from amaranth.lib.data import StructLayout
+from amaranth.lib.wiring import In, Out
+from amaranth_types import ShapeLike
 
 from transactron import *
+from transactron.lib.connectors import ConnectTrans
 from transactron.lib.stream import StreamSink, StreamSource
 from transactron.testing import (
     SimpleTestCircuit,
+    TestbenchContext,
     TestCaseWithSimulator,
     data_layout,
-    TestbenchContext,
 )
 
 
@@ -198,39 +201,62 @@ class TestStreamIntegration(TestCaseWithSimulator):
         self.data_width = 8
         random.seed(42)
 
+    class StreamToTransactronToStreamCircuit(wiring.Component):
+        i: stream.Interface
+        o: stream.Interface
+
+        shape: ShapeLike
+
+        def __init__(self, shape: ShapeLike):
+            self.shape = shape
+
+            super().__init__(
+                {
+                    "i": In(stream.Signature(shape)),
+                    "o": Out(stream.Signature(shape)),
+                }
+            )
+
+        def elaborate(self, platform):
+            m = TModule()
+            m.submodules.sink = sink = StreamSink(self.shape)
+            m.submodules.source = source = StreamSource(self.shape)
+
+            m.submodules.conn = ConnectTrans.create(sink.read, source.write)
+
+            wiring.connect(m.main_module, wiring.flipped(self.i), sink.i)
+            wiring.connect(m.main_module, wiring.flipped(self.o), source.o)
+
+            return m
+
+    class TransactronToStreamToTransactronCircuit(Elaboratable):
+        read: Method
+        write: Method
+
+        shape: ShapeLike
+
+        def __init__(self, shape: ShapeLike):
+            self.shape = shape
+            self.write = Method(i=data_layout(shape))
+            self.read = Method(o=data_layout(shape))
+
+        def elaborate(self, platform):
+            m = TModule()
+
+            m.submodules.sink = sink = StreamSink(self.shape)
+            m.submodules.source = source = StreamSource(self.shape)
+
+            wiring.connect(m.main_module, sink.i, source.o)
+
+            self.write.provide(source.write)
+            self.read.provide(sink.read)
+
+            return m
+
     def test_producer_consumer_integration(self):
         """Test amaranth stream -> transactron -> amaranth stream roundtrip"""
 
-        class TestCircuit(wiring.Component):
-            i: stream.Interface
-            o: stream.Interface
-
-            def __init__(self, shape):
-                self.shape = shape
-
-                super().__init__(
-                    {
-                        "i": In(stream.Signature(shape)),
-                        "o": Out(stream.Signature(shape)),
-                    }
-                )
-
-            def elaborate(self, platform):
-                m = TModule()
-                m.submodules.sink = sink = StreamSink(self.shape)
-                m.submodules.source = source = StreamSource(self.shape)
-
-                wiring.connect(m.main_module, wiring.flipped(self.i), sink.i)
-                wiring.connect(m.main_module, wiring.flipped(self.o), source.o)
-
-                # Connect the streams through a transaction
-                with Transaction().body(m):
-                    data = sink.read(m)
-                    source.write(m, data=data.data)
-
-                return m
-
-        m = TestCircuit(self.data_width)
+        m = TestStreamIntegration.StreamToTransactronToStreamCircuit(self.data_width)
         circuit = SimpleTestCircuit(m)
         test_data = [random.randrange(2**self.data_width) for _ in range(20)]
 
@@ -261,35 +287,7 @@ class TestStreamIntegration(TestCaseWithSimulator):
     def test_backpressure(self):
         """Test that backpressure works correctly through the chain"""
 
-        class TestCircuit(wiring.Component):
-            i: stream.Interface
-            o: stream.Interface
-
-            def __init__(self, shape):
-                self.shape = shape
-
-                super().__init__(
-                    {
-                        "i": In(stream.Signature(shape)),
-                        "o": Out(stream.Signature(shape)),
-                    }
-                )
-
-            def elaborate(self, platform):
-                m = TModule()
-                m.submodules.sink = sink = StreamSink(self.shape)
-                m.submodules.source = source = StreamSource(self.shape)
-
-                wiring.connect(m.main_module, wiring.flipped(self.i), sink.i)
-                wiring.connect(m.main_module, wiring.flipped(self.o), source.o)
-
-                with Transaction().body(m):
-                    data = sink.read(m)
-                    source.write(m, data=data.data)
-
-                return m
-
-        m = TestCircuit(self.data_width)
+        m = TestStreamIntegration.StreamToTransactronToStreamCircuit(self.data_width)
         circuit = SimpleTestCircuit(m)
 
         async def testbench(sim: TestbenchContext):
@@ -322,32 +320,8 @@ class TestStreamIntegration(TestCaseWithSimulator):
     def test_stream_passthrough(self):
         """Test transactron -> amaranth stream -> transactron roundtrip"""
 
-        class TestCircuit(Elaboratable):
-            def __init__(self, shape):
-                self.shape = shape
-                method_layout = data_layout(shape)
-                self.write = Method(i=method_layout)
-                self.read = Method(o=method_layout)
-
-            def elaborate(self, platform):
-                m = TModule()
-
-                m.submodules.sink = sink = StreamSink(self.shape)
-                m.submodules.source = source = StreamSource(self.shape)
-
-                wiring.connect(m.main_module, sink.i, source.o)
-
-                @def_method(m, self.write)
-                def _(data):
-                    return source.write(m, data=data)
-
-                @def_method(m, self.read)
-                def _():
-                    return sink.read(m)
-
-                return m
-
-        circuit = SimpleTestCircuit(TestCircuit(self.data_width))
+        m = TestStreamIntegration.TransactronToStreamToTransactronCircuit(self.data_width)
+        circuit = SimpleTestCircuit(m)
         test_data = [random.randrange(2**self.data_width) for _ in range(20)]
 
         async def stream_writer(sim: TestbenchContext):
@@ -358,6 +332,46 @@ class TestStreamIntegration(TestCaseWithSimulator):
             for expected in test_data:
                 result = await circuit.read.call(sim)
                 assert result.data == expected, f"Expected {expected}, got {result.data}"
+
+        with self.run_simulation(circuit) as sim:
+            sim.add_testbench(stream_writer)
+            sim.add_testbench(stream_reader)
+
+    def test_stream_passthrough_randomized(self):
+        """Test transactron -> amaranth stream -> transactron roundtrip with randomized ready signals.
+
+        Make producer and consumer ready only on subset of cycles
+        """
+
+        p_producer = 0.5
+        p_consumer = 0.5
+        test_data = [random.randint(0, 2**self.data_width - 1) for _ in range(1000)]
+
+        m = TestStreamIntegration.TransactronToStreamToTransactronCircuit(self.data_width)
+        circuit = SimpleTestCircuit(m)
+
+        async def stream_writer(sim: TestbenchContext):
+            i = 0
+            while i < len(test_data):
+                if random.random() >= p_producer:
+                    await sim.tick()
+                    continue
+
+                if await circuit.write.call_try(sim, data=test_data[i]) is not None:
+                    i += 1
+
+        async def stream_reader(sim: TestbenchContext):
+            collected_data = []
+            while len(collected_data) < len(test_data):
+                if random.random() >= p_consumer:
+                    await sim.tick()
+                    continue
+
+                result = await circuit.read.call_try(sim)
+                if result is not None:
+                    collected_data.append(result.data)
+
+            assert collected_data == test_data, f"Expected {test_data}, got {collected_data}"
 
         with self.run_simulation(circuit) as sim:
             sim.add_testbench(stream_writer)
