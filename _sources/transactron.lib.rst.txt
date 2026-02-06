@@ -100,6 +100,14 @@ transactron.lib.storage module
    :show-inheritance:
    :undoc-members:
 
+transactron.lib.stream module
+-----------------------------
+
+.. automodule:: transactron.lib.stream
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 transactron.lib.transformers module
 -----------------------------------
 

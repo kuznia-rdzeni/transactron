@@ -2459,6 +2459,159 @@ Alternatively, the source location to use instead of the default.</p>
 </dd></dl>
 
 </section>
+<section id="module-transactron.lib.stream">
+<span id="transactron-lib-stream-module"></span><h2>transactron.lib.stream module<a class="headerlink" href="#module-transactron.lib.stream" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="transactron.lib.stream.StreamModuleWrapper">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">transactron.lib.stream.</span></span><span class="sig-name descname"><span class="pre">StreamModuleWrapper</span></span><a class="headerlink" href="#transactron.lib.stream.StreamModuleWrapper" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Elaboratable</span></code></p>
+<p>Wraps a module with Amaranth’s lib.stream interfaces to provide method interfaces.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Attributes<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>module: StreamHasElaborate</strong></dt><dd><p>Underlying Amaranth module with stream interfaces.</p>
+</dd>
+<dt><strong>write: Method</strong></dt><dd><p>Method to write data to the module’s input stream.</p>
+</dd>
+<dt><strong>read: Method</strong></dt><dd><p>Method to read data from the module’s output stream.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.lib.stream.StreamModuleWrapper.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">module</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">StreamHasElaborate</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">src_loc</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.lib.stream.StreamModuleWrapper.__init__" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>module: StreamHasElaborate</strong></dt><dd><p>The Amaranth module with <cite>i</cite> and <cite>o</cite> stream interfaces.</p>
+</dd>
+<dt><strong>src_loc: int | SrcLoc</strong></dt><dd><p>How many stack frames deep the source location is taken from.
+Alternatively, the source location to use instead of the default.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="transactron.lib.stream.StreamModuleWrapper.module">
+<span class="sig-name descname"><span class="pre">module</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">StreamHasElaborate</span></em><a class="headerlink" href="#transactron.lib.stream.StreamModuleWrapper.module" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="transactron.lib.stream.StreamModuleWrapper.read">
+<span class="sig-name descname"><span class="pre">read</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="transactron.core.html#transactron.core.method.Method" title="transactron.core.method.Method"><span class="pre">Method</span></a></em><a class="headerlink" href="#transactron.lib.stream.StreamModuleWrapper.read" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="transactron.lib.stream.StreamModuleWrapper.write">
+<span class="sig-name descname"><span class="pre">write</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="transactron.core.html#transactron.core.method.Method" title="transactron.core.method.Method"><span class="pre">Method</span></a></em><a class="headerlink" href="#transactron.lib.stream.StreamModuleWrapper.write" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="transactron.lib.stream.StreamSink">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">transactron.lib.stream.</span></span><span class="sig-name descname"><span class="pre">StreamSink</span></span><a class="headerlink" href="#transactron.lib.stream.StreamSink" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://amaranth-lang.org/docs/amaranth/v0.5.4/stdlib/wiring.html#amaranth.lib.wiring.Component" title="(in Amaranth language &amp; toolchain v0.5.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Component</span></code></a></p>
+<p>Adapter from Amaranth’s lib.stream sink to method.</p>
+<p>Amaranth’s lib.stream sink that provides data via method calls.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Attributes<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>i: amaranth.lib.stream.Interface, in</strong></dt><dd><p>The input stream interface. The adapter reads from this stream.</p>
+</dd>
+<dt><strong>read: Method</strong></dt><dd><p>The read method. Returns the data from the stream’s payload.</p>
+</dd>
+<dt><strong>peek: Method</strong></dt><dd><p>The peek method. Returns the data from the stream’s payload without
+consuming it.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.lib.stream.StreamSink.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shape</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/v0.5.4/reference.html#amaranth.hdl.Shape" title="(in Amaranth language &amp; toolchain v0.5.4)"><span class="pre">Shape</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#range" title="(in Python v3.14)"><span class="pre">range</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.14)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/enum.html#enum.Enum" title="(in Python v3.14)"><span class="pre">Enum</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/v0.5.4/reference.html#amaranth.hdl.ShapeCastable" title="(in Amaranth language &amp; toolchain v0.5.4)"><span class="pre">ShapeCastable</span></a></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">src_loc</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.lib.stream.StreamSink.__init__" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>shape: ShapeLike</strong></dt><dd><p>The shape of the data in the stream.</p>
+</dd>
+<dt><strong>src_loc: int | SrcLoc</strong></dt><dd><p>How many stack frames deep the source location is taken from.
+Alternatively, the source location to use instead of the default.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="transactron.lib.stream.StreamSink.i">
+<span class="sig-name descname"><span class="pre">i</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/v0.5.4/stdlib/stream.html#amaranth.lib.stream.Interface" title="(in Amaranth language &amp; toolchain v0.5.4)"><span class="pre">Interface</span></a></em><a class="headerlink" href="#transactron.lib.stream.StreamSink.i" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="transactron.lib.stream.StreamSink.peek">
+<span class="sig-name descname"><span class="pre">peek</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="transactron.core.html#transactron.core.method.Method" title="transactron.core.method.Method"><span class="pre">Method</span></a></em><a class="headerlink" href="#transactron.lib.stream.StreamSink.peek" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="transactron.lib.stream.StreamSink.read">
+<span class="sig-name descname"><span class="pre">read</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="transactron.core.html#transactron.core.method.Method" title="transactron.core.method.Method"><span class="pre">Method</span></a></em><a class="headerlink" href="#transactron.lib.stream.StreamSink.read" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="transactron.lib.stream.StreamSource">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">transactron.lib.stream.</span></span><span class="sig-name descname"><span class="pre">StreamSource</span></span><a class="headerlink" href="#transactron.lib.stream.StreamSource" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://amaranth-lang.org/docs/amaranth/v0.5.4/stdlib/wiring.html#amaranth.lib.wiring.Component" title="(in Amaranth language &amp; toolchain v0.5.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Component</span></code></a></p>
+<p>Adapter from method to Amaranth’s lib.stream source.</p>
+<p>Amaranth’s lib.stream source that accepts data via method calls.</p>
+<p>The buffering ensures that:
+- Data from the method call is captured and held stable
+- <cite>valid</cite> remains high until the consumer accepts the data
+- The method can accept new data only when the buffer is empty or being emptied</p>
+<dl class="field-list simple">
+<dt class="field-odd">Attributes<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>o: amaranth.lib.stream.Interface, out</strong></dt><dd><p>The output stream interface. The adapter writes to this stream.</p>
+</dd>
+<dt><strong>write: Method</strong></dt><dd><p>The write method. Accepts data and sends it to the stream.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.lib.stream.StreamSource.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shape</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/v0.5.4/reference.html#amaranth.hdl.Shape" title="(in Amaranth language &amp; toolchain v0.5.4)"><span class="pre">Shape</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#range" title="(in Python v3.14)"><span class="pre">range</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.14)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/enum.html#enum.Enum" title="(in Python v3.14)"><span class="pre">Enum</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/v0.5.4/reference.html#amaranth.hdl.ShapeCastable" title="(in Amaranth language &amp; toolchain v0.5.4)"><span class="pre">ShapeCastable</span></a></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">src_loc</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.lib.stream.StreamSource.__init__" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>shape: ShapeLike</strong></dt><dd><p>The shape of the data in the stream.</p>
+</dd>
+<dt><strong>src_loc: int | SrcLoc</strong></dt><dd><p>How many stack frames deep the source location is taken from.
+Alternatively, the source location to use instead of the default.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="transactron.lib.stream.StreamSource.o">
+<span class="sig-name descname"><span class="pre">o</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/v0.5.4/stdlib/stream.html#amaranth.lib.stream.Interface" title="(in Amaranth language &amp; toolchain v0.5.4)"><span class="pre">Interface</span></a></em><a class="headerlink" href="#transactron.lib.stream.StreamSource.o" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="transactron.lib.stream.StreamSource.write">
+<span class="sig-name descname"><span class="pre">write</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="transactron.core.html#transactron.core.method.Method" title="transactron.core.method.Method"><span class="pre">Method</span></a></em><a class="headerlink" href="#transactron.lib.stream.StreamSource.write" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
 <section id="module-transactron.lib.transformers">
 <span id="transactron-lib-transformers-module"></span><h2>transactron.lib.transformers module<a class="headerlink" href="#module-transactron.lib.transformers" title="Link to this heading"></a></h2>
 <dl class="py class">
@@ -2837,8 +2990,8 @@ Alternatively, the source location to use instead of the default.</p>
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright Kuźnia Rdzeni, 2025.
-      <span class="lastupdated">Last updated on 09:33 2025-11-07.
+    <p>&#169; Copyright Kuźnia Rdzeni, 2026.
+      <span class="lastupdated">Last updated on 11:45 2026-02-06.
       </span></p>
   </div>
 
