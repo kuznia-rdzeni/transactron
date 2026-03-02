@@ -4,6 +4,7 @@ import amaranth.lib.memory as memory
 from amaranth_types import ShapeLike
 import amaranth_types.memory as amemory
 
+from transactron.utils.amaranth_ext.elaboratables import OneHotMux
 from transactron.utils.transactron_helpers import from_method_layout, make_layout
 from ..core import *
 from ..utils import SrcLoc, get_src_loc, MultiPriorityEncoder
@@ -40,6 +41,7 @@ class MemoryBank(Elaboratable):
         depth: int,
         granularity: Optional[int] = None,
         transparent: bool = False,
+        read_on_resp: bool = False,
         read_ports: int = 1,
         write_ports: int = 1,
         memory_type: amemory.AbstractMemoryConstructor[ShapeLike, Value] = memory.Memory,
@@ -60,6 +62,9 @@ class MemoryBank(Elaboratable):
             Read port transparency, false by default. When a read port is transparent, if a given memory address
             is read and written in the same clock cycle, the read returns the written value instead of the value
             which was in the memory in that cycle.
+        read_on_resp: bool
+            If true, reads return the value present in memory at response time. If false, the value at request
+            time is returned.
         read_ports: int
             Number of read ports.
         write_ports: int
@@ -73,6 +78,7 @@ class MemoryBank(Elaboratable):
         self.depth = depth
         self.granularity = granularity
         self.transparent = transparent
+        self.read_on_resp = read_on_resp
         self.reads_ports = read_ports
         self.writes_ports = write_ports
         self.memory_type = memory_type
@@ -100,20 +106,56 @@ class MemoryBank(Elaboratable):
         m.submodules.mem = self.mem = mem = self.memory_type(shape=self.shape, depth=self.depth, init=[])
         write_port = [mem.write_port(granularity=self.granularity) for _ in range(self.writes_ports)]
         read_port = [
-            mem.read_port(transparent_for=write_port if self.transparent else []) for _ in range(self.reads_ports)
+            mem.read_port(transparent_for=write_port if self.transparent or self.read_on_resp else [])
+            for _ in range(self.reads_ports)
         ]
+
+        # read_output_addr[i] is the address of the value in read_port[i].data
+        # read_output_next[i] is the value of the memory cell read_output_addr[i] in the next clock cycle
         read_output_valid = [Signal() for _ in range(self.reads_ports)]
+        read_output_next = [Signal(self.shape) for _ in range(self.reads_ports)]
+        read_output_addr = [Signal(range(self.depth)) for _ in range(self.reads_ports)]
+
         overflow_valid = [Signal() for _ in range(self.reads_ports)]
         overflow_data = [Signal(self.shape) for _ in range(self.reads_ports)]
-
-        # The read request method can be called at most twice when not reading the response.
-        # The first result is stored in the overflow buffer, the second - in the read value buffer of the memory.
-        # If the responses are always read as they arrive, overflow is never written and no stalls occur.
+        overflow_next = [Signal(self.shape) for _ in range(self.reads_ports)]
+        overflow_addr = [Signal(range(self.depth)) for _ in range(self.reads_ports)]
 
         for i in range(self.reads_ports):
+            if self.read_on_resp:
+                read_output_addr_match = [
+                    write_port[j].en & (write_port[j].addr == read_output_addr[i]) for j in range(self.writes_ports)
+                ]
+                overflow_addr_match = [
+                    write_port[j].en & (write_port[j].addr == overflow_addr[i]) for j in range(self.writes_ports)
+                ]
+                m.d.comb += read_output_next[i].eq(
+                    OneHotMux.create(
+                        m,
+                        [(read_output_addr_match[j], write_port[j].data) for j in range(self.writes_ports)],
+                        read_port[i].data,
+                    )
+                )
+                m.d.comb += overflow_next[i].eq(
+                    OneHotMux.create(
+                        m,
+                        [(overflow_addr_match[j], write_port[j].data) for j in range(self.writes_ports)],
+                        overflow_data[i],
+                    )
+                )
+                m.d.sync += overflow_data[i].eq(overflow_next[i])
+            else:
+                m.d.comb += read_output_next[i].eq(read_port[i].data)
+                m.d.comb += overflow_next[i].eq(overflow_data[i])
+
+            # The read request method can be called at most twice when not reading the response.
+            # The first result is stored in the overflow buffer, the second - in the read value buffer of the memory.
+            # If the responses are always read as they arrive, overflow is never written and no stalls occur.
+
             with m.If(read_output_valid[i] & ~overflow_valid[i] & self.read_req[i].run & ~self.read_resp[i].run):
                 m.d.sync += overflow_valid[i].eq(1)
-                m.d.sync += overflow_data[i].eq(read_port[i].data)
+                m.d.sync += overflow_addr[i].eq(read_output_addr[i])
+                m.d.sync += overflow_data[i].eq(read_output_next[i])
 
         @def_methods(m, self.read_resp, lambda i: read_output_valid[i] | overflow_valid[i])
         def _(i: int):
@@ -123,20 +165,36 @@ class MemoryBank(Elaboratable):
                 m.d.sync += read_output_valid[i].eq(0)
 
             ret = Signal(self.shape)
-            with m.If(overflow_valid[i]):
-                m.d.av_comb += ret.eq(overflow_data[i])
-            with m.Else():
-                m.d.av_comb += ret.eq(read_port[i].data)
+            if self.read_on_resp and self.transparent:
+                with m.If(overflow_valid[i]):
+                    m.d.av_comb += ret.eq(overflow_next[i])
+                with m.Else():
+                    m.d.av_comb += ret.eq(read_output_next[i])
+            else:
+                with m.If(overflow_valid[i]):
+                    m.d.av_comb += ret.eq(overflow_data[i])
+                with m.Else():
+                    m.d.av_comb += ret.eq(read_port[i].data)
             return {"data": ret}
 
+        # In read_on_resp mode, memory reads are performed every cycle until the response is read, and the read ports
+        # are transparent. This ensures that read_port[i].data always is updated with the most recent value.
+
         for i in range(self.reads_ports):
-            m.d.comb += read_port[i].en.eq(0)  # because the init value is 1
+            if self.read_on_resp:
+                m.d.comb += read_port[i].addr.eq(read_output_addr[i])
+            else:
+                m.d.comb += read_port[i].en.eq(0)  # because the init value is 1
 
         @def_methods(m, self.read_req, lambda i: ~overflow_valid[i])
         def _(i: int, addr):
             m.d.sync += read_output_valid[i].eq(1)
+            m.d.sync += read_output_addr[i].eq(addr)
             m.d.comb += read_port[i].en.eq(1)
-            m.d.av_comb += read_port[i].addr.eq(addr)
+            if self.read_on_resp:
+                m.d.comb += read_port[i].addr.eq(addr)
+            else:
+                m.d.av_comb += read_port[i].addr.eq(addr)
 
         @def_methods(m, self.write)
         def _(i: int, arg):

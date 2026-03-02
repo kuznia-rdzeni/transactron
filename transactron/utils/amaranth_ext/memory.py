@@ -32,7 +32,7 @@ class ReadPort:
     ):
         self.src_loc = get_src_loc(src_loc)
         self.transparent_for = transparent_for
-        self.en = Signal()
+        self.en = Signal(init=1)
         self.addr = Signal(range(memory.depth))
         self.data = Signal(memory.shape)
         self._memory = memory

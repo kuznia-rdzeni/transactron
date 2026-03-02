@@ -151,6 +151,7 @@ class TestMemoryBank(TestCaseWithSimulator):
 
     @pytest.mark.parametrize("max_addr, writer_rand, reader_req_rand, reader_resp_rand, seed", test_conf)
     @pytest.mark.parametrize("transparent", [False, True])
+    @pytest.mark.parametrize("read_on_resp", [False, True])
     @pytest.mark.parametrize("read_ports", [1, 4])
     @pytest.mark.parametrize("write_ports", [1, 4])
     @pytest.mark.parametrize(
@@ -166,6 +167,7 @@ class TestMemoryBank(TestCaseWithSimulator):
         reader_resp_rand: int,
         seed: int,
         transparent: bool,
+        read_on_resp: bool,
         read_ports: int,
         write_ports: int,
         memory_type: amemory.AbstractMemoryConstructor[ShapeLike, Value],
@@ -180,6 +182,7 @@ class TestMemoryBank(TestCaseWithSimulator):
                 shape=shape,
                 depth=max_addr,
                 transparent=transparent,
+                read_on_resp=read_on_resp,
                 read_ports=read_ports,
                 write_ports=write_ports,
                 memory_type=memory_type,
@@ -220,8 +223,10 @@ class TestMemoryBank(TestCaseWithSimulator):
                     a = random.randrange(max_addr)
                     await m.read_req[i].call(sim, addr=a)
                     await sim.delay(1e-9 * (1 if not transparent else write_ports + 2))
-                    d = data[a]
-                    read_req_queues[i].append(d)
+                    if read_on_resp:
+                        read_req_queues[i].append(a)
+                    else:
+                        read_req_queues[i].append(data[a])
                     await self.random_wait(sim, reader_req_rand)
 
             return process
@@ -233,8 +238,16 @@ class TestMemoryBank(TestCaseWithSimulator):
                     while not read_req_queues[i]:
                         await self.random_wait(sim, reader_resp_rand or 1, min_cycle_cnt=1)
                         await sim.delay(1e-9 * (write_ports + 3))
-                    d = read_req_queues[i].popleft()
-                    assert from_shape((await m.read_resp[i].call(sim)).data) == d
+                    if read_on_resp:
+                        if not transparent:
+                            d = data[read_req_queues[i].popleft()]
+                    else:
+                        d = read_req_queues[i].popleft()
+                    rd = from_shape((await m.read_resp[i].call(sim)).data)
+                    await sim.delay(1e-9 * (write_ports + 3))
+                    if read_on_resp and transparent:
+                        d = data[read_req_queues[i].popleft()]
+                    assert rd == d  # type: ignore
                     await self.random_wait(sim, reader_resp_rand)
 
             return process
