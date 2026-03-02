@@ -19,6 +19,8 @@ In this way, access to methods is coordinated via the transaction system to avoi
 Methods can communicate with their callers in both directions: from caller to method and back.
 The communication is structured using Amaranth structures.
 
+A [short video introduction](https://video.infosec.exchange/w/kLKCRGDVQTegfdCqjiGQaK) to the Transactron library and its concepts presented at [ORConf 2025](https://fossi-foundation.org/orconf/2025), is available too.
+
 ## Basic usage
 
 ### Implementing transactions
