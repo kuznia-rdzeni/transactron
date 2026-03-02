@@ -109,43 +109,44 @@ class MemoryBank(Elaboratable):
             mem.read_port(transparent_for=write_port if self.transparent or self.read_on_resp else [])
             for _ in range(self.reads_ports)
         ]
+
+        # read_output_addr[i] is the address of the value in read_port[i].data
+        # read_output_next[i] is the value of the memory cell read_output_addr[i] in the next clock cycle
         read_output_valid = [Signal() for _ in range(self.reads_ports)]
-        read_output_value = [Signal(self.shape) for _ in range(self.reads_ports)]
+        read_output_next = [Signal(self.shape) for _ in range(self.reads_ports)]
         read_output_addr = [Signal(range(self.depth)) for _ in range(self.reads_ports)]
-        read_output_addr_match = [Signal(self.writes_ports) for _ in range(self.reads_ports)]
+
         overflow_valid = [Signal() for _ in range(self.reads_ports)]
         overflow_data = [Signal(self.shape) for _ in range(self.reads_ports)]
-        overflow_value = [Signal(self.shape) for _ in range(self.reads_ports)]
+        overflow_next = [Signal(self.shape) for _ in range(self.reads_ports)]
         overflow_addr = [Signal(range(self.depth)) for _ in range(self.reads_ports)]
-        overflow_addr_match = [Signal(self.writes_ports) for _ in range(self.reads_ports)]
 
         for i in range(self.reads_ports):
             if self.read_on_resp:
-                for j in range(self.writes_ports):
-                    m.d.comb += read_output_addr_match[i][j].eq(
-                        write_port[j].en & (write_port[j].addr == read_output_addr[i])
-                    )
-                    m.d.comb += overflow_addr_match[i][j].eq(
-                        write_port[j].en & (write_port[j].addr == overflow_addr[i])
-                    )
-                m.d.comb += read_output_value[i].eq(
+                read_output_addr_match = [
+                    write_port[j].en & (write_port[j].addr == read_output_addr[i]) for j in range(self.writes_ports)
+                ]
+                overflow_addr_match = [
+                    write_port[j].en & (write_port[j].addr == overflow_addr[i]) for j in range(self.writes_ports)
+                ]
+                m.d.comb += read_output_next[i].eq(
                     OneHotMux.create(
                         m,
-                        [(read_output_addr_match[i][j], write_port[j].data) for j in range(self.writes_ports)],
+                        [(read_output_addr_match[j], write_port[j].data) for j in range(self.writes_ports)],
                         read_port[i].data,
                     )
                 )
-                m.d.comb += overflow_value[i].eq(
+                m.d.comb += overflow_next[i].eq(
                     OneHotMux.create(
                         m,
-                        [(overflow_addr_match[i][j], write_port[j].data) for j in range(self.writes_ports)],
+                        [(overflow_addr_match[j], write_port[j].data) for j in range(self.writes_ports)],
                         overflow_data[i],
                     )
                 )
-                m.d.sync += overflow_data[i].eq(overflow_value[i])
+                m.d.sync += overflow_data[i].eq(overflow_next[i])
             else:
-                m.d.comb += read_output_value[i].eq(read_port[i].data)
-                m.d.comb += overflow_value[i].eq(overflow_data[i])
+                m.d.comb += read_output_next[i].eq(read_port[i].data)
+                m.d.comb += overflow_next[i].eq(overflow_data[i])
 
             # The read request method can be called at most twice when not reading the response.
             # The first result is stored in the overflow buffer, the second - in the read value buffer of the memory.
@@ -154,7 +155,7 @@ class MemoryBank(Elaboratable):
             with m.If(read_output_valid[i] & ~overflow_valid[i] & self.read_req[i].run & ~self.read_resp[i].run):
                 m.d.sync += overflow_valid[i].eq(1)
                 m.d.sync += overflow_addr[i].eq(read_output_addr[i])
-                m.d.sync += overflow_data[i].eq(read_output_value[i])
+                m.d.sync += overflow_data[i].eq(read_output_next[i])
 
         @def_methods(m, self.read_resp, lambda i: read_output_valid[i] | overflow_valid[i])
         def _(i: int):
@@ -166,15 +167,18 @@ class MemoryBank(Elaboratable):
             ret = Signal(self.shape)
             if self.read_on_resp and self.transparent:
                 with m.If(overflow_valid[i]):
-                    m.d.av_comb += ret.eq(overflow_value[i])
+                    m.d.av_comb += ret.eq(overflow_next[i])
                 with m.Else():
-                    m.d.av_comb += ret.eq(read_output_value[i])
+                    m.d.av_comb += ret.eq(read_output_next[i])
             else:
                 with m.If(overflow_valid[i]):
                     m.d.av_comb += ret.eq(overflow_data[i])
                 with m.Else():
                     m.d.av_comb += ret.eq(read_port[i].data)
             return {"data": ret}
+
+        # In read_on_resp mode, memory reads are performed every cycle until the response is read, and the read ports
+        # are transparent. This ensures that read_port[i].data always is updated with the most recent value.
 
         for i in range(self.reads_ports):
             if self.read_on_resp:
