@@ -21,6 +21,8 @@ Transactron is inspired by [Bluespec](https://github.com/B-Lang-org/bsc) and its
 However, while Bluespec requires to follow its paradigm strictly down to simple register assignments, Transactron's abstractions are intended to be used at module boundaries, while the actual logic is written in plain Amaranth.
 Transactron is just a library and, as such, allows smooth interoperation with plain Amaranth HDL code.
 
+A short video introduction to the Transactron library and its concepts is available [here](https://video.infosec.exchange/w/kLKCRGDVQTegfdCqjiGQaK) ([ORConf 2025](https://fossi-foundation.org/orconf/2025)).
+
 ## State of the project
 
 The library is in alpha stage of development, but is already well tested because it serves a foundation for the [Coreblocks](https://github.com/kuznia-rdzeni/coreblocks) out-of-order RISC-V CPU.
