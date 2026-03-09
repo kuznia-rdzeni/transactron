@@ -1,3 +1,4 @@
+from collections.abc import Iterable
 import inspect
 from typing import TypeVar, Generic, TypeGuard, Any, TypeAlias
 from amaranth import *
@@ -34,9 +35,10 @@ _T_HasElaborate = TypeVar("_T_HasElaborate", bound=HasElaborate)
 
 
 class SimpleTestCircuit(Elaboratable, Generic[_T_HasElaborate]):
-    def __init__(self, dut: _T_HasElaborate):
+    def __init__(self, dut: _T_HasElaborate, *, exclude: Iterable[str] = ()):
         self._dut = dut
         self._io: dict[str, _T_nested_collection[TestbenchIO]] = {}
+        self._exclude = set(exclude)
 
     def __getattr__(self, name: str) -> Any:
         try:
@@ -83,6 +85,8 @@ class SimpleTestCircuit(Elaboratable, Generic[_T_HasElaborate]):
             hints.update(inspect.get_annotations(cls, eval_str=True))
 
         for name, attr in vars(self._dut).items():
+            if name in self._exclude:
+                continue
             if guard_nested_collection(attr, Method, Methods) and attr:
                 if (
                     name in hints

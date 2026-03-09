@@ -63,6 +63,14 @@ class TestMethodMock(TestCaseWithSimulator):
         with self.run_simulation(self.dut) as sim:
             sim.add_testbench(self.process)
 
+    def test_method_mock_exclude(self, test_circuit):
+        self.dut = SimpleTestCircuit(test_circuit(1), exclude={"wrapper"})
+
+        assert not hasattr(self.dut, "wrapper")
+
+        with self.run_simulation(self.dut):
+            pass
+
 
 class ReverseMethodMockTestCircuit(Elaboratable):
     def __init__(self, width):
