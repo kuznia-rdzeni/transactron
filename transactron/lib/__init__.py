@@ -10,3 +10,4 @@ from .storage import *  # noqa: F401
 from .simultaneous import *  # noqa: F401
 from .metrics import *  # noqa: F401
 from .stream import *  # noqa: F401
+from .pipeline import *  # noqa: F401
