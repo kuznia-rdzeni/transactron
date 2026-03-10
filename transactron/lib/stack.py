@@ -1,10 +1,11 @@
-from amaranth import *
 import amaranth.lib.memory as memory
-from amaranth_types import ValueLike, SrcLoc
-from transactron import Method, def_method, TModule
-from transactron.utils.typing import MethodLayout, MethodStruct
-from transactron.utils.transactron_helpers import from_method_layout, get_src_loc
+from amaranth import *
+from amaranth_types import SrcLoc, ValueLike
 
+from transactron import Method, TModule, def_method
+from transactron.utils.transactron_helpers import (from_method_layout,
+                                                   get_src_loc)
+from transactron.utils.typing import MethodLayout, MethodStruct
 
 __all__ = ["Stack"]
 
