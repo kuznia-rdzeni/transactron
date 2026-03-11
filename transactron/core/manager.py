@@ -389,7 +389,7 @@ class TransactionManager(Elaboratable):
             granted = Cat(transaction.run & method_enables[transaction][method] for transaction in transactions)
             m.d.comb += method.run.eq(granted.any())
 
-        (method_args, method_runs) = self._method_calls(m, method_map)
+        method_args, method_runs = self._method_calls(m, method_map)
 
         for method in method_map.methods:
             if method.single_caller and len(method_args[method]) > 1:

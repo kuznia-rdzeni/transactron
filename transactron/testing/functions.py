@@ -1,7 +1,6 @@
 import amaranth.lib.data as data
 from typing import TypeAlias
 
-
 MethodData: TypeAlias = "data.Const[data.StructLayout]"
 
 

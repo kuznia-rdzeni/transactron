@@ -10,7 +10,6 @@ from amaranth_types import SrcLoc
 
 from transactron.graph import Owned
 
-
 __all__ = ["TransactionBase", "Priority"]
 
 

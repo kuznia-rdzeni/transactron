@@ -11,7 +11,6 @@ from amaranth.lib import memory  # type: ignore
 from amaranth_types import SrcLoc, HasElaborate
 from . import core
 
-
 # generic tuple because of aggressive monkey-patching
 modules_with_fragment: tuple = core, _ir, _dsl, _mem, _xfrm
 # List of Fragment subclasses which should be patched to inherit from TracingFragment.

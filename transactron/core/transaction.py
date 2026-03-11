@@ -14,7 +14,6 @@ from .keys import TransactionsKey
 from .tmodule import TModule
 from .transaction_base import TransactionBase
 
-
 if TYPE_CHECKING:
     from .method import Method  # noqa: F401
 

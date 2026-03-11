@@ -5,7 +5,6 @@ from typing import Optional, TypeVar, cast, overload
 from amaranth_types import ValueLike, FlatValueLike
 from .functions import shape_of, const_of
 
-
 __all__ = [
     "generic_shift_right",
     "generic_shift_left",

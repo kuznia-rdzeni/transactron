@@ -3,7 +3,6 @@ from amaranth import *
 from .typing import ValueBundle, HasDebugSignals
 from collections.abc import Collection, Mapping
 
-
 __all__ = ["auto_debug_signals"]
 
 

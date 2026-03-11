@@ -4,7 +4,6 @@ from transactron.core import Method, Methods, TModule, def_method, def_methods
 from transactron.utils.amaranth_ext.elaboratables import MultiPriorityEncoder
 from amaranth.lib.data import ArrayLayout
 
-
 __all__ = ["PriorityEncoderAllocator"]
 
 

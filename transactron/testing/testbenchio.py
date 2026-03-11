@@ -8,7 +8,6 @@ from typing import Any, Optional
 from transactron.lib import AdapterBase
 from .functions import MethodData
 
-
 __all__ = ["CallTrigger", "TestbenchIO"]
 
 

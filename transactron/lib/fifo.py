@@ -10,7 +10,6 @@ from transactron.utils.amaranth_ext.functions import const_of
 from transactron.utils.amaranth_ext.shifter import rotate_left
 from transactron.utils.transactron_helpers import from_method_layout, get_src_loc
 
-
 __all__ = ["BasicFifo", "WideFifo", "Semaphore"]
 
 

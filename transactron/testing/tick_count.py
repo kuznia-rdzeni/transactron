@@ -5,7 +5,6 @@ from amaranth.sim._async import ProcessContext
 
 from transactron.utils.dependencies import DependencyContext, SimpleKey
 
-
 __all__ = ["TicksKey", "make_tick_count_process"]
 
 

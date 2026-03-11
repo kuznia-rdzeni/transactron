@@ -115,9 +115,7 @@ class PassThroughPipeline(Elaboratable):
 
     def __init__(self):
         self.write = Method(i=[("a", unsigned(8)), ("b", unsigned(8))])
-        self.read = Method(
-            o=[("a", unsigned(8)), ("b", unsigned(8)), ("c", unsigned(8))]
-        )
+        self.read = Method(o=[("a", unsigned(8)), ("b", unsigned(8)), ("c", unsigned(8))])
 
     def elaborate(self, platform):
         m = TModule()

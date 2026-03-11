@@ -4,7 +4,6 @@
 from amaranth import *
 from transactron.utils.amaranth_ext.functions import count_trailing_zeros
 
-
 __all__ = [
     "Encoder",
     "Decoder",
