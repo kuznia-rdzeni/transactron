@@ -4,12 +4,11 @@ from inspect import Parameter, signature
 from typing import Optional, Protocol, final
 
 from amaranth import *
-from amaranth.lib.data import StructLayout
 from amaranth_types import ShapeLike, ValueLike
 
 from transactron.core import Method, TModule, def_method
 from transactron.lib.connectors import FIFO, ConnectTrans, Forwarder, Pipe
-from transactron.utils import AssignType, MethodLayout, assign, from_method_layout
+from transactron.utils import MethodLayout, from_method_layout
 
 __all__ = ["PipelineBuilder"]
 
@@ -341,7 +340,8 @@ class PipelineBuilder:
         allow_unused : bool
             If True, allows fields to be generated without being used by any later node.
         allow_empty : bool
-            If False, raises an error if there are any points in the pipeline (except the end) where there are no live variables.
+            If False, raises an error if there are any points in the pipeline (except the end)
+            where there are no live variables.
 
         Returns
         -------
