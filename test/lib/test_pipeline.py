@@ -115,7 +115,9 @@ class PassThroughPipeline(Elaboratable):
 
     def __init__(self):
         self.write = Method(i=[("a", unsigned(8)), ("b", unsigned(8))])
-        self.read = Method(o=[("a", unsigned(8)), ("b", unsigned(8)), ("c", unsigned(8))])
+        self.read = Method(
+            o=[("a", unsigned(8)), ("b", unsigned(8)), ("c", unsigned(8))]
+        )
 
     def elaborate(self, platform):
         m = TModule()
@@ -375,24 +377,22 @@ class TypeMismatchPipeline(Elaboratable):
 
 class TestTypeValidation(TestCaseWithSimulator):
     def test_shape_mismatch_raises(self):
-        with pytest.raises(ValueError, match="shape"):
+        with pytest.raises(ValueError, match="not matching"):
             with self.run_simulation(SimpleTestCircuit(TypeMismatchPipeline())):
                 pass
 
     def test_exit_field_missing_raises(self):
         class MissingFieldPipeline(Elaboratable):
             def __init__(self):
-                self.write = Method(i=[("a", unsigned(8))])
                 self.read = Method(o=[("missing", unsigned(8))])
 
             def elaborate(self, platform):
                 m = TModule()
                 p = PipelineBuilder()
-                p.add_external(self.write)
                 p.add_external(self.read)
                 m.submodules += p.finalize()
                 return m
 
-        with pytest.raises(ValueError, match="not used"):
+        with pytest.raises(ValueError, match="required but not provided"):
             with self.run_simulation(SimpleTestCircuit(MissingFieldPipeline())):
                 pass

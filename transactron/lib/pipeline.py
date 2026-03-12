@@ -4,6 +4,7 @@ from inspect import Parameter, signature
 from typing import Optional, Protocol, final
 
 from amaranth import *
+from amaranth.lib.data import StructLayout
 from amaranth_types import ShapeLike, ValueLike
 
 from transactron.core import Method, TModule, def_method
@@ -19,79 +20,11 @@ __all__ = ["PipelineBuilder"]
 
 
 class _PipelineNodeProtocol(Protocol):
-    def get_required_fields(self) -> dict[str, Optional[ShapeLike]]: ...
+    def get_required_fields(self) -> StructLayout: ...
 
-    def get_generated_fields(self) -> dict[str, ShapeLike]: ...
-
-    def get_final_required_fields(self, inputs: list[tuple[str, ShapeLike]]) -> MethodLayout: ...
-
-    def get_final_generated_fields(self, inputs: list[tuple[str, ShapeLike]]) -> MethodLayout: ...
+    def get_generated_fields(self) -> StructLayout: ...
 
     def finalize(self, m: TModule, method: Method) -> None: ...
-
-
-@final
-class _FuncNode(_PipelineNodeProtocol):
-    """Descriptor for a function-based pipeline stage."""
-
-    def __init__(
-        self,
-        m: TModule,
-        func: Callable,
-        o: MethodLayout,
-        i: Optional[MethodLayout] = None,
-    ):
-        # check if there is no 'arg' parameter or **kwargs
-        params = signature(func).parameters
-        for p in params.values():
-            if p.name == "arg":
-                raise TypeError(f"Pipeline stage function {func} cannot have a parameter named 'arg'")
-            if p.kind == Parameter.VAR_KEYWORD:
-                raise TypeError(f"Pipeline stage function {func} cannot have **kwargs")
-
-        self.m = m
-        self.func = func
-        self.o_layout = from_method_layout(o)
-        self.i_layout = from_method_layout(i) if i is not None else None
-
-        if self.i_layout is not None:
-            # check if we have all the required by the function signature inputs are present
-            for p in params.values():
-                if p.kind in (Parameter.POSITIONAL_OR_KEYWORD, Parameter.KEYWORD_ONLY):
-                    if p.name not in self.i_layout.members:
-                        raise TypeError(
-                            f"Pipeline stage function {func} has parameter '{p.name}' "
-                            f"which is not present in the input layout {self.i_layout}"
-                        )
-
-    def get_required_fields(self) -> dict[str, Optional[ShapeLike]]:
-        if self.i_layout is not None:
-            return {k: v for k, v in self.i_layout.members.items()}
-
-        params = signature(self.func).parameters
-
-        return {
-            k: None for k, p in params.items() if p.kind in (Parameter.POSITIONAL_OR_KEYWORD, Parameter.KEYWORD_ONLY)
-        }
-
-    def get_generated_fields(self) -> dict[str, ShapeLike]:
-        return {k: v for k, v in self.o_layout.members.items()}
-
-    def get_final_required_fields(self, inputs) -> MethodLayout:
-        if self.i_layout is not None:
-            return self.i_layout
-
-        # extract only the required fields from the input layout
-        required_fields = self.get_required_fields().keys()
-        return [(k, v) for k, v in inputs if k in required_fields]
-
-    def get_final_generated_fields(self, inputs) -> MethodLayout:
-        return self.o_layout
-
-    def finalize(self, m: TModule, method: Method) -> None:
-        fun_method = Method(i=method.layout_out, o=method.layout_in)
-        def_method(self.m, fun_method)(self.func)
-        m.submodules += ConnectTrans.create(fun_method, method)
 
 
 @final
@@ -102,18 +35,10 @@ class _ProvidedMethodNode(_PipelineNodeProtocol):
         self.method = method
         self.no_dependency = no_dependency
 
-    def get_required_fields(self) -> dict[str, Optional[ShapeLike]]:
-        method_out = from_method_layout(self.method.layout_out)
-        return {k: v for k, v in method_out.members.items()}
-
-    def get_generated_fields(self) -> dict[str, ShapeLike]:
-        method_in = from_method_layout(self.method.layout_in)
-        return method_in.members
-
-    def get_final_required_fields(self, inputs) -> MethodLayout:
+    def get_required_fields(self):
         return self.method.layout_out
 
-    def get_final_generated_fields(self, inputs) -> MethodLayout:
+    def get_generated_fields(self):
         return self.method.layout_in
 
     def finalize(self, m: TModule, method: Method) -> None:
@@ -134,18 +59,10 @@ class _CalledMethodNode(_PipelineNodeProtocol):
         self.method = method
         self.no_dependency = no_dependency
 
-    def get_required_fields(self) -> dict[str, Optional[ShapeLike]]:
-        method_in = from_method_layout(self.method.layout_in)
-        return {k: v for k, v in method_in.members.items()}
-
-    def get_generated_fields(self) -> dict[str, ShapeLike]:
-        method_out = from_method_layout(self.method.layout_out)
-        return method_out.members
-
-    def get_final_required_fields(self, inputs) -> MethodLayout:
+    def get_required_fields(self):
         return self.method.layout_in
 
-    def get_final_generated_fields(self, inputs) -> MethodLayout:
+    def get_generated_fields(self):
         return self.method.layout_out
 
     def finalize(self, m: TModule, method: Method) -> None:
@@ -195,6 +112,7 @@ class PipelineBuilder:
         self._nodes: list[PipelineBuilder._NodeInfo] = []
         self.allow_unused: bool = allow_unused
         self.allow_empty: bool = allow_empty
+        self._live_signal_shapes: dict[str, ShapeLike] = dict()
 
     def add_external(
         self,
@@ -224,7 +142,7 @@ class PipelineBuilder:
         None
         """
         node = _ProvidedMethodNode(method, no_dependency)
-        self._nodes.append(self._NodeInfo(node, ready, fifo_depth))
+        self._add_node(self._NodeInfo(node, ready, fifo_depth))
 
     def create_external(
         self,
@@ -254,7 +172,9 @@ class PipelineBuilder:
             The created Method.
         """
         method = Method(i=i, o=o)
-        self.add_external(method, ready=ready, fifo_depth=fifo_depth, no_dependency=no_dependency)
+        self.add_external(
+            method, ready=ready, fifo_depth=fifo_depth, no_dependency=no_dependency
+        )
         return method
 
     def call_method(
@@ -288,15 +208,17 @@ class PipelineBuilder:
         None
         """
         node = _CalledMethodNode(method, no_dependency)
-        self._nodes.append(self._NodeInfo(node, ready, fifo_depth))
+        self._add_node(self._NodeInfo(node, ready, fifo_depth))
 
     def stage(
         self,
         m: TModule,
         o: MethodLayout = (),
         *,
+        i: Optional[MethodLayout] = None,
         ready: ValueLike = C(1),
         fifo_depth: Optional[int] = None,
+        no_dependency: bool = False,
     ) -> Callable:
         """Decorator that register a function as a pipeline
 
@@ -305,7 +227,7 @@ class PipelineBuilder:
         The decorated function is called inside a transaction body.  It receives
         pipeline signals as keyword arguments (or as a single ``arg`` struct) and
         must return a ``dict`` mapping output field names to Amaranth values, or
-        ``None`` / ``{}`` when it produces no new fields.
+        ``None`` when it produces no new fields.
 
         Parameters
         ----------
@@ -321,56 +243,83 @@ class PipelineBuilder:
             :class:`_FuncNode` that can be further modified by :meth:`fifo`.
         """
 
-        def decorator(func: Callable) -> _FuncNode:
+        def decorator(func: Callable) -> None:
+            params = signature(func).parameters
+            i_layout_from_pipeline: dict[str, ShapeLike] = dict()
+            for p in params.values():
+                if p.name == "arg":
+                    raise TypeError(
+                        f"Pipeline stage function {func} cannot have a parameter named 'arg'"
+                    )
+                if p.kind == Parameter.VAR_KEYWORD:
+                    raise TypeError(
+                        f"Pipeline stage function {func} cannot have **kwargs"
+                    )
+
+                if p.name not in self._live_signal_shapes:
+                    raise TypeError(
+                        f"Pipeline stage function {func} has parameter {p.name} "
+                        f"that is not a live signal in the pipeline"
+                    )
+
+                i_layout_from_pipeline[p.name] = self._live_signal_shapes[p.name]
+
+            if i is not None:
+                i_layout = from_method_layout(i)
+                # check if the input layout matches the i_layout_from_pipeline
+                if i_layout.members != i_layout_from_pipeline:
+                    raise TypeError(
+                        f"Pipeline stage function {func} has an input layout that does not match "
+                        f"the live signal shapes in the pipeline"
+                    )
+            else:
+                i_layout = from_method_layout(i_layout_from_pipeline.items())
+
             o_layout = from_method_layout(o)
-            node = _FuncNode(m, func, o_layout)
-            self._nodes.append(self._NodeInfo(node, ready, fifo_depth))
-            return node
+
+            method = Method(i=i_layout, o=o_layout)
+            def_method(m, method)(func)
+
+            self.call_method(
+                method, ready=ready, fifo_depth=fifo_depth, no_dependency=no_dependency
+            )
 
         return decorator
 
     def get_live_signals(self) -> list[dict[str, ShapeLike]]:
         """Get the live signals at each point in the pipeline, with their types.
 
-        This can be used to inspect the pipeline layout before finalization, or to
-        build custom connectors manually.
-
-        Parameters
-        ----------
-        allow_unused : bool
-            If True, allows fields to be generated without being used by any later node.
-        allow_empty : bool
-            If False, raises an error if there are any points in the pipeline (except the end)
-            where there are no live variables.
+        This can be used to inspect the pipeline layout before finalization.
 
         Returns
         -------
-        list[dict[str, RecordDict]]
+        list[dict[str, ShapeLike]]
             A list of live variable dicts, one per node.  Each dict maps field names to their types.
         """
 
-        live: set[str] = set()
-        live_per_node = []
-
-        gen = [node.node.get_generated_fields() for node in self._nodes]
-        req = [node.node.get_required_fields() for node in self._nodes]
+        live: dict[str, ShapeLike] = dict()
+        live_per_node: list[dict[str, ShapeLike]] = []
 
         for i in reversed(range(len(self._nodes))):
+            node = self._nodes[i]
             live_per_node.append(live.copy())
 
-            gen_set = set(gen[i].keys())
-            req_set = set(req[i].keys())
+            gen = node.node.get_generated_fields().members
+            req = node.node.get_required_fields().members
 
             if not self.allow_unused:
                 # check if we are generating a field that is never used
-                unused = gen_set - live
+                unused = gen.keys() - live.keys()
                 if unused:
                     raise ValueError(
-                        f"Pipeline node {i} generates fields {unused} " f"which are not used by any later node"
+                        f"Pipeline node {i} generates fields {unused} "
+                        f"which are not used by any later node"
                     )
 
-            live -= gen_set
-            live |= req_set
+            for k in gen.keys():
+                live.pop(k, None)
+
+            live.update(req)
 
         live_per_node.reverse()
 
@@ -384,33 +333,14 @@ class PipelineBuilder:
                 "If this is intentional, set allow_empty=True."
             )
 
-        # now attach types to the used keys
-        live_vars: list[dict[str, ShapeLike]] = []
-        live_t: dict[str, ShapeLike] = dict()
+        assert not live_per_node[-1], (
+            "There should be no live variables after the end of the pipeline"
+        )
+        assert len(live_per_node) == len(self._nodes), (
+            "There should be one live variable dict per node"
+        )
 
-        for i in range(len(self._nodes)):
-            for k in req[i]:
-                # check for missing input fields
-                if k not in live_t.keys():
-                    raise ValueError(f"Pipeline node {i} requires field '{k}' " f"which is not generated by any node")
-
-                # check if the shape matches
-                req_shape = req[i][k]
-                if req_shape is not None and live_t[k] != req_shape:
-                    raise ValueError(
-                        f"Pipeline node {i} requires field '{k}' "
-                        f"with shape {req_shape}, but it has shape {live_t[k]}"
-                    )
-
-            live_t.update(gen[i])
-            # only preserve fields that are still live after this node
-            live_t = {k: v for k, v in live_t.items() if k in live_per_node[i]}
-            live_vars.append(live_t.copy())
-
-        assert not live_vars[-1], "There should be no live variables after the end of the pipeline"
-        assert len(live_vars) == len(self._nodes), "There should be one live variable dict per node"
-
-        return live_vars
+        return live_per_node
 
     def finalize(self) -> TModule:
         """Build all transactions and connectors for the pipeline.
@@ -418,10 +348,10 @@ class PipelineBuilder:
         Must be called after all nodes have been added.
         """
 
-        if not self._nodes:
-            return TModule()
-
         m = TModule()
+
+        if not self._nodes:
+            return m
 
         live_types = self.get_live_signals()
 
@@ -432,7 +362,9 @@ class PipelineBuilder:
             node = self._nodes[i]
 
             if prev_read is not None and node.fifo_depth:
-                m.submodules[f"{i}_fifo"] = fifo = FIFO(layout=live_items_in, depth=node.fifo_depth)
+                m.submodules[f"{i}_fifo"] = fifo = FIFO(
+                    layout=live_items_in, depth=node.fifo_depth
+                )
                 m.submodules += ConnectTrans.create(prev_read, fifo.write)
                 prev_read = fifo.read
 
@@ -442,8 +374,8 @@ class PipelineBuilder:
             if i != len(self._nodes) - 1:
                 m.submodules[f"{i}_pipe"] = output_pipe = Pipe(layout=live_items_out)
 
-            in_layout = node.node.get_final_generated_fields(live_items_in)
-            out_layout = node.node.get_final_required_fields(live_items_in)
+            in_layout = node.node.get_generated_fields()
+            out_layout = node.node.get_required_fields()
 
             stage_method = Method(name=f"{i}_combiner", i=in_layout, o=out_layout)
 
@@ -473,3 +405,24 @@ class PipelineBuilder:
             prev_read = output_pipe.read if output_pipe is not None else None
 
         return m
+
+    def _add_node(self, node: _NodeInfo) -> None:
+        print(f"Adding node: {node.node}")
+        self._nodes.append(node)
+
+        print(
+            f"have: {self._live_signal_shapes}\t"
+            f"need: {node.node.get_required_fields().members}\t"
+            f"provide: {node.node.get_generated_fields().members}"
+        )
+
+        for k, v in node.node.get_required_fields().members.items():
+            if k not in self._live_signal_shapes:
+                raise ValueError(f"Signal {k} is required but not provided")
+
+            if self._live_signal_shapes[k] != v:
+                raise ValueError(
+                    f"Signal {k} has incompatible shape: expected {v}, got {self._live_signal_shapes[k]}"
+                )
+
+        self._live_signal_shapes.update(node.node.get_generated_fields().members)
