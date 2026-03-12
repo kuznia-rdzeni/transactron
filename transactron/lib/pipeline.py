@@ -399,9 +399,6 @@ class PipelineBuilder(Elaboratable):
         return m
 
     def _add_node(self, node: _NodeInfo) -> None:
-        print(f"Adding node: {node.node}")
-        self._nodes.append(node)
-
         for k, v in node.node.get_required_fields().members.items():
             if k not in self._live_signal_shapes:
                 raise ValueError(f"Signal {k} is required but not provided")
@@ -409,4 +406,8 @@ class PipelineBuilder(Elaboratable):
             if self._live_signal_shapes[k] != v:
                 raise ValueError(f"Signal {k} has incompatible shape: expected {v}, got {self._live_signal_shapes[k]}")
 
+        if node.no_dependency and node.node.get_required_fields().members:
+            raise ValueError("No-dependency nodes cannot have required signals")
+
+        self._nodes.append(node)
         self._live_signal_shapes.update(node.node.get_generated_fields().members)
