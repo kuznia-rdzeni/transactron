@@ -10,6 +10,7 @@ from amaranth_types import ShapeLike, ValueLike
 from transactron.core import Method, TModule, def_method
 from transactron.lib.connectors import FIFO, ConnectTrans, Forwarder, Pipe
 from transactron.utils import MethodLayout, from_method_layout
+from transactron.utils.assign import AssignType, assign
 
 __all__ = ["PipelineBuilder"]
 
@@ -172,7 +173,9 @@ class PipelineBuilder:
             The created Method.
         """
         method = Method(i=i, o=o)
-        self.add_external(method, ready=ready, fifo_depth=fifo_depth, no_dependency=no_dependency)
+        self.add_external(
+            method, ready=ready, fifo_depth=fifo_depth, no_dependency=no_dependency
+        )
         return method
 
     def call_method(
@@ -246,9 +249,13 @@ class PipelineBuilder:
             i_layout_from_pipeline: dict[str, ShapeLike] = dict()
             for p in params.values():
                 if p.name == "arg":
-                    raise TypeError(f"Pipeline stage function {func} cannot have a parameter named 'arg'")
+                    raise TypeError(
+                        f"Pipeline stage function {func} cannot have a parameter named 'arg'"
+                    )
                 if p.kind == Parameter.VAR_KEYWORD:
-                    raise TypeError(f"Pipeline stage function {func} cannot have **kwargs")
+                    raise TypeError(
+                        f"Pipeline stage function {func} cannot have **kwargs"
+                    )
 
                 if p.name not in self._live_signal_shapes:
                     raise TypeError(
@@ -274,7 +281,9 @@ class PipelineBuilder:
             method = Method(i=i_layout, o=o_layout)
             def_method(m, method)(func)
 
-            self.call_method(method, ready=ready, fifo_depth=fifo_depth, no_dependency=no_dependency)
+            self.call_method(
+                method, ready=ready, fifo_depth=fifo_depth, no_dependency=no_dependency
+            )
 
         return decorator
 
@@ -304,7 +313,8 @@ class PipelineBuilder:
                 unused = gen.keys() - live.keys()
                 if unused:
                     raise ValueError(
-                        f"Pipeline node {i} generates fields {unused} " f"which are not used by any later node"
+                        f"Pipeline node {i} generates fields {unused} "
+                        f"which are not used by any later node"
                     )
 
             for k in gen.keys():
@@ -324,8 +334,12 @@ class PipelineBuilder:
                 "If this is intentional, set allow_empty=True."
             )
 
-        assert not live_per_node[-1], "There should be no live variables after the end of the pipeline"
-        assert len(live_per_node) == len(self._nodes), "There should be one live variable dict per node"
+        assert not live_per_node[-1], (
+            "There should be no live variables after the end of the pipeline"
+        )
+        assert len(live_per_node) == len(self._nodes), (
+            "There should be one live variable dict per node"
+        )
 
         return live_per_node
 
@@ -340,51 +354,60 @@ class PipelineBuilder:
         live_types = self.get_live_signals()
 
         live_items_in: MethodLayout = []
-        prev_read: Optional[Method] = None
+        prev_write: Optional[Method] = None
 
         for i in range(len(self._nodes)):
             node = self._nodes[i]
 
-            if prev_read is not None and node.fifo_depth:
-                m.submodules[f"{i}_fifo"] = fifo = FIFO(layout=live_items_in, depth=node.fifo_depth)
-                m.submodules += ConnectTrans.create(prev_read, fifo.write)
-                prev_read = fifo.read
+            prev_read: Optional[Method] = None
+
+            if prev_write is not None:
+                if node.fifo_depth:
+                    m.submodules[f"{i}_fifo"] = fifo = FIFO(
+                        layout=live_items_in, depth=node.fifo_depth
+                    )
+                    prev_write.provide(fifo.write)
+                    prev_read = fifo.read
+                else:
+                    m.submodules[f"{i}_pipe"] = output_pipe = Pipe(layout=live_items_in)
+                    prev_write.provide(output_pipe.write)
+                    prev_read = output_pipe.read
 
             live_items_out: MethodLayout = list(live_types[i].items())
-            output_pipe: Optional[Pipe] = None
+            write_output: Optional[Method] = None
 
             if i != len(self._nodes) - 1:
-                m.submodules[f"{i}_pipe"] = output_pipe = Pipe(layout=live_items_out)
+                write_output = Method(name=f"{i}_write", i=live_items_out)
 
             in_layout = node.node.get_generated_fields()
             out_layout = node.node.get_required_fields()
 
             stage_method = Method(name=f"{i}_combiner", i=in_layout, o=out_layout)
 
-            generated_names = [k for k, _ in in_layout]
-
             @def_method(m, stage_method, ready=node.ready)
             def _(arg):
                 in_data = prev_read(m) if prev_read is not None else dict()
-                out_data = {k: in_data[k] for k, _ in out_layout}
+                out_data = Signal(out_layout)
+                if out_layout.members:
+                    m.d.top_comb += assign(out_data, in_data, fields=AssignType.LHS)
 
-                if output_pipe is not None:
+                if write_output is not None:
                     collected = Signal(from_method_layout(live_items_out))
 
                     for k, _ in live_items_out:
-                        if k in generated_names:
+                        if k in in_layout.members.keys():
                             m.d.top_comb += collected[k].eq(arg[k])
                         else:
                             m.d.top_comb += collected[k].eq(in_data[k])
 
-                    output_pipe.write(m, collected)
+                    _ = write_output(m, collected)
 
                 return out_data
 
             node.node.finalize(m, stage_method)
 
             live_items_in = live_items_out
-            prev_read = output_pipe.read if output_pipe is not None else None
+            prev_write = write_output
 
         return m
 
@@ -403,6 +426,8 @@ class PipelineBuilder:
                 raise ValueError(f"Signal {k} is required but not provided")
 
             if self._live_signal_shapes[k] != v:
-                raise ValueError(f"Signal {k} has incompatible shape: expected {v}, got {self._live_signal_shapes[k]}")
+                raise ValueError(
+                    f"Signal {k} has incompatible shape: expected {v}, got {self._live_signal_shapes[k]}"
+                )
 
         self._live_signal_shapes.update(node.node.get_generated_fields().members)
