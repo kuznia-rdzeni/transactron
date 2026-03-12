@@ -32,9 +32,8 @@ class _PipelineNodeProtocol(Protocol):
 class _ProvidedMethodNode(_PipelineNodeProtocol):
     """Descriptor for a node where the pipeline provides (defines the body of) a Method."""
 
-    def __init__(self, method: Method, no_dependency: bool = False):
+    def __init__(self, method: Method):
         self.method = method
-        self.no_dependency = no_dependency
 
     def get_required_fields(self):
         return self.method.layout_out
@@ -43,22 +42,15 @@ class _ProvidedMethodNode(_PipelineNodeProtocol):
         return self.method.layout_in
 
     def finalize(self, m: TModule, method: Method) -> None:
-        if self.no_dependency:
-            fwd = Forwarder(self.method.layout_in)
-            m.submodules += fwd
-            self.method.provide(fwd.write)
-            m.submodules += ConnectTrans.create(fwd.read, method)
-        else:
-            self.method.provide(method)
+        self.method.provide(method)
 
 
 @final
 class _CalledMethodNode(_PipelineNodeProtocol):
     """Descriptor for a node where the pipeline calls an existing Method."""
 
-    def __init__(self, method: Method, no_dependency: bool = False):
+    def __init__(self, method: Method):
         self.method = method
-        self.no_dependency = no_dependency
 
     def get_required_fields(self):
         return self.method.layout_in
@@ -67,14 +59,7 @@ class _CalledMethodNode(_PipelineNodeProtocol):
         return self.method.layout_out
 
     def finalize(self, m: TModule, method: Method) -> None:
-        if self.no_dependency:
-            # add result Forwarder right after the method
-            fwd = Forwarder(self.method.layout_out)
-            m.submodules += fwd
-            m.submodules += ConnectTrans.create(self.method, fwd.write)
-            m.submodules += ConnectTrans.create(fwd.read, method)
-        else:
-            m.submodules += ConnectTrans.create(self.method, method)
+        m.submodules += ConnectTrans.create(self.method, method)
 
 
 # ---------------------------------------------------------------------------
@@ -107,7 +92,9 @@ class PipelineBuilder:
         """
         Fifo depth before this node
         """
-        fifo_depth: Optional[int]
+        fifo_depth: Optional[int] = None
+
+        no_dependency: bool = False
 
     def __init__(self, allow_unused: bool = False, allow_empty: bool = False):
         self._nodes: list[PipelineBuilder._NodeInfo] = []
@@ -142,8 +129,8 @@ class PipelineBuilder:
         -------
         None
         """
-        node = _ProvidedMethodNode(method, no_dependency)
-        self._add_node(self._NodeInfo(node, ready, fifo_depth))
+        node = _ProvidedMethodNode(method)
+        self._add_node(self._NodeInfo(node, ready, fifo_depth, no_dependency))
 
     def create_external(
         self,
@@ -208,8 +195,8 @@ class PipelineBuilder:
         -------
         None
         """
-        node = _CalledMethodNode(method, no_dependency)
-        self._add_node(self._NodeInfo(node, ready, fifo_depth))
+        node = _CalledMethodNode(method)
+        self._add_node(self._NodeInfo(node, ready, fifo_depth, no_dependency))
 
     def stage(
         self,
@@ -404,7 +391,14 @@ class PipelineBuilder:
 
                 return out_data
 
-            node.node.finalize(m, stage_method)
+            if node.no_dependency:
+                m.submodules[f"{i}_forwarder"] = fwd = Forwarder(
+                    node.node.get_generated_fields()
+                )
+                m.submodules += ConnectTrans.create(fwd.read, stage_method)
+                node.node.finalize(m, fwd.write)
+            else:
+                node.node.finalize(m, stage_method)
 
             live_items_in = live_items_out
             prev_write = write_output
