@@ -138,6 +138,7 @@ class PipelineBuilder(Elaboratable):
         info = self._NodeInfo(node, ready, no_dependency=no_dependency)
         if fifo_depth is not None:
             info.forwarder = lambda layout: FIFO(layout, fifo_depth)
+
         self._add_node(info)
 
     def create_external(
@@ -333,33 +334,21 @@ class PipelineBuilder(Elaboratable):
         return live_per_node
 
     def elaborate(self, platform) -> TModule:
-        """Build all transactions and connectors for the pipeline.
-
-        Must be called after all nodes have been added.
-        """
-
         m = TModule()
 
         live_types = self.get_live_signals()
 
-        live_items_in: MethodLayout = []
-        prev_write: Optional[Method] = None
+        read_methods: list[Optional[Method]] = [None] * len(self._nodes)
+        write_methods: list[Optional[Method]] = [None] * len(self._nodes)
+
+        for i in range(len(self._nodes) - 1):
+            read_methods[i + 1] = Method(name=f"{i}_read", o=live_types[i].items())
+            write_methods[i] = Method(name=f"{i}_write", i=live_types[i].items())
 
         for i in range(len(self._nodes)):
             node = self._nodes[i]
-
-            prev_read: Optional[Method] = None
-
-            if prev_write is not None:
-                m.submodules[f"{i}_forwarder"] = fifo = node.forwarder(live_items_in)
-                prev_write.provide(fifo.write)
-                prev_read = fifo.read
-
-            live_items_out: MethodLayout = list(live_types[i].items())
-            write_output: Optional[Method] = None
-
-            if i != len(self._nodes) - 1:
-                write_output = Method(name=f"{i}_write", i=live_items_out)
+            read_method = read_methods[i]
+            write_method = write_methods[i]
 
             in_layout = node.node.get_generated_fields()
             out_layout = node.node.get_required_fields()
@@ -368,33 +357,41 @@ class PipelineBuilder(Elaboratable):
 
             @def_method(m, stage_method, ready=node.ready)
             def _(arg):
-                in_data = prev_read(m) if prev_read is not None else dict()
+                in_data = read_method(m) if read_method is not None else dict()
                 out_data = Signal(out_layout)
                 if out_layout.members:
                     m.d.top_comb += assign(out_data, in_data, fields=AssignType.LHS)
 
-                if write_output is not None:
-                    collected = Signal(from_method_layout(live_items_out))
+                if write_method is not None:
+                    collected = Signal(write_method.layout_in)
 
-                    for k, _ in live_items_out:
+                    for k in write_method.layout_in.members.keys():
                         if k in in_layout.members.keys():
                             m.d.top_comb += collected[k].eq(arg[k])
                         else:
                             m.d.top_comb += collected[k].eq(in_data[k])
 
-                    _ = write_output(m, collected)
+                    _ = write_method(m, collected)
 
                 return out_data
 
             if node.no_dependency:
-                m.submodules[f"{i}_nodep"] = pipe = Pipe(node.node.get_generated_fields())
-                node.node.finalize(m, pipe.write)
-                m.submodules += ConnectTrans.create(pipe.read, stage_method)
+                m.submodules[f"{i}_nodep"] = nodep = Pipe(stage_method.layout_in)
+                node.node.finalize(m, nodep.write)
+                m.submodules += ConnectTrans.create(nodep.read, stage_method)
             else:
                 node.node.finalize(m, stage_method)
 
-            live_items_in = live_items_out
-            prev_write = write_output
+        for i in range(1, len(self._nodes)):
+            node = self._nodes[i]
+            prev_write = write_methods[i - 1]
+            curr_read = read_methods[i]
+            assert curr_read is not None
+            assert prev_write is not None
+
+            m.submodules[f"{i}_forwarder"] = fwd = node.forwarder(prev_write.layout_in)
+            prev_write.provide(fwd.write)
+            curr_read.provide(fwd.read)
 
         return m
 
