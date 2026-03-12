@@ -172,9 +172,7 @@ class PipelineBuilder:
             The created Method.
         """
         method = Method(i=i, o=o)
-        self.add_external(
-            method, ready=ready, fifo_depth=fifo_depth, no_dependency=no_dependency
-        )
+        self.add_external(method, ready=ready, fifo_depth=fifo_depth, no_dependency=no_dependency)
         return method
 
     def call_method(
@@ -248,13 +246,9 @@ class PipelineBuilder:
             i_layout_from_pipeline: dict[str, ShapeLike] = dict()
             for p in params.values():
                 if p.name == "arg":
-                    raise TypeError(
-                        f"Pipeline stage function {func} cannot have a parameter named 'arg'"
-                    )
+                    raise TypeError(f"Pipeline stage function {func} cannot have a parameter named 'arg'")
                 if p.kind == Parameter.VAR_KEYWORD:
-                    raise TypeError(
-                        f"Pipeline stage function {func} cannot have **kwargs"
-                    )
+                    raise TypeError(f"Pipeline stage function {func} cannot have **kwargs")
 
                 if p.name not in self._live_signal_shapes:
                     raise TypeError(
@@ -280,9 +274,7 @@ class PipelineBuilder:
             method = Method(i=i_layout, o=o_layout)
             def_method(m, method)(func)
 
-            self.call_method(
-                method, ready=ready, fifo_depth=fifo_depth, no_dependency=no_dependency
-            )
+            self.call_method(method, ready=ready, fifo_depth=fifo_depth, no_dependency=no_dependency)
 
         return decorator
 
@@ -312,8 +304,7 @@ class PipelineBuilder:
                 unused = gen.keys() - live.keys()
                 if unused:
                     raise ValueError(
-                        f"Pipeline node {i} generates fields {unused} "
-                        f"which are not used by any later node"
+                        f"Pipeline node {i} generates fields {unused} " f"which are not used by any later node"
                     )
 
             for k in gen.keys():
@@ -333,12 +324,8 @@ class PipelineBuilder:
                 "If this is intentional, set allow_empty=True."
             )
 
-        assert not live_per_node[-1], (
-            "There should be no live variables after the end of the pipeline"
-        )
-        assert len(live_per_node) == len(self._nodes), (
-            "There should be one live variable dict per node"
-        )
+        assert not live_per_node[-1], "There should be no live variables after the end of the pipeline"
+        assert len(live_per_node) == len(self._nodes), "There should be one live variable dict per node"
 
         return live_per_node
 
@@ -350,9 +337,6 @@ class PipelineBuilder:
 
         m = TModule()
 
-        if not self._nodes:
-            return m
-
         live_types = self.get_live_signals()
 
         live_items_in: MethodLayout = []
@@ -362,9 +346,7 @@ class PipelineBuilder:
             node = self._nodes[i]
 
             if prev_read is not None and node.fifo_depth:
-                m.submodules[f"{i}_fifo"] = fifo = FIFO(
-                    layout=live_items_in, depth=node.fifo_depth
-                )
+                m.submodules[f"{i}_fifo"] = fifo = FIFO(layout=live_items_in, depth=node.fifo_depth)
                 m.submodules += ConnectTrans.create(prev_read, fifo.write)
                 prev_read = fifo.read
 
@@ -421,8 +403,6 @@ class PipelineBuilder:
                 raise ValueError(f"Signal {k} is required but not provided")
 
             if self._live_signal_shapes[k] != v:
-                raise ValueError(
-                    f"Signal {k} has incompatible shape: expected {v}, got {self._live_signal_shapes[k]}"
-                )
+                raise ValueError(f"Signal {k} has incompatible shape: expected {v}, got {self._live_signal_shapes[k]}")
 
         self._live_signal_shapes.update(node.node.get_generated_fields().members)
