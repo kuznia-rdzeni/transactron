@@ -2,6 +2,7 @@ import pytest
 from amaranth import *
 
 from transactron import Method, TModule, def_method
+from transactron.core.transaction import Transaction
 from transactron.lib.pipeline import PipelineBuilder
 from transactron.testing import (
     SimpleTestCircuit,
@@ -271,6 +272,147 @@ class TestCallMethodPipeline(TestCaseWithSimulator):
                 # +1 from stage, then +5 from adder.compute
                 result = await m.read.call(sim)
                 assert result.data == (i + 6) % 256
+
+        with self.run_simulation(m) as sim:
+            sim.add_testbench(writer)
+            sim.add_testbench(reader)
+
+
+# ---------------------------------------------------------------------------
+# A stage that calls a potentially stalling method
+# ---------------------------------------------------------------------------
+
+
+class DelayNoop(Elaboratable):
+    """Stage that does nothing."""
+
+    def __init__(self, delay: int):
+        self.write = Method(i=[("data", unsigned(8))])
+        self.read = Method(o=[("data", unsigned(8))])
+        self.delay = delay
+
+    def elaborate(self, platform):
+        m = TModule()
+
+        counter = Signal(range(self.delay + 1))
+        buf = Signal(unsigned(8))
+
+        with m.If((counter > 0) & (counter < self.delay)):
+            m.d.sync += counter.eq(counter + 1)
+
+        @def_method(m, self.write, ready=counter == 0)
+        def _(data):
+            m.d.sync += buf.eq(data)
+            m.d.sync += counter.eq(1)
+
+        @def_method(m, self.read, ready=counter == self.delay)
+        def _():
+            m.d.sync += counter.eq(0)
+            return {"data": buf}
+
+        return m
+
+
+class StallingPipeline(Elaboratable):
+    """Pipeline with a stalling stage."""
+
+    def __init__(self):
+        self.write = Method(i=[("data", unsigned(8))])
+        self.read = Method(o=[("data", unsigned(8))])
+
+    def elaborate(self, platform):
+        m = TModule()
+
+        m.submodules.pipeline = p = PipelineBuilder()
+        m.submodules.delay = delay = DelayNoop(5)
+        p.add_external(self.write)
+
+        @p.stage(m, o=[("data", unsigned(8))])
+        def _(data):
+            delay.write(m, data)
+            return {"data": data + 1}
+
+        @p.stage(m, o=[("data", unsigned(8))])
+        def _(data):
+            return {"data": delay.read(m).data + data}
+
+        p.add_external(self.read)
+        return m
+
+
+class TestStallingPipeline(TestCaseWithSimulator):
+    def test_pipeline(self):
+        m = SimpleTestCircuit(StallingPipeline())
+
+        async def writer(sim: TestbenchContext):
+            for i in range(16):
+                await m.write.call(sim, data=i)
+
+        async def reader(sim: TestbenchContext):
+            for i in range(16):
+                result = await m.read.call(sim)
+                assert result.data == (i + i + 1) % 256
+
+        with self.run_simulation(m) as sim:
+            sim.add_testbench(writer)
+            sim.add_testbench(reader)
+
+
+# ---------------------------------------------------------------------------
+# providing two methods that must be available at the same time
+# ---------------------------------------------------------------------------
+
+
+class DoAnOperation(Elaboratable):
+    """Stage that requires both read and write to be available at the same time."""
+
+    def __init__(self, data_in: Method, data_out: Method):
+        self.data_in = data_in
+        self.data_out = data_out
+
+    def elaborate(self, platform):
+        m = TModule()
+
+        with Transaction().body(m):
+            self.data_out(m, {"data": self.data_in(m).data + 1})
+
+        return m
+
+
+class TwoExternalsPipeline(Elaboratable):
+    """Pipeline with two external methods that must be available at the same time."""
+
+    def __init__(self):
+        self.write = Method(i=[("data", unsigned(8))])
+        self.read = Method(o=[("data", unsigned(8))])
+
+    def elaborate(self, platform):
+        m = TModule()
+
+        m.submodules.pipeline = p = PipelineBuilder(allow_empty=True)
+        p.add_external(self.write)
+
+        op_in = p.create_external(o=[("data", unsigned(8))], i=[])
+        op_out = p.create_external(i=[("data", unsigned(8))], o=[], no_dependency=True)
+        m.submodules.op = DoAnOperation(op_in, op_out)
+
+        p.add_external(self.read)
+
+        return m
+
+
+class TestTwoExternalsPipeline(TestCaseWithSimulator):
+    def test_pipeline(self):
+        m = SimpleTestCircuit(TwoExternalsPipeline())
+
+        async def writer(sim: TestbenchContext):
+            for i in range(8):
+                await m.write.call(sim, data=i)
+
+        async def reader(sim: TestbenchContext):
+            for i in range(8):
+                result = await m.read.call(sim)
+                assert result.data == (i + 1) % 256
 
         with self.run_simulation(m) as sim:
             sim.add_testbench(writer)

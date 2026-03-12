@@ -9,7 +9,7 @@ from amaranth_types import ShapeLike, SrcLoc, ValueLike
 from amaranth_types.types import HasElaborate
 
 from transactron.core import Method, TModule, def_method
-from transactron.lib.connectors import FIFO, ConnectTrans, Forwarder, Pipe
+from transactron.lib.connectors import FIFO, ConnectTrans, Pipe
 from transactron.utils import MethodLayout, from_method_layout
 from transactron.utils.assign import AssignType, assign
 from transactron.utils.transactron_helpers import get_src_loc
@@ -387,9 +387,9 @@ class PipelineBuilder(Elaboratable):
                 return out_data
 
             if node.no_dependency:
-                m.submodules[f"{i}_forwarder"] = fwd = Forwarder(node.node.get_generated_fields())
-                m.submodules += ConnectTrans.create(fwd.read, stage_method)
-                node.node.finalize(m, fwd.write)
+                m.submodules[f"{i}_nodep"] = pipe = Pipe(node.node.get_generated_fields())
+                node.node.finalize(m, pipe.write)
+                m.submodules += ConnectTrans.create(pipe.read, stage_method)
             else:
                 node.node.finalize(m, stage_method)
 
