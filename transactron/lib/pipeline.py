@@ -5,12 +5,14 @@ from typing import Optional, Protocol, final
 
 from amaranth import *
 from amaranth.lib.data import StructLayout
-from amaranth_types import ShapeLike, ValueLike
+from amaranth_types import ShapeLike, SrcLoc, ValueLike
+from amaranth_types.types import HasElaborate
 
 from transactron.core import Method, TModule, def_method
 from transactron.lib.connectors import FIFO, ConnectTrans, Forwarder, Pipe
 from transactron.utils import MethodLayout, from_method_layout
 from transactron.utils.assign import AssignType, assign
+from transactron.utils.transactron_helpers import get_src_loc
 
 __all__ = ["PipelineBuilder"]
 
@@ -26,6 +28,11 @@ class _PipelineNodeProtocol(Protocol):
     def get_generated_fields(self) -> StructLayout: ...
 
     def finalize(self, m: TModule, method: Method) -> None: ...
+
+
+class _ForwarderLike(HasElaborate, Protocol):
+    read: Method
+    write: Method
 
 
 @final
@@ -67,7 +74,7 @@ class _CalledMethodNode(_PipelineNodeProtocol):
 # ---------------------------------------------------------------------------
 
 
-class PipelineBuilder:
+class PipelineBuilder(Elaboratable):
     """Helper class for building transactional pipelines.
 
     Each node in the pipeline can be a function stage, a provided-method node,
@@ -90,9 +97,9 @@ class PipelineBuilder:
         ready: ValueLike
 
         """
-        Fifo depth before this node
+        Forwarder factory to connect this node with the previous node.
         """
-        fifo_depth: Optional[int] = None
+        forwarder: Callable[[MethodLayout], _ForwarderLike] = Pipe
 
         no_dependency: bool = False
 
@@ -122,15 +129,16 @@ class PipelineBuilder:
             The ``Method`` whose body the pipeline will define.
         ready : ValueLike
             Additional combinational ready condition (default: always ready).
-        fifo_depth : int, optional
-            If given, inserts a FIFO of this depth *before* this node.
 
         Returns
         -------
         None
         """
         node = _ProvidedMethodNode(method)
-        self._add_node(self._NodeInfo(node, ready, fifo_depth, no_dependency))
+        info = self._NodeInfo(node, ready, no_dependency=no_dependency)
+        if fifo_depth is not None:
+            info.forwarder = lambda layout: FIFO(layout, fifo_depth)
+        self._add_node(info)
 
     def create_external(
         self,
@@ -140,6 +148,8 @@ class PipelineBuilder:
         ready: ValueLike = C(1),
         fifo_depth: Optional[int] = None,
         no_dependency: bool = False,
+        name: Optional[str] = None,
+        src_loc: int | SrcLoc = 0,
     ) -> Method:
         """Create a new Method and add a node where the pipeline provides (defines the body of) that Method.
 
@@ -159,7 +169,8 @@ class PipelineBuilder:
         Method
             The created Method.
         """
-        method = Method(i=i, o=o)
+        src_loc = get_src_loc(src_loc)
+        method = Method(name=name, i=i, o=o, src_loc=src_loc)
         self.add_external(method, ready=ready, fifo_depth=fifo_depth, no_dependency=no_dependency)
         return method
 
@@ -194,7 +205,11 @@ class PipelineBuilder:
         None
         """
         node = _CalledMethodNode(method)
-        self._add_node(self._NodeInfo(node, ready, fifo_depth, no_dependency))
+        info = self._NodeInfo(node, ready, no_dependency=no_dependency)
+        if fifo_depth is not None:
+            info.forwarder = lambda layout: FIFO(layout, fifo_depth)
+
+        self._add_node(info)
 
     def stage(
         self,
@@ -259,7 +274,7 @@ class PipelineBuilder:
 
             o_layout = from_method_layout(o)
 
-            method = Method(i=i_layout, o=o_layout)
+            method = Method(name=f"pipeline_stage_{len(self._nodes)}", i=i_layout, o=o_layout)
             def_method(m, method)(func)
 
             self.call_method(method, ready=ready, fifo_depth=fifo_depth, no_dependency=no_dependency)
@@ -317,7 +332,7 @@ class PipelineBuilder:
 
         return live_per_node
 
-    def finalize(self) -> TModule:
+    def elaborate(self, platform) -> TModule:
         """Build all transactions and connectors for the pipeline.
 
         Must be called after all nodes have been added.
@@ -336,14 +351,9 @@ class PipelineBuilder:
             prev_read: Optional[Method] = None
 
             if prev_write is not None:
-                if node.fifo_depth:
-                    m.submodules[f"{i}_fifo"] = fifo = FIFO(layout=live_items_in, depth=node.fifo_depth)
-                    prev_write.provide(fifo.write)
-                    prev_read = fifo.read
-                else:
-                    m.submodules[f"{i}_pipe"] = output_pipe = Pipe(layout=live_items_in)
-                    prev_write.provide(output_pipe.write)
-                    prev_read = output_pipe.read
+                m.submodules[f"{i}_forwarder"] = fifo = node.forwarder(live_items_in)
+                prev_write.provide(fifo.write)
+                prev_read = fifo.read
 
             live_items_out: MethodLayout = list(live_types[i].items())
             write_output: Optional[Method] = None
@@ -391,12 +401,6 @@ class PipelineBuilder:
     def _add_node(self, node: _NodeInfo) -> None:
         print(f"Adding node: {node.node}")
         self._nodes.append(node)
-
-        print(
-            f"have: {self._live_signal_shapes}\t"
-            f"need: {node.node.get_required_fields().members}\t"
-            f"provide: {node.node.get_generated_fields().members}"
-        )
 
         for k, v in node.node.get_required_fields().members.items():
             if k not in self._live_signal_shapes:

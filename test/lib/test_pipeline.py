@@ -24,7 +24,7 @@ class SimplePipeline(Elaboratable):
     def elaborate(self, platform):
         m = TModule()
 
-        p = PipelineBuilder()
+        m.submodules.pipeline = p = PipelineBuilder()
         p.add_external(self.write)
 
         @p.stage(m, o=[("data", unsigned(8))])
@@ -32,7 +32,6 @@ class SimplePipeline(Elaboratable):
             return {"data": data + 1}
 
         p.add_external(self.read)
-        m.submodules += p.finalize()
 
         return m
 
@@ -70,7 +69,7 @@ class MultiStagePipeline(Elaboratable):
     def elaborate(self, platform):
         m = TModule()
 
-        p = PipelineBuilder()
+        m.submodules.pipeline = p = PipelineBuilder()
         p.add_external(self.write)
 
         @p.stage(m, o=[("data", unsigned(8))])
@@ -82,7 +81,6 @@ class MultiStagePipeline(Elaboratable):
             return {"data": data + 2}
 
         p.add_external(self.read)
-        m.submodules += p.finalize()
 
         return m
 
@@ -120,7 +118,7 @@ class PassThroughPipeline(Elaboratable):
     def elaborate(self, platform):
         m = TModule()
 
-        p = PipelineBuilder()
+        m.submodules.pipeline = p = PipelineBuilder()
         p.add_external(self.write)
 
         # Stage 1: produce c = a + b; a and b are passed through automatically
@@ -137,7 +135,6 @@ class PassThroughPipeline(Elaboratable):
             pass
 
         p.add_external(self.read)
-        m.submodules += p.finalize()
 
         return m
 
@@ -177,7 +174,7 @@ class FifoPipeline(Elaboratable):
     def elaborate(self, platform):
         m = TModule()
 
-        p = PipelineBuilder()
+        m.submodules.pipeline = p = PipelineBuilder()
         p.add_external(self.write)
 
         @p.stage(m, o=[("data", unsigned(8))])
@@ -189,7 +186,7 @@ class FifoPipeline(Elaboratable):
             return {"data": data + 2}
 
         p.add_external(self.read)
-        m.submodules += p.finalize()
+
         return m
 
 
@@ -245,7 +242,7 @@ class CallMethodPipeline(Elaboratable):
 
         m.submodules.adder = adder = _Adder(delta=5)
 
-        p = PipelineBuilder()
+        m.submodules.pipeline = p = PipelineBuilder()
         p.add_external(self.write)
 
         @p.stage(m, o=[("data", unsigned(8))])
@@ -257,7 +254,7 @@ class CallMethodPipeline(Elaboratable):
         p.call_method(adder.compute)
 
         p.add_external(self.read)
-        m.submodules += p.finalize()
+
         return m
 
 
@@ -296,7 +293,7 @@ class MiddleExitPipeline(Elaboratable):
     def elaborate(self, platform):
         m = TModule()
 
-        p = PipelineBuilder()
+        m.submodules.pipeline = p = PipelineBuilder()
         p.add_external(self.write)
 
         @p.stage(m, o=[("data", unsigned(8))])
@@ -311,7 +308,7 @@ class MiddleExitPipeline(Elaboratable):
             return {"data": data + 2}
 
         p.add_external(self.read)
-        m.submodules += p.finalize()
+
         return m
 
 
@@ -360,7 +357,7 @@ class TypeMismatchPipeline(Elaboratable):
     def elaborate(self, platform):
         m = TModule()
 
-        p = PipelineBuilder()
+        m.submodules.pipeline = p = PipelineBuilder()
         p.add_external(self.write)
 
         # Attempt to overwrite 'data' with a different shape
@@ -369,7 +366,6 @@ class TypeMismatchPipeline(Elaboratable):
             return {"data": data}
 
         p.add_external(self.read)
-        m.submodules += p.finalize()
         return m
 
 
@@ -386,9 +382,8 @@ class TestTypeValidation(TestCaseWithSimulator):
 
             def elaborate(self, platform):
                 m = TModule()
-                p = PipelineBuilder()
+                m.submodules.pipeline = p = PipelineBuilder()
                 p.add_external(self.read)
-                m.submodules += p.finalize()
                 return m
 
         with pytest.raises(ValueError, match="required but not provided"):
