@@ -7,6 +7,7 @@ from transactron.utils import SrcLoc, IdGenerator
 from transactron.core import TransactionManager
 from transactron.core.manager import MethodMap
 
+
 __all__ = [
     "ProfileInfo",
     "ProfileData",

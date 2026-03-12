@@ -5,6 +5,7 @@ from typing import Any, Hashable, Sized
 from statistics import fmean
 from amaranth.lib.data import StructLayout
 
+
 __all__ = [
     "make_hashable",
     "align_to_power_of_two",

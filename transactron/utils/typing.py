@@ -73,7 +73,7 @@ def type_self_kwargs_as(as_func: Callable[Concatenate[Any, P], Any]):
 
 
 def type_self_add_1pos_kwargs_as(
-    as_func: Callable[Concatenate[Any, P], Any],
+    as_func: Callable[Concatenate[Any, P], Any]
 ) -> Callable[[Callable[Concatenate[Any, T, ...], U]], Callable[Concatenate[Any, T, P], U]]:
     """
     Decorator used to annotate `**kwargs` type to be the same as named arguments from `as_func` method.

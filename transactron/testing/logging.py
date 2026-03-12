@@ -8,6 +8,7 @@ from transactron.lib import logging as tlog
 from transactron.utils.dependencies import DependencyContext
 from .tick_count import TicksKey
 
+
 __all__ = ["make_logging_process", "parse_logging_level"]
 
 

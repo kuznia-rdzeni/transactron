@@ -12,6 +12,7 @@ from amaranth.lib.data import StructLayout
 import amaranth.lib.data as data
 import dataclasses
 
+
 __all__ = [
     "longest_common_prefix",
     "silence_mustuse",

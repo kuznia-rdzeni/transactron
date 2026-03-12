@@ -12,6 +12,7 @@ from transactron.lib import AdapterTrans
 from transactron.utils import ModuleConnector, auto_debug_signals
 from amaranth_types import HasElaborate
 
+
 __all__ = ["SimpleTestCircuit"]
 
 

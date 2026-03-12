@@ -3,6 +3,7 @@ from collections import defaultdict
 from abc import abstractmethod, ABC
 from typing import Any, Generic, Optional, TypeVar
 
+
 __all__ = ["DependencyManager", "DependencyKey", "DependencyContext", "SimpleKey", "ListKey"]
 
 T = TypeVar("T")
