@@ -95,6 +95,7 @@ class PipelineBuilder(Elaboratable):
     @dataclass
     class _NodeInfo:
         node: _PipelineNodeProtocol
+        src_loc: SrcLoc
         ready: ValueLike
         no_dependency: bool
         forwarder: Callable[[MethodLayout], _ForwarderLike]
@@ -106,7 +107,9 @@ class PipelineBuilder(Elaboratable):
         self._live_signal_shapes: dict[str, ShapeLike] = dict()
         self._next_forwarder = None
 
-    def add_external(self, method: Method, *, ready: ValueLike = C(1), no_dependency: bool = False) -> None:
+    def add_external(
+        self, method: Method, *, ready: ValueLike = C(1), no_dependency: bool = False, src_loc: int | SrcLoc = 0
+    ) -> None:
         """Add a node where the pipeline provides (defines the body of) a ``Method``.
 
         This can be used to define initial source signals, output sink signals,
@@ -125,7 +128,7 @@ class PipelineBuilder(Elaboratable):
         None
         """
         node = _ProvidedMethodNode(method)
-        self._add_node(node, ready, no_dependency=no_dependency)
+        self._add_node(node, ready, no_dependency=no_dependency, src_loc=get_src_loc(src_loc))
 
     def create_external(
         self,
@@ -157,15 +160,11 @@ class PipelineBuilder(Elaboratable):
         """
         src_loc = get_src_loc(src_loc)
         method = Method(name=name, i=i, o=o, src_loc=src_loc)
-        self.add_external(method, ready=ready, no_dependency=no_dependency)
+        self.add_external(method, ready=ready, no_dependency=no_dependency, src_loc=src_loc)
         return method
 
     def call_method(
-        self,
-        method: Method,
-        *,
-        ready: ValueLike = C(1),
-        no_dependency: bool = False,
+        self, method: Method, *, ready: ValueLike = C(1), no_dependency: bool = False, src_loc: int | SrcLoc = 0
     ) -> None:
         """Add a node where the pipeline calls an existing ``Method``.
 
@@ -188,7 +187,7 @@ class PipelineBuilder(Elaboratable):
         None
         """
         node = _CalledMethodNode(method)
-        self._add_node(node, ready, no_dependency=no_dependency)
+        self._add_node(node, ready, no_dependency=no_dependency, src_loc=get_src_loc(src_loc))
 
     def stage(
         self,
@@ -198,6 +197,7 @@ class PipelineBuilder(Elaboratable):
         i: Optional[MethodLayout] = None,
         ready: ValueLike = C(1),
         no_dependency: bool = False,
+        src_loc: int | SrcLoc = 0,
     ) -> Callable:
         """Decorator that register a function as a pipeline
 
@@ -222,19 +222,20 @@ class PipelineBuilder(Elaboratable):
             :class:`_FuncNode` that can be further modified by :meth:`fifo`.
         """
 
+        src_loc = get_src_loc(src_loc)
+
         def decorator(func: Callable) -> None:
             params = signature(func).parameters
             i_layout_from_pipeline: dict[str, ShapeLike] = dict()
             for p in params.values():
                 if p.name == "arg":
-                    raise TypeError(f"Pipeline stage function {func} cannot have a parameter named 'arg'")
+                    raise TypeError("Pipeline stage function cannot have a parameter named 'arg'")
                 if p.kind == Parameter.VAR_KEYWORD:
-                    raise TypeError(f"Pipeline stage function {func} cannot have **kwargs")
+                    raise TypeError("Pipeline stage function cannot have **kwargs")
 
                 if p.name not in self._live_signal_shapes:
                     raise TypeError(
-                        f"Pipeline stage function {func} has parameter {p.name} "
-                        f"that is not a live signal in the pipeline"
+                        f"Pipeline stage function has parameter {p.name} " f"that is not a live signal in the pipeline"
                     )
 
                 i_layout_from_pipeline[p.name] = self._live_signal_shapes[p.name]
@@ -244,18 +245,18 @@ class PipelineBuilder(Elaboratable):
                 # check if the input layout matches the i_layout_from_pipeline
                 if i_layout.members != i_layout_from_pipeline:
                     raise TypeError(
-                        f"Pipeline stage function {func} has an input layout that does not match "
-                        f"the live signal shapes in the pipeline"
+                        "Pipeline stage function has an input layout that does not match "
+                        "the live signal shapes in the pipeline"
                     )
             else:
                 i_layout = from_method_layout(i_layout_from_pipeline.items())
 
             o_layout = from_method_layout(o)
 
-            method = Method(name=f"pipeline_stage_{len(self._nodes)}", i=i_layout, o=o_layout)
+            method = Method(name=f"pipeline_stage_{len(self._nodes)}", i=i_layout, o=o_layout, src_loc=src_loc)
             def_method(m, method)(func)
 
-            self.call_method(method, ready=ready, no_dependency=no_dependency)
+            self.call_method(method, ready=ready, no_dependency=no_dependency, src_loc=src_loc)
 
         return decorator
 
@@ -291,7 +292,8 @@ class PipelineBuilder(Elaboratable):
                 unused = gen.keys() - live.keys()
                 if unused:
                     raise ValueError(
-                        f"Pipeline node {i} generates fields {unused} " f"which are not used by any later node"
+                        f"Pipeline node {i} ({node.src_loc}) generates fields {unused} "
+                        "which are not used by any later node"
                     )
 
             for k in gen.keys():
@@ -378,16 +380,18 @@ class PipelineBuilder(Elaboratable):
 
         return m
 
-    def _add_node(self, node: _PipelineNodeProtocol, ready: ValueLike, no_dependency: bool) -> None:
+    def _add_node(self, node: _PipelineNodeProtocol, ready: ValueLike, no_dependency: bool, src_loc: SrcLoc) -> None:
         gen = node.get_generated_fields().members
         req = node.get_required_fields().members
 
         for k, v in req.items():
             if k not in self._live_signal_shapes:
-                raise ValueError(f"Signal {k} is required but not provided")
+                raise ValueError(f"Signal {k} from {src_loc} is required but not provided")
 
             if self._live_signal_shapes[k] != v:
-                raise ValueError(f"Signal {k} has incompatible shape: expected {v}, got {self._live_signal_shapes[k]}")
+                raise ValueError(
+                    f"Signal {k} from {src_loc} has incompatible shape: expected {v}, got {self._live_signal_shapes[k]}"
+                )
 
         if no_dependency and req:
             raise ValueError("No-dependency nodes cannot have required signals")
@@ -397,6 +401,8 @@ class PipelineBuilder(Elaboratable):
             forwarder = self._next_forwarder
             self._next_forwarder = None
 
-        self._nodes.append(self._NodeInfo(node=node, ready=ready, no_dependency=no_dependency, forwarder=forwarder))
+        self._nodes.append(
+            self._NodeInfo(node=node, src_loc=src_loc, ready=ready, no_dependency=no_dependency, forwarder=forwarder)
+        )
 
         self._live_signal_shapes.update(gen)
