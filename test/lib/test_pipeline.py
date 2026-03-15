@@ -4,11 +4,7 @@ from amaranth import *
 from transactron import Method, TModule, def_method
 from transactron.core.transaction import Transaction
 from transactron.lib.pipeline import PipelineBuilder
-from transactron.testing import (
-    SimpleTestCircuit,
-    TestbenchContext,
-    TestCaseWithSimulator,
-)
+from transactron.testing import SimpleTestCircuit, TestbenchContext, TestCaseWithSimulator
 
 # ---------------------------------------------------------------------------
 # Simple pipeline: write → (+1) → read
@@ -182,7 +178,9 @@ class FifoPipeline(Elaboratable):
         def _(data):
             return {"data": data + 1}
 
-        @p.stage(m, o=[("data", unsigned(8))], fifo_depth=4)
+        p.fifo(depth=4)
+
+        @p.stage(m, o=[("data", unsigned(8))])
         def _(data):
             return {"data": data + 2}
 

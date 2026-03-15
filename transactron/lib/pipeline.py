@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from inspect import Parameter, signature
 from typing import Optional, Protocol, final
 
+import amaranth.lib.fifo as fifo
 from amaranth import *
 from amaranth.lib.data import StructLayout
 from amaranth_types import ShapeLike, SrcLoc, ValueLike
@@ -95,28 +96,17 @@ class PipelineBuilder(Elaboratable):
     class _NodeInfo:
         node: _PipelineNodeProtocol
         ready: ValueLike
-
-        """
-        Forwarder factory to connect this node with the previous node.
-        """
-        forwarder: Callable[[MethodLayout], _ForwarderLike] = Pipe
-
-        no_dependency: bool = False
+        no_dependency: bool
+        forwarder: Callable[[MethodLayout], _ForwarderLike]
 
     def __init__(self, allow_unused: bool = False, allow_empty: bool = False):
         self._nodes: list[PipelineBuilder._NodeInfo] = []
         self.allow_unused: bool = allow_unused
         self.allow_empty: bool = allow_empty
         self._live_signal_shapes: dict[str, ShapeLike] = dict()
+        self._next_forwarder = None
 
-    def add_external(
-        self,
-        method: Method,
-        *,
-        ready: ValueLike = C(1),
-        fifo_depth: Optional[int] = None,
-        no_dependency: bool = False,
-    ) -> None:
+    def add_external(self, method: Method, *, ready: ValueLike = C(1), no_dependency: bool = False) -> None:
         """Add a node where the pipeline provides (defines the body of) a ``Method``.
 
         This can be used to define initial source signals, output sink signals,
@@ -135,11 +125,7 @@ class PipelineBuilder(Elaboratable):
         None
         """
         node = _ProvidedMethodNode(method)
-        info = self._NodeInfo(node, ready, no_dependency=no_dependency)
-        if fifo_depth is not None:
-            info.forwarder = lambda layout: FIFO(layout, fifo_depth)
-
-        self._add_node(info)
+        self._add_node(node, ready, no_dependency=no_dependency)
 
     def create_external(
         self,
@@ -147,7 +133,6 @@ class PipelineBuilder(Elaboratable):
         i: MethodLayout,
         o: MethodLayout,
         ready: ValueLike = C(1),
-        fifo_depth: Optional[int] = None,
         no_dependency: bool = False,
         name: Optional[str] = None,
         src_loc: int | SrcLoc = 0,
@@ -172,7 +157,7 @@ class PipelineBuilder(Elaboratable):
         """
         src_loc = get_src_loc(src_loc)
         method = Method(name=name, i=i, o=o, src_loc=src_loc)
-        self.add_external(method, ready=ready, fifo_depth=fifo_depth, no_dependency=no_dependency)
+        self.add_external(method, ready=ready, no_dependency=no_dependency)
         return method
 
     def call_method(
@@ -180,7 +165,6 @@ class PipelineBuilder(Elaboratable):
         method: Method,
         *,
         ready: ValueLike = C(1),
-        fifo_depth: Optional[int] = None,
         no_dependency: bool = False,
     ) -> None:
         """Add a node where the pipeline calls an existing ``Method``.
@@ -198,19 +182,13 @@ class PipelineBuilder(Elaboratable):
             the pipeline layout at the point where :meth:`finalize` is called.
         ready : ValueLike
             Additional combinational ready condition (default: always ready).
-        fifo_depth : int, optional
-            If given, inserts a FIFO of this depth *before* this node.
 
         Returns
         -------
         None
         """
         node = _CalledMethodNode(method)
-        info = self._NodeInfo(node, ready, no_dependency=no_dependency)
-        if fifo_depth is not None:
-            info.forwarder = lambda layout: FIFO(layout, fifo_depth)
-
-        self._add_node(info)
+        self._add_node(node, ready, no_dependency=no_dependency)
 
     def stage(
         self,
@@ -219,7 +197,6 @@ class PipelineBuilder(Elaboratable):
         *,
         i: Optional[MethodLayout] = None,
         ready: ValueLike = C(1),
-        fifo_depth: Optional[int] = None,
         no_dependency: bool = False,
     ) -> Callable:
         """Decorator that register a function as a pipeline
@@ -278,9 +255,15 @@ class PipelineBuilder(Elaboratable):
             method = Method(name=f"pipeline_stage_{len(self._nodes)}", i=i_layout, o=o_layout)
             def_method(m, method)(func)
 
-            self.call_method(method, ready=ready, fifo_depth=fifo_depth, no_dependency=no_dependency)
+            self.call_method(method, ready=ready, no_dependency=no_dependency)
 
         return decorator
+
+    def fifo(self, depth: int, fifo_type=fifo.SyncFIFO, *, src_loc: int | SrcLoc = 0):
+        src_loc = get_src_loc(src_loc)
+        if self._next_forwarder is not None:
+            raise RuntimeError("Fifo was added twice for the same stage")
+        self._next_forwarder = lambda layout: FIFO(layout, depth, fifo_type, src_loc=src_loc)
 
     def get_live_signals(self) -> list[dict[str, ShapeLike]]:
         """Get the live signals at each point in the pipeline, with their types.
@@ -395,16 +378,25 @@ class PipelineBuilder(Elaboratable):
 
         return m
 
-    def _add_node(self, node: _NodeInfo) -> None:
-        for k, v in node.node.get_required_fields().members.items():
+    def _add_node(self, node: _PipelineNodeProtocol, ready: ValueLike, no_dependency: bool) -> None:
+        gen = node.get_generated_fields().members
+        req = node.get_required_fields().members
+
+        for k, v in req.items():
             if k not in self._live_signal_shapes:
                 raise ValueError(f"Signal {k} is required but not provided")
 
             if self._live_signal_shapes[k] != v:
                 raise ValueError(f"Signal {k} has incompatible shape: expected {v}, got {self._live_signal_shapes[k]}")
 
-        if node.no_dependency and node.node.get_required_fields().members:
+        if no_dependency and req:
             raise ValueError("No-dependency nodes cannot have required signals")
 
-        self._nodes.append(node)
-        self._live_signal_shapes.update(node.node.get_generated_fields().members)
+        forwarder = Pipe
+        if self._next_forwarder is not None:
+            forwarder = self._next_forwarder
+            self._next_forwarder = None
+
+        self._nodes.append(self._NodeInfo(node=node, ready=ready, no_dependency=no_dependency, forwarder=forwarder))
+
+        self._live_signal_shapes.update(gen)
