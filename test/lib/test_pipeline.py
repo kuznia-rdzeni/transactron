@@ -75,7 +75,7 @@ class MultiStagePipeline(Elaboratable):
 
         @p.stage(m, o=[("data", unsigned(8))])
         def _(data):
-            return {"data": data + 2}
+            return {"data": data * 2}
 
         p.add_external(self.read)
 
@@ -93,7 +93,7 @@ class TestMultiStagePipeline(TestCaseWithSimulator):
         async def reader(sim: TestbenchContext):
             for i in range(16):
                 result = await m.read.call(sim)
-                assert result.data == (i + 3) % 256
+                assert result.data == (2 * i + 2) % 256
 
         with self.run_simulation(m) as sim:
             sim.add_testbench(writer)
@@ -178,7 +178,7 @@ class FifoPipeline(Elaboratable):
         def _(data):
             return {"data": data + 1}
 
-        p.fifo(depth=4)
+        p.fifo(depth=16)
 
         @p.stage(m, o=[("data", unsigned(8))])
         def _(data):
@@ -193,18 +193,17 @@ class TestFifoPipeline(TestCaseWithSimulator):
     def test_pipeline(self):
         m = SimpleTestCircuit(FifoPipeline())
 
-        async def writer(sim: TestbenchContext):
+        async def tester(sim: TestbenchContext):
+            # we should be able to hold at least 16 elements in the pipeline
             for i in range(16):
                 await m.write.call(sim, data=i)
 
-        async def reader(sim: TestbenchContext):
             for i in range(16):
                 result = await m.read.call(sim)
                 assert result.data == (i + 3) % 256
 
         with self.run_simulation(m) as sim:
-            sim.add_testbench(writer)
-            sim.add_testbench(reader)
+            sim.add_testbench(tester)
 
 
 # ---------------------------------------------------------------------------

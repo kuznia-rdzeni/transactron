@@ -12,7 +12,7 @@ from amaranth_types.types import HasElaborate
 from transactron.core import Method, TModule, def_method
 from transactron.lib.connectors import FIFO, ConnectTrans, Pipe
 from transactron.utils import MethodLayout, from_method_layout
-from transactron.utils.assign import AssignType, assign
+from transactron.utils.assign import AssignArg, AssignType, assign
 from transactron.utils.transactron_helpers import get_src_loc
 
 __all__ = ["PipelineBuilder"]
@@ -79,17 +79,7 @@ class PipelineBuilder(Elaboratable):
     """Helper class for building transactional pipelines.
 
     Each node in the pipeline can be a function stage, a provided-method node,
-    or a called-method node.  Call :meth:`finalize` after adding all nodes to
-    build the hardware.
-
-    Parameters
-    ----------
-    m : TModule
-        The module in which the pipeline is elaborated.
-
-    Examples
-    --------
-    See the module-level docstring for a complete example.
+    or a called-method node.
     """
 
     @dataclass
@@ -224,7 +214,7 @@ class PipelineBuilder(Elaboratable):
 
         src_loc = get_src_loc(src_loc)
 
-        def decorator(func: Callable) -> None:
+        def decorator(func: Callable[..., Optional[AssignArg]]) -> None:
             params = signature(func).parameters
             i_layout_from_pipeline: dict[str, ShapeLike] = dict()
             for p in params.values():
