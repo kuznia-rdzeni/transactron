@@ -155,7 +155,7 @@ class PipelineBuilder(Elaboratable):
         no_dependency : bool
             If ``True``, this node has no dependencies on prior pipeline state.
             The node will be decoupled from the pipeline. Such nodes cannot have required input signals.
-            For more information, see the :doc:`PipelineBuilder`.
+            For more information, see :class:`~transactron.lib.pipeline.PipelineBuilder`.
             Default: ``False``.
         src_loc : int | SrcLoc
             Source location for debugging. Default: ``0``.
@@ -229,7 +229,7 @@ class PipelineBuilder(Elaboratable):
         no_dependency : bool
             If ``True``, this node has no dependencies on prior pipeline state.
             The node will be decoupled from the pipeline. Such nodes cannot have required input signals.
-            For more information, see the :doc:`PipelineBuilder`.
+            For more information, see :class:`~transactron.lib.pipeline.PipelineBuilder`.
             Default: ``False``.
         src_loc : int | SrcLoc
             Source location for debugging. Default: ``0``.
