@@ -532,3 +532,82 @@ class TestTypeValidation(TestCaseWithSimulator):
         with pytest.raises(ValueError, match="required but not provided"):
             with self.run_simulation(SimpleTestCircuit(MissingFieldPipeline())):
                 pass
+
+
+# ---------------------------------------------------------------------------
+# Pipeline clear: flush internal state and call external clear hooks
+# ---------------------------------------------------------------------------
+
+
+class ClearPipeline(Elaboratable):
+    """Pipeline exposing clear and a counter for external clear hook calls."""
+
+    def __init__(self):
+        self.write = Method(i=[("data", unsigned(8))])
+        self.read = Method(o=[("data", unsigned(8))])
+        self.clear = Method()
+        self.clear_count = Signal(unsigned(8))
+
+    def elaborate(self, platform):
+        m = TModule()
+
+        external_clear = Method()
+
+        @def_method(m, external_clear)
+        def _():
+            m.d.sync += self.clear_count.eq(self.clear_count + 1)
+
+        m.submodules.pipeline = p = PipelineBuilder()
+        p.add_external(self.write)
+        p.fifo(depth=5)
+        p.add_external(self.read)
+        p.add_external_clear(external_clear)
+
+        self.clear.provide(p.clear)
+
+        return m
+
+
+class TestPipelineClear(TestCaseWithSimulator):
+    def test_clear_flushes_buffered_data(self):
+        m = SimpleTestCircuit(ClearPipeline())
+
+        async def tester(sim: TestbenchContext):
+            await m.write.call(sim, data=11)
+            await m.write.call(sim, data=22)
+
+            await m.clear.call(sim)
+            await sim.delay(1e-9)
+
+            assert await m.read.call_try(sim) is None
+
+            await m.write.call(sim, data=33)
+            result = await m.read.call(sim)
+            assert result.data == 33
+
+        with self.run_simulation(m) as sim:
+            sim.add_testbench(tester)
+
+    def test_clear_calls_external_clear_hooks(self):
+        m = SimpleTestCircuit(ClearPipeline())
+
+        async def tester(sim: TestbenchContext):
+            for i in range(5):
+                await m.write.call(sim, data=i)
+
+            for i in range(3):
+                result = await m.read.call(sim)
+                assert result.data == i
+
+            await m.clear.call(sim)
+            assert (await m.read.call_try(sim)) is None
+
+            for i in range(5, 10):
+                await m.write.call(sim, data=i)
+
+            for i in range(5, 10):
+                result = await m.read.call(sim)
+                assert result.data == i
+
+        with self.run_simulation(m) as sim:
+            sim.add_testbench(tester)

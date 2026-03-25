@@ -8,7 +8,7 @@ from amaranth.lib.data import StructLayout
 from amaranth_types import ShapeLike, SrcLoc, ValueLike
 from amaranth_types.types import HasElaborate
 
-from transactron.core import Method, TModule, def_method
+from transactron.core import Method, TModule, def_method, Provided
 from transactron.lib.connectors import ConnectTrans, Pipe
 from transactron.lib.fifo import BasicFifo
 from transactron.utils import MethodLayout, from_method_layout
@@ -32,9 +32,9 @@ class _PipelineNodeProtocol(Protocol):
 
 
 class _ForwarderLike(HasElaborate, Protocol):
-    read: Method
-    write: Method
-    clear: Method
+    read: Provided[Method]
+    write: Provided[Method]
+    clear: Provided[Method]
 
 
 @final
@@ -107,6 +107,8 @@ class PipelineBuilder(Elaboratable):
         the state back into the pipeline. Default: ``False``.
     """
 
+    clear: Provided[Method]
+
     @dataclass
     class _NodeInfo:
         node: _PipelineNodeProtocol
@@ -134,6 +136,9 @@ class PipelineBuilder(Elaboratable):
         self.allow_empty: bool = allow_empty
         self._live_signal_shapes: dict[str, ShapeLike] = dict()
         self._next_forwarder = None
+        self._clear_methods = []
+
+        self.clear = Method()
 
     def add_external(
         self,
@@ -373,12 +378,38 @@ class PipelineBuilder(Elaboratable):
         Raises
         ------
         RuntimeError
-            If FIFO is added twice for the same stage.
+            If fifo is added twice for the same stage.
         """
         src_loc = get_src_loc(src_loc)
         if self._next_forwarder is not None:
             raise RuntimeError("Fifo was added twice for the same stage")
         self._next_forwarder = lambda layout: BasicFifo(layout, depth, src_loc=src_loc)
+
+    def add_external_clear(self, method: Method) -> None:
+        """Add an external clear method that can be called to clear the pipeline state.
+
+        When pipeline interacts with external modules, for clear to actually work, all
+        those need to be cleared as well. This method allows you to add external clear
+        methods to the pipeline, so when `clear` is called on the pipeline, it also
+        calls those methods.
+
+        Parameters
+        ----------
+        method : Method
+            The clear method to add. It cannot have input or output fields.
+
+        Returns
+        -------
+        None
+
+        Raises
+        ------
+        ValueError
+            If the clear method has input or output fields.
+        """
+        if method.layout_in.members or method.layout_out.members:
+            raise ValueError("Clear methods cannot have input or output fields")
+        self._clear_methods.append(method)
 
     def get_live_signals(self) -> list[dict[str, ShapeLike]]:
         """Get the live signals at each point in the pipeline, with their types.
@@ -435,6 +466,8 @@ class PipelineBuilder(Elaboratable):
     def elaborate(self, platform) -> TModule:
         m = TModule()
 
+        clear_methods = self._clear_methods.copy()
+
         live_types = self.get_live_signals()
 
         read_methods: list[Optional[Method]] = [None] * len(self._nodes)
@@ -478,6 +511,8 @@ class PipelineBuilder(Elaboratable):
                 m.submodules[f"{i}_nodep"] = nodep = Pipe(stage_method.layout_in)
                 node.node.finalize(m, nodep.write)
                 m.submodules += ConnectTrans.create(nodep.read, stage_method)
+
+                clear_methods.append(nodep.clear)
             else:
                 node.node.finalize(m, stage_method)
 
@@ -491,6 +526,13 @@ class PipelineBuilder(Elaboratable):
             m.submodules[f"{i}_forwarder"] = fwd = node.forwarder(prev_write.layout_in)
             prev_write.provide(fwd.write)
             curr_read.provide(fwd.read)
+
+            clear_methods.append(fwd.clear)
+
+        @def_method(m, self.clear)
+        def _():
+            for clear_method in clear_methods:
+                _ = clear_method(m)
 
         return m
 
