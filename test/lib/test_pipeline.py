@@ -4,7 +4,11 @@ from amaranth import *
 from transactron import Method, TModule, def_method
 from transactron.core.transaction import Transaction
 from transactron.lib.pipeline import PipelineBuilder
-from transactron.testing import SimpleTestCircuit, TestbenchContext, TestCaseWithSimulator
+from transactron.testing import (
+    SimpleTestCircuit,
+    TestbenchContext,
+    TestCaseWithSimulator,
+)
 
 # ---------------------------------------------------------------------------
 # Simple pipeline: write → (+1) → read
