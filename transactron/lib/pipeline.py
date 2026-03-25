@@ -34,6 +34,7 @@ class _PipelineNodeProtocol(Protocol):
 class _ForwarderLike(HasElaborate, Protocol):
     read: Method
     write: Method
+    clear: Method
 
 
 @final
@@ -91,6 +92,8 @@ class PipelineBuilder(Elaboratable):
     also means that B cannot consume any signals from earlier stages (since they may not be ready
     when B is called), so use this option with care.
 
+    The happens-before relationships also apply across data instances: for any two elements
+    entering the pipeline in order, that order is preserved at every stage and at the output.
 
     Attributes
     ----------

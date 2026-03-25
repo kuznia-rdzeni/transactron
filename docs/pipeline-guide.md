@@ -33,6 +33,8 @@ Stages can consume any currently live signals they declare as inputs and add/ove
 
 ## Happens-Before Semantics
 
+The pipeline enforces ordering constraints between stages and the data orders they produce/consume.
+
 By default, pipeline stages are connected with strict happens-before relationships.
 If stage `A` is before stage `B`, then `A` must complete before `B` can start.
 
