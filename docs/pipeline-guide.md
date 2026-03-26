@@ -57,7 +57,6 @@ What it does:
 
 Important constraint:
 - a `no_dependency` node cannot require any input signals from earlier stages.
-- in practice, such a node must have an empty required/input set.
 
 Use it sparingly and only when you intentionally want to break strict happens-before constraints.
 
