@@ -1,9 +1,11 @@
 from collections.abc import Iterable
+from typing import Protocol
 from amaranth import *
 from amaranth.lib.data import View
 import amaranth.lib.fifo
 
 from transactron.utils.transactron_helpers import from_method_layout
+from amaranth_types.types import HasElaborate
 from ..core import *
 from ..utils import SrcLoc, get_src_loc, MethodLayout
 
@@ -14,6 +16,8 @@ __all__ = [
     "ConnectTrans",
     "CrossbarConnectTrans",
     "Pipe",
+    "Connector",
+    "ClearableConnector",
 ]
 
 
@@ -438,3 +442,52 @@ class CrossbarConnectTrans(Elaboratable):
                 m.submodules[f"connect_{i}_{j}"] = ConnectTrans.create(method1, method2, src_loc=self.src_loc)
 
         return m
+
+
+class Connector(HasElaborate, Protocol):
+    """Module used for connecting two methods.
+
+    Additional requirements:
+    - read and peek must have the same output layout as write's input layout
+    - read and peek's input layout and write's output layout be empty
+    - peek and read methods must not be in conflict
+
+    Attributes
+    ----------
+    read: Method
+        The read method. Accepts an empty argument, returns a structure.
+    peek: Method, nonexclusive
+        Like `read`, but doesn't take the value from the connector.
+    write: Method
+        The write method. Accepts a structure, returns empty result.
+    """
+
+    read: Method
+    peek: Method
+    write: Method
+
+
+class ClearableConnector(Connector, Protocol):
+    """Connector with a clear support.
+
+    Other than requirements of `Connector`, also requires a `clear` method.
+
+    The `clear` method must be in conflict with all other methods of the connector, and have priority over them.
+    Furthermore `clear` must:
+    - have an empty input and output layout
+    - actually clear the connector, i.e. no value from before or the same cycle as the `clear`
+        should be ever returned by `read` or `peek`.
+
+    Attributes
+    ----------
+    read: Method
+        The read method. Accepts an empty argument, returns a structure.
+    peek: Method, nonexclusive
+        Like `read`, but doesn't take the value from the connector.
+    write: Method
+        The write method. Accepts a structure, returns empty result.
+    clear: Method
+        The clear method. Accepts an empty argument, returns empty result.
+    """
+
+    clear: Method

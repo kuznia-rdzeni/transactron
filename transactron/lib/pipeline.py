@@ -6,10 +6,9 @@ from typing import Optional, Protocol, final
 from amaranth import *
 from amaranth.lib.data import StructLayout
 from amaranth_types import ShapeLike, SrcLoc, ValueLike
-from amaranth_types.types import HasElaborate
 
 from transactron.core import Method, TModule, def_method, Provided
-from transactron.lib.connectors import ConnectTrans, Pipe
+from transactron.lib.connectors import ConnectTrans, Pipe, ClearableConnector
 from transactron.lib.fifo import BasicFifo
 from transactron.utils import MethodLayout, from_method_layout
 from transactron.utils.assign import AssignArg, AssignType, assign
@@ -29,12 +28,6 @@ class _PipelineNodeProtocol(Protocol):
     def get_generated_fields(self) -> StructLayout: ...
 
     def finalize(self, m: TModule, method: Method) -> None: ...
-
-
-class _ForwarderLike(HasElaborate, Protocol):
-    read: Provided[Method]
-    write: Provided[Method]
-    clear: Provided[Method]
 
 
 @final
@@ -115,7 +108,7 @@ class PipelineBuilder(Elaboratable):
         src_loc: SrcLoc
         ready: ValueLike
         no_dependency: bool
-        forwarder: Callable[[MethodLayout], _ForwarderLike]
+        forwarder: Callable[[MethodLayout], ClearableConnector]
 
     def __init__(self, allow_unused: bool = False, allow_empty: bool = False):
         """Initialize a new pipeline builder.
@@ -383,7 +376,11 @@ class PipelineBuilder(Elaboratable):
         src_loc = get_src_loc(src_loc)
         if self._next_forwarder is not None:
             raise RuntimeError("Fifo was added twice for the same stage")
-        self._next_forwarder = lambda layout: BasicFifo(layout, depth, src_loc=src_loc)
+
+        def fifo_forwarder(layout: MethodLayout) -> ClearableConnector:
+            return BasicFifo(layout, depth, src_loc=src_loc)
+
+        self._next_forwarder = fifo_forwarder
 
     def add_external_clear(self, method: Method) -> None:
         """Add an external clear method that can be called to clear the pipeline state.
@@ -558,10 +555,11 @@ class PipelineBuilder(Elaboratable):
                     f"Signal {k} from {src_loc} has incompatible shape: expected {v}, got {self._live_signal_shapes[k]}"
                 )
 
-        forwarder = Pipe
-        if self._next_forwarder is not None:
-            forwarder = self._next_forwarder
-            self._next_forwarder = None
+        def pipe_forwarder(layout: MethodLayout) -> ClearableConnector:
+            return Pipe(layout, src_loc=src_loc)
+
+        forwarder = self._next_forwarder or pipe_forwarder
+        self._next_forwarder = None
 
         self._nodes.append(
             self._NodeInfo(
