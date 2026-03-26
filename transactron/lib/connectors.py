@@ -476,7 +476,7 @@ class ClearableConnector(Connector, Protocol):
     Furthermore `clear` must:
     - have an empty input and output layout
     - actually clear the connector, i.e. no value from before or the same cycle as the `clear`
-        should be ever returned by `read` or `peek`.
+    should be ever returned by `read` or `peek`.
 
     Attributes
     ----------
