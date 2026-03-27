@@ -146,7 +146,7 @@ class Method(TransactionBase["Transaction | Method"]):
             raise ValueError(
                 textwrap.dedent(
                     f"""\
-                    Method {value.name} defined at {value.src_loc} has different interface than {self.name}
+                    Method {value.name} at {value.src_loc} has different interface than {self.name} at {self.src_loc}
                     {value.name} input: {value.data_in.shape()}
                     {value.name} output: {value.data_out.shape()}
                     {self.name} input: {self.layout_in}
