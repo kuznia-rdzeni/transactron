@@ -1,5 +1,6 @@
 from collections.abc import Iterable, Sequence
 import enum
+import textwrap
 
 from transactron.utils import *
 from amaranth import *
@@ -142,7 +143,17 @@ class Method(TransactionBase["Transaction | Method"]):
         if self._body_ptr is not None:
             raise RuntimeError(f"Method '{self.name}' already defined")
         if value.data_in.shape() != self.layout_in or value.data_out.shape() != self.layout_out:
-            raise ValueError(f"Method {value.name} has different interface than {self.name}")
+            raise ValueError(
+                textwrap.dedent(
+                    f"""\
+                    Method {value.name} at {value.src_loc} has different interface than {self.name} at {self.src_loc}
+                    {value.name} input: {value.data_in.shape()}
+                    {value.name} output: {value.data_out.shape()}
+                    {self.name} input: {self.layout_in}
+                    {self.name} output: {self.layout_out}
+                    """
+                )
+            )
         self._body_ptr = value
 
     def provide(self, method: "Method"):
