@@ -48,6 +48,7 @@
               <ul>
 <li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="transactions.html">Documentation for Transactron</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pipeline-guide.html">Pipeline Builder</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api.html">API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="development-environment.html">Development environment</a></li>
 </ul>
@@ -466,6 +467,38 @@ data layout <cite>layout</cite> passed to <cite>__init__</cite>. Returns an empt
 <section id="module-transactron.lib.connectors">
 <span id="transactron-lib-connectors-module"></span><h2>transactron.lib.connectors module<a class="headerlink" href="#module-transactron.lib.connectors" title="Link to this heading"></a></h2>
 <dl class="py class">
+<dt class="sig sig-object py" id="transactron.lib.connectors.ClearableConnector">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">transactron.lib.connectors.</span></span><span class="sig-name descname"><span class="pre">ClearableConnector</span></span><a class="headerlink" href="#transactron.lib.connectors.ClearableConnector" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#transactron.lib.connectors.Connector" title="transactron.lib.connectors.Connector"><code class="xref py py-class docutils literal notranslate"><span class="pre">Connector</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Protocol" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Protocol</span></code></a></p>
+<p>Connector with a clear support.</p>
+<p>Other than requirements of <cite>Connector</cite>, also requires a <cite>clear</cite> method.</p>
+<p>The <cite>clear</cite> method must be in conflict with all other methods of the connector, and have priority over them.
+Furthermore <cite>clear</cite> must:
+- have an empty input and output layout
+- actually clear the connector, i.e. no value from before or the same cycle as the <cite>clear</cite>
+should be ever returned by <cite>read</cite> or <cite>peek</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Attributes<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>read: Method</strong></dt><dd><p>The read method. Accepts an empty argument, returns a structure.</p>
+</dd>
+<dt><strong>peek: Method, nonexclusive</strong></dt><dd><p>Like <cite>read</cite>, but doesn’t take the value from the connector.</p>
+</dd>
+<dt><strong>write: Method</strong></dt><dd><p>The write method. Accepts a structure, returns empty result.</p>
+</dd>
+<dt><strong>clear: Method</strong></dt><dd><p>The clear method. Accepts an empty argument, returns empty result.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="transactron.lib.connectors.ClearableConnector.clear">
+<span class="sig-name descname"><span class="pre">clear</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="transactron.core.html#transactron.core.method.Method" title="transactron.core.method.Method"><span class="pre">Method</span></a></em><a class="headerlink" href="#transactron.lib.connectors.ClearableConnector.clear" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="transactron.lib.connectors.Connect">
 <em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">transactron.lib.connectors.</span></span><span class="sig-name descname"><span class="pre">Connect</span></span><a class="headerlink" href="#transactron.lib.connectors.Connect" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Elaboratable</span></code></p>
@@ -563,6 +596,44 @@ Alternatively, the source location to use instead of the default.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="transactron.lib.connectors.ConnectTrans.method2">
 <span class="sig-name descname"><span class="pre">method2</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">REQUIRED:</span> <span class="pre">2&gt;]</span></em><a class="headerlink" href="#transactron.lib.connectors.ConnectTrans.method2" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="transactron.lib.connectors.Connector">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">transactron.lib.connectors.</span></span><span class="sig-name descname"><span class="pre">Connector</span></span><a class="headerlink" href="#transactron.lib.connectors.Connector" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">HasElaborate</span></code>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Protocol" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Protocol</span></code></a></p>
+<p>Module used for connecting two methods.</p>
+<p>Additional requirements:
+- read and peek must have the same output layout as write’s input layout
+- read and peek’s input layout and write’s output layout be empty
+- peek and read methods must not be in conflict</p>
+<dl class="field-list simple">
+<dt class="field-odd">Attributes<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>read: Method</strong></dt><dd><p>The read method. Accepts an empty argument, returns a structure.</p>
+</dd>
+<dt><strong>peek: Method, nonexclusive</strong></dt><dd><p>Like <cite>read</cite>, but doesn’t take the value from the connector.</p>
+</dd>
+<dt><strong>write: Method</strong></dt><dd><p>The write method. Accepts a structure, returns empty result.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="transactron.lib.connectors.Connector.peek">
+<span class="sig-name descname"><span class="pre">peek</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="transactron.core.html#transactron.core.method.Method" title="transactron.core.method.Method"><span class="pre">Method</span></a></em><a class="headerlink" href="#transactron.lib.connectors.Connector.peek" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="transactron.lib.connectors.Connector.read">
+<span class="sig-name descname"><span class="pre">read</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="transactron.core.html#transactron.core.method.Method" title="transactron.core.method.Method"><span class="pre">Method</span></a></em><a class="headerlink" href="#transactron.lib.connectors.Connector.read" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="transactron.lib.connectors.Connector.write">
+<span class="sig-name descname"><span class="pre">write</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="transactron.core.html#transactron.core.method.Method" title="transactron.core.method.Method"><span class="pre">Method</span></a></em><a class="headerlink" href="#transactron.lib.connectors.Connector.write" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -2040,6 +2111,271 @@ started events in the queue, the method will block.</p>
 </dd></dl>
 
 </section>
+<section id="module-transactron.lib.pipeline">
+<span id="transactron-lib-pipeline-module"></span><h2>transactron.lib.pipeline module<a class="headerlink" href="#module-transactron.lib.pipeline" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="transactron.lib.pipeline.PipelineBuilder">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">transactron.lib.pipeline.</span></span><span class="sig-name descname"><span class="pre">PipelineBuilder</span></span><a class="headerlink" href="#transactron.lib.pipeline.PipelineBuilder" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Elaboratable</span></code></p>
+<p>Helper class for building transactional pipelines.</p>
+<p>Each node in the pipeline can be a function stage, a provided-method node,
+or a called-method node.</p>
+<p>By default all stages have strict happens-before relationships (if stage A is
+before stage B, then A must complete before B can start). Please note that this
+means that if stage A cannot complete if B is not ready (happens when e.g A and B
+are provided and the external module calls both in the same transaction), than A
+and B are in a deadlock. To break the strict happens-before and allow B to be called
+before the data from earlier stages is provided, you can set no_dependency=True for stage B.
+This allows B to be called once before data arrives and prevents the deadlock. However, it
+also means that B cannot consume any signals from earlier stages (since they may not be ready
+when B is called), so use this option with care.</p>
+<p>The happens-before relationships also apply across data instances: for any two elements
+entering the pipeline in order, that order is preserved at every stage and at the output.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Attributes<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>allow_unused</strong><span class="classifier">bool</span></dt><dd><p>If <code class="docutils literal notranslate"><span class="pre">True</span></code>, allows pipeline stages to generate output fields that are not
+consumed by any later stage. Default: <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p>
+</dd>
+<dt><strong>allow_empty</strong><span class="classifier">bool</span></dt><dd><p>If <code class="docutils literal notranslate"><span class="pre">True</span></code>, allows points in the pipeline where no signals are “live”
+(all previous outputs have been consumed). Useful when there are stages
+that fully consume the state and handle it externally and later restore
+the state back into the pipeline. Default: <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.lib.pipeline.PipelineBuilder.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">allow_unused</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allow_empty</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.lib.pipeline.PipelineBuilder.__init__" title="Link to this definition"></a></dt>
+<dd><p>Initialize a new pipeline builder.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>allow_unused</strong><span class="classifier">bool</span></dt><dd><p>If <code class="docutils literal notranslate"><span class="pre">True</span></code>, allows pipeline stages to generate output fields that are not
+consumed by any later stage. Default: <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p>
+</dd>
+<dt><strong>allow_empty</strong><span class="classifier">bool</span></dt><dd><p>If <code class="docutils literal notranslate"><span class="pre">True</span></code>, allows points in the pipeline where no signals are “live”
+(all previous outputs have been consumed). Useful when there are stages
+that fully consume the state and handle it externally and later restore
+the state back into the pipeline. Default: <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.lib.pipeline.PipelineBuilder.add_external">
+<span class="sig-name descname"><span class="pre">add_external</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">method:</span> <span class="pre">~transactron.core.method.Method</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ready:</span> <span class="pre">~amaranth.hdl._ast.Value</span> <span class="pre">|</span> <span class="pre">int</span> <span class="pre">|</span> <span class="pre">~enum.Enum</span> <span class="pre">|</span> <span class="pre">~amaranth.hdl._ast.ValueCastable</span> <span class="pre">=</span> <span class="pre">(const</span> <span class="pre">1'd1)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">no_dependency:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src_loc:</span> <span class="pre">int</span> <span class="pre">|</span> <span class="pre">tuple[str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">int]</span> <span class="pre">=</span> <span class="pre">0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#transactron.lib.pipeline.PipelineBuilder.add_external" title="Link to this definition"></a></dt>
+<dd><p>Add a node where the pipeline provides (defines the body of) a <code class="docutils literal notranslate"><span class="pre">Method</span></code>.</p>
+<p>This can be used to define initial source signals, output sink signals,
+or interact with submodules in the middle of the pipeline (e.g. send
+a request to a submodule and later receive the response back into the pipeline).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>method</strong><span class="classifier">Method</span></dt><dd><p>The <code class="docutils literal notranslate"><span class="pre">Method</span></code> whose body the pipeline will define.</p>
+</dd>
+<dt><strong>ready</strong><span class="classifier">ValueLike</span></dt><dd><p>Additional combinational ready condition (default: always ready).</p>
+</dd>
+<dt><strong>no_dependency</strong><span class="classifier">bool</span></dt><dd><p>If <code class="docutils literal notranslate"><span class="pre">True</span></code>, this node has no dependencies on prior pipeline state.
+The node will be decoupled from the pipeline. Such nodes cannot have required input signals.
+For more information, see <a class="reference internal" href="#transactron.lib.pipeline.PipelineBuilder" title="transactron.lib.pipeline.PipelineBuilder"><code class="xref py py-class docutils literal notranslate"><span class="pre">PipelineBuilder</span></code></a>.
+Default: <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p>
+</dd>
+<dt><strong>src_loc</strong><span class="classifier">int | SrcLoc</span></dt><dd><p>Source location for debugging. Default: <code class="docutils literal notranslate"><span class="pre">0</span></code>.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>None</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.lib.pipeline.PipelineBuilder.add_external_clear">
+<span class="sig-name descname"><span class="pre">add_external_clear</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="transactron.core.html#transactron.core.method.Method" title="transactron.core.method.Method"><span class="pre">Method</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#transactron.lib.pipeline.PipelineBuilder.add_external_clear" title="Link to this definition"></a></dt>
+<dd><p>Add an external clear method that can be called to clear the pipeline state.</p>
+<p>When pipeline interacts with external modules, for clear to actually work, all
+those need to be cleared as well. This method allows you to add external clear
+methods to the pipeline, so when <cite>clear</cite> is called on the pipeline, it also
+calls those methods.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>method</strong><span class="classifier">Method</span></dt><dd><p>The clear method to add. It cannot have input or output fields.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>None</dt><dd></dd>
+</dl>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt>ValueError</dt><dd><p>If the clear method has input or output fields.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.lib.pipeline.PipelineBuilder.call_method">
+<span class="sig-name descname"><span class="pre">call_method</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">method:</span> <span class="pre">~transactron.core.method.Method</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ready:</span> <span class="pre">~amaranth.hdl._ast.Value</span> <span class="pre">|</span> <span class="pre">int</span> <span class="pre">|</span> <span class="pre">~enum.Enum</span> <span class="pre">|</span> <span class="pre">~amaranth.hdl._ast.ValueCastable</span> <span class="pre">=</span> <span class="pre">(const</span> <span class="pre">1'd1)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">no_dependency:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src_loc:</span> <span class="pre">int</span> <span class="pre">|</span> <span class="pre">tuple[str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">int]</span> <span class="pre">=</span> <span class="pre">0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#transactron.lib.pipeline.PipelineBuilder.call_method" title="Link to this definition"></a></dt>
+<dd><p>Add a node where the pipeline calls an existing <code class="docutils literal notranslate"><span class="pre">Method</span></code>.</p>
+<p>The method’s input fields are taken by name from the current pipeline
+layout. The method’s output fields are merged into the pipeline layout.</p>
+<p>Similar to <a class="reference internal" href="#transactron.lib.pipeline.PipelineBuilder.add_external" title="transactron.lib.pipeline.PipelineBuilder.add_external"><code class="xref py py-meth docutils literal notranslate"><span class="pre">add_external()</span></code></a>, but of reversed polarity: the pipeline
+is a caller of the method rather than its provider.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>method</strong><span class="classifier">Method</span></dt><dd><p>The <code class="docutils literal notranslate"><span class="pre">Method</span></code> to call.  All of its input fields must be present in
+the pipeline layout at the point where <code class="xref py py-meth docutils literal notranslate"><span class="pre">finalize()</span></code> is called.</p>
+</dd>
+<dt><strong>ready</strong><span class="classifier">ValueLike</span></dt><dd><p>Additional combinational ready condition (default: always ready).</p>
+</dd>
+<dt><strong>no_dependency</strong><span class="classifier">bool</span></dt><dd><p>If <code class="docutils literal notranslate"><span class="pre">True</span></code>, this node has no dependencies on prior pipeline state.
+The node will be decoupled from the pipeline. Such nodes cannot have required input signals.
+For more information, see <a class="reference internal" href="#transactron.lib.pipeline.PipelineBuilder" title="transactron.lib.pipeline.PipelineBuilder"><code class="xref py py-class docutils literal notranslate"><span class="pre">PipelineBuilder</span></code></a>.
+Default: <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p>
+</dd>
+<dt><strong>src_loc</strong><span class="classifier">int | SrcLoc</span></dt><dd><p>Source location for debugging. Default: <code class="docutils literal notranslate"><span class="pre">0</span></code>.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>None</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="transactron.lib.pipeline.PipelineBuilder.clear">
+<span class="sig-name descname"><span class="pre">clear</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">PROVIDED:</span> <span class="pre">1&gt;]</span></em><a class="headerlink" href="#transactron.lib.pipeline.PipelineBuilder.clear" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.lib.pipeline.PipelineBuilder.create_external">
+<span class="sig-name descname"><span class="pre">create_external</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">i</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/v0.5.4/stdlib/data.html#amaranth.lib.data.StructLayout" title="(in Amaranth language &amp; toolchain v0.5.4)"><span class="pre">StructLayout</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterable" title="(in Python v3.14)"><span class="pre">Iterable</span></a><span class="p"><span class="pre">[</span></span><span class="pre">LayoutListField</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">o</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/v0.5.4/stdlib/data.html#amaranth.lib.data.StructLayout" title="(in Amaranth language &amp; toolchain v0.5.4)"><span class="pre">StructLayout</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterable" title="(in Python v3.14)"><span class="pre">Iterable</span></a><span class="p"><span class="pre">[</span></span><span class="pre">LayoutListField</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src_loc</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="transactron.core.html#transactron.core.method.Method" title="transactron.core.method.Method"><span class="pre">Method</span></a></span></span><a class="headerlink" href="#transactron.lib.pipeline.PipelineBuilder.create_external" title="Link to this definition"></a></dt>
+<dd><p>Create a new Method and add a node where the pipeline provides (defines the body of) that Method.</p>
+<p>This is a convenience wrapper around <a class="reference internal" href="#transactron.lib.pipeline.PipelineBuilder.add_external" title="transactron.lib.pipeline.PipelineBuilder.add_external"><code class="xref py py-meth docutils literal notranslate"><span class="pre">add_external()</span></code></a> that creates a new Method for you.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>i</strong><span class="classifier">MethodLayout</span></dt><dd><p>The input layout of the created Method.</p>
+</dd>
+<dt><strong>o</strong><span class="classifier">MethodLayout</span></dt><dd><p>The output layout of the created Method.</p>
+</dd>
+<dt><strong>name</strong><span class="classifier">Optional[str]</span></dt><dd><p>Optional name for the created Method. Default: <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
+</dd>
+<dt><strong>src_loc</strong><span class="classifier">int | SrcLoc</span></dt><dd><p>Source location for debugging. Default: <code class="docutils literal notranslate"><span class="pre">0</span></code>.</p>
+</dd>
+<dt><strong>**kwargs</strong></dt><dd><p>Additional keyword arguments are passed to the :ref:add_external node.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>Method</dt><dd><p>The created Method.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.lib.pipeline.PipelineBuilder.fifo">
+<span class="sig-name descname"><span class="pre">fifo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">depth</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">src_loc</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.lib.pipeline.PipelineBuilder.fifo" title="Link to this definition"></a></dt>
+<dd><p>Insert a FIFO buffer after the current pipeline stage.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>depth</strong><span class="classifier">int</span></dt><dd><p>The number of elements the FIFO can buffer.</p>
+</dd>
+<dt><strong>src_loc</strong><span class="classifier">int | SrcLoc</span></dt><dd><p>Source location for debugging. Default: <code class="docutils literal notranslate"><span class="pre">0</span></code>.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>None</dt><dd></dd>
+</dl>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt>RuntimeError</dt><dd><p>If fifo is added twice for the same stage.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.lib.pipeline.PipelineBuilder.get_live_signals">
+<span class="sig-name descname"><span class="pre">get_live_signals</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/v0.5.4/reference.html#amaranth.hdl.Shape" title="(in Amaranth language &amp; toolchain v0.5.4)"><span class="pre">Shape</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#range" title="(in Python v3.14)"><span class="pre">range</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.14)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/enum.html#enum.Enum" title="(in Python v3.14)"><span class="pre">Enum</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/v0.5.4/reference.html#amaranth.hdl.ShapeCastable" title="(in Amaranth language &amp; toolchain v0.5.4)"><span class="pre">ShapeCastable</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#transactron.lib.pipeline.PipelineBuilder.get_live_signals" title="Link to this definition"></a></dt>
+<dd><p>Get the live signals at each point in the pipeline, with their types.</p>
+<p>This can be used to inspect the pipeline layout before finalization.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt>list[dict[str, ShapeLike]]</dt><dd><p>A list of live variable dicts, one per node.  Each dict maps field names to their types.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.lib.pipeline.PipelineBuilder.stage">
+<span class="sig-name descname"><span class="pre">stage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">m</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="transactron.core.html#transactron.core.tmodule.TModule" title="transactron.core.tmodule.TModule"><span class="pre">TModule</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">o</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/v0.5.4/stdlib/data.html#amaranth.lib.data.StructLayout" title="(in Amaranth language &amp; toolchain v0.5.4)"><span class="pre">StructLayout</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterable" title="(in Python v3.14)"><span class="pre">Iterable</span></a><span class="p"><span class="pre">[</span></span><span class="pre">LayoutListField</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">i</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/v0.5.4/stdlib/data.html#amaranth.lib.data.StructLayout" title="(in Amaranth language &amp; toolchain v0.5.4)"><span class="pre">StructLayout</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterable" title="(in Python v3.14)"><span class="pre">Iterable</span></a><span class="p"><span class="pre">[</span></span><span class="pre">LayoutListField</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src_loc</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable" title="(in Python v3.14)"><span class="pre">Callable</span></a></span></span><a class="headerlink" href="#transactron.lib.pipeline.PipelineBuilder.stage" title="Link to this definition"></a></dt>
+<dd><p>Decorator that registers a function-based pipeline stage.</p>
+<p>This decorator transforms a function into a transactional stage that can be
+added to the pipeline. The decorated function is called inside a transaction
+body and receives pipeline signals as keyword arguments (or as a single <code class="docutils literal notranslate"><span class="pre">arg</span></code>
+struct) and must return a <code class="docutils literal notranslate"><span class="pre">dict</span></code> mapping output field names to Amaranth values,
+or <code class="docutils literal notranslate"><span class="pre">None</span></code> when it produces no new fields.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>m</strong><span class="classifier">TModule</span></dt><dd><p>The module to which the stage method will be added.</p>
+</dd>
+<dt><strong>o</strong><span class="classifier">MethodLayout</span></dt><dd><p>Layout of the fields <em>produced</em> (or overwritten) by this stage.
+Default: no fields produced.</p>
+</dd>
+<dt><strong>i</strong><span class="classifier">Optional[MethodLayout]</span></dt><dd><p>Layout of the fields <em>consumed</em> by this stage. If <code class="docutils literal notranslate"><span class="pre">None</span></code> (default),
+the input layout is automatically inferred from the decorated function’s
+parameters by matching them to live pipeline signals.</p>
+</dd>
+<dt><strong>name</strong><span class="classifier">Optional[str]</span></dt><dd><p>Optional name for the stage method. Default: <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
+</dd>
+<dt><strong>src_loc</strong><span class="classifier">int | SrcLoc</span></dt><dd><p>Source location for debugging. Default: <code class="docutils literal notranslate"><span class="pre">0</span></code>.</p>
+</dd>
+<dt><strong>**kwargs</strong></dt><dd><p>Additional keyword arguments are passed to <a class="reference internal" href="#transactron.lib.pipeline.PipelineBuilder.call_method" title="transactron.lib.pipeline.PipelineBuilder.call_method"><code class="xref py py-meth docutils literal notranslate"><span class="pre">call_method()</span></code></a> when the stage is registered.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>Callable</dt><dd><p>A decorator that wraps the stage function and registers it with the pipeline.
+The decorator can be further modified by <a class="reference internal" href="#transactron.lib.pipeline.PipelineBuilder.fifo" title="transactron.lib.pipeline.PipelineBuilder.fifo"><code class="xref py py-meth docutils literal notranslate"><span class="pre">fifo()</span></code></a> before registration.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
 <section id="module-transactron.lib.reqres">
 <span id="transactron-lib-reqres-module"></span><h2>transactron.lib.reqres module<a class="headerlink" href="#module-transactron.lib.reqres" title="Link to this heading"></a></h2>
 <dl class="py class">
@@ -2994,7 +3330,7 @@ Alternatively, the source location to use instead of the default.</p>
 
   <div role="contentinfo">
     <p>&#169; Copyright Kuźnia Rdzeni, 2026.
-      <span class="lastupdated">Last updated on 13:52 2026-03-28.
+      <span class="lastupdated">Last updated on 08:11 2026-03-29.
       </span></p>
   </div>
 

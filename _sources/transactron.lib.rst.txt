@@ -68,6 +68,14 @@ transactron.lib.metrics module
    :show-inheritance:
    :undoc-members:
 
+transactron.lib.pipeline module
+-------------------------------
+
+.. automodule:: transactron.lib.pipeline
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 transactron.lib.reqres module
 -----------------------------
 

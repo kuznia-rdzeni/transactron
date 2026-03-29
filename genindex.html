@@ -45,6 +45,7 @@
               <ul>
 <li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="transactions.html">Documentation for Transactron</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pipeline-guide.html">Pipeline Builder</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api.html">API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="development-environment.html">Development environment</a></li>
 </ul>
@@ -197,6 +198,8 @@
 </li>
         <li><a href="transactron.lib.html#transactron.lib.metrics.WideFIFOLatencyMeasurer.__init__">(transactron.lib.metrics.WideFIFOLatencyMeasurer method)</a>
 </li>
+        <li><a href="transactron.lib.html#transactron.lib.pipeline.PipelineBuilder.__init__">(transactron.lib.pipeline.PipelineBuilder method)</a>
+</li>
         <li><a href="transactron.lib.html#transactron.lib.reqres.ArgumentsToResultsZipper.__init__">(transactron.lib.reqres.ArgumentsToResultsZipper method)</a>
 </li>
         <li><a href="transactron.lib.html#transactron.lib.reqres.Serializer.__init__">(transactron.lib.reqres.Serializer method)</a>
@@ -336,16 +339,20 @@
         <li><a href="transactron.utils.html#transactron.utils.dependencies.DependencyManager.add_dependency">(transactron.utils.dependencies.DependencyManager method)</a>
 </li>
       </ul></li>
+      <li><a href="transactron.lib.html#transactron.lib.pipeline.PipelineBuilder.add_external">add_external() (transactron.lib.pipeline.PipelineBuilder method)</a>
+</li>
+      <li><a href="transactron.lib.html#transactron.lib.pipeline.PipelineBuilder.add_external_clear">add_external_clear() (transactron.lib.pipeline.PipelineBuilder method)</a>
+</li>
       <li><a href="transactron.testing.html#transactron.testing.infrastructure.TestCaseWithSimulator.add_mock">add_mock() (transactron.testing.infrastructure.TestCaseWithSimulator method)</a>
 </li>
       <li><a href="transactron.lib.html#transactron.lib.metrics.HwMetric.add_registers">add_registers() (transactron.lib.metrics.HwMetric method)</a>
 </li>
       <li><a href="transactron.utils.html#transactron.utils.data_repr.align_down_to_power_of_two">align_down_to_power_of_two() (in module transactron.utils.data_repr)</a>
 </li>
-      <li><a href="transactron.utils.html#transactron.utils.data_repr.align_to_power_of_two">align_to_power_of_two() (in module transactron.utils.data_repr)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="transactron.utils.html#transactron.utils.data_repr.align_to_power_of_two">align_to_power_of_two() (in module transactron.utils.data_repr)</a>
+</li>
       <li><a href="transactron.utils.html#transactron.utils.assign.AssignType.ALL">ALL (transactron.utils.assign.AssignType attribute)</a>
 </li>
       <li><a href="transactron.html#transactron.profiler.Profile.analyze_methods">analyze_methods() (transactron.profiler.Profile method)</a>
@@ -420,6 +427,8 @@
 </li>
       <li><a href="transactron.testing.html#transactron.testing.testbenchio.TestbenchIO.call_init">call_init() (transactron.testing.testbenchio.TestbenchIO method)</a>
 </li>
+      <li><a href="transactron.lib.html#transactron.lib.pipeline.PipelineBuilder.call_method">call_method() (transactron.lib.pipeline.PipelineBuilder method)</a>
+</li>
       <li><a href="transactron.testing.html#transactron.testing.testbenchio.TestbenchIO.call_result">call_result() (transactron.testing.testbenchio.TestbenchIO method)</a>
 </li>
       <li><a href="transactron.testing.html#transactron.testing.testbenchio.TestbenchIO.call_try">call_try() (transactron.testing.testbenchio.TestbenchIO method)</a>
@@ -432,12 +441,18 @@
 </li>
       <li><a href="transactron.utils.amaranth_ext.html#transactron.utils.amaranth_ext.component_interface.CIn">CIn (class in transactron.utils.amaranth_ext.component_interface)</a>
 </li>
-      <li><a href="transactron.lib.html#transactron.lib.fifo.BasicFifo.clear">clear (transactron.lib.fifo.BasicFifo attribute)</a>
+      <li><a href="transactron.lib.html#transactron.lib.connectors.ClearableConnector.clear">clear (transactron.lib.connectors.ClearableConnector attribute)</a>
 
       <ul>
+        <li><a href="transactron.lib.html#transactron.lib.fifo.BasicFifo.clear">(transactron.lib.fifo.BasicFifo attribute)</a>
+</li>
+        <li><a href="transactron.lib.html#transactron.lib.pipeline.PipelineBuilder.clear">(transactron.lib.pipeline.PipelineBuilder attribute)</a>
+</li>
         <li><a href="transactron.lib.html#transactron.lib.stack.Stack.clear">(transactron.lib.stack.Stack attribute)</a>
 </li>
       </ul></li>
+      <li><a href="transactron.lib.html#transactron.lib.connectors.ClearableConnector">ClearableConnector (class in transactron.lib.connectors)</a>
+</li>
       <li><a href="transactron.lib.html#transactron.lib.transformers.Collector">Collector (class in transactron.lib.transformers)</a>
 </li>
       <li><a href="transactron.lib.html#transactron.lib.dependencies.DependencyKey.combine">combine() (transactron.lib.dependencies.DependencyKey method)</a>
@@ -468,11 +483,13 @@
 </li>
       <li><a href="transactron.lib.html#transactron.lib.simultaneous.condition">condition() (in module transactron.lib.simultaneous)</a>
 </li>
-      <li><a href="transactron.core.html#transactron.core.body.Body.conditional_calls">conditional_calls (transactron.core.body.Body attribute)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="transactron.core.html#transactron.core.body.Body.conditional_calls">conditional_calls (transactron.core.body.Body attribute)</a>
+</li>
       <li><a href="transactron.lib.html#transactron.lib.connectors.Connect">Connect (class in transactron.lib.connectors)</a>
+</li>
+      <li><a href="transactron.lib.html#transactron.lib.connectors.Connector">Connector (class in transactron.lib.connectors)</a>
 </li>
       <li><a href="transactron.lib.html#transactron.lib.connectors.ConnectTrans">ConnectTrans (class in transactron.lib.connectors)</a>
 </li>
@@ -518,6 +535,8 @@
         <li><a href="transactron.utils.amaranth_ext.html#transactron.utils.amaranth_ext.elaboratables.RingMultiPriorityEncoder.create">(transactron.utils.amaranth_ext.elaboratables.RingMultiPriorityEncoder static method)</a>
 </li>
       </ul></li>
+      <li><a href="transactron.lib.html#transactron.lib.pipeline.PipelineBuilder.create_external">create_external() (transactron.lib.pipeline.PipelineBuilder method)</a>
+</li>
       <li><a href="transactron.utils.amaranth_ext.html#transactron.utils.amaranth_ext.elaboratables.MultiPriorityEncoder.create_simple">create_simple() (transactron.utils.amaranth_ext.elaboratables.MultiPriorityEncoder static method)</a>
 
       <ul>
@@ -706,6 +725,8 @@
 </li>
       <li><a href="transactron.lib.html#transactron.lib.connectors.FIFO">FIFO (class in transactron.lib.connectors)</a>
 </li>
+      <li><a href="transactron.lib.html#transactron.lib.pipeline.PipelineBuilder.fifo">fifo() (transactron.lib.pipeline.PipelineBuilder method)</a>
+</li>
       <li><a href="transactron.lib.html#transactron.lib.metrics.FIFOLatencyMeasurer">FIFOLatencyMeasurer (class in transactron.lib.metrics)</a>
 </li>
       <li><a href="transactron.cmd.html#transactron.cmd.tprof.filter_nodes">filter_nodes() (in module transactron.cmd.tprof)</a>
@@ -837,6 +858,8 @@
       <li><a href="transactron.testing.html#transactron.testing.testbenchio.TestbenchIO.get_done">get_done() (transactron.testing.testbenchio.TestbenchIO method)</a>
 </li>
       <li><a href="transactron.html#transactron.graph.OwnershipGraph.get_hier_name">get_hier_name() (transactron.graph.OwnershipGraph method)</a>
+</li>
+      <li><a href="transactron.lib.html#transactron.lib.pipeline.PipelineBuilder.get_live_signals">get_live_signals() (transactron.lib.pipeline.PipelineBuilder method)</a>
 </li>
       <li><a href="transactron.lib.html#transactron.lib.logging.get_log_records">get_log_records() (in module transactron.lib.logging)</a>
 </li>
@@ -1130,6 +1153,8 @@
 </li>
         <li><a href="transactron.lib.html#module-transactron.lib.metrics">transactron.lib.metrics</a>
 </li>
+        <li><a href="transactron.lib.html#module-transactron.lib.pipeline">transactron.lib.pipeline</a>
+</li>
         <li><a href="transactron.lib.html#module-transactron.lib.reqres">transactron.lib.reqres</a>
 </li>
         <li><a href="transactron.lib.html#module-transactron.lib.simultaneous">transactron.lib.simultaneous</a>
@@ -1297,9 +1322,11 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="transactron.testing.html#transactron.testing.logging.parse_logging_level">parse_logging_level() (in module transactron.testing.logging)</a>
 </li>
-      <li><a href="transactron.lib.html#transactron.lib.fifo.BasicFifo.peek">peek (transactron.lib.fifo.BasicFifo attribute)</a>
+      <li><a href="transactron.lib.html#transactron.lib.connectors.Connector.peek">peek (transactron.lib.connectors.Connector attribute)</a>
 
       <ul>
+        <li><a href="transactron.lib.html#transactron.lib.fifo.BasicFifo.peek">(transactron.lib.fifo.BasicFifo attribute)</a>
+</li>
         <li><a href="transactron.lib.html#transactron.lib.stack.Stack.peek">(transactron.lib.stack.Stack attribute)</a>
 </li>
         <li><a href="transactron.lib.html#transactron.lib.stream.StreamSink.peek">(transactron.lib.stream.StreamSink attribute)</a>
@@ -1308,6 +1335,8 @@
       <li><a href="transactron.core.html#transactron.core.body.Body.peek">peek() (transactron.core.body.Body static method)</a>
 </li>
       <li><a href="transactron.lib.html#transactron.lib.connectors.Pipe">Pipe (class in transactron.lib.connectors)</a>
+</li>
+      <li><a href="transactron.lib.html#transactron.lib.pipeline.PipelineBuilder">PipelineBuilder (class in transactron.lib.pipeline)</a>
 </li>
       <li><a href="transactron.utils.amaranth_ext.html#transactron.utils.amaranth_ext.functions.popcount">popcount() (in module transactron.utils.amaranth_ext.functions)</a>
 </li>
@@ -1321,10 +1350,10 @@
 </li>
       <li><a href="transactron.utils.amaranth_ext.html#transactron.utils.amaranth_ext.coding.PriorityEncoder">PriorityEncoder (class in transactron.utils.amaranth_ext.coding)</a>
 </li>
-      <li><a href="transactron.lib.html#transactron.lib.allocators.PriorityEncoderAllocator">PriorityEncoderAllocator (class in transactron.lib.allocators)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="transactron.lib.html#transactron.lib.allocators.PriorityEncoderAllocator">PriorityEncoderAllocator (class in transactron.lib.allocators)</a>
+</li>
       <li><a href="transactron.cmd.html#transactron.cmd.tprof.process_stat_tree">process_stat_tree() (in module transactron.cmd.tprof)</a>
 </li>
       <li><a href="transactron.html#transactron.profiler.Profile">Profile (class in transactron.profiler)</a>
@@ -1365,9 +1394,11 @@
 </li>
       <li><a href="transactron.testing.html#transactron.testing.infrastructure.TestCaseWithSimulator.random_wait_geom">random_wait_geom() (transactron.testing.infrastructure.TestCaseWithSimulator method)</a>
 </li>
-      <li><a href="transactron.lib.html#transactron.lib.fifo.BasicFifo.read">read (transactron.lib.fifo.BasicFifo attribute)</a>
+      <li><a href="transactron.lib.html#transactron.lib.connectors.Connector.read">read (transactron.lib.connectors.Connector attribute)</a>
 
       <ul>
+        <li><a href="transactron.lib.html#transactron.lib.fifo.BasicFifo.read">(transactron.lib.fifo.BasicFifo attribute)</a>
+</li>
         <li><a href="transactron.lib.html#transactron.lib.stack.Stack.read">(transactron.lib.stack.Stack attribute)</a>
 </li>
         <li><a href="transactron.lib.html#transactron.lib.stream.StreamModuleWrapper.read">(transactron.lib.stream.StreamModuleWrapper attribute)</a>
@@ -1539,6 +1570,8 @@
         <li><a href="transactron.utils.html#transactron.utils.dependencies.DependencyContext.stack">(transactron.utils.dependencies.DependencyContext attribute)</a>
 </li>
       </ul></li>
+      <li><a href="transactron.lib.html#transactron.lib.pipeline.PipelineBuilder.stage">stage() (transactron.lib.pipeline.PipelineBuilder method)</a>
+</li>
       <li><a href="transactron.lib.html#transactron.lib.metrics.FIFOLatencyMeasurer.start">start (transactron.lib.metrics.FIFOLatencyMeasurer attribute)</a>
 
       <ul>
@@ -1829,6 +1862,13 @@
 
       <ul>
         <li><a href="transactron.lib.html#module-transactron.lib.metrics">module</a>
+</li>
+      </ul></li>
+      <li>
+    transactron.lib.pipeline
+
+      <ul>
+        <li><a href="transactron.lib.html#module-transactron.lib.pipeline">module</a>
 </li>
       </ul></li>
       <li>
@@ -2153,9 +2193,11 @@
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="transactron.lib.html#transactron.lib.fifo.BasicFifo.write">write (transactron.lib.fifo.BasicFifo attribute)</a>
+      <li><a href="transactron.lib.html#transactron.lib.connectors.Connector.write">write (transactron.lib.connectors.Connector attribute)</a>
 
       <ul>
+        <li><a href="transactron.lib.html#transactron.lib.fifo.BasicFifo.write">(transactron.lib.fifo.BasicFifo attribute)</a>
+</li>
         <li><a href="transactron.lib.html#transactron.lib.stack.Stack.write">(transactron.lib.stack.Stack attribute)</a>
 </li>
         <li><a href="transactron.lib.html#transactron.lib.stream.StreamModuleWrapper.write">(transactron.lib.stream.StreamModuleWrapper attribute)</a>
@@ -2182,7 +2224,7 @@
 
   <div role="contentinfo">
     <p>&#169; Copyright Kuźnia Rdzeni, 2026.
-      <span class="lastupdated">Last updated on 13:52 2026-03-28.
+      <span class="lastupdated">Last updated on 08:11 2026-03-29.
       </span></p>
   </div>
 

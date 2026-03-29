@@ -48,6 +48,7 @@
               <ul>
 <li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="transactions.html">Documentation for Transactron</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pipeline-guide.html">Pipeline Builder</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api.html">API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="development-environment.html">Development environment</a></li>
 </ul>
@@ -304,6 +305,10 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="transactron.lib.html#module-transactron.lib.connectors">transactron.lib.connectors module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="transactron.lib.html#transactron.lib.connectors.ClearableConnector"><code class="docutils literal notranslate"><span class="pre">ClearableConnector</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="transactron.lib.html#transactron.lib.connectors.ClearableConnector.clear"><code class="docutils literal notranslate"><span class="pre">ClearableConnector.clear</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="transactron.lib.html#transactron.lib.connectors.Connect"><code class="docutils literal notranslate"><span class="pre">Connect</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="transactron.lib.html#transactron.lib.connectors.Connect.__init__"><code class="docutils literal notranslate"><span class="pre">Connect.__init__()</span></code></a></li>
 </ul>
@@ -313,6 +318,12 @@
 <li class="toctree-l4"><a class="reference internal" href="transactron.lib.html#transactron.lib.connectors.ConnectTrans.create"><code class="docutils literal notranslate"><span class="pre">ConnectTrans.create()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="transactron.lib.html#transactron.lib.connectors.ConnectTrans.method1"><code class="docutils literal notranslate"><span class="pre">ConnectTrans.method1</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="transactron.lib.html#transactron.lib.connectors.ConnectTrans.method2"><code class="docutils literal notranslate"><span class="pre">ConnectTrans.method2</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="transactron.lib.html#transactron.lib.connectors.Connector"><code class="docutils literal notranslate"><span class="pre">Connector</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="transactron.lib.html#transactron.lib.connectors.Connector.peek"><code class="docutils literal notranslate"><span class="pre">Connector.peek</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.lib.html#transactron.lib.connectors.Connector.read"><code class="docutils literal notranslate"><span class="pre">Connector.read</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.lib.html#transactron.lib.connectors.Connector.write"><code class="docutils literal notranslate"><span class="pre">Connector.write</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="transactron.lib.html#transactron.lib.connectors.CrossbarConnectTrans"><code class="docutils literal notranslate"><span class="pre">CrossbarConnectTrans</span></code></a><ul>
@@ -505,6 +516,21 @@
 <li class="toctree-l4"><a class="reference internal" href="transactron.lib.html#transactron.lib.metrics.WideFIFOLatencyMeasurer.__init__"><code class="docutils literal notranslate"><span class="pre">WideFIFOLatencyMeasurer.__init__()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="transactron.lib.html#transactron.lib.metrics.WideFIFOLatencyMeasurer.start"><code class="docutils literal notranslate"><span class="pre">WideFIFOLatencyMeasurer.start</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="transactron.lib.html#transactron.lib.metrics.WideFIFOLatencyMeasurer.stop"><code class="docutils literal notranslate"><span class="pre">WideFIFOLatencyMeasurer.stop</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="transactron.lib.html#module-transactron.lib.pipeline">transactron.lib.pipeline module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="transactron.lib.html#transactron.lib.pipeline.PipelineBuilder"><code class="docutils literal notranslate"><span class="pre">PipelineBuilder</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="transactron.lib.html#transactron.lib.pipeline.PipelineBuilder.__init__"><code class="docutils literal notranslate"><span class="pre">PipelineBuilder.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.lib.html#transactron.lib.pipeline.PipelineBuilder.add_external"><code class="docutils literal notranslate"><span class="pre">PipelineBuilder.add_external()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.lib.html#transactron.lib.pipeline.PipelineBuilder.add_external_clear"><code class="docutils literal notranslate"><span class="pre">PipelineBuilder.add_external_clear()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.lib.html#transactron.lib.pipeline.PipelineBuilder.call_method"><code class="docutils literal notranslate"><span class="pre">PipelineBuilder.call_method()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.lib.html#transactron.lib.pipeline.PipelineBuilder.clear"><code class="docutils literal notranslate"><span class="pre">PipelineBuilder.clear</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.lib.html#transactron.lib.pipeline.PipelineBuilder.create_external"><code class="docutils literal notranslate"><span class="pre">PipelineBuilder.create_external()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.lib.html#transactron.lib.pipeline.PipelineBuilder.fifo"><code class="docutils literal notranslate"><span class="pre">PipelineBuilder.fifo()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.lib.html#transactron.lib.pipeline.PipelineBuilder.get_live_signals"><code class="docutils literal notranslate"><span class="pre">PipelineBuilder.get_live_signals()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.lib.html#transactron.lib.pipeline.PipelineBuilder.stage"><code class="docutils literal notranslate"><span class="pre">PipelineBuilder.stage()</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -1495,7 +1521,7 @@ It was too difficult to hook into, so this has to be a near-exact copy.</p>
 
   <div role="contentinfo">
     <p>&#169; Copyright Kuźnia Rdzeni, 2026.
-      <span class="lastupdated">Last updated on 13:52 2026-03-28.
+      <span class="lastupdated">Last updated on 08:11 2026-03-29.
       </span></p>
   </div>
 

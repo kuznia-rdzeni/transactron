@@ -1,0 +1,330 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pipeline Builder &mdash; Transactron documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="https://unpkg.com/mermaid@9.4.0/dist/mermaid.min.js"></script>
+      <script>mermaid.initialize({startOnLoad:true});</script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="API" href="api.html" />
+    <link rel="prev" title="Documentation for Transactron" href="transactions.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Transactron documentation
+              <img src="_static/logo-banner.svg" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="transactions.html">Documentation for Transactron</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Pipeline Builder</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#basic-concepts">Basic Concepts</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#node-types">Node Types</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#live-signals">Live Signals</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#happens-before-semantics">Happens-Before Semantics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#no-dependency-semantics"><code class="docutils literal notranslate"><span class="pre">no_dependency</span></code> Semantics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#quick-start">Quick Start</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#api-notes">API Notes</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#constructor">Constructor</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#stage-api">Stage API</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#fifo-decoupling">FIFO Decoupling</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#example-pipelined-multiplier">Example: Pipelined Multiplier</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#debugging-tips">Debugging Tips</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#see-also">See Also</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development-environment.html">Development environment</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Transactron documentation</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Pipeline Builder</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/pipeline-guide.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="pipeline-builder">
+<h1>Pipeline Builder<a class="headerlink" href="#pipeline-builder" title="Link to this heading"></a></h1>
+<p>The Pipeline Builder is a helper for constructing transactional pipelines in Transactron.
+It lets you combine external methods, function-based stages, and method calls into a single flow with automatic data forwarding.</p>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading"></a></h2>
+<p>A pipeline is an ordered sequence of stages where:</p>
+<ul class="simple">
+<li><p>each stage consumes some live signals,</p></li>
+<li><p>may produce new signals,</p></li>
+<li><p>and passes the resulting live state to the next stage.</p></li>
+</ul>
+<p>Main use cases:</p>
+<ul class="simple">
+<li><p>datapath pipelines,</p></li>
+<li><p>arithmetic/micro-op sequencing,</p></li>
+<li><p>integrating multiple transactional blocks into a linear flow.</p></li>
+</ul>
+</section>
+<section id="basic-concepts">
+<h2>Basic Concepts<a class="headerlink" href="#basic-concepts" title="Link to this heading"></a></h2>
+<section id="node-types">
+<h3>Node Types<a class="headerlink" href="#node-types" title="Link to this heading"></a></h3>
+<p>Pipelines can contain three node kinds:</p>
+<ol class="arabic simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">add_external(method,</span> <span class="pre">...)</span></code>: pipeline provides (defines) a method body.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">call_method(method,</span> <span class="pre">...)</span></code>: pipeline calls an existing method.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&#64;stage(...)</span></code>: function-based stage converted to a transactional method.</p></li>
+</ol>
+</section>
+<section id="live-signals">
+<h3>Live Signals<a class="headerlink" href="#live-signals" title="Link to this heading"></a></h3>
+<p>At each position in the pipeline, a set of live signals is tracked.
+Stages can consume any currently live signals they declare as inputs and add/overwrite outputs.</p>
+<p><code class="docutils literal notranslate"><span class="pre">PipelineBuilder.get_live_signals()</span></code> can be used to inspect this state before elaboration.</p>
+</section>
+</section>
+<section id="happens-before-semantics">
+<h2>Happens-Before Semantics<a class="headerlink" href="#happens-before-semantics" title="Link to this heading"></a></h2>
+<p>The pipeline enforces ordering constraints between stages and the data orders they produce/consume.</p>
+<p>By default, pipeline stages are connected with strict happens-before relationships.
+If stage <code class="docutils literal notranslate"><span class="pre">A</span></code> is before stage <code class="docutils literal notranslate"><span class="pre">B</span></code>, then <code class="docutils literal notranslate"><span class="pre">A</span></code> must complete before <code class="docutils literal notranslate"><span class="pre">B</span></code> can start.</p>
+<p>This is usually what you want, but it can create deadlocks in certain dependency patterns.
+Typical problematic case:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">A</span></code> and <code class="docutils literal notranslate"><span class="pre">B</span></code> are external/provided stages,</p></li>
+<li><p>an external module attempts to call both in one transaction,</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">A</span></code> waits on <code class="docutils literal notranslate"><span class="pre">B</span></code> readiness while <code class="docutils literal notranslate"><span class="pre">B</span></code> is constrained by ordering.</p></li>
+</ul>
+<p>In that case, the strict ordering can prevent progress.</p>
+</section>
+<section id="no-dependency-semantics">
+<h2><code class="docutils literal notranslate"><span class="pre">no_dependency</span></code> Semantics<a class="headerlink" href="#no-dependency-semantics" title="Link to this heading"></a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">no_dependency=True</span></code> weakens the default ordering for a node.</p>
+<p>What it does:</p>
+<ul class="simple">
+<li><p>the stage is decoupled from prior pipeline dependency ordering,</p></li>
+<li><p>it may execute before earlier-stage data arrives,</p></li>
+<li><p>this can break the deadlock pattern described above.</p></li>
+</ul>
+<p>Important constraint:</p>
+<ul class="simple">
+<li><p>a <code class="docutils literal notranslate"><span class="pre">no_dependency</span></code> node cannot require any input signals from earlier stages.</p></li>
+</ul>
+<p>Use it sparingly and only when you intentionally want to break strict happens-before constraints.</p>
+</section>
+<section id="quick-start">
+<h2>Quick Start<a class="headerlink" href="#quick-start" title="Link to this heading"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">amaranth</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">transactron</span><span class="w"> </span><span class="kn">import</span> <span class="n">Method</span><span class="p">,</span> <span class="n">TModule</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">transactron.lib.pipeline</span><span class="w"> </span><span class="kn">import</span> <span class="n">PipelineBuilder</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">SimplePipeline</span><span class="p">(</span><span class="n">Elaboratable</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write</span> <span class="o">=</span> <span class="n">Method</span><span class="p">(</span><span class="n">i</span><span class="o">=</span><span class="p">[(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="mi">32</span><span class="p">)])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">read</span> <span class="o">=</span> <span class="n">Method</span><span class="p">(</span><span class="n">o</span><span class="o">=</span><span class="p">[(</span><span class="s2">&quot;result&quot;</span><span class="p">,</span> <span class="mi">32</span><span class="p">)])</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">elaborate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">platform</span><span class="p">):</span>
+        <span class="n">m</span> <span class="o">=</span> <span class="n">TModule</span><span class="p">()</span>
+        <span class="n">m</span><span class="o">.</span><span class="n">submodules</span><span class="o">.</span><span class="n">pipeline</span> <span class="o">=</span> <span class="n">p</span> <span class="o">=</span> <span class="n">PipelineBuilder</span><span class="p">()</span>
+
+        <span class="n">p</span><span class="o">.</span><span class="n">add_external</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">)</span>
+
+        <span class="nd">@p</span><span class="o">.</span><span class="n">stage</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">o</span><span class="o">=</span><span class="p">[(</span><span class="s2">&quot;result&quot;</span><span class="p">,</span> <span class="mi">32</span><span class="p">)])</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">_</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+            <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;result&quot;</span><span class="p">:</span> <span class="n">x</span> <span class="o">+</span> <span class="mi">10</span><span class="p">}</span>
+
+        <span class="n">p</span><span class="o">.</span><span class="n">add_external</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">read</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">m</span>
+</pre></div>
+</div>
+</section>
+<section id="api-notes">
+<h2>API Notes<a class="headerlink" href="#api-notes" title="Link to this heading"></a></h2>
+<section id="constructor">
+<h3>Constructor<a class="headerlink" href="#constructor" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">p</span> <span class="o">=</span> <span class="n">PipelineBuilder</span><span class="p">(</span><span class="n">allow_unused</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">allow_empty</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">allow_unused</span></code>: allow generated fields that are never consumed later.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">allow_empty</span></code>: allow points where no live signals exist.</p></li>
+</ul>
+</section>
+<section id="stage-api">
+<h3>Stage API<a class="headerlink" href="#stage-api" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@p</span><span class="o">.</span><span class="n">stage</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">o</span><span class="o">=</span><span class="p">[(</span><span class="s2">&quot;result&quot;</span><span class="p">,</span> <span class="o">...</span><span class="p">)])</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_</span><span class="p">(</span><span class="n">foo</span><span class="p">,</span> <span class="n">bar</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;result&quot;</span><span class="p">:</span> <span class="o">...</span><span class="p">}</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">i=None</span></code> means input layout is inferred from function parameters.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">name</span></code> overrides default generated stage method name.</p></li>
+<li><p>extra keyword args are forwarded to <code class="docutils literal notranslate"><span class="pre">call_method</span></code> (<code class="docutils literal notranslate"><span class="pre">ready</span></code>, <code class="docutils literal notranslate"><span class="pre">no_dependency</span></code>, <code class="docutils literal notranslate"><span class="pre">src_loc</span></code>).</p></li>
+<li><p>can call other methods</p></li>
+</ul>
+</section>
+<section id="fifo-decoupling">
+<h3>FIFO Decoupling<a class="headerlink" href="#fifo-decoupling" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">p</span><span class="o">.</span><span class="n">fifo</span><span class="p">(</span><span class="n">depth</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Inserts a FIFO between current and next stage.
+Current implementation uses <code class="docutils literal notranslate"><span class="pre">BasicFifo</span></code> internally.</p>
+</section>
+</section>
+<section id="example-pipelined-multiplier">
+<h2>Example: Pipelined Multiplier<a class="headerlink" href="#example-pipelined-multiplier" title="Link to this heading"></a></h2>
+<p>The following complete example demonstrates a multi-stage arithmetic pipeline using <code class="docutils literal notranslate"><span class="pre">PipelineBuilder</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">amaranth</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">transactron</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">transactron.lib.pipeline</span><span class="w"> </span><span class="kn">import</span> <span class="n">PipelineBuilder</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">PipelinedMult</span><span class="p">(</span><span class="n">Elaboratable</span><span class="p">):</span>
+    <span class="n">read</span><span class="p">:</span> <span class="n">Provided</span><span class="p">[</span><span class="n">Method</span><span class="p">]</span>
+    <span class="n">write</span><span class="p">:</span> <span class="n">Provided</span><span class="p">[</span><span class="n">Method</span><span class="p">]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write</span> <span class="o">=</span> <span class="n">Method</span><span class="p">(</span><span class="n">i</span><span class="o">=</span><span class="p">[(</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="n">unsigned</span><span class="p">(</span><span class="mi">32</span><span class="p">)),</span> <span class="p">(</span><span class="s2">&quot;b&quot;</span><span class="p">,</span> <span class="n">unsigned</span><span class="p">(</span><span class="mi">32</span><span class="p">))])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">read</span> <span class="o">=</span> <span class="n">Method</span><span class="p">(</span><span class="n">o</span><span class="o">=</span><span class="p">[(</span><span class="s2">&quot;data&quot;</span><span class="p">,</span> <span class="n">unsigned</span><span class="p">(</span><span class="mi">64</span><span class="p">))])</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">elaborate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">platform</span><span class="p">):</span>
+        <span class="n">m</span> <span class="o">=</span> <span class="n">TModule</span><span class="p">()</span>
+
+        <span class="n">m</span><span class="o">.</span><span class="n">submodules</span><span class="o">.</span><span class="n">pipeline</span> <span class="o">=</span> <span class="n">p</span> <span class="o">=</span> <span class="n">PipelineBuilder</span><span class="p">()</span>
+
+        <span class="n">p</span><span class="o">.</span><span class="n">add_external</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">)</span>
+
+        <span class="nd">@p</span><span class="o">.</span><span class="n">stage</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">o</span><span class="o">=</span><span class="p">[(</span><span class="s2">&quot;data&quot;</span><span class="p">,</span> <span class="n">unsigned</span><span class="p">(</span><span class="mi">32</span><span class="p">))])</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">_</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
+            <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="n">a</span><span class="p">[</span><span class="mi">16</span><span class="p">:]</span> <span class="o">*</span> <span class="n">b</span><span class="p">[</span><span class="mi">16</span><span class="p">:]}</span>
+
+        <span class="c1"># the shape of specific signal can change between stages</span>
+        <span class="nd">@p</span><span class="o">.</span><span class="n">stage</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">o</span><span class="o">=</span><span class="p">[(</span><span class="s2">&quot;data&quot;</span><span class="p">,</span> <span class="n">unsigned</span><span class="p">(</span><span class="mi">64</span><span class="p">))])</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">_</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+            <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="n">data</span> <span class="o">+</span> <span class="p">((</span><span class="n">a</span><span class="p">[</span><span class="mi">16</span><span class="p">:]</span> <span class="o">*</span> <span class="n">b</span><span class="p">[:</span><span class="mi">16</span><span class="p">])</span> <span class="o">&lt;&lt;</span> <span class="mi">16</span><span class="p">)}</span>
+
+        <span class="nd">@p</span><span class="o">.</span><span class="n">stage</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">o</span><span class="o">=</span><span class="p">[(</span><span class="s2">&quot;data&quot;</span><span class="p">,</span> <span class="n">unsigned</span><span class="p">(</span><span class="mi">64</span><span class="p">))])</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">_</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+            <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="n">data</span> <span class="o">+</span> <span class="p">((</span><span class="n">a</span><span class="p">[:</span><span class="mi">16</span><span class="p">]</span> <span class="o">*</span> <span class="n">b</span><span class="p">[</span><span class="mi">16</span><span class="p">:])</span> <span class="o">&lt;&lt;</span> <span class="mi">16</span><span class="p">)}</span>
+
+        <span class="nd">@p</span><span class="o">.</span><span class="n">stage</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">o</span><span class="o">=</span><span class="p">[(</span><span class="s2">&quot;data&quot;</span><span class="p">,</span> <span class="n">unsigned</span><span class="p">(</span><span class="mi">64</span><span class="p">))])</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">_</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+            <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="n">data</span> <span class="o">+</span> <span class="p">((</span><span class="n">a</span><span class="p">[:</span><span class="mi">16</span><span class="p">]</span> <span class="o">*</span> <span class="n">b</span><span class="p">[:</span><span class="mi">16</span><span class="p">])</span> <span class="o">&lt;&lt;</span> <span class="mi">32</span><span class="p">)}</span>
+
+        <span class="n">p</span><span class="o">.</span><span class="n">add_external</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">read</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">m</span>
+</pre></div>
+</div>
+</section>
+<section id="debugging-tips">
+<h2>Debugging Tips<a class="headerlink" href="#debugging-tips" title="Link to this heading"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">live</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">get_live_signals</span><span class="p">()</span>
+<span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">signals</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">live</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="n">signals</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Common failures:</p>
+<ul class="simple">
+<li><p>missing input signal: stage references a signal not live at that point,</p></li>
+<li><p>shape mismatch: required signal shape differs from produced shape,</p></li>
+<li><p>empty live region when <code class="docutils literal notranslate"><span class="pre">allow_empty=False</span></code>,</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">no_dependency=True</span></code> on a stage that still requires inputs.</p></li>
+</ul>
+</section>
+<section id="see-also">
+<h2>See Also<a class="headerlink" href="#see-also" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="getting-started.html"><span class="std std-doc">Getting started</span></a></p></li>
+<li><p><a class="reference internal" href="transactions.html"><span class="std std-doc">Transactions and methods</span></a></p></li>
+<li><p><a class="reference internal" href="api.html"><span class="std std-doc">API documentation</span></a></p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="transactions.html" class="btn btn-neutral float-left" title="Documentation for Transactron" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="api.html" class="btn btn-neutral float-right" title="API" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright Kuźnia Rdzeni, 2026.
+      <span class="lastupdated">Last updated on 08:11 2026-03-29.
+      </span></p>
+  </div>
+
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
