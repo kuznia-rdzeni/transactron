@@ -80,15 +80,12 @@ class MethodMap:
 
         def check_is_cycle(transaction: TBody, current: Body, parent: Body) -> Optional[list[Body]]:
             cycle = [parent]
-            if current == parent:
-                return cycle
 
-            while current is not transaction:
+            while current is not transaction and current != parent:
                 cycle.append(current)
                 current = methods_by_transaction_internal[transaction][MBody(current)]
-                if current == parent:
-                    return cycle
-            return None
+
+            return cycle if current == parent else None
 
         def report_bad_case(transaction: TBody, source: Body, method: MBody):
             msg = (
