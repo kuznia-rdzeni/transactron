@@ -1,6 +1,6 @@
 from collections import defaultdict, deque
 from collections.abc import Callable, Iterable, Sequence, Collection, Mapping
-from typing import TypeAlias
+from typing import Optional, TypeAlias
 from os import environ
 from amaranth import *
 from itertools import chain, filterfalse, product
@@ -36,20 +36,103 @@ class MethodMap:
         self.ancestors_by_call = dict[tuple[TBody, MBody], tuple[MBody, ...]]()
         self.method_parents = defaultdict[MBody, list[Body]](list)
 
+        methods_by_transaction_internal = dict[TBody, dict[MBody, Body]]()
+
+        def get_depth(transaction: TBody, method_call: Body) -> int:
+            depth = 0
+            current = method_call
+            while current is not transaction:
+                depth += 1
+                current = methods_by_transaction_internal[transaction][MBody(current)]
+            return depth
+
+        def find_call_paths_from_tree(transaction: TBody, m1: Body, m2: Body) -> tuple[list[Body], list[Body]]:
+            depth1 = get_depth(transaction, m1)
+            depth2 = get_depth(transaction, m2)
+
+            path1 = []
+            path2 = []
+
+            current1 = m1
+            current2 = m2
+
+            while depth1 > depth2:
+                path1.append(current1)
+                print(f"1: skipping {current1.name}")
+                current1 = methods_by_transaction_internal[transaction][MBody(current1)]
+                depth1 -= 1
+
+            while depth2 > depth1:
+                path2.append(current2)
+                print(f"2: skipping {current2.name}")
+                current2 = methods_by_transaction_internal[transaction][MBody(current2)]
+                depth2 -= 1
+
+            while current1 != current2:
+                path1.append(current1)
+                path2.append(current2)
+                print(f"3: skipping {current1.name} and {current2.name}")
+                current1 = methods_by_transaction_internal[transaction][MBody(current1)]
+                current2 = methods_by_transaction_internal[transaction][MBody(current2)]
+
+            # append the common ancestor
+            path1.append(current1)
+            path2.append(current2)
+
+            return path1, path2
+
+        def check_is_cycle(transaction: TBody, current: Body, parent: Body) -> Optional[list[Body]]:
+            print(f"Checking for cycle: current={current.name}, parent={parent.name}")
+            cycle = []
+            while current is not transaction:
+                cycle.append(current)
+                current = methods_by_transaction_internal[transaction][MBody(current)]
+                if current == parent:
+                    return cycle
+            return None
+
+        def report_bad_case(transaction: TBody, source: Body, method: MBody):
+            msg = (
+                f"Method '{method.name}' ({method.src_loc}) called twice from "
+                + f"transaction '{transaction.name}' ({transaction.src_loc})"
+            )
+
+            if source is method:
+                msg += " (self call)"
+            elif cycle := check_is_cycle(transaction, source, method):
+                cycle = [method] + cycle + [method]
+                cycle_str = " -> ".join(f"{m.name} ({m.src_loc})" for m in reversed(cycle))
+                msg += f"\nCycle: {cycle_str}"
+            else:
+                path1, path2 = find_call_paths_from_tree(transaction, source, method)
+                path1 = [method] + path1
+                path2 = [method] + path2
+
+                path1_str = " -> ".join(f"{m.name} ({m.src_loc})" for m in reversed(path1))
+                path2_str = " -> ".join(f"{m.name} ({m.src_loc})" for m in reversed(path2))
+
+                msg += f"\nFirst call path: {path1_str}"
+                msg += f"\nSecond call path: {path2_str}"
+
+            raise RuntimeError(msg)
+
         def rec(transaction: TBody, source: Body, ancestors: tuple[MBody, ...]):
             for method_obj, (arg_rec, _) in source.method_uses.items():
                 method = MBody(method_obj._body)
-                if method in self.methods_by_transaction[transaction]:
-                    raise RuntimeError(f"Method '{method_obj.name}' can't be called twice from the same transaction")
-                self.methods_by_transaction[transaction].append(method)
+                if method in methods_by_transaction_internal[transaction]:
+                    report_bad_case(transaction, source, method)
+                methods_by_transaction_internal[transaction][method] = source
                 self.transactions_by_method[method].append(transaction)
                 self.argument_by_call[(transaction, method)] = arg_rec
                 self.ancestors_by_call[(transaction, method)] = new_ancestors = (method, *ancestors)
                 rec(transaction, method, new_ancestors)
 
         for transaction in transactions:
-            self.methods_by_transaction[TBody(transaction._body)] = []
+            methods_by_transaction_internal[TBody(transaction._body)] = dict()
             rec(TBody(transaction._body), transaction._body, ())
+            self.methods_by_transaction = {
+                transaction: list(methods.keys()) for transaction, methods in methods_by_transaction_internal.items()
+            }
 
         for transaction_or_method in self.methods_and_transactions:
             for method in transaction_or_method.method_uses.keys():
