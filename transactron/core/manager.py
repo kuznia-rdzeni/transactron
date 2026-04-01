@@ -50,31 +50,28 @@ class MethodMap:
             depth1 = get_depth(transaction, m1)
             depth2 = get_depth(transaction, m2)
 
-            path1 = [m2]
+            path1 = []
             path2 = []
 
-            current1 = m1
-            current2 = m2
-
             while depth1 > depth2:
-                path1.append(current1)
-                current1 = methods_by_transaction_internal[transaction][MBody(current1)]
+                path1.append(m1)
+                m1 = methods_by_transaction_internal[transaction][MBody(m1)]
                 depth1 -= 1
 
             while depth2 > depth1:
-                path2.append(current2)
-                current2 = methods_by_transaction_internal[transaction][MBody(current2)]
+                path2.append(m2)
+                m2 = methods_by_transaction_internal[transaction][MBody(m2)]
                 depth2 -= 1
 
-            while current1 != current2:
-                path1.append(current1)
-                path2.append(current2)
-                current1 = methods_by_transaction_internal[transaction][MBody(current1)]
-                current2 = methods_by_transaction_internal[transaction][MBody(current2)]
+            while m1 != m2:
+                path1.append(m1)
+                path2.append(m2)
+                m1 = methods_by_transaction_internal[transaction][MBody(m1)]
+                m2 = methods_by_transaction_internal[transaction][MBody(m2)]
 
             # append the common ancestor
-            path1.append(current1)
-            path2.append(current2)
+            path1.append(m1)
+            path2.append(m2)
 
             return path1, path2
 
@@ -100,6 +97,7 @@ class MethodMap:
                 msg += f"\nCycle: {cycle_str}"
             else:
                 path1, path2 = find_call_paths_from_tree(transaction, source, method)
+                path1 = [method] + path1
 
                 path1_str = " -> ".join(f"{m.name} ({m.src_loc})" for m in reversed(path1))
                 path2_str = " -> ".join(f"{m.name} ({m.src_loc})" for m in reversed(path2))
