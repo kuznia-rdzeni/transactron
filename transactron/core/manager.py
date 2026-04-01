@@ -50,7 +50,7 @@ class MethodMap:
             depth1 = get_depth(transaction, m1)
             depth2 = get_depth(transaction, m2)
 
-            path1 = []
+            path1 = [m2]
             path2 = []
 
             current1 = m1
@@ -58,20 +58,17 @@ class MethodMap:
 
             while depth1 > depth2:
                 path1.append(current1)
-                print(f"1: skipping {current1.name}")
                 current1 = methods_by_transaction_internal[transaction][MBody(current1)]
                 depth1 -= 1
 
             while depth2 > depth1:
                 path2.append(current2)
-                print(f"2: skipping {current2.name}")
                 current2 = methods_by_transaction_internal[transaction][MBody(current2)]
                 depth2 -= 1
 
             while current1 != current2:
                 path1.append(current1)
                 path2.append(current2)
-                print(f"3: skipping {current1.name} and {current2.name}")
                 current1 = methods_by_transaction_internal[transaction][MBody(current1)]
                 current2 = methods_by_transaction_internal[transaction][MBody(current2)]
 
@@ -82,8 +79,11 @@ class MethodMap:
             return path1, path2
 
         def check_is_cycle(transaction: TBody, current: Body, parent: Body) -> Optional[list[Body]]:
-            print(f"Checking for cycle: current={current.name}, parent={parent.name}")
-            cycle = []
+
+            cycle = [parent]
+            if current == parent:
+                return []
+
             while current is not transaction:
                 cycle.append(current)
                 current = methods_by_transaction_internal[transaction][MBody(current)]
@@ -97,16 +97,13 @@ class MethodMap:
                 + f"transaction '{transaction.name}' ({transaction.src_loc})"
             )
 
-            if source is method:
-                msg += " (self call)"
-            elif cycle := check_is_cycle(transaction, source, method):
-                cycle = [method] + cycle + [method]
+            cycle = check_is_cycle(transaction, source, method)
+            if cycle is not None:
+                cycle = cycle + [method]
                 cycle_str = " -> ".join(f"{m.name} ({m.src_loc})" for m in reversed(cycle))
                 msg += f"\nCycle: {cycle_str}"
             else:
                 path1, path2 = find_call_paths_from_tree(transaction, source, method)
-                path1 = [method] + path1
-                path2 = [method] + path2
 
                 path1_str = " -> ".join(f"{m.name} ({m.src_loc})" for m in reversed(path1))
                 path2_str = " -> ".join(f"{m.name} ({m.src_loc})" for m in reversed(path2))

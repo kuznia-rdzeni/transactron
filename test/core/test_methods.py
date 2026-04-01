@@ -1,18 +1,16 @@
-from collections.abc import Callable, Sequence
-import pytest
 import random
-from amaranth import *
-from amaranth.sim import *
-from amaranth.lib.data import StructLayout
-
-from transactron.testing import TestCaseWithSimulator, TestbenchIO, data_layout, SimpleTestCircuit
-
-from transactron import *
-from transactron.utils import MethodStruct
-from transactron.lib import *
-
+from collections.abc import Callable, Sequence
 from unittest import TestCase
 
+import pytest
+from amaranth import *
+from amaranth.lib.data import StructLayout
+from amaranth.sim import *
+
+from transactron import *
+from transactron.lib import *
+from transactron.testing import SimpleTestCircuit, TestbenchIO, TestCaseWithSimulator, data_layout
+from transactron.utils import MethodStruct
 from transactron.utils.assign import AssignArg
 
 
@@ -201,6 +199,7 @@ class TestInvalidMethods(TestCase):
 
                 return m
 
+        Fragment.get(TransactronContextElaboratable(Twice()), platform=None)
         self.assert_re("called twice", Twice())
 
     def test_twice_cond(self):
@@ -253,6 +252,7 @@ class TestInvalidMethods(TestCase):
                 return m
 
         m = Diamond()
+        Fragment.get(TransactronContextElaboratable(AdapterCircuit(m, [m.meth4])), platform=None)
         self.assert_re("called twice", AdapterCircuit(m, [m.meth4]))
 
     def test_loop(self):
@@ -269,6 +269,7 @@ class TestInvalidMethods(TestCase):
                 return m
 
         m = Loop()
+        Fragment.get(TransactronContextElaboratable(AdapterCircuit(m, [m.meth1])), platform=None)
         self.assert_re("called twice", AdapterCircuit(m, [m.meth1]))
 
     def test_cycle(self):
@@ -289,6 +290,7 @@ class TestInvalidMethods(TestCase):
                 return m
 
         m = Cycle()
+        Fragment.get(TransactronContextElaboratable(AdapterCircuit(m, [m.meth1])), platform=None)
         self.assert_re("called twice", AdapterCircuit(m, [m.meth1]))
 
     def test_redefine(self):
