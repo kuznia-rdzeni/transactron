@@ -79,10 +79,9 @@ class MethodMap:
             return path1, path2
 
         def check_is_cycle(transaction: TBody, current: Body, parent: Body) -> Optional[list[Body]]:
-
             cycle = [parent]
             if current == parent:
-                return []
+                return cycle
 
             while current is not transaction:
                 cycle.append(current)
