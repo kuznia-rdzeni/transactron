@@ -36,22 +36,19 @@ class MethodMap:
         self.ancestors_by_call = dict[tuple[TBody, MBody], tuple[MBody, ...]]()
         self.method_parents = defaultdict[MBody, list[Body]](list)
 
-        def loc_str(body: Body) -> str:
-            return f"{body.src_loc[0]}:{body.src_loc[1]}"
-
         def path_str(path: Sequence[MBody]) -> str:
-            return " -> ".join(f"{method.name} ({loc_str(method)})" for method in path)
+            return " -> ".join(f"{method.name} {method.src_loc}" for method in path)
 
         def report_bad_case(transaction: TBody, method: MBody, second_ancestors: tuple[MBody, ...]):
             first_ancestors = self.ancestors_by_call[(transaction, method)]
             msg = (
-                f"Method '{method.name}' ({loc_str(method)}) called twice from "
-                + f"transaction '{transaction.name}' ({loc_str(transaction)})"
+                f"Method '{method.name}' {method.src_loc} called twice from "
+                + f"transaction '{transaction.name}' {transaction.src_loc}"
             )
 
             if method in second_ancestors[1:]:
                 cycle_start = second_ancestors[1:].index(method) + 1
-                cycle = second_ancestors[cycle_start::-1] + (method,)
+                cycle = second_ancestors[cycle_start::-1]
                 msg += f"\nCycle: {path_str(cycle)}"
             else:
                 first_path = tuple(reversed(first_ancestors))
