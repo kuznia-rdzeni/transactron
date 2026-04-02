@@ -36,15 +36,39 @@ class MethodMap:
         self.ancestors_by_call = dict[tuple[TBody, MBody], tuple[MBody, ...]]()
         self.method_parents = defaultdict[MBody, list[Body]](list)
 
+        def path_str(path: Sequence[MBody]) -> str:
+            return " -> ".join(f"{method.name} {method.src_loc}" for method in path)
+
+        def report_bad_case(transaction: TBody, method: MBody, second_ancestors: tuple[MBody, ...]):
+            first_ancestors = self.ancestors_by_call[(transaction, method)]
+            msg = (
+                f"Method '{method.name}' {method.src_loc} called twice from "
+                + f"transaction '{transaction.name}' {transaction.src_loc}"
+            )
+
+            if method in second_ancestors[1:]:
+                cycle_start = second_ancestors[1:].index(method) + 1
+                cycle = second_ancestors[cycle_start::-1]
+                msg += f"\nCycle: {path_str(cycle)}"
+            else:
+                first_path = tuple(reversed(first_ancestors))
+                second_path = tuple(reversed(second_ancestors))
+
+                msg += f"\nFirst call path: {path_str(first_path)}"
+                msg += f"\nSecond call path: {path_str(second_path)}"
+
+            raise RuntimeError(msg)
+
         def rec(transaction: TBody, source: Body, ancestors: tuple[MBody, ...]):
             for method_obj, (arg_rec, _) in source.method_uses.items():
                 method = MBody(method_obj._body)
+                new_ancestors = (method, *ancestors)
                 if method in self.methods_by_transaction[transaction]:
-                    raise RuntimeError(f"Method '{method_obj.name}' can't be called twice from the same transaction")
+                    report_bad_case(transaction, method, new_ancestors)
                 self.methods_by_transaction[transaction].append(method)
                 self.transactions_by_method[method].append(transaction)
                 self.argument_by_call[(transaction, method)] = arg_rec
-                self.ancestors_by_call[(transaction, method)] = new_ancestors = (method, *ancestors)
+                self.ancestors_by_call[(transaction, method)] = new_ancestors
                 rec(transaction, method, new_ancestors)
 
         for transaction in transactions:
