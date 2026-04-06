@@ -329,7 +329,86 @@ class NestedMethodsTestCircuit(SchedulingTestCircuit):
         return m
 
 
-@pytest.mark.parametrize("circuit", [NestedTransactionsTestCircuit, NestedMethodsTestCircuit])
+class NestedTransactionCallingMethodCircuit(SchedulingTestCircuit):
+    def elaborate(self, platform):
+        m = TModule()
+
+        inner = Method()
+
+        @def_method(m, inner)
+        def _():
+            m.d.comb += self.t2.eq(1)
+
+        with Transaction().body(m, ready=self.r1):
+            m.d.comb += self.t1.eq(1)
+            with Transaction().body(m, ready=self.r2):
+                inner(m)
+
+        return m
+
+
+class NestedTransactionInMethodCallingMethodCircuit(SchedulingTestCircuit):
+    def elaborate(self, platform):
+        m = TModule()
+
+        outer = Method()
+        inner = Method()
+
+        @def_method(m, inner)
+        def _():
+            m.d.comb += self.t2.eq(1)
+
+        @def_method(m, outer, ready=self.r1)
+        def _():
+            m.d.comb += self.t1.eq(1)
+            with Transaction().body(m, ready=self.r2):
+                inner(m)
+
+        with Transaction().body(m):
+            outer(m)
+
+        return m
+
+
+class NestedMethodMethodMethodCircuit(SchedulingTestCircuit):
+    def elaborate(self, platform):
+        m = TModule()
+
+        outer = Method()
+        middle = Method()
+        inner = Method()
+
+        @def_method(m, inner)
+        def _():
+            m.d.comb += self.t2.eq(1)
+
+        @def_method(m, outer, ready=self.r1)
+        def _():
+            m.d.comb += self.t1.eq(1)
+
+            @def_method(m, middle, ready=self.r2)
+            def _():
+                inner(m)
+
+        with Transaction().body(m):
+            outer(m)
+
+        with Transaction().body(m):
+            middle(m)
+
+        return m
+
+
+@pytest.mark.parametrize(
+    "circuit",
+    [
+        NestedTransactionsTestCircuit,
+        NestedMethodsTestCircuit,
+        NestedTransactionCallingMethodCircuit,
+        NestedTransactionInMethodCallingMethodCircuit,
+        NestedMethodMethodMethodCircuit,
+    ],
+)
 class TestNested(TestCaseWithSimulator):
     def setup_method(self):
         random.seed(42)
