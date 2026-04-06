@@ -5,6 +5,7 @@ on:
     branches:
       - master
       - 'feature/**'
+      - 'lekcyjna123/20260406-flaky-CAM'
   pull_request:
     branches:
       - master
