@@ -234,6 +234,41 @@ class TransactionManager(Elaboratable):
         return method_enables
 
     @staticmethod
+    def _ready_dependencies(method_map: MethodMap) -> Mapping[TBody, Sequence[ValueLike]]:
+        def transactions_exclusive(trans1: TBody, trans2: TBody):
+            tms1 = [trans1] + method_map.methods_by_transaction[trans1]
+            tms2 = [trans2] + method_map.methods_by_transaction[trans2]
+
+            # If two transactions are structurally exclusive, they cannot request
+            # execution in the same control-path context.
+            for tm1, tm2 in product(tms1, tms2):
+                if tm1.ctrl_path.exclusive_with(tm2.ctrl_path):
+                    return True
+
+            return False
+
+        ready_dependencies = defaultdict[TBody, list[ValueLike]](list)
+
+        relations = [
+            Relation(start=elem, **dataclass_asdict(relation))
+            for elem in method_map.methods_and_transactions
+            for relation in elem.relations
+            if relation.end in method_map.methods_and_transactions  # prune relations with uncalled methods
+        ]
+
+        for relation in relations:
+            if not relation.ready_dependent:
+                continue
+
+            for trans_start in method_map.transactions_for(relation.start):
+                for trans_end in method_map.transactions_for(relation.end):
+                    if trans_start is trans_end or transactions_exclusive(trans_start, trans_end):
+                        continue
+                    ready_dependencies[trans_end].append(trans_start.ready)
+
+        return ready_dependencies
+
+    @staticmethod
     def _method_calls(
         m: Module, method_map: MethodMap
     ) -> tuple[Mapping[MBody, Sequence[MethodStruct]], Mapping[MBody, Sequence[Value]]]:
@@ -381,6 +416,7 @@ class TransactionManager(Elaboratable):
 
             method_map = MethodMap(self.transactions)
             cgr, porder = TransactionManager._conflict_graph(method_map)
+            ready_dependencies = TransactionManager._ready_dependencies(method_map)
 
         m = Module()
         m._MustUse__silence = True  # type: ignore
@@ -399,11 +435,12 @@ class TransactionManager(Elaboratable):
             m.d.comb += method.data_out.eq(method._body.data_out)
 
         for transaction in method_map.transactions:
-            ready = [
+            runnable_terms = [
                 method._validate_arguments(method_map.argument_by_call[transaction, method])
                 for method in method_map.methods_by_transaction[transaction]
             ]
-            m.d.comb += transaction.runnable.eq(Cat(ready).all())
+            runnable_terms.extend(ready_dependencies[transaction])
+            m.d.comb += transaction.runnable.eq(Cat(runnable_terms).all())
 
         ccs = _graph_ccs(cgr)
 
