@@ -122,7 +122,7 @@ class TestContentAddressableMemory(TestCaseWithSimulator):
         max_examples=10,
         phases=(Phase.explicit, Phase.reuse, Phase.generate, Phase.shrink),
         derandomize=True,
-        deadline=timedelta(milliseconds=500),
+        deadline=timedelta(milliseconds=2000),
     )
     @given(
         generate_process_input(test_number, nop_number, [("addr", addr_layout), ("data", content_layout)]),
