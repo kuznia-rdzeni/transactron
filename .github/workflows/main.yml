@@ -34,7 +34,7 @@ jobs:
           pip3 install .[dev]
 
       - name: Run tests
-        run: pytest --verbose -n auto --transactron-traces --transactron-profile
+        run: pytest --verbose -n auto --transactron-traces --transactron-profile --durations 0
 
   lint:
     name: Check code formatting and typing
