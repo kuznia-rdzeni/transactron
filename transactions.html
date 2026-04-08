@@ -196,7 +196,7 @@ Please remember that this is not a Python <code class="docutils literal notransl
 <p>The <code class="docutils literal notranslate"><span class="pre">def_method</span></code> technique presented above is a convenience syntax, but it works just like other Amaranth <code class="docutils literal notranslate"><span class="pre">with</span></code> blocks.
 In particular, the <em>Python code</em> inside the unnamed <code class="docutils literal notranslate"><span class="pre">def</span></code> function is always executed once.</p>
 <p>If a given <code class="docutils literal notranslate"><span class="pre">Elaboratable</span></code> depends on a method defined in another <code class="docutils literal notranslate"><span class="pre">Elaboratable</span></code>, it should declare it in the constructor, but not define it.
-The definition is then provided using <code class="docutils literal notranslate"><span class="pre">proxy</span></code> outside both <code class="docutils literal notranslate"><span class="pre">Elaboratable</span></code>s.</p>
+The definition is then provided using <code class="docutils literal notranslate"><span class="pre">provide</span></code> outside both <code class="docutils literal notranslate"><span class="pre">Elaboratable</span></code>s.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">MyThing</span><span class="p">(</span><span class="n">Elaboratable</span><span class="p">):</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">method</span> <span class="o">=</span> <span class="n">Method</span><span class="p">(</span><span class="n">i</span><span class="o">=</span><span class="n">input_layout</span><span class="p">,</span> <span class="n">o</span><span class="o">=</span><span class="n">output_layout</span><span class="p">)</span>
@@ -211,7 +211,7 @@ The definition is then provided using <code class="docutils literal notranslate"
 
         <span class="n">m</span><span class="o">.</span><span class="n">submodules</span><span class="o">.</span><span class="n">thing</span> <span class="o">=</span> <span class="n">thing</span> <span class="o">=</span> <span class="n">MyThing</span><span class="p">()</span>
         <span class="n">m</span><span class="o">.</span><span class="n">submodules</span><span class="o">.</span><span class="n">other_thing</span> <span class="o">=</span> <span class="n">other_thing</span> <span class="o">=</span> <span class="n">MyOtherThing</span><span class="p">()</span>
-        <span class="n">thing</span><span class="o">.</span><span class="n">method</span><span class="o">.</span><span class="n">proxy</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">other_thing</span><span class="o">.</span><span class="n">my_method</span><span class="p">)</span>
+        <span class="n">thing</span><span class="o">.</span><span class="n">method</span><span class="o">.</span><span class="n">provide</span><span class="p">(</span><span class="n">other_thing</span><span class="o">.</span><span class="n">my_method</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">m</span>
 </pre></div>
@@ -416,7 +416,7 @@ Nesting implies scheduling order: the nested transaction or method is considered
 
   <div role="contentinfo">
     <p>&#169; Copyright Kuźnia Rdzeni, 2026.
-      <span class="lastupdated">Last updated on 11:50 2026-04-06.
+      <span class="lastupdated">Last updated on 07:06 2026-04-08.
       </span></p>
   </div>
 
