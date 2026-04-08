@@ -105,7 +105,7 @@ The `def_method` technique presented above is a convenience syntax, but it works
 In particular, the *Python code* inside the unnamed `def` function is always executed once.
 
 If a given `Elaboratable` depends on a method defined in another `Elaboratable`, it should declare it in the constructor, but not define it.
-The definition is then provided using `proxy` outside both `Elaboratable`s.
+The definition is then provided using `provide` outside both `Elaboratable`s.
 
 ```python
 class MyThing(Elaboratable):
@@ -122,7 +122,7 @@ class LargerThing(Elaboratable):
 
         m.submodules.thing = thing = MyThing()
         m.submodules.other_thing = other_thing = MyOtherThing()
-        thing.method.proxy(m, other_thing.my_method)
+        thing.method.provide(other_thing.my_method)
 
         return m
 ```
