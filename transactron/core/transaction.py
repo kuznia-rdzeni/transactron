@@ -94,9 +94,9 @@ class Transaction(TransactionBase["Transaction | Method"]):
         if value.data_in.shape().size != 0 or value.data_out.shape().size != 0:
             raise ValueError(f"Transaction body {value.name} has invalid interface")
         self._body_ptr = value
-        m.d.comb += self.ready.eq(value.ready)
-        m.d.comb += self.runnable.eq(value.runnable)
-        m.d.comb += self.run.eq(value.run)
+        m.d.top_comb += self.ready.eq(value.ready)
+        m.d.top_comb += self.runnable.eq(value.runnable)
+        m.d.top_comb += self.run.eq(value.run)
 
     @contextmanager
     def body(self, m: TModule, *, ready: ValueLike = C(1)) -> Iterator["Transaction"]:
