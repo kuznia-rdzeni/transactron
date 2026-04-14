@@ -111,6 +111,19 @@ class TransactionManager(Elaboratable):
         self.cc_scheduler = cc_scheduler
 
     @staticmethod
+    def _transactions_exclusive(method_map: MethodMap, trans1: TBody, trans2: TBody):
+        tms1 = [trans1] + method_map.methods_by_transaction[trans1]
+        tms2 = [trans2] + method_map.methods_by_transaction[trans2]
+
+        # if first transaction is exclusive with the second transaction, or this is true for
+        # any called methods, the transactions will never run at the same time
+        for tm1, tm2 in product(tms1, tms2):
+            if tm1.ctrl_path.exclusive_with(tm2.ctrl_path):
+                return True
+
+        return False
+
+    @staticmethod
     def _conflict_graph(method_map: MethodMap) -> tuple[TransactionGraph, PriorityOrder]:
         """_conflict_graph
 
@@ -141,18 +154,6 @@ class TransactionManager(Elaboratable):
             Linear ordering of transactions which is consistent with priority constraints.
         """
 
-        def transactions_exclusive(trans1: TBody, trans2: TBody):
-            tms1 = [trans1] + method_map.methods_by_transaction[trans1]
-            tms2 = [trans2] + method_map.methods_by_transaction[trans2]
-
-            # if first transaction is exclusive with the second transaction, or this is true for
-            # any called methods, the transactions will never run at the same time
-            for tm1, tm2 in product(tms1, tms2):
-                if tm1.ctrl_path.exclusive_with(tm2.ctrl_path):
-                    return True
-
-            return False
-
         def calls_nonexclusive(trans1: TBody, trans2: TBody, method: MBody):
             ancestors1 = method_map.ancestors_by_call[(trans1, method)]
             ancestors2 = method_map.ancestors_by_call[(trans2, method)]
@@ -181,7 +182,7 @@ class TransactionManager(Elaboratable):
                 for transaction2 in method_map.transactions_for(method):
                     if (
                         transaction1 is not transaction2
-                        and not transactions_exclusive(transaction1, transaction2)
+                        and not TransactionManager._transactions_exclusive(method_map, transaction1, transaction2)
                         and not calls_nonexclusive(transaction1, transaction2, method)
                     ):
                         add_edge(transaction1, transaction2, Priority.UNDEFINED, True)
@@ -202,7 +203,9 @@ class TransactionManager(Elaboratable):
 
             for trans_start in method_map.transactions_for(start):
                 for trans_end in method_map.transactions_for(end):
-                    conflict = relation.conflict and not transactions_exclusive(trans_start, trans_end)
+                    conflict = relation.conflict and not TransactionManager._transactions_exclusive(
+                        method_map, trans_start, trans_end
+                    )
                     add_edge(trans_start, trans_end, relation.priority, conflict)
 
         porder: PriorityOrder = {}
@@ -235,18 +238,6 @@ class TransactionManager(Elaboratable):
 
     @staticmethod
     def _ready_dependencies(method_map: MethodMap) -> Mapping[TBody, Sequence[ValueLike]]:
-        def transactions_exclusive(trans1: TBody, trans2: TBody):
-            tms1 = [trans1] + method_map.methods_by_transaction[trans1]
-            tms2 = [trans2] + method_map.methods_by_transaction[trans2]
-
-            # If two transactions are structurally exclusive, they cannot request
-            # execution in the same control-path context.
-            for tm1, tm2 in product(tms1, tms2):
-                if tm1.ctrl_path.exclusive_with(tm2.ctrl_path):
-                    return True
-
-            return False
-
         ready_dependencies = defaultdict[TBody, list[ValueLike]](list)
 
         relations = [
@@ -262,9 +253,10 @@ class TransactionManager(Elaboratable):
 
             for trans_start in method_map.transactions_for(relation.start):
                 for trans_end in method_map.transactions_for(relation.end):
-                    if trans_start is trans_end or transactions_exclusive(trans_start, trans_end):
-                        continue
-                    ready_dependencies[trans_end].append(trans_start.ready)
+                    if trans_start is not trans_end and not TransactionManager._transactions_exclusive(
+                        method_map, trans_start, trans_end
+                    ):
+                        ready_dependencies[trans_end].append(trans_start.ready)
 
         return ready_dependencies
 
