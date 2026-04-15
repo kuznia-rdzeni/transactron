@@ -2,6 +2,7 @@ from typing import (
     Callable,
     Concatenate,
     Protocol,
+    TypeAlias,
     cast,
     runtime_checkable,
     Union,
@@ -35,7 +36,7 @@ type LayoutListField = tuple[str, "ShapeLike | LayoutList"]
 type LayoutList = list["LayoutListField"]
 type LayoutIterable = Iterable["LayoutListField"]
 type MethodLayout = StructLayout | LayoutIterable
-type MethodStruct = "View[StructLayout]"
+MethodStruct: TypeAlias = "View[StructLayout]"
 
 type RecordIntDict = Mapping[str, Union[int, "RecordIntDict"]]
 type RecordIntDictRet = Mapping[str, Any]  # full typing hard to work with
