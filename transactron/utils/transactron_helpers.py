@@ -8,7 +8,7 @@ from inspect import Parameter, signature
 from itertools import count
 from amaranth import *
 from amaranth import tracer
-from amaranth.lib.data import StructLayout, View
+from amaranth.lib.data import StructLayout
 import amaranth.lib.data as data
 import dataclasses
 
@@ -117,7 +117,7 @@ def async_mock_def_helper[T](tb, func: Callable[..., T], arg: "data.Const[Struct
 
 def method_def_helper[T](method, func: Callable[..., T], arg: MethodStruct) -> T:
     kwargs = {k: arg[k] for k in arg.shape().members}
-    return def_helper(f"method definition for {method}", func, View[StructLayout], arg, **kwargs)
+    return def_helper(f"method definition for {method}", func, MethodStruct, arg, **kwargs)  # type: ignore
 
 
 def get_caller_class_name(default: Optional[str] = None) -> tuple[Optional[Elaboratable], str]:
