@@ -1,5 +1,6 @@
 from collections import defaultdict, deque
 from collections.abc import Callable, Iterable, Sequence, Collection, Mapping
+import textwrap
 from typing import TypeAlias
 from os import environ
 from amaranth import *
@@ -111,6 +112,15 @@ class TransactionManager(Elaboratable):
         self.cc_scheduler = cc_scheduler
 
     @staticmethod
+    def _relations(method_map: MethodMap) -> Sequence[Relation]:
+        return [
+            Relation(start=elem, **dataclass_asdict(relation))
+            for elem in method_map.methods_and_transactions
+            for relation in elem.relations
+            if relation.end in method_map.methods_and_transactions  # prune relations with uncalled methods
+        ]
+
+    @staticmethod
     def _transactions_exclusive(method_map: MethodMap, trans1: TBody, trans2: TBody):
         tms1 = [trans1] + method_map.methods_by_transaction[trans1]
         tms2 = [trans2] + method_map.methods_by_transaction[trans2]
@@ -187,12 +197,7 @@ class TransactionManager(Elaboratable):
                     ):
                         add_edge(transaction1, transaction2, Priority.UNDEFINED, True)
 
-        relations = [
-            Relation(start=elem, **dataclass_asdict(relation))
-            for elem in method_map.methods_and_transactions
-            for relation in elem.relations
-            if relation.end in method_map.methods_and_transactions  # prune relations with uncalled methods
-        ]
+        relations = TransactionManager._relations(method_map)
 
         for relation in relations:
             start = relation.start
@@ -237,15 +242,10 @@ class TransactionManager(Elaboratable):
         return method_enables
 
     @staticmethod
-    def _ready_dependencies(method_map: MethodMap) -> Mapping[TBody, Sequence[ValueLike]]:
-        ready_dependencies = defaultdict[TBody, list[ValueLike]](list)
+    def _ready_dependencies(method_map: MethodMap) -> TransactionGraph:
+        ready_dependencies = defaultdict[TBody, set[TBody]](set)
 
-        relations = [
-            Relation(start=elem, **dataclass_asdict(relation))
-            for elem in method_map.methods_and_transactions
-            for relation in elem.relations
-            if relation.end in method_map.methods_and_transactions  # prune relations with uncalled methods
-        ]
+        relations = TransactionManager._relations(method_map)
 
         for relation in relations:
             if not relation.ready_dependent:
@@ -256,7 +256,7 @@ class TransactionManager(Elaboratable):
                     if trans_start is not trans_end and not TransactionManager._transactions_exclusive(
                         method_map, trans_start, trans_end
                     ):
-                        ready_dependencies[trans_end].append(trans_start.ready)
+                        ready_dependencies[trans_end].add(trans_start)
 
         return ready_dependencies
 
@@ -408,7 +408,21 @@ class TransactionManager(Elaboratable):
 
             method_map = MethodMap(self.transactions)
             cgr, porder = TransactionManager._conflict_graph(method_map)
-            ready_dependencies = TransactionManager._ready_dependencies(method_map)
+
+        ready_dependencies = TransactionManager._ready_dependencies(method_map)
+
+        for transaction in method_map.transactions:
+            for dep in ready_dependencies[transaction]:
+                if dep in cgr[transaction]:
+                    raise RuntimeError(
+                        textwrap.dedent(
+                            f"""
+                        Transaction '{transaction.name}' {transaction.src_loc} is ready
+                        dependent on transaction '{dep.name}' {dep.src_loc}, but they are
+                        in conflict. This will lead to a deadlock.
+                        """
+                        )
+                    )
 
         m = Module()
         m._MustUse__silence = True  # type: ignore
@@ -431,7 +445,7 @@ class TransactionManager(Elaboratable):
                 method._validate_arguments(method_map.argument_by_call[transaction, method])
                 for method in method_map.methods_by_transaction[transaction]
             ]
-            runnable_terms.extend(ready_dependencies[transaction])
+            runnable_terms.extend(dep.ready for dep in ready_dependencies[transaction])
             m.d.comb += transaction.runnable.eq(Cat(runnable_terms).all())
 
         ccs = _graph_ccs(cgr)
