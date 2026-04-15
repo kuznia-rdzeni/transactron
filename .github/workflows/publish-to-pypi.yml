@@ -21,7 +21,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: '3.11'
+        python-version: '3.13'
     - name: Omit local version for Test PyPI upload
       if: github.event_name == 'push' && github.ref == 'refs/heads/master'
       run: echo SETUPTOOLS_SCM_OVERRIDES_FOR_TRANSACTRON='{local_scheme="no-local-version"}' >> $GITHUB_ENV

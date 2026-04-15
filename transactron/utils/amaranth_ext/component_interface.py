@@ -3,7 +3,7 @@ from amaranth.lib.wiring import Signature, Flow, Member
 from amaranth_types import AbstractInterface, AbstractSignature, FlatShapeLike
 
 from abc import ABCMeta
-from typing import TYPE_CHECKING, Generic, Mapping, Self, TypeVar, final, overload
+from typing import TYPE_CHECKING, Mapping, Self, final, overload
 from dataclasses import dataclass
 
 __all__ = [
@@ -13,8 +13,6 @@ __all__ = [
     "ComponentInterface",
     "FlippedComponentInterface",
 ]
-
-T = TypeVar("T")
 
 
 class _ShapeTypingMeta(ABCMeta):
@@ -32,7 +30,7 @@ class _ShapeTypingMeta(ABCMeta):
         # Amaranth ShapeCastable Signal creation rules
 
         @overload
-        def __call__(cls, shape: ShapeCastable[T]) -> T: ...
+        def __call__[T](cls, shape: ShapeCastable[T]) -> T: ...
 
         @overload
         def __call__(cls, shape: FlatShapeLike = unsigned(1)) -> Signal: ...
@@ -159,17 +157,14 @@ class ComponentInterface(AbstractComponentInterface):
         return res
 
 
-_T_ComponentInterface = TypeVar("_T_ComponentInterface", bound=ComponentInterface)
-
-
 @final
-class FlippedComponentInterface(AbstractComponentInterface, Generic[_T_ComponentInterface]):
+class FlippedComponentInterface[T: ComponentInterface](AbstractComponentInterface):
     """
     Represents `ComponentInterface` with flipped `Flow` directions of its members.
     Flip is applied only in resulting `signature` property.
     """
 
-    def __init__(self, base: _T_ComponentInterface):
+    def __init__(self, base: T):
         self._base = base
 
     def __getattr__(self, name: str):
@@ -180,6 +175,6 @@ class FlippedComponentInterface(AbstractComponentInterface, Generic[_T_Component
         """Amaranth lib.wiring `Signature` constructed from defined `ComponentInterface` attributes."""
         return self._base.signature.flip()
 
-    def flipped(self) -> _T_ComponentInterface:
+    def flipped(self) -> T:
         """`ComponentInterface` with flipped `Flow` direction of members."""
         return self._base
