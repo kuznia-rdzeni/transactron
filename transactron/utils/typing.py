@@ -36,7 +36,7 @@ type LayoutListField = tuple[str, "ShapeLike | LayoutList"]
 type LayoutList = list["LayoutListField"]
 type LayoutIterable = Iterable["LayoutListField"]
 type MethodLayout = StructLayout | LayoutIterable
-MethodStruct: TypeAlias = "View[StructLayout]"
+MethodStruct: TypeAlias = "View[StructLayout]"  # defined as TypeAlias because of def_method logic
 
 type RecordIntDict = Mapping[str, Union[int, "RecordIntDict"]]
 type RecordIntDictRet = Mapping[str, Any]  # full typing hard to work with
