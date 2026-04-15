@@ -251,4 +251,3 @@ Addition and multiplication operations are triggered using buttons connected to 
 These don't sample any value, and therefore calling {py:attr}`~transactron.lib.basicio.InputSampler.get` does not return any value -- but still cause the calling transaction to run only when the button is pressed.
 To perform an operation, operands are taken from the stack using `peek` and `peek2`, while the result is put back on the stack using `pop_set_top`.
 This has the combined effect of removing the two operands from the stack and pushing the result.
-
