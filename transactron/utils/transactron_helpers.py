@@ -1,6 +1,6 @@
 import sys
 from contextlib import contextmanager
-from typing import Optional, Any, Concatenate, TypeGuard, TypeVar
+from typing import Optional, Any, Concatenate, TypeGuard
 from collections.abc import Callable, Mapping, Sequence
 from .typing import ROGraph, GraphCC, MethodLayout, MethodStruct, LayoutList, LayoutListField
 from amaranth_types import SrcLoc, ShapeLike
@@ -8,7 +8,7 @@ from inspect import Parameter, signature
 from itertools import count
 from amaranth import *
 from amaranth import tracer
-from amaranth.lib.data import StructLayout
+from amaranth.lib.data import StructLayout, View
 import amaranth.lib.data as data
 import dataclasses
 
@@ -29,11 +29,8 @@ __all__ = [
     "dataclass_asdict",
 ]
 
-T = TypeVar("T")
-U = TypeVar("U")
 
-
-def _graph_ccs(gr: ROGraph[T]) -> list[GraphCC[T]]:
+def _graph_ccs[T](gr: ROGraph[T]) -> list[GraphCC[T]]:
     """_graph_ccs
 
     Find connected components in a graph.
@@ -69,7 +66,7 @@ def _graph_ccs(gr: ROGraph[T]) -> list[GraphCC[T]]:
     return ccs
 
 
-def longest_common_prefix(*seqs: Sequence[T]) -> Sequence[T]:
+def longest_common_prefix[T](*seqs: Sequence[T]) -> Sequence[T]:
     if not seqs:
         raise ValueError("no arguments")
     for i, letter_group in enumerate(zip(*seqs)):
@@ -78,7 +75,9 @@ def longest_common_prefix(*seqs: Sequence[T]) -> Sequence[T]:
     return min(seqs, key=lambda s: len(s))
 
 
-def has_first_param(func: Callable[..., T], name: str, tp: type[U]) -> TypeGuard[Callable[Concatenate[U, ...], T]]:
+def has_first_param[
+    T, U
+](func: Callable[..., T], name: str, tp: type[U]) -> TypeGuard[Callable[Concatenate[U, ...], T]]:
     parameters = signature(func).parameters
     return (
         len(parameters) >= 1
@@ -88,7 +87,7 @@ def has_first_param(func: Callable[..., T], name: str, tp: type[U]) -> TypeGuard
     )
 
 
-def def_helper(description, func: Callable[..., T], tp: type[U], arg: U, /, **kwargs) -> T:
+def def_helper[T, U](description, func: Callable[..., T], tp: type[U], arg: U, /, **kwargs) -> T:
     try:
         parameters = signature(func).parameters
     except ValueError:
@@ -105,20 +104,20 @@ def def_helper(description, func: Callable[..., T], tp: type[U], arg: U, /, **kw
         raise TypeError(f"Invalid {description}: {func}")
 
 
-def mock_def_helper(tb, func: Callable[..., T], arg: Mapping[str, Any]) -> T:
+def mock_def_helper[T](tb, func: Callable[..., T], arg: Mapping[str, Any]) -> T:
     return def_helper(f"mock definition for {tb}", func, Mapping[str, Any], arg, **arg)
 
 
-def async_mock_def_helper(tb, func: Callable[..., T], arg: "data.Const[StructLayout]") -> T:
+def async_mock_def_helper[T](tb, func: Callable[..., T], arg: "data.Const[StructLayout]") -> T:
     marg = {}
     for k, _ in arg.shape():
         marg[k] = arg[k]
     return def_helper(f"mock definition for {tb}", func, Mapping[str, Any], marg, **marg)
 
 
-def method_def_helper(method, func: Callable[..., T], arg: MethodStruct) -> T:
+def method_def_helper[T](method, func: Callable[..., T], arg: MethodStruct) -> T:
     kwargs = {k: arg[k] for k in arg.shape().members}
-    return def_helper(f"method definition for {method}", func, MethodStruct, arg, **kwargs)
+    return def_helper(f"method definition for {method}", func, View[StructLayout], arg, **kwargs)
 
 
 def get_caller_class_name(default: Optional[str] = None) -> tuple[Optional[Elaboratable], str]:

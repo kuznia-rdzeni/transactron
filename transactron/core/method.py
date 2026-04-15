@@ -6,7 +6,7 @@ from transactron.utils import *
 from amaranth import *
 from amaranth import tracer
 from amaranth_types import ValueLike
-from typing import TYPE_CHECKING, Annotated, Optional, Iterator, TypeAlias, TypeVar, Unpack, overload
+from typing import TYPE_CHECKING, Annotated, Optional, Iterator, Unpack, overload
 from .transaction_base import *
 from contextlib import contextmanager
 from transactron.utils.assign import AssignArg
@@ -30,9 +30,8 @@ class MethodDir(enum.Enum):
     REQUIRED = enum.auto()
 
 
-_T = TypeVar("_T")
-Provided: TypeAlias = Annotated[_T, MethodDir.PROVIDED]
-Required: TypeAlias = Annotated[_T, MethodDir.REQUIRED]
+type Provided[T] = Annotated[T, MethodDir.PROVIDED]
+type Required[T] = Annotated[T, MethodDir.REQUIRED]
 
 
 class Method(TransactionBase["Transaction | Method"]):
