@@ -17,7 +17,7 @@ from .body import Body, TBody, MBody
 from .transaction import Transaction
 from .keys import DefinedMethodsKey, ProvidedMethodsKey, TransactionsKey
 from .method import Method
-from .tmodule import TModule
+from .tmodule import CtrlPath, TModule
 from .schedulers import eager_deterministic_cc_scheduler
 
 __all__ = ["TransactionManager"]
@@ -28,22 +28,39 @@ PriorityOrder: TypeAlias = dict[TBody, int]
 TransactionScheduler: TypeAlias = Callable[["MethodMap", TransactionGraph, TransactionGraphCC, PriorityOrder], Module]
 
 
+def call_paths_exclusive(path1: tuple[CtrlPath, ...], path2: tuple[CtrlPath, ...]):
+    common_prefix_len = 0
+    for ctrl_path1, ctrl_path2 in zip(path1, path2):
+        if ctrl_path1 != ctrl_path2:
+            break
+        common_prefix_len += 1
+
+    if common_prefix_len == len(path1) or common_prefix_len == len(path2):
+        return False
+    return path1[common_prefix_len].exclusive_with(path2[common_prefix_len])
+
+
 class MethodMap:
     def __init__(self, transactions: Iterable[Transaction]):
         self.methods_by_transaction = dict[TBody, list[MBody]]()
         self.transactions_by_method = defaultdict[MBody, list[TBody]](list)
         self.argument_by_call = dict[tuple[TBody, MBody], MethodStruct]()
-        self.ancestors_by_call = dict[tuple[TBody, MBody], tuple[MBody, ...]]()
+        self.ancestors_by_call = defaultdict[tuple[TBody, MBody], list[tuple[MBody, ...]]](list)
+        self.call_paths_by_call = defaultdict[tuple[TBody, MBody], list[tuple[CtrlPath, ...]]](list)
         self.method_parents = defaultdict[MBody, list[Body]](list)
 
         def path_str(path: Sequence[MBody]) -> str:
             return " -> ".join(f"{method.name} {method.src_loc}" for method in path)
 
-        def report_bad_case(transaction: TBody, method: MBody, second_ancestors: tuple[MBody, ...]):
-            first_ancestors = self.ancestors_by_call[(transaction, method)]
+        def report_bad_case(
+            transaction: TBody,
+            method: MBody,
+            first_ancestors: tuple[MBody, ...],
+            second_ancestors: tuple[MBody, ...],
+        ):
             msg = (
-                f"Method '{method.name}' {method.src_loc} called twice from "
-                + f"transaction '{transaction.name}' {transaction.src_loc}"
+                f"Method '{method.name}' {method.src_loc} called twice from transaction "
+                f"'{transaction.name}' {transaction.src_loc}"
             )
 
             if method in second_ancestors[1:]:
@@ -59,21 +76,37 @@ class MethodMap:
 
             raise RuntimeError(msg)
 
-        def rec(transaction: TBody, source: Body, ancestors: tuple[MBody, ...]):
-            for method_obj, (arg_rec, _) in source.method_uses.items():
+        def rec(
+            transaction: TBody,
+            source: Body,
+            ancestors: tuple[MBody, ...],
+            call_path: tuple[CtrlPath, ...],
+        ):
+            for method_obj, calls in source.method_calls.items():
                 method = MBody(method_obj._body)
-                new_ancestors = (method, *ancestors)
-                if method in self.methods_by_transaction[transaction]:
-                    report_bad_case(transaction, method, new_ancestors)
-                self.methods_by_transaction[transaction].append(method)
-                self.transactions_by_method[method].append(transaction)
-                self.argument_by_call[(transaction, method)] = arg_rec
-                self.ancestors_by_call[(transaction, method)] = new_ancestors
-                rec(transaction, method, new_ancestors)
+                for call_ctrl_path, arg_rec, _ in calls:
+                    new_ancestors = (method, *ancestors)
+                    new_call_path = (*call_path, call_ctrl_path)
+                    if method in ancestors:
+                        report_bad_case(transaction, method, new_ancestors, new_ancestors)
+
+                    old_paths = self.call_paths_by_call[(transaction, method)]
+                    old_ancestors = self.ancestors_by_call[(transaction, method)]
+                    for i, old_path in enumerate(old_paths):
+                        if not call_paths_exclusive(old_path, new_call_path):
+                            report_bad_case(transaction, method, old_ancestors[i], new_ancestors)
+
+                    self.ancestors_by_call[(transaction, method)].append(new_ancestors)
+                    self.call_paths_by_call[(transaction, method)].append(new_call_path)
+                    if method not in self.methods_by_transaction[transaction]:
+                        self.methods_by_transaction[transaction].append(method)
+                        self.transactions_by_method[method].append(transaction)
+                        self.argument_by_call[(transaction, method)] = arg_rec
+                    rec(transaction, method, new_ancestors, new_call_path)
 
         for transaction in transactions:
             self.methods_by_transaction[TBody(transaction._body)] = []
-            rec(TBody(transaction._body), transaction._body, ())
+            rec(TBody(transaction._body), transaction._body, (), ())
 
         for transaction_or_method in self.methods_and_transactions:
             for method in transaction_or_method.method_uses.keys():
@@ -81,7 +114,7 @@ class MethodMap:
 
     def transactions_for(self, elem: Body) -> Collection[TBody]:
         if elem in self.transactions_by_method:
-            return self.transactions_by_method[elem]
+            return self.transactions_by_method[MBody(elem)]
         else:
             assert elem in self.methods_by_transaction
             return [TBody(elem)]
@@ -156,8 +189,14 @@ class TransactionManager(Elaboratable):
         def calls_nonexclusive(trans1: TBody, trans2: TBody, method: MBody):
             ancestors1 = method_map.ancestors_by_call[(trans1, method)]
             ancestors2 = method_map.ancestors_by_call[(trans2, method)]
-            common_ancestors = longest_common_prefix(ancestors1, ancestors2)
-            return common_ancestors[-1].nonexclusive
+            paths1 = method_map.call_paths_by_call[(trans1, method)]
+            paths2 = method_map.call_paths_by_call[(trans2, method)]
+            return all(
+                common_ancestors[-1].nonexclusive or call_paths_exclusive(path1, path2)
+                for ancestors1_path, path1 in zip(ancestors1, paths1)
+                for ancestors2_path, path2 in zip(ancestors2, paths2)
+                if (common_ancestors := longest_common_prefix(ancestors1_path, ancestors2_path))
+            )
 
         cgr: TransactionGraph = {}  # Conflict graph
         pgr: TransactionGraph = {}  # Priority graph
@@ -179,11 +218,7 @@ class TransactionManager(Elaboratable):
         for method in method_map.methods:
             for transaction1 in method_map.transactions_for(method):
                 for transaction2 in method_map.transactions_for(method):
-                    if (
-                        transaction1 is not transaction2
-                        and not transactions_exclusive(transaction1, transaction2)
-                        and not calls_nonexclusive(transaction1, transaction2, method)
-                    ):
+                    if transaction1 is not transaction2 and not calls_nonexclusive(transaction1, transaction2, method):
                         add_edge(transaction1, transaction2, Priority.UNDEFINED, True)
 
         relations = [
@@ -252,10 +287,11 @@ class TransactionManager(Elaboratable):
         ret: set[MBody] = set()
 
         for (transaction, method), ancestors in method_map.ancestors_by_call.items():
-            for callee, caller in zip(ancestors, (*ancestors[1:], transaction)):
-                if callee in [method._body for method in caller.conditional_calls]:
-                    ret.add(method)
-                    break
+            for ancestors_path in ancestors:
+                for callee, caller in zip(ancestors_path, (*ancestors_path[1:], transaction)):
+                    if callee in [method._body for method in caller.conditional_calls]:
+                        ret.add(method)
+                        break
 
         return ret
 

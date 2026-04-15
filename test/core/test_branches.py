@@ -1,3 +1,5 @@
+import pytest
+
 from amaranth import *
 from itertools import product
 from transactron.core import (
@@ -11,7 +13,7 @@ from transactron.core import (
 from transactron.core.tmodule import CtrlPath
 from transactron.core.manager import MethodMap
 from unittest import TestCase
-from transactron.testing import TestCaseWithSimulator
+from transactron.testing import SimpleTestCircuit, TestCaseWithSimulator
 from transactron.utils.dependencies import DependencyContext
 
 
@@ -97,3 +99,87 @@ class TestExclusiveConflictRemoval(TestCaseWithSimulator):
 
         for s in cgr.values():
             assert not s
+
+
+class ExclusiveDiamondCallCircuit(Elaboratable):
+    def __init__(self):
+        self.sel = Signal()
+        self.method_left = Method()
+        self.method_right = Method()
+        self.method_inner = Method()
+
+    def elaborate(self, platform):
+        m = TModule()
+
+        @def_method(m, self.method_inner)
+        def _():
+            pass
+
+        @def_method(m, self.method_left)
+        def _():
+            self.method_inner(m)
+
+        @def_method(m, self.method_right)
+        def _():
+            self.method_inner(m)
+
+        with Transaction().body(m):
+            with m.If(self.sel):
+                self.method_left(m)
+            with m.Else():
+                self.method_right(m)
+
+        return m
+
+
+class NonExclusiveDiamondCallCircuit(Elaboratable):
+    def __init__(self):
+        self.sel_left = Signal()
+        self.sel_right = Signal()
+        self.method_left = Method()
+        self.method_right = Method()
+        self.method_inner = Method()
+
+    def elaborate(self, platform):
+        m = TModule()
+
+        @def_method(m, self.method_inner)
+        def _():
+            pass
+
+        @def_method(m, self.method_left)
+        def _():
+            self.method_inner(m)
+
+        @def_method(m, self.method_right)
+        def _():
+            self.method_inner(m)
+
+        with Transaction().body(m):
+            with m.If(self.sel_left):
+                self.method_left(m)
+            with m.If(self.sel_right):
+                self.method_right(m)
+
+        return m
+
+
+class TestExclusiveDiamondCall(TestCaseWithSimulator):
+    def test_exclusive_diamond_call(self):
+        dut = ExclusiveDiamondCallCircuit()
+        circ = SimpleTestCircuit(dut)
+
+        async def run(sim):
+            assert sim.get(dut.method_inner.run)
+
+        with self.run_simulation(circ) as sim:
+            sim.add_testbench(run)
+
+
+class TestNonExclusiveDiamondCall(TestCaseWithSimulator):
+    def test_nonexclusive_diamond_call(self):
+        circ = SimpleTestCircuit(NonExclusiveDiamondCallCircuit())
+
+        with pytest.raises(RuntimeError):
+            with self.run_simulation(circ):
+                pass
