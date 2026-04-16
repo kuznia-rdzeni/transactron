@@ -29,11 +29,7 @@ TransactionScheduler: TypeAlias = Callable[["MethodMap", TransactionGraph, Trans
 
 
 def call_paths_exclusive(path1: tuple[CtrlPath, ...], path2: tuple[CtrlPath, ...]):
-    common_prefix_len = 0
-    for ctrl_path1, ctrl_path2 in zip(path1, path2):
-        if ctrl_path1 != ctrl_path2:
-            break
-        common_prefix_len += 1
+    common_prefix_len = len(longest_common_prefix(path1, path2))
 
     if common_prefix_len == len(path1) or common_prefix_len == len(path2):
         return False

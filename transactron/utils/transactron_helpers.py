@@ -73,7 +73,7 @@ def longest_common_prefix(*seqs: Sequence[T]) -> Sequence[T]:
     if not seqs:
         raise ValueError("no arguments")
     for i, letter_group in enumerate(zip(*seqs)):
-        if len(set(letter_group)) > 1:
+        if any(letter != letter_group[0] for letter in letter_group[1:]):
             return seqs[0][:i]
     return min(seqs, key=lambda s: len(s))
 
