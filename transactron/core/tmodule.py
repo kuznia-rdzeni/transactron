@@ -4,7 +4,7 @@ from amaranth import *
 from amaranth_types import StatementLike, ModuleLike, ValueLike, SwitchKey
 from typing import Optional, Self, NoReturn
 from contextlib import contextmanager
-from amaranth.hdl._dsl import FSM
+from amaranth.hdl._dsl import FSM, _guardedcontextmanager
 
 __all__ = ["TModule"]
 
@@ -217,55 +217,55 @@ class TModule(ModuleLike, Elaboratable):
         self.path_builder = CtrlPathBuilder(self.uid)
         TModule.__next_uid += 1
 
-    @contextmanager
+    @_guardedcontextmanager("AvoidedIf")
     def AvoidedIf(self, cond: ValueLike):  # noqa: N802
         with self.main_module.If(cond):
             with self.path_builder.enter(EnterType.PUSH):
                 yield
 
-    @contextmanager
+    @_guardedcontextmanager("If")
     def If(self, cond: ValueLike):  # noqa: N802
         with self.main_module.If(cond):
             with self.avoiding_module.If(cond):
                 with self.path_builder.enter(EnterType.PUSH):
                     yield
 
-    @contextmanager
+    @_guardedcontextmanager("Elif")
     def Elif(self, cond):  # noqa: N802
         with self.main_module.Elif(cond):
             with self.avoiding_module.Elif(cond):
                 with self.path_builder.enter(EnterType.ADD):
                     yield
 
-    @contextmanager
+    @_guardedcontextmanager("Else")
     def Else(self):  # noqa: N802
         with self.main_module.Else():
             with self.avoiding_module.Else():
                 with self.path_builder.enter(EnterType.ADD):
                     yield
 
-    @contextmanager
+    @_guardedcontextmanager("Switch")
     def Switch(self, test: ValueLike):  # noqa: N802
         with self.main_module.Switch(test):
             with self.avoiding_module.Switch(test):
                 with self.path_builder.enter(EnterType.PUSH):
                     yield
 
-    @contextmanager
+    @_guardedcontextmanager("Case")
     def Case(self, *patterns: SwitchKey):  # noqa: N802
         with self.main_module.Case(*patterns):
             with self.avoiding_module.Case(*patterns):
                 with self.path_builder.enter(EnterType.ENTRY):
                     yield
 
-    @contextmanager
+    @_guardedcontextmanager("Default")
     def Default(self):  # noqa: N802
         with self.main_module.Default():
             with self.avoiding_module.Default():
                 with self.path_builder.enter(EnterType.ENTRY):
                     yield
 
-    @contextmanager
+    @_guardedcontextmanager("FSM")
     def FSM(self, init: Optional[str] = None, domain: str = "sync", name: str = "fsm"):  # noqa: N802
         old_fsm = self.fsm
         with self.main_module.FSM(init, domain, name) as fsm:
@@ -274,7 +274,7 @@ class TModule(ModuleLike, Elaboratable):
                 yield fsm
         self.fsm = old_fsm
 
-    @contextmanager
+    @_guardedcontextmanager("State")
     def State(self, name: str):  # noqa: N802
         assert self.fsm is not None
         with self.main_module.State(name):
