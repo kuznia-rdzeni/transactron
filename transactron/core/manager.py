@@ -59,8 +59,8 @@ class MethodMap:
             second_ancestors: tuple[MBody, ...],
         ):
             msg = (
-                f"Method '{method.name}' {method.src_loc} called twice from transaction "
-                f"'{transaction.name}' {transaction.src_loc}"
+                f"Method '{method.name}' {method.src_loc} called twice from "
+                + f"transaction '{transaction.name}' {transaction.src_loc}"
             )
 
             if method in second_ancestors[1:]:
@@ -253,14 +253,14 @@ class TransactionManager(Elaboratable):
 
     @staticmethod
     def _method_enables(method_map: MethodMap) -> Mapping[TBody, Mapping[MBody, ValueLike]]:
-        method_enables = defaultdict[TBody, dict[MBody, ValueLike]](dict)
+        method_enables = defaultdict[TBody, defaultdict[MBody, ValueLike]](lambda: defaultdict(lambda: C(0)))
         enables: list[ValueLike] = []
 
         def rec(transaction: TBody, source: Body):
             for method, (_, enable) in source.method_uses.items():
                 enables.append(enable)
                 rec(transaction, method._body)
-                method_enables[transaction][MBody(method._body)] = Cat(*enables).all()
+                method_enables[transaction][MBody(method._body)] |= Cat(*enables).all()
                 enables.pop()
 
         for transaction in method_map.transactions:
