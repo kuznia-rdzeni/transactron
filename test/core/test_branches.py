@@ -194,6 +194,64 @@ class TestExclusiveDiamondCall(TestCaseWithSimulator):
             sim.add_testbench(run)
 
 
+class ExclusiveDiamondValidateArgumentsCircuit(Elaboratable):
+    def __init__(self):
+        self.sel = Signal()
+        self.method_left = Method()
+        self.method_right = Method()
+        self.method_inner = Method(i=[("value", 2)])
+        self.running = Signal()
+
+    def elaborate(self, platform):
+        m = TModule()
+
+        @def_method(m, self.method_inner, validate_arguments=lambda value: value == 0b01)
+        def _(value):
+            pass
+
+        @def_method(m, self.method_left)
+        def _():
+            self.method_inner(m, value=0b01)
+
+        @def_method(m, self.method_right)
+        def _():
+            self.method_inner(m, value=0b10)
+
+        with Transaction().body(m):
+            with m.If(self.sel):
+                self.method_left(m)
+            with m.Else():
+                self.method_right(m)
+
+            m.d.comb += self.running.eq(1)
+
+        return m
+
+
+class TestExclusiveDiamondValidateArguments(TestCaseWithSimulator):
+    def test_exclusive_diamond_validate_arguments(self):
+        dut = ExclusiveDiamondValidateArgumentsCircuit()
+        circ = SimpleTestCircuit(dut)
+
+        async def run(sim):
+            sim.set(dut.sel, 1)
+            await sim.tick()
+            assert sim.get(dut.running)
+            assert sim.get(dut.method_left.run)
+            assert not sim.get(dut.method_right.run)
+            assert sim.get(dut.method_inner.run)
+
+            sim.set(dut.sel, 0)
+            await sim.tick()
+            assert not sim.get(dut.running)
+            assert not sim.get(dut.method_left.run)
+            assert not sim.get(dut.method_right.run)
+            assert not sim.get(dut.method_inner.run)
+
+        with self.run_simulation(circ) as sim:
+            sim.add_testbench(run)
+
+
 class TestNonExclusiveDiamondCall(TestCaseWithSimulator):
     def test_nonexclusive_diamond_call(self):
         circ = SimpleTestCircuit(NonExclusiveDiamondCallCircuit())
