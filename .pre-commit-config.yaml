@@ -31,3 +31,5 @@ repos:
     language: script
     types: [python]
     args: ['check_types']
+
+exclude: \.svg$
