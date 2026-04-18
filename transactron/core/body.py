@@ -37,7 +37,7 @@ class Body(TransactionBase["Body"]):
     def_counter: ClassVar[count] = count()
     def_order: int
     stack: ClassVar[list["Body"]] = []
-    ctrl_path: CtrlPath = CtrlPath(-1, [])
+    ctrl_path: CtrlPath = CtrlPath(-1, ())
     method_uses: dict["Method", tuple[MethodStruct, Signal]]
     method_calls: defaultdict["Method", list[tuple[CtrlPath, MethodStruct, ValueLike]]]
     conditional_calls: set["Method"]
