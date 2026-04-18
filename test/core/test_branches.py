@@ -197,6 +197,7 @@ class TestExclusiveDiamondCall(TestCaseWithSimulator):
 class ExclusiveDiamondValidateArgumentsCircuit(Elaboratable):
     def __init__(self):
         self.sel = Signal()
+        self.filter_value = Signal(2)
         self.method_left = Method()
         self.method_right = Method()
         self.method_inner = Method(i=[("value", 2)])
@@ -205,7 +206,7 @@ class ExclusiveDiamondValidateArgumentsCircuit(Elaboratable):
     def elaborate(self, platform):
         m = TModule()
 
-        @def_method(m, self.method_inner, validate_arguments=lambda value: value == 0b01)
+        @def_method(m, self.method_inner, validate_arguments=lambda value: value == self.filter_value)
         def _(value):
             pass
 
@@ -234,19 +235,22 @@ class TestExclusiveDiamondValidateArguments(TestCaseWithSimulator):
         circ = SimpleTestCircuit(dut)
 
         async def run(sim):
-            sim.set(dut.sel, 1)
-            await sim.tick()
-            assert sim.get(dut.running)
-            assert sim.get(dut.method_left.run)
-            assert not sim.get(dut.method_right.run)
-            assert sim.get(dut.method_inner.run)
+            for filter_left in (False, True):
+                sim.set(dut.filter_value, 0b01 if filter_left else 0b10)
 
-            sim.set(dut.sel, 0)
-            await sim.tick()
-            assert not sim.get(dut.running)
-            assert not sim.get(dut.method_left.run)
-            assert not sim.get(dut.method_right.run)
-            assert not sim.get(dut.method_inner.run)
+                sim.set(dut.sel, 1)
+                await sim.tick()
+                assert sim.get(dut.running) == filter_left
+                assert sim.get(dut.method_left.run) == filter_left
+                assert not sim.get(dut.method_right.run)
+                assert sim.get(dut.method_inner.run) == filter_left
+
+                sim.set(dut.sel, 0)
+                await sim.tick()
+                assert sim.get(dut.running) != filter_left
+                assert sim.get(dut.method_left.run)
+                assert sim.get(dut.method_right.run) != filter_left
+                assert sim.get(dut.method_inner.run) != filter_left
 
         with self.run_simulation(circ) as sim:
             sim.add_testbench(run)
