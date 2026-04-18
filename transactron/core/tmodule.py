@@ -83,12 +83,12 @@ class CtrlPath:
     ----------
     module : int
         Unique number of the module the path refers to.
-    path : list[PathEdge]
+    path : tuple[PathEdge, ...]
         Path in the control tree, starting from the root.
     """
 
     module: int
-    path: list[PathEdge]
+    path: tuple[PathEdge, ...]
 
     def is_prefix(self, other: "CtrlPath"):
         """Decides if this path is a prefix of some other path.
@@ -181,7 +181,7 @@ class CtrlPathBuilder:
 
     def build_ctrl_path(self):
         """Returns the current control path."""
-        return CtrlPath(self.module, self.ctrl_path[:])
+        return CtrlPath(self.module, tuple(self.ctrl_path))
 
 
 class TModule(ModuleLike, Elaboratable):
