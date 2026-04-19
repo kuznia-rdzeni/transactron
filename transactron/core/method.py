@@ -314,7 +314,7 @@ class Method(TransactionBase["Transaction | Method"]):
             arg = kwargs
 
         enable_sig = Signal(name=self.owned_name + "_enable")
-        m.d.av_comb += enable_sig.eq(enable_call)
+        m.d.comb += enable_sig.eq(enable_call)
         m.d.top_comb += assign(arg_rec, arg, fields=AssignType.ALL)
 
         caller = Body.get()
