@@ -86,13 +86,13 @@ class Transaction(TransactionBase["Transaction | Method"]):
     def _body(self) -> TBody:
         if self._body_ptr is not None:
             return TBody(self._body_ptr)
-        raise RuntimeError(f"Method '{self.name}' not defined")
+        raise RuntimeError(f"Transaction '{self.name}' {self.src_loc} not defined")
 
     def _set_impl(self, m: TModule, value: Body):
         if self._body_ptr is not None:
-            raise RuntimeError(f"Transaction '{self.name}' already defined")
+            raise RuntimeError(f"Transaction '{self.name}' {self.src_loc} already defined")
         if value.data_in.shape().size != 0 or value.data_out.shape().size != 0:
-            raise ValueError(f"Transaction body {value.name} has invalid interface")
+            raise ValueError(f"Transaction body {value.name} {value.src_loc} has invalid interface")
         self._body_ptr = value
         m.d.top_comb += self.ready.eq(value.ready)
         m.d.top_comb += self.runnable.eq(value.runnable)

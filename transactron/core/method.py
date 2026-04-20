@@ -137,11 +137,11 @@ class Method(TransactionBase["Transaction | Method"]):
         if isinstance(self._body_ptr, Method):
             self._body_ptr = self._body_ptr._body
             return self._body_ptr
-        raise RuntimeError(f"Method '{self.name}' not defined")
+        raise RuntimeError(f"Method '{self.name}' {self.src_loc} not defined")
 
     def _set_impl(self, value: "Body | Method"):
         if self._body_ptr is not None:
-            raise RuntimeError(f"Method '{self.name}' already defined")
+            raise RuntimeError(f"Method '{self.name}' {self.src_loc} already defined")
         if value.data_in.shape() != self.layout_in or value.data_out.shape() != self.layout_out:
             raise ValueError(
                 textwrap.dedent(
@@ -314,12 +314,15 @@ class Method(TransactionBase["Transaction | Method"]):
             arg = kwargs
 
         enable_sig = Signal(name=self.owned_name + "_enable")
-        m.d.av_comb += enable_sig.eq(enable_call)
+        m.d.comb += enable_sig.eq(enable_call)
         m.d.top_comb += assign(arg_rec, arg, fields=AssignType.ALL)
 
         caller = Body.get()
         if not all(ctrl_path.exclusive_with(m.ctrl_path) for ctrl_path, _, _ in caller.method_calls[self]):
-            raise RuntimeError(f"Method '{self.name}' can't be called twice from the same caller '{caller.name}'")
+            raise RuntimeError(
+                f"Method '{self.name}' {self.src_loc} can't be called twice "
+                f"from the same caller '{caller.name}' {caller.src_loc}"
+            )
         caller.method_calls[self].append((m.ctrl_path, arg_rec, enable_sig))
 
         is_conditional = (

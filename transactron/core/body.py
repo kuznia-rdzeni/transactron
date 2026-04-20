@@ -88,7 +88,7 @@ class Body(TransactionBase["Body"]):
 
         parent = Body.peek()
         if parent is not None:
-            parent.schedule_before(self)
+            parent.schedule_before(self, ready_dependent=True)
 
         Body.stack.append(self)
 
