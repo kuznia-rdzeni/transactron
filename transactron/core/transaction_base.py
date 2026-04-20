@@ -27,6 +27,7 @@ class RelationBase[T: TransactionBase]:
     end: T
     priority: Priority = Priority.UNDEFINED
     conflict: bool = False
+    ready_dependent: bool = False
     silence_warning: bool = False
 
 
@@ -68,7 +69,7 @@ class TransactionBase[T: TransactionBase](Owned, Protocol):
             RelationBase(end=end, priority=priority, conflict=True, silence_warning=self.owner != end.owner)
         )
 
-    def schedule_before(self, end: T) -> None:
+    def schedule_before(self, end: T, *, ready_dependent: bool = False) -> None:
         """Adds a priority relation.
 
         Record that that the given `Transaction` or `Method` needs to be
@@ -79,9 +80,18 @@ class TransactionBase[T: TransactionBase](Owned, Protocol):
         ----------
         end: Transaction or Method
             The other `Transaction` or `Method`
+        ready_dependent: bool
+            If true, the manager additionally requires the relation source
+            to be ready when scheduling the destination transaction.
         """
         self.relations.append(
-            RelationBase(end=end, priority=Priority.LEFT, conflict=False, silence_warning=self.owner != end.owner)
+            RelationBase(
+                end=end,
+                priority=Priority.LEFT,
+                conflict=False,
+                ready_dependent=ready_dependent,
+                silence_warning=self.owner != end.owner,
+            )
         )
 
     def simultaneous(self, *others: T) -> None:
