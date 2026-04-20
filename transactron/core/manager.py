@@ -245,8 +245,8 @@ class TransactionManager(Elaboratable):
         return method_enables
 
     @staticmethod
-    def _ready_dependencies(method_map: MethodMap) -> Mapping[TBody, set[Body]]:
-        ready_dependencies = defaultdict[TBody, set[Body]](set)
+    def _ready_dependencies(method_map: MethodMap) -> Graph[Body]:
+        ready_dependencies = defaultdict[Body, set[Body]](set)
 
         relations = TransactionManager._relations(method_map)
 
@@ -254,8 +254,7 @@ class TransactionManager(Elaboratable):
             if not relation.ready_dependent:
                 continue
 
-            for trans in method_map.transactions_for(relation.end):
-                ready_dependencies[trans].add(relation.start)
+            ready_dependencies[relation.end].add(relation.start)
 
         return ready_dependencies
 
@@ -445,7 +444,10 @@ class TransactionManager(Elaboratable):
 
         for transaction in method_map.transactions:
             runnable_terms = [
-                method._validate_arguments(method_map.argument_by_call[transaction, method])
+                (
+                    method._validate_arguments(method_map.argument_by_call[transaction, method])
+                    & Cat(dep.run for dep in ready_dependencies[method]).all()
+                )
                 for method in method_map.methods_by_transaction[transaction]
             ]
             runnable_terms.extend(dep.run for dep in ready_dependencies[transaction])
