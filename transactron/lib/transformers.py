@@ -1,7 +1,6 @@
 from amaranth import *
 from amaranth_types import ValueLike, ModuleLike, HasElaborate
 
-from transactron.utils.amaranth_ext.elaboratables import OneHotSwitchDynamic
 from transactron.utils.transactron_helpers import get_src_loc
 from ..core import *
 from ..utils import SrcLoc
@@ -531,16 +530,7 @@ class NonexclusiveWrapper(Elaboratable, TransformerOneTarget):
     def elaborate(self, platform):
         m = TModule()
 
-        def combiner(m: Module, args: Sequence[MethodStruct], runs: Value):
-            if len(args) == 1:
-                return args[0]
-            else:
-                ret = Signal(self.method.layout_in)
-                for k in OneHotSwitchDynamic(m, runs):
-                    m.d.comb += ret.eq(args[k])
-                return ret
-
-        @def_method(m, self.method, nonexclusive=True, combiner=combiner)
+        @def_method(m, self.method, nonexclusive=True)
         def _(arg):
             return self.target(m, arg)
 
