@@ -278,8 +278,8 @@ class TransactionManager(Elaboratable):
         return method_enables
 
     @staticmethod
-    def _ready_dependencies(method_map: MethodMap) -> Graph[Body]:
-        ready_dependencies = defaultdict[Body, set[Body]](set)
+    def _ready_dependencies(method_map: MethodMap) -> Mapping[TBody, set[Body]]:
+        ready_dependencies = defaultdict[TBody, set[Body]](set)
 
         relations = TransactionManager._relations(method_map)
 
@@ -287,14 +287,8 @@ class TransactionManager(Elaboratable):
             if not relation.ready_dependent:
                 continue
 
-            # Transitively trickle down ready dependencies
-            todo = {relation.end}
-            while todo:
-                current = todo.pop()
-                if relation.start not in ready_dependencies[current]:
-                    ready_dependencies[current].add(relation.start)
-                    for parent in method_map.method_parents[current]:
-                        todo.add(parent)
+            for trans in method_map.transactions_for(relation.end):
+                ready_dependencies[trans].add(relation.start)
 
         return ready_dependencies
 
