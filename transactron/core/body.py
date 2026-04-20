@@ -84,7 +84,7 @@ class Body(TransactionBase["Body"]):
         self.conditional_calls = set()
 
         if self.nonexclusive:
-            assert len(self.data_in.as_value()) == 0 or self.combiner is not None
+            assert len(self.data_in.as_value()) == 0 or "combiner" in kwargs
 
     def _validate_arguments(self, arg_rec: MethodStruct) -> ValueLike:
         if self.validate_arguments is not None:
