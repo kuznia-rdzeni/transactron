@@ -399,6 +399,38 @@ class NestedMethodMethodMethodCircuit(SchedulingTestCircuit):
         return m
 
 
+class NestedTransactionInMethodMultipleCallersCircuit(Elaboratable):
+    def __init__(self):
+        self.r1 = Signal()
+        self.r2 = Signal()
+
+        self.c1 = Signal()
+        self.c2 = Signal()
+        self.method_run = Signal()
+        self.inner_run = Signal()
+
+    def elaborate(self, platform):
+        m = TModule()
+
+        shared_method = Method()
+
+        @def_method(m, shared_method)
+        def _():
+            m.d.comb += self.method_run.eq(1)
+            with Transaction().body(m):
+                m.d.comb += self.inner_run.eq(1)
+
+        with Transaction().body(m, ready=self.r1):
+            m.d.comb += self.c1.eq(1)
+            shared_method(m)
+
+        with Transaction().body(m, ready=self.r2):
+            m.d.comb += self.c2.eq(1)
+            shared_method(m)
+
+        return m
+
+
 @pytest.mark.parametrize(
     "circuit",
     [
@@ -425,6 +457,28 @@ class TestNested(TestCaseWithSimulator):
                 *_, t1, t2 = await sim.tick().sample(m.t1, m.t2)
                 assert t1 == r1
                 assert t2 == r1 * r2
+
+        with self.run_simulation(m) as sim:
+            sim.add_testbench(process)
+
+
+class TestNestedMethodMultipleCallers(TestCaseWithSimulator):
+    def test_nested_transaction_runs_if_any_caller_runs(self):
+        m = NestedTransactionInMethodMultipleCallersCircuit()
+
+        async def process(sim):
+            to_test = 5 * [(0, 0), (0, 1), (1, 0), (1, 1)]
+            random.shuffle(to_test)
+
+            for r1, r2 in to_test:
+                sim.set(m.r1, r1)
+                sim.set(m.r2, r2)
+                *_, c1, c2, method_run, inner_run = await sim.tick().sample(m.c1, m.c2, m.method_run, m.inner_run)
+
+                caller_run = bool(c1) or bool(c2)
+                assert caller_run == bool(r1 or r2)
+                assert bool(method_run) == caller_run
+                assert bool(inner_run) == caller_run
 
         with self.run_simulation(m) as sim:
             sim.add_testbench(process)
