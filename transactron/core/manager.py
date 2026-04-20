@@ -236,7 +236,10 @@ class TransactionManager(Elaboratable):
             end = relation.end
             if not relation.conflict:  # relation added with schedule_before
                 if end.def_order < start.def_order and not relation.silence_warning:
-                    raise RuntimeError(f"{start.name!r} scheduled before {end.name!r}, but defined afterwards")
+                    raise RuntimeError(
+                        f"{start.name!r} {start.src_loc} scheduled before {end.name!r} {end.src_loc} "
+                        "but defined afterwards"
+                    )
 
             for trans_start in method_map.transactions_for(start):
                 for trans_end in method_map.transactions_for(end):
@@ -358,7 +361,8 @@ class TransactionManager(Elaboratable):
                 # nested definitions do not trigger the issue
                 if any(not elem.ctrl_path.is_proper_prefix(sim_elem.ctrl_path) for sim_elem in elem.simultaneous_list):
                     raise RuntimeError(
-                        f"Simultaneity constraint for conditionally called method '{elem.name}' not supported"
+                        "Simultaneity constraint for conditionally called method "
+                        f"'{elem.name}' {elem.src_loc} not supported"
                     )
             pruned_sim = False
             for sim_elem in elem.simultaneous_list:
@@ -370,7 +374,10 @@ class TransactionManager(Elaboratable):
                 for tr1, tr2 in product(method_map.transactions_for(elem), method_map.transactions_for(sim_elem)):
                     if tr1 in independents[tr2]:
                         raise RuntimeError(
-                            f"Unsatisfiable simultaneity constraints for '{elem.name}' and '{sim_elem.name}'"
+                            textwrap.dedent(
+                                f"Unsatisfiable simultaneity constraints for '{elem.name}' {elem.src_loc} "
+                                f"and '{sim_elem.name}' {sim_elem.src_loc}"
+                            )
                         )
                     simultaneous.add(frozenset({tr1, tr2}))
             if pruned_sim and elem in method_map.transactions:
@@ -505,7 +512,7 @@ class TransactionManager(Elaboratable):
 
         for method in method_map.methods:
             if method.single_caller and len(method_args[method]) > 1:
-                raise RuntimeError(f"Single-caller method '{method.name}' called more than once")
+                raise RuntimeError(f"Single-caller method '{method.name}' {method.src_loc} called more than once")
             runs = Cat(method_runs[method])
             m.d.comb += method.run.eq(runs.any())
             m.d.comb += assign(method.data_in, method.combiner(m, method_args[method], runs), fields=AssignType.ALL)
