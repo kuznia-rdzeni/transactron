@@ -275,8 +275,8 @@ class TransactionManager(Elaboratable):
         return method_enables
 
     @staticmethod
-    def _ready_dependencies(method_map: MethodMap) -> TransactionGraph:
-        ready_dependencies = defaultdict[TBody, set[TBody]](set)
+    def _ready_dependencies(method_map: MethodMap) -> Graph[Body]:
+        ready_dependencies = defaultdict[Body, set[Body]](set)
 
         relations = TransactionManager._relations(method_map)
 
@@ -284,12 +284,7 @@ class TransactionManager(Elaboratable):
             if not relation.ready_dependent:
                 continue
 
-            for trans_start in method_map.transactions_for(relation.start):
-                for trans_end in method_map.transactions_for(relation.end):
-                    if trans_start is not trans_end and not TransactionManager._transactions_exclusive(
-                        method_map, trans_start, trans_end
-                    ):
-                        ready_dependencies[trans_end].add(trans_start)
+            ready_dependencies[relation.end].add(relation.start)
 
         return ready_dependencies
 
@@ -486,15 +481,17 @@ class TransactionManager(Elaboratable):
                     m.d.comb += en.eq(1)
 
                 valid = Signal()
-                with m.If(method.ready):
+
+                method_ready = [method.ready] + [dep.run for dep in ready_dependencies[method]]
+
+                with m.If(Cat(*method_ready).all()):
                     m.d.comb += valid.eq(~en | method._validate_arguments(arg_rec))
 
                 return valid
 
             runnable_terms = [
                 validate_args_for_method(method) for method in method_map.methods_by_transaction[transaction]
-            ]
-            runnable_terms.extend(dep.run for dep in ready_dependencies[transaction])
+            ] + [dep.run for dep in ready_dependencies[transaction]]
             m.d.comb += transaction.runnable.eq(Cat(runnable_terms).all())
 
         ccs = _graph_ccs(cgr)
