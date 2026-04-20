@@ -314,7 +314,7 @@ class Method(TransactionBase["Transaction | Method"]):
             arg = kwargs
 
         enable_sig = Signal(name=self.owned_name + "_enable")
-        m.d.comb += enable_sig.eq(enable_call)
+        m.d.av_comb += enable_sig.eq(enable_call)
         m.d.top_comb += assign(arg_rec, arg, fields=AssignType.ALL)
 
         caller = Body.get()
@@ -329,11 +329,6 @@ class Method(TransactionBase["Transaction | Method"]):
         )
         if is_conditional:
             caller.conditional_calls.add(self)
-
-        if self not in caller.method_uses:
-            arg_rec_use = Signal(self.layout_in)
-            arg_rec_enable_sig = Signal()
-            caller.method_uses[self] = (arg_rec_use, arg_rec_enable_sig)
 
         return self.data_out
 

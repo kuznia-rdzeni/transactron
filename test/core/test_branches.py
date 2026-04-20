@@ -14,6 +14,7 @@ from transactron.core.tmodule import CtrlPath
 from transactron.core.manager import MethodMap
 from unittest import TestCase
 from transactron.testing import SimpleTestCircuit, TestCaseWithSimulator
+from transactron.utils.amaranth_ext.elaboratables import ModuleConnector
 from transactron.utils.dependencies import DependencyContext
 
 
@@ -202,13 +203,14 @@ class ExclusiveDiamondValidateArgumentsCircuit(Elaboratable):
         self.method_right = Method()
         self.method_inner = Method(i=[("value", 2)])
         self.running = Signal()
+        self.value_out = Signal(2)
 
     def elaborate(self, platform):
         m = TModule()
 
         @def_method(m, self.method_inner, validate_arguments=lambda value: value == self.filter_value)
         def _(value):
-            pass
+            m.d.comb += self.value_out.eq(value)
 
         @def_method(m, self.method_left)
         def _():
@@ -229,28 +231,69 @@ class ExclusiveDiamondValidateArgumentsCircuit(Elaboratable):
         return m
 
 
+class ExclusiveValidateArgumentsCircuit(Elaboratable):
+    def __init__(self):
+        self.sel = Signal()
+        self.filter_value = Signal(2)
+        self.method_inner = Method(i=[("value", 2)])
+        self.running = Signal()
+        self.value_out = Signal(2)
+
+    def elaborate(self, platform):
+        m = TModule()
+
+        @def_method(m, self.method_inner, validate_arguments=lambda value: value == self.filter_value)
+        def _(value):
+            m.d.comb += self.value_out.eq(value)
+
+        with Transaction().body(m):
+            with m.If(self.sel):
+                self.method_inner(m, value=0b01)
+            with m.Else():
+                self.method_inner(m, value=0b10)
+
+            m.d.comb += self.running.eq(1)
+
+        return m
+
+
 class TestExclusiveDiamondValidateArguments(TestCaseWithSimulator):
     def test_exclusive_diamond_validate_arguments(self):
-        dut = ExclusiveDiamondValidateArgumentsCircuit()
+        dut1 = ExclusiveDiamondValidateArgumentsCircuit()
+        dut2 = ExclusiveValidateArgumentsCircuit()
+        dut = ModuleConnector(dut1, dut2)
         circ = SimpleTestCircuit(dut)
 
         async def run(sim):
             for filter_left in (False, True):
-                sim.set(dut.filter_value, 0b01 if filter_left else 0b10)
+                for sel in (False, True):
+                    sim.set(dut1.filter_value, 0b01 if filter_left else 0b10)
+                    sim.set(dut2.filter_value, 0b01 if filter_left else 0b10)
+                    sim.set(dut1.sel, sel)
+                    sim.set(dut2.sel, sel)
 
-                sim.set(dut.sel, 1)
-                await sim.tick()
-                assert sim.get(dut.running) == filter_left
-                assert sim.get(dut.method_left.run) == filter_left
-                assert not sim.get(dut.method_right.run)
-                assert sim.get(dut.method_inner.run) == filter_left
+                    await sim.tick()
+                    running1 = sim.get(dut1.running)
+                    running2 = sim.get(dut2.running)
+                    left1 = sim.get(dut1.method_left.run)
+                    right1 = sim.get(dut1.method_right.run)
+                    inner1 = sim.get(dut1.method_inner.run)
+                    inner2 = sim.get(dut2.method_inner.run)
+                    value_out1 = sim.get(dut1.value_out)
+                    value_out2 = sim.get(dut2.value_out)
 
-                sim.set(dut.sel, 0)
-                await sim.tick()
-                assert sim.get(dut.running) != filter_left
-                assert sim.get(dut.method_left.run)
-                assert sim.get(dut.method_right.run) != filter_left
-                assert sim.get(dut.method_inner.run) != filter_left
+                    assert running1 == running2
+                    assert inner1 == inner2
+                    assert value_out1 == value_out2
+                    if sel and filter_left:
+                        assert left1
+                        assert not right1
+                    elif not sel and not filter_left:
+                        assert not left1
+                        assert right1
+                    else:
+                        assert not left1
+                        assert not right1
 
         with self.run_simulation(circ) as sim:
             sim.add_testbench(run)

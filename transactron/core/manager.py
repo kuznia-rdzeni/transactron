@@ -41,7 +41,7 @@ class MethodMap:
     def __init__(self, transactions: Iterable[Transaction]):
         self.methods_by_transaction = dict[TBody, list[MBody]]()
         self.transactions_by_method = defaultdict[MBody, list[TBody]](list)
-        self.argument_by_call = dict[tuple[TBody, MBody], MethodStruct]()
+        self.argument_by_call = defaultdict[tuple[TBody, MBody], list[tuple[ValueLike, MethodStruct]]](list)
         self.ancestors_by_call = defaultdict[tuple[TBody, MBody], list[tuple[MBody, ...]]](list)
         self.call_paths_by_call = defaultdict[tuple[TBody, MBody], list[tuple[CtrlPath, ...]]](list)
         self.method_parents = defaultdict[MBody, list[Body]](list)
@@ -81,7 +81,7 @@ class MethodMap:
         ):
             for method_obj, calls in source.method_calls.items():
                 method = MBody(method_obj._body)
-                for call_ctrl_path, arg_rec, _ in calls:
+                for call_ctrl_path, arg_rec, enable_sig in calls:
                     new_ancestors = (method, *ancestors)
                     new_call_path = (*call_path, call_ctrl_path)
                     if method in ancestors:
@@ -95,10 +95,11 @@ class MethodMap:
 
                     self.ancestors_by_call[(transaction, method)].append(new_ancestors)
                     self.call_paths_by_call[(transaction, method)].append(new_call_path)
+                    self.argument_by_call[(transaction, method)].append((enable_sig, arg_rec))
+
                     if method not in self.methods_by_transaction[transaction]:
                         self.methods_by_transaction[transaction].append(method)
                         self.transactions_by_method[method].append(transaction)
-                        self.argument_by_call[(transaction, method)] = arg_rec
                     rec(transaction, method, new_ancestors, new_call_path)
 
         for transaction in transactions:
@@ -106,7 +107,7 @@ class MethodMap:
             rec(TBody(transaction._body), transaction._body, (), ())
 
         for transaction_or_method in self.methods_and_transactions:
-            for method in transaction_or_method.method_uses.keys():
+            for method in transaction_or_method.method_calls.keys():
                 self.method_parents[MBody(method._body)].append(transaction_or_method)
 
     def transactions_for(self, elem: Body) -> Collection[TBody]:
@@ -256,16 +257,17 @@ class TransactionManager(Elaboratable):
         return cgr, porder
 
     @staticmethod
-    def _method_enables(method_map: MethodMap) -> Mapping[TBody, Mapping[MBody, ValueLike]]:
-        method_enables = defaultdict[TBody, defaultdict[MBody, ValueLike]](lambda: defaultdict(lambda: C(0)))
+    def _method_enables(method_map: MethodMap) -> Mapping[TBody, Mapping[MBody, list[ValueLike]]]:
+        method_enables = defaultdict[TBody, defaultdict[MBody, list[ValueLike]]](lambda: defaultdict(list))
         enables: list[ValueLike] = []
 
         def rec(transaction: TBody, source: Body):
-            for method, (_, enable) in source.method_uses.items():
-                enables.append(enable)
-                rec(transaction, method._body)
-                method_enables[transaction][MBody(method._body)] |= Cat(*enables).all()
-                enables.pop()
+            for method, calls in source.method_calls.items():
+                for _, _, enable in calls:
+                    enables.append(enable)
+                    rec(transaction, method._body)
+                    method_enables[transaction][MBody(method._body)].append(Cat(*enables).all())
+                    enables.pop()
 
         for transaction in method_map.transactions:
             rec(transaction, transaction)
@@ -299,9 +301,10 @@ class TransactionManager(Elaboratable):
         runs = defaultdict[MBody, list[Value]](list)
 
         for source in method_map.methods_and_transactions:
-            for method, (arg, enable) in source.method_uses.items():
-                args[method._body].append(arg)
-                runs[method._body].append(source.run & enable)
+            for method, calls in source.method_calls.items():
+                for _, arg, enable in calls:
+                    args[method._body].append(arg)
+                    runs[method._body].append(source.run & enable)
 
         return (args, runs)
 
@@ -460,9 +463,6 @@ class TransactionManager(Elaboratable):
         m._MustUse__silence = True  # type: ignore
         m.submodules.merge_manager = merge_manager
 
-        for elem in method_map.methods_and_transactions:
-            elem._set_method_uses(m)
-
         # Signals assigned here because `method.provide` sometimes needs to be used without a TModule.
         # Unfortunately, assignments across modules seem to cause a performance hit in pysim.
         provided_methods = DependencyContext.get().get_dependency(ProvidedMethodsKey())
@@ -472,28 +472,39 @@ class TransactionManager(Elaboratable):
             m.d.comb += method.data_in.eq(method._body.data_in)
             m.d.comb += method.data_out.eq(method._body.data_out)
 
+        method_enables = self._method_enables(method_map)
+
         for transaction in method_map.transactions:
+
+            def validate_args_for_method(method: MBody):
+                arg_rec = Signal.like(method.data_in)
+                en = Signal()
+
+                # Only one instance of the method can be active, enables is in one-hot encoding
+                for i in OneHotSwitchDynamic(m, Cat(*method_enables[transaction][method])):
+                    m.d.comb += arg_rec.eq(method_map.argument_by_call[(transaction, method)][i][1])
+                    m.d.comb += en.eq(1)
+
+                valid = Signal()
+                with m.If(method.ready):
+                    m.d.comb += valid.eq(~en | method._validate_arguments(arg_rec))
+
+                return valid
+
             runnable_terms = [
-                method._validate_arguments(method_map.argument_by_call[transaction, method])
-                for method in method_map.methods_by_transaction[transaction]
+                validate_args_for_method(method) for method in method_map.methods_by_transaction[transaction]
             ]
-            runnable_terms.extend(dep.ready for dep in ready_dependencies[transaction])
+            runnable_terms.extend(dep.run for dep in ready_dependencies[transaction])
             m.d.comb += transaction.runnable.eq(Cat(runnable_terms).all())
 
         ccs = _graph_ccs(cgr)
-
-        method_enables = self._method_enables(method_map)
-
-        for method, transactions in method_map.transactions_by_method.items():
-            granted = Cat(transaction.run & method_enables[transaction][method] for transaction in transactions)
-            m.d.comb += method.run.eq(granted.any())
-
         (method_args, method_runs) = self._method_calls(m, method_map)
 
         for method in method_map.methods:
             if method.single_caller and len(method_args[method]) > 1:
                 raise RuntimeError(f"Single-caller method '{method.name}' called more than once")
             runs = Cat(method_runs[method])
+            m.d.comb += method.run.eq(runs.any())
             m.d.comb += assign(method.data_in, method.combiner(m, method_args[method], runs), fields=AssignType.ALL)
 
         m.submodules._transactron_schedulers = ModuleConnector(

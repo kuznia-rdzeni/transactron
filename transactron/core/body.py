@@ -8,7 +8,7 @@ from transactron.core.tmodule import CtrlPath, TModule
 from transactron.core.transaction_base import TransactionBase
 
 from amaranth import *
-from amaranth_types import ValueLike, ModuleLike, SrcLoc
+from amaranth_types import ValueLike, SrcLoc
 from typing import TYPE_CHECKING, ClassVar, NewType, NotRequired, Optional, Callable, TypedDict, Unpack, final
 from transactron.utils.amaranth_ext.elaboratables import OneHotSwitchDynamic
 from transactron.utils.assign import AssignArg
@@ -38,7 +38,6 @@ class Body(TransactionBase["Body"]):
     def_order: int
     stack: ClassVar[list["Body"]] = []
     ctrl_path: CtrlPath = CtrlPath(-1, ())
-    method_uses: dict["Method", tuple[MethodStruct, Signal]]
     method_calls: defaultdict["Method", list[tuple[CtrlPath, MethodStruct, ValueLike]]]
     conditional_calls: set["Method"]
 
@@ -79,17 +78,16 @@ class Body(TransactionBase["Body"]):
         self.validate_arguments: Optional[Callable[..., ValueLike]] = (
             kwargs["validate_arguments"] if "validate_arguments" in kwargs else None
         )
-        self.method_uses = {}
         self.method_calls = defaultdict(list)
         self.conditional_calls = set()
 
         if self.nonexclusive:
-            assert len(self.data_in.as_value()) == 0 or self.combiner is not None
+            assert len(self.data_in.as_value()) == 0 or "combiner" in kwargs
 
     def _validate_arguments(self, arg_rec: MethodStruct) -> ValueLike:
         if self.validate_arguments is not None:
-            return self.ready & method_def_helper(self, self.validate_arguments, arg_rec)
-        return self.ready
+            return method_def_helper(self, self.validate_arguments, arg_rec)
+        return C(1)
 
     @contextmanager
     def context(self, m: TModule) -> Iterator["Body"]:
@@ -119,19 +117,6 @@ class Body(TransactionBase["Body"]):
         if not Body.stack:
             return None
         return Body.stack[-1]
-
-    def _set_method_uses(self, m: ModuleLike):
-        for method, calls in self.method_calls.items():
-            arg_rec, enable_sig = self.method_uses[method]
-            if len(calls) == 1:
-                m.d.comb += arg_rec.eq(calls[0][1])
-                m.d.comb += enable_sig.eq(calls[0][2])
-            else:
-                call_ens = Cat([en for _, _, en in calls])
-
-                for i in OneHotSwitchDynamic(m, call_ens):
-                    m.d.comb += arg_rec.eq(calls[i][1])
-                    m.d.comb += enable_sig.eq(1)
 
 
 TBody = NewType("TBody", Body)
