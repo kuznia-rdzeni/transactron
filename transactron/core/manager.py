@@ -284,7 +284,14 @@ class TransactionManager(Elaboratable):
             if not relation.ready_dependent:
                 continue
 
-            ready_dependencies[relation.end].add(relation.start)
+            # Transitively trickle down ready dependencies
+            todo = {relation.end}
+            while todo:
+                current = todo.pop()
+                if relation.start not in ready_dependencies[current]:
+                    ready_dependencies[current].add(relation.start)
+                    for parent in method_map.method_parents[current]:
+                        todo.add(parent)
 
         return ready_dependencies
 
@@ -482,16 +489,15 @@ class TransactionManager(Elaboratable):
 
                 valid = Signal()
 
-                method_ready = [method.ready] + [dep.run for dep in ready_dependencies[method]]
-
-                with m.If(Cat(*method_ready).all()):
+                with m.If(method.ready):
                     m.d.comb += valid.eq(~en | method._validate_arguments(arg_rec))
 
                 return valid
 
             runnable_terms = [
                 validate_args_for_method(method) for method in method_map.methods_by_transaction[transaction]
-            ] + [dep.run for dep in ready_dependencies[transaction]]
+            ]
+            runnable_terms.extend(dep.run for dep in ready_dependencies[transaction])
             m.d.comb += transaction.runnable.eq(Cat(runnable_terms).all())
 
         ccs = _graph_ccs(cgr)
