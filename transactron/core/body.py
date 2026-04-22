@@ -38,7 +38,7 @@ class Body(TransactionBase["Body"]):
     def_order: int
     stack: ClassVar[list["Body"]] = []
     ctrl_path: CtrlPath = CtrlPath(-1, ())
-    method_calls: defaultdict["Method", list[tuple[CtrlPath, MethodStruct, ValueLike]]]
+    method_calls: defaultdict["Method", list[tuple[CtrlPath, MethodStruct, Value]]]
     conditional_calls: set["Method"]
 
     def __init__(

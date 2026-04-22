@@ -1,6 +1,7 @@
 from collections import defaultdict, deque
 from collections.abc import Callable, Iterable, Sequence, Collection, Mapping
 import textwrap
+from dataclasses import dataclass
 from typing import TypeAlias
 from os import environ
 from amaranth import *
@@ -37,13 +38,19 @@ def call_paths_exclusive(path1: tuple[CtrlPath, ...], path2: tuple[CtrlPath, ...
     return path1[common_prefix_len].exclusive_with(path2[common_prefix_len])
 
 
+@dataclass(frozen=True)
+class CallInfo:
+    ancestors: tuple[MBody, ...]
+    call_path: tuple[CtrlPath, ...]
+    arg: MethodStruct
+    enable: ValueLike
+
+
 class MethodMap:
     def __init__(self, transactions: Iterable[Transaction]):
         self.methods_by_transaction = dict[TBody, list[MBody]]()
         self.transactions_by_method = defaultdict[MBody, list[TBody]](list)
-        self.argument_by_call = defaultdict[tuple[TBody, MBody], list[tuple[ValueLike, MethodStruct]]](list)
-        self.ancestors_by_call = defaultdict[tuple[TBody, MBody], list[tuple[MBody, ...]]](list)
-        self.call_paths_by_call = defaultdict[tuple[TBody, MBody], list[tuple[CtrlPath, ...]]](list)
+        self.info_by_call = defaultdict[tuple[TBody, MBody], list[CallInfo]](list)
         self.method_parents = defaultdict[MBody, list[Body]](list)
 
         def path_str(path: Sequence[MBody]) -> str:
@@ -78,33 +85,38 @@ class MethodMap:
             source: Body,
             ancestors: tuple[MBody, ...],
             call_path: tuple[CtrlPath, ...],
+            call_enable: ValueLike,
         ):
             for method_obj, calls in source.method_calls.items():
                 method = MBody(method_obj._body)
                 for call_ctrl_path, arg_rec, enable_sig in calls:
                     new_ancestors = (method, *ancestors)
                     new_call_path = (*call_path, call_ctrl_path)
+                    new_call_enable = call_enable & enable_sig
                     if method in ancestors:
                         report_bad_case(transaction, method, new_ancestors, new_ancestors)
 
-                    old_paths = self.call_paths_by_call[(transaction, method)]
-                    old_ancestors = self.ancestors_by_call[(transaction, method)]
-                    for i, old_path in enumerate(old_paths):
-                        if not call_paths_exclusive(old_path, new_call_path):
-                            report_bad_case(transaction, method, old_ancestors[i], new_ancestors)
+                    for old_call in self.info_by_call[(transaction, method)]:
+                        if not call_paths_exclusive(old_call.call_path, new_call_path):
+                            report_bad_case(transaction, method, old_call.ancestors, new_ancestors)
 
-                    self.ancestors_by_call[(transaction, method)].append(new_ancestors)
-                    self.call_paths_by_call[(transaction, method)].append(new_call_path)
-                    self.argument_by_call[(transaction, method)].append((enable_sig, arg_rec))
+                    self.info_by_call[(transaction, method)].append(
+                        CallInfo(
+                            ancestors=new_ancestors,
+                            call_path=new_call_path,
+                            arg=arg_rec,
+                            enable=new_call_enable,
+                        )
+                    )
 
                     if method not in self.methods_by_transaction[transaction]:
                         self.methods_by_transaction[transaction].append(method)
                         self.transactions_by_method[method].append(transaction)
-                    rec(transaction, method, new_ancestors, new_call_path)
+                    rec(transaction, method, new_ancestors, new_call_path, new_call_enable)
 
         for transaction in transactions:
             self.methods_by_transaction[TBody(transaction._body)] = []
-            rec(TBody(transaction._body), transaction._body, (), ())
+            rec(TBody(transaction._body), transaction._body, (), (), C(1))
 
         for transaction_or_method in self.methods_and_transactions:
             for method in transaction_or_method.method_calls.keys():
@@ -195,15 +207,13 @@ class TransactionManager(Elaboratable):
         """
 
         def calls_nonexclusive(trans1: TBody, trans2: TBody, method: MBody):
-            ancestors1 = method_map.ancestors_by_call[(trans1, method)]
-            ancestors2 = method_map.ancestors_by_call[(trans2, method)]
-            paths1 = method_map.call_paths_by_call[(trans1, method)]
-            paths2 = method_map.call_paths_by_call[(trans2, method)]
+            calls1 = method_map.info_by_call[(trans1, method)]
+            calls2 = method_map.info_by_call[(trans2, method)]
             return all(
-                common_ancestors[-1].nonexclusive or call_paths_exclusive(path1, path2)
-                for ancestors1_path, path1 in zip(ancestors1, paths1)
-                for ancestors2_path, path2 in zip(ancestors2, paths2)
-                if (common_ancestors := longest_common_prefix(ancestors1_path, ancestors2_path))
+                common_ancestors[-1].nonexclusive or call_paths_exclusive(call1.call_path, call2.call_path)
+                for call1 in calls1
+                for call2 in calls2
+                if (common_ancestors := longest_common_prefix(call1.ancestors, call2.ancestors))
             )
 
         cgr: TransactionGraph = {}  # Conflict graph
@@ -260,24 +270,6 @@ class TransactionManager(Elaboratable):
         return cgr, porder
 
     @staticmethod
-    def _method_enables(method_map: MethodMap) -> Mapping[TBody, Mapping[MBody, list[ValueLike]]]:
-        method_enables = defaultdict[TBody, defaultdict[MBody, list[ValueLike]]](lambda: defaultdict(list))
-        enables: list[ValueLike] = []
-
-        def rec(transaction: TBody, source: Body):
-            for method, calls in source.method_calls.items():
-                for _, _, enable in calls:
-                    enables.append(enable)
-                    rec(transaction, method._body)
-                    method_enables[transaction][MBody(method._body)].append(Cat(*enables).all())
-                    enables.pop()
-
-        for transaction in method_map.transactions:
-            rec(transaction, transaction)
-
-        return method_enables
-
-    @staticmethod
     def _ready_dependencies(method_map: MethodMap) -> Mapping[TBody, set[Body]]:
         ready_dependencies = defaultdict[TBody, set[Body]](set)
 
@@ -311,9 +303,9 @@ class TransactionManager(Elaboratable):
     def _conditionally_called_methods(method_map: MethodMap) -> set[MBody]:
         ret: set[MBody] = set()
 
-        for (transaction, method), ancestors in method_map.ancestors_by_call.items():
-            for ancestors_path in ancestors:
-                for callee, caller in zip(ancestors_path, (*ancestors_path[1:], transaction)):
+        for (transaction, method), calls in method_map.info_by_call.items():
+            for call in calls:
+                for callee, caller in zip(call.ancestors, (*call.ancestors[1:], transaction)):
                     if callee in [method._body for method in caller.conditional_calls]:
                         ret.add(method)
                         break
@@ -475,17 +467,16 @@ class TransactionManager(Elaboratable):
             m.d.comb += method.data_in.eq(method._body.data_in)
             m.d.comb += method.data_out.eq(method._body.data_out)
 
-        method_enables = self._method_enables(method_map)
-
         for transaction in method_map.transactions:
 
             def validate_args_for_method(method: MBody):
+                calls = method_map.info_by_call[(transaction, method)]
                 arg_rec = Signal.like(method.data_in)
                 en = Signal()
 
-                # Only one instance of the method can be active, enables is in one-hot encoding
-                for i in OneHotSwitchDynamic(m, Cat(*method_enables[transaction][method])):
-                    m.d.comb += arg_rec.eq(method_map.argument_by_call[(transaction, method)][i][1])
+                # Only one call can be active per method and transaction due to call-path exclusivity.
+                for i in OneHotSwitchDynamic(m, Cat(call.enable for call in calls)):
+                    m.d.comb += arg_rec.eq(calls[i].arg)
                     m.d.comb += en.eq(1)
 
                 valid = Signal()
