@@ -112,7 +112,7 @@ class TransactionManager(Elaboratable):
         self.cc_scheduler = cc_scheduler
 
     @staticmethod
-    def _relations(method_map: MethodMap) -> Sequence[Relation]:
+    def _relations(method_map: MethodMap) -> Sequence[Relation[Body]]:
         return [
             Relation(start=elem, **dataclass_asdict(relation))
             for elem in method_map.methods_and_transactions
@@ -245,16 +245,16 @@ class TransactionManager(Elaboratable):
         return method_enables
 
     @staticmethod
-    def _ready_dependencies(method_map: MethodMap) -> Graph[Body]:
+    def _ready_dependencies(transactions: Sequence[Transaction], methods: Sequence[Method]) -> Graph[Body]:
         ready_dependencies = defaultdict[Body, set[Body]](set)
 
-        relations = TransactionManager._relations(method_map)
+        for elem in chain(transactions, methods):
+            body = elem._body
+            for relation in body.relations:
+                if not relation.ready_dependent:
+                    continue
 
-        for relation in relations:
-            if not relation.ready_dependent:
-                continue
-
-            ready_dependencies[relation.end].add(relation.start)
+                ready_dependencies[relation.end].add(body)
 
         return ready_dependencies
 
@@ -411,7 +411,7 @@ class TransactionManager(Elaboratable):
             method_map = MethodMap(self.transactions)
             cgr, porder = TransactionManager._conflict_graph(method_map)
 
-        ready_dependencies = TransactionManager._ready_dependencies(method_map)
+        ready_dependencies = TransactionManager._ready_dependencies(self.transactions, self.methods)
 
         for transaction in method_map.transactions:
             for dep in ready_dependencies[transaction]:

@@ -484,6 +484,40 @@ class TestNestedMethodMultipleCallers(TestCaseWithSimulator):
             sim.add_testbench(process)
 
 
+class NestedWithUncalledCircuit(Elaboratable):
+    def __init__(self):
+        self.run = Signal(3)
+
+    def elaborate(self, platform):
+        m = TModule()
+
+        method1 = Method()
+        method2 = Method()
+        trans3 = Transaction()
+
+        @def_method(m, method1)
+        def _():
+            @def_method(m, method2)
+            def _():
+                with trans3.body(m):
+                    pass
+
+        m.d.comb += self.run.eq(Cat(method1.run, method2.run, trans3.run))
+
+        return m
+
+
+class TestNestedWithUncalled(TestCaseWithSimulator):
+    def test_with_uncalled(self):
+        dut = NestedWithUncalledCircuit()
+
+        async def process(sim):
+            assert sim.get(dut.run) == 0b000
+
+        with self.run_simulation(dut) as sim:
+            sim.add_testbench(process)
+
+
 class NestedTransactionCycleStealTestCircuit(SchedulingTestCircuit):
     def elaborate(self, platform):
         m = TModule()
