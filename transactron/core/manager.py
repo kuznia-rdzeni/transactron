@@ -99,6 +99,10 @@ class MethodMap:
     def methods_and_transactions(self) -> Iterable[Body]:
         return chain(self.methods, self.transactions)
 
+    def ready_for_transaction(self, trans: TBody) -> Collection[Body]:
+        # all bodies that need to be ready for transaction to run
+        return [trans] + self.methods_by_transaction[trans]
+
 
 class TransactionManager(Elaboratable):
     """Transaction manager
@@ -121,9 +125,13 @@ class TransactionManager(Elaboratable):
         ]
 
     @staticmethod
+    def _transaction_and_called_methods(method_map: MethodMap, trans: TBody):
+        return [trans] + method_map.methods_by_transaction[trans]
+
+    @staticmethod
     def _transactions_exclusive(method_map: MethodMap, trans1: TBody, trans2: TBody):
-        tms1 = [trans1] + method_map.methods_by_transaction[trans1]
-        tms2 = [trans2] + method_map.methods_by_transaction[trans2]
+        tms1 = method_map.ready_for_transaction(trans1)
+        tms2 = method_map.ready_for_transaction(trans2)
 
         # if first transaction is exclusive with the second transaction, or this is true for
         # any called methods, the transactions will never run at the same time
@@ -444,13 +452,12 @@ class TransactionManager(Elaboratable):
 
         for transaction in method_map.transactions:
             runnable_terms = [
-                (
-                    method._validate_arguments(method_map.argument_by_call[transaction, method])
-                    & Cat(dep.run for dep in ready_dependencies[method]).all()
-                )
+                method._validate_arguments(method_map.argument_by_call[transaction, method])
                 for method in method_map.methods_by_transaction[transaction]
             ]
-            runnable_terms.extend(dep.run for dep in ready_dependencies[transaction])
+            runnable_terms.extend(
+                dep.run for body in method_map.ready_for_transaction(transaction) for dep in ready_dependencies[body]
+            )
             m.d.comb += transaction.runnable.eq(Cat(runnable_terms).all())
 
         ccs = _graph_ccs(cgr)
