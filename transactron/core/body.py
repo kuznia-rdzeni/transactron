@@ -53,15 +53,6 @@ class Body(TransactionBase["Body"]):
     ):
         super().__init__(src_loc=src_loc)
 
-        def default_combiner(m: Module, args: Sequence[MethodStruct], runs: Value) -> AssignArg:
-            if len(args) == 1:
-                return args[0]
-            else:
-                ret = Signal(from_method_layout(i))
-                for k in OneHotSwitchDynamic(m, runs):
-                    m.d.comb += ret.eq(args[k])
-                return ret
-
         self.def_order = next(Body.def_counter)
         self.name = name
         self.owner = owner
@@ -71,7 +62,7 @@ class Body(TransactionBase["Body"]):
         self.data_in: MethodStruct = Signal(from_method_layout(i), name=self.owned_name + "_data_in")
         self.data_out: MethodStruct = Signal(from_method_layout(o), name=self.owned_name + "_data_out")
         self.combiner: Callable[[Module, Sequence[MethodStruct], Value], AssignArg] = (
-            kwargs["combiner"] if "combiner" in kwargs else default_combiner
+            kwargs["combiner"] if "combiner" in kwargs else Body._default_combiner
         )
         self.nonexclusive = kwargs["nonexclusive"] if "nonexclusive" in kwargs else False
         self.single_caller = kwargs["single_caller"] if "single_caller" in kwargs else False
@@ -82,7 +73,7 @@ class Body(TransactionBase["Body"]):
         self.conditional_calls = set()
 
         if self.nonexclusive:
-            assert len(self.data_in.as_value()) == 0 or self.combiner is not None
+            assert len(self.data_in.as_value()) == 0 or "combiner" in kwargs
 
     def _validate_arguments(self, arg_rec: MethodStruct) -> ValueLike:
         if self.validate_arguments is not None:
@@ -117,6 +108,16 @@ class Body(TransactionBase["Body"]):
         if not Body.stack:
             return None
         return Body.stack[-1]
+
+    @staticmethod
+    def _default_combiner(m: Module, args: Sequence[MethodStruct], runs: Value) -> AssignArg:
+        if len(args) == 1:
+            return args[0]
+        else:
+            ret = Signal.like(args[0])
+            for k in OneHotSwitchDynamic(m, runs):
+                m.d.comb += ret.eq(args[k])
+            return ret
 
 
 TBody = NewType("TBody", Body)

@@ -530,7 +530,7 @@ class NonexclusiveWrapper(Elaboratable, TransformerOneTarget):
     def elaborate(self, platform):
         m = TModule()
 
-        @def_method(m, self.method, nonexclusive=True)
+        @def_method(m, self.method, nonexclusive=True, combiner=Body._default_combiner)
         def _(arg):
             return self.target(m, arg)
 
