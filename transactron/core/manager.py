@@ -112,7 +112,7 @@ class TransactionManager(Elaboratable):
         self.cc_scheduler = cc_scheduler
 
     @staticmethod
-    def _relations(method_map: MethodMap) -> Sequence[Relation[Body]]:
+    def _relations(method_map: MethodMap) -> Sequence[Relation]:
         return [
             Relation(start=elem, **dataclass_asdict(relation))
             for elem in method_map.methods_and_transactions
