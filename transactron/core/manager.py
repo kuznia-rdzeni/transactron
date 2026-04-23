@@ -99,6 +99,10 @@ class MethodMap:
     def methods_and_transactions(self) -> Iterable[Body]:
         return chain(self.methods, self.transactions)
 
+    def ready_for_transaction(self, trans: TBody) -> Collection[Body]:
+        # all bodies that need to be ready for transaction to run
+        return [trans] + self.methods_by_transaction[trans]
+
 
 class TransactionManager(Elaboratable):
     """Transaction manager
@@ -121,9 +125,13 @@ class TransactionManager(Elaboratable):
         ]
 
     @staticmethod
+    def _transaction_and_called_methods(method_map: MethodMap, trans: TBody):
+        return [trans] + method_map.methods_by_transaction[trans]
+
+    @staticmethod
     def _transactions_exclusive(method_map: MethodMap, trans1: TBody, trans2: TBody):
-        tms1 = [trans1] + method_map.methods_by_transaction[trans1]
-        tms2 = [trans2] + method_map.methods_by_transaction[trans2]
+        tms1 = method_map.ready_for_transaction(trans1)
+        tms2 = method_map.ready_for_transaction(trans2)
 
         # if first transaction is exclusive with the second transaction, or this is true for
         # any called methods, the transactions will never run at the same time
@@ -204,7 +212,10 @@ class TransactionManager(Elaboratable):
             end = relation.end
             if not relation.conflict:  # relation added with schedule_before
                 if end.def_order < start.def_order and not relation.silence_warning:
-                    raise RuntimeError(f"{start.name!r} scheduled before {end.name!r}, but defined afterwards")
+                    raise RuntimeError(
+                        f"{start.name!r} {start.src_loc} scheduled before {end.name!r} {end.src_loc} "
+                        "but defined afterwards"
+                    )
 
             for trans_start in method_map.transactions_for(start):
                 for trans_end in method_map.transactions_for(end):
@@ -242,21 +253,16 @@ class TransactionManager(Elaboratable):
         return method_enables
 
     @staticmethod
-    def _ready_dependencies(method_map: MethodMap) -> TransactionGraph:
-        ready_dependencies = defaultdict[TBody, set[TBody]](set)
+    def _ready_dependencies(transactions: Sequence[Transaction], methods: Sequence[Method]) -> Graph[Body]:
+        ready_dependencies = defaultdict[Body, set[Body]](set)
 
-        relations = TransactionManager._relations(method_map)
+        for elem in chain(transactions, methods):
+            body = elem._body
+            for relation in body.relations:
+                if not relation.ready_dependent:
+                    continue
 
-        for relation in relations:
-            if not relation.ready_dependent:
-                continue
-
-            for trans_start in method_map.transactions_for(relation.start):
-                for trans_end in method_map.transactions_for(relation.end):
-                    if trans_start is not trans_end and not TransactionManager._transactions_exclusive(
-                        method_map, trans_start, trans_end
-                    ):
-                        ready_dependencies[trans_end].add(trans_start)
+                ready_dependencies[relation.end].add(body)
 
         return ready_dependencies
 
@@ -321,7 +327,8 @@ class TransactionManager(Elaboratable):
                 # nested definitions do not trigger the issue
                 if any(not elem.ctrl_path.is_proper_prefix(sim_elem.ctrl_path) for sim_elem in elem.simultaneous_list):
                     raise RuntimeError(
-                        f"Simultaneity constraint for conditionally called method '{elem.name}' not supported"
+                        "Simultaneity constraint for conditionally called method "
+                        f"'{elem.name}' {elem.src_loc} not supported"
                     )
             pruned_sim = False
             for sim_elem in elem.simultaneous_list:
@@ -333,7 +340,10 @@ class TransactionManager(Elaboratable):
                 for tr1, tr2 in product(method_map.transactions_for(elem), method_map.transactions_for(sim_elem)):
                     if tr1 in independents[tr2]:
                         raise RuntimeError(
-                            f"Unsatisfiable simultaneity constraints for '{elem.name}' and '{sim_elem.name}'"
+                            textwrap.dedent(
+                                f"Unsatisfiable simultaneity constraints for '{elem.name}' {elem.src_loc} "
+                                f"and '{sim_elem.name}' {sim_elem.src_loc}"
+                            )
                         )
                     simultaneous.add(frozenset({tr1, tr2}))
             if pruned_sim and elem in method_map.transactions:
@@ -409,7 +419,7 @@ class TransactionManager(Elaboratable):
             method_map = MethodMap(self.transactions)
             cgr, porder = TransactionManager._conflict_graph(method_map)
 
-        ready_dependencies = TransactionManager._ready_dependencies(method_map)
+        ready_dependencies = TransactionManager._ready_dependencies(self.transactions, self.methods)
 
         for transaction in method_map.transactions:
             for dep in ready_dependencies[transaction]:
@@ -445,7 +455,9 @@ class TransactionManager(Elaboratable):
                 method._validate_arguments(method_map.argument_by_call[transaction, method])
                 for method in method_map.methods_by_transaction[transaction]
             ]
-            runnable_terms.extend(dep.ready for dep in ready_dependencies[transaction])
+            runnable_terms.extend(
+                dep.run for body in method_map.ready_for_transaction(transaction) for dep in ready_dependencies[body]
+            )
             m.d.comb += transaction.runnable.eq(Cat(runnable_terms).all())
 
         ccs = _graph_ccs(cgr)
@@ -460,7 +472,7 @@ class TransactionManager(Elaboratable):
 
         for method in method_map.methods:
             if method.single_caller and len(method_args[method]) > 1:
-                raise RuntimeError(f"Single-caller method '{method.name}' called more than once")
+                raise RuntimeError(f"Single-caller method '{method.name}' {method.src_loc} called more than once")
             runs = Cat(method_runs[method])
             m.d.comb += assign(method.data_in, method.combiner(m, method_args[method], runs), fields=AssignType.ALL)
 
