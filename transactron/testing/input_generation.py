@@ -1,6 +1,5 @@
 from amaranth import *
 from amaranth.lib.data import StructLayout
-from typing import TypeVar
 import hypothesis.strategies as st
 from hypothesis.strategies import composite, DrawFn, integers, SearchStrategy
 from transactron.utils import MethodLayout, RecordIntDict
@@ -11,11 +10,8 @@ class OpNOP:
         return "OpNOP()"
 
 
-T = TypeVar("T")
-
-
 @composite
-def generate_shrinkable_list(draw: DrawFn, length: int, generator: SearchStrategy[T]) -> list[T]:
+def generate_shrinkable_list[T](draw: DrawFn, length: int, generator: SearchStrategy[T]) -> list[T]:
     """
     Trick based on https://github.com/HypothesisWorks/hypothesis/blob/
     6867da71beae0e4ed004b54b92ef7c74d0722815/hypothesis-python/src/hypothesis/stateful.py#L143
@@ -72,7 +68,7 @@ def insert_nops(draw: DrawFn, max_nops: int, lst: list):
 
 
 @composite
-def generate_nops_in_list(draw: DrawFn, max_nops: int, generate_list: SearchStrategy[list[T]]) -> list[T | OpNOP]:
+def generate_nops_in_list[T](draw: DrawFn, max_nops: int, generate_list: SearchStrategy[list[T]]) -> list[T | OpNOP]:
     lst = draw(generate_list)
     out_lst = []
     out_lst = insert_nops(draw, max_nops, out_lst)
