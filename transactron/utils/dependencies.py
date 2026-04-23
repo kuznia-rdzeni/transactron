@@ -1,16 +1,13 @@
 from collections import defaultdict
 
 from abc import abstractmethod, ABC
-from typing import Any, Generic, Optional, TypeVar
+from typing import Any, Optional
 
 
 __all__ = ["DependencyManager", "DependencyKey", "DependencyContext", "SimpleKey", "ListKey"]
 
-T = TypeVar("T")
-U = TypeVar("U")
 
-
-class DependencyKey(Generic[T, U], ABC):
+class DependencyKey[T, U](ABC):
     """Base class for dependency keys.
 
     Dependency keys are used to access dependencies in the `DependencyManager`.
@@ -54,7 +51,7 @@ class DependencyKey(Generic[T, U], ABC):
     empty_valid: bool = False
 
 
-class SimpleKey(Generic[T], DependencyKey[T, T]):
+class SimpleKey[T](DependencyKey[T, T]):
     """Base class for simple dependency keys.
 
     Simple dependency keys are used when there is an one-to-one relation between
@@ -78,7 +75,7 @@ class SimpleKey(Generic[T], DependencyKey[T, T]):
         return data[0]
 
 
-class ListKey(Generic[T], DependencyKey[T, list[T]]):
+class ListKey[T](DependencyKey[T, list[T]]):
     """Base class for list key.
 
     List keys are used when there is an one-to-many relation between keys
@@ -102,7 +99,7 @@ class DependencyManager:
         self.cache: dict[DependencyKey, Any] = {}
         self.locked_dependencies: set[DependencyKey] = set()
 
-    def add_dependency(self, key: DependencyKey[T, Any], dependency: T) -> None:
+    def add_dependency[T](self, key: DependencyKey[T, Any], dependency: T) -> None:
         """Adds a new dependency to a key.
 
         Depending on the key type, a key can have a single dependency or
@@ -117,7 +114,7 @@ class DependencyManager:
         if key in self.cache:
             del self.cache[key]
 
-    def get_dependency(self, key: DependencyKey[Any, U]) -> U:
+    def get_dependency[U](self, key: DependencyKey[Any, U]) -> U:
         """Gets the dependency for a key.
 
         The way dependencies are interpreted is dependent on the key type.
@@ -129,7 +126,7 @@ class DependencyManager:
 
         return ret
 
-    def get_optional_dependency(self, key: DependencyKey[Any, U]) -> Optional[U]:
+    def get_optional_dependency[U](self, key: DependencyKey[Any, U]) -> Optional[U]:
         """Gets the dependency for a key, if it exists.
 
         If the dependency is gettable, the return value is the same as in

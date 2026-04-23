@@ -1,6 +1,6 @@
 from collections.abc import Iterable
 import inspect
-from typing import TypeVar, Generic, TypeGuard, Any, TypeAlias
+from typing import TypeGuard, Any
 from amaranth import *
 from amaranth.sim import *
 from transactron.core.method import MethodDir
@@ -16,11 +16,10 @@ from amaranth_types import HasElaborate
 __all__ = ["SimpleTestCircuit"]
 
 
-T = TypeVar("T")
-_T_nested_collection: TypeAlias = T | list["_T_nested_collection[T]"] | dict[str, "_T_nested_collection[T]"]
+type _T_nested_collection[T] = T | list["_T_nested_collection[T]"] | dict[str, "_T_nested_collection[T]"]
 
 
-def guard_nested_collection(cont: Any, *t: type[T]) -> TypeGuard[_T_nested_collection[T]]:
+def guard_nested_collection[T](cont: Any, *t: type[T]) -> TypeGuard[_T_nested_collection[T]]:
     if isinstance(cont, (list, dict)):
         if isinstance(cont, dict):
             cont = cont.values()
@@ -31,11 +30,8 @@ def guard_nested_collection(cont: Any, *t: type[T]) -> TypeGuard[_T_nested_colle
         return False
 
 
-_T_HasElaborate = TypeVar("_T_HasElaborate", bound=HasElaborate)
-
-
-class SimpleTestCircuit(Elaboratable, Generic[_T_HasElaborate]):
-    def __init__(self, dut: _T_HasElaborate, *, exclude: Iterable[str] = ()):
+class SimpleTestCircuit[T: HasElaborate](Elaboratable):
+    def __init__(self, dut: T, *, exclude: Iterable[str] = ()):
         self._dut = dut
         self._io: dict[str, _T_nested_collection[TestbenchIO]] = {}
         self._exclude = set(exclude)
