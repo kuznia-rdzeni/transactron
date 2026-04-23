@@ -215,12 +215,10 @@ class TransactionManager(Elaboratable):
         """
 
         def calls_nonexclusive(trans1: TBody, trans2: TBody, method: MBody):
-            calls1 = method_map.info_by_call[(trans1, method)]
-            calls2 = method_map.info_by_call[(trans2, method)]
             return all(
                 common_ancestors[-1].nonexclusive or call_paths_exclusive(call1.call_path, call2.call_path)
-                for call1 in calls1
-                for call2 in calls2
+                for call1 in method_map.info_by_call[(trans1, method)]
+                for call2 in method_map.info_by_call[(trans2, method)]
                 if (common_ancestors := longest_common_prefix(call1.ancestors, call2.ancestors))
             )
 
