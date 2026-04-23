@@ -277,7 +277,7 @@ class TransactionManager(Elaboratable):
 
     @staticmethod
     def _method_enables(method_map: MethodMap) -> Mapping[TBody, Mapping[MBody, ValueLike]]:
-        method_enables = defaultdict[TBody, dict[MBody, ValueLike]](dict)
+        method_enables = defaultdict[TBody, defaultdict[MBody, ValueLike]](lambda: defaultdict(lambda: C(0)))
         enables: list[ValueLike] = []
 
         def rec(transaction: TBody, source: Body):
@@ -285,7 +285,7 @@ class TransactionManager(Elaboratable):
                 for _, _, enable in calls:
                     enables.append(enable)
                     rec(transaction, method._body)
-                    method_enables[transaction][MBody(method._body)] = Cat(*enables).all()
+                    method_enables[transaction][MBody(method._body)] |= Cat(*enables).all()
                     enables.pop()
 
         for transaction in method_map.transactions:
