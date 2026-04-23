@@ -276,24 +276,6 @@ class TransactionManager(Elaboratable):
         return cgr, porder
 
     @staticmethod
-    def _method_enables(method_map: MethodMap) -> Mapping[TBody, Mapping[MBody, ValueLike]]:
-        method_enables = defaultdict[TBody, defaultdict[MBody, ValueLike]](lambda: defaultdict(lambda: C(0)))
-        enables: list[ValueLike] = []
-
-        def rec(transaction: TBody, source: Body):
-            for method, calls in source.method_calls.items():
-                for _, _, enable in calls:
-                    enables.append(enable)
-                    rec(transaction, method._body)
-                    method_enables[transaction][MBody(method._body)] |= Cat(*enables).all()
-                    enables.pop()
-
-        for transaction in method_map.transactions:
-            rec(transaction, transaction)
-
-        return method_enables
-
-    @staticmethod
     def _ready_dependencies(transactions: Sequence[Transaction], methods: Sequence[Method]) -> Graph[Body]:
         ready_dependencies = defaultdict[Body, set[Body]](set)
 
@@ -517,10 +499,11 @@ class TransactionManager(Elaboratable):
             )
             m.d.comb += transaction.runnable.eq(Cat(runnable_terms).all())
 
-        method_enables = self._method_enables(method_map)
-
         for method, transactions in method_map.transactions_by_method.items():
-            granted = Cat(transaction.run & method_enables[transaction][method] for transaction in transactions)
+            granted = Cat(
+                transaction.run & Cat(call.enable for call in method_map.info_by_call[(transaction, method)]).any()
+                for transaction in transactions
+            )
             m.d.comb += method.run.eq(granted.any())
 
         ccs = _graph_ccs(cgr)
