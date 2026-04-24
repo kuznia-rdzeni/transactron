@@ -484,12 +484,7 @@ class TransactionManager(Elaboratable):
                     m.d.comb += arg_rec.eq(calls[i].arg)
                     m.d.comb += en.eq(1)
 
-                valid = Signal()
-
-                with m.If(method.ready):
-                    m.d.comb += valid.eq(~en | method._validate_arguments(arg_rec))
-
-                return valid
+                return method._validate_arguments(en, arg_rec)
 
             runnable_terms = [
                 validate_args_for_method(method) for method in method_map.methods_by_transaction[transaction]

@@ -75,10 +75,10 @@ class Body(TransactionBase["Body"]):
         if self.nonexclusive:
             assert len(self.data_in.as_value()) == 0 or "combiner" in kwargs
 
-    def _validate_arguments(self, arg_rec: MethodStruct) -> ValueLike:
+    def _validate_arguments(self, en: Value, arg_rec: MethodStruct) -> ValueLike:
         if self.validate_arguments is not None:
-            return method_def_helper(self, self.validate_arguments, arg_rec)
-        return C(1)
+            return self.ready & (~en | method_def_helper(self, self.validate_arguments, arg_rec))
+        return self.ready
 
     @contextmanager
     def context(self, m: TModule) -> Iterator["Body"]:
