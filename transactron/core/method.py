@@ -305,16 +305,20 @@ class Method(TransactionBase["Transaction | Method"]):
             with Transaction().body(m):
                 ret = my_sum_method(m, {"arg1": 2, "arg2": 3})
         """
-        arg_rec = Signal.like(self.data_in)
-
         if arg is not None and kwargs:
             raise ValueError(f"Method '{self.name}' call with both keyword arguments and legacy record argument")
 
         if arg is None:
             arg = kwargs
 
+        if not isinstance(enable_call, Const) or enable_call.value != 1:
+            with m.If(enable_call):
+                return self(m, arg)
+
+        arg_rec = Signal.like(self.data_in)
+
         enable_sig = Signal(name=self.owned_name + "_enable")
-        m.d.av_comb += enable_sig.eq(enable_call)
+        m.d.av_comb += enable_sig.eq(1)
         m.d.top_comb += assign(arg_rec, arg, fields=AssignType.ALL)
 
         caller = Body.get()
@@ -324,14 +328,6 @@ class Method(TransactionBase["Transaction | Method"]):
                 f"from the same caller '{caller.name}' {caller.src_loc}"
             )
         caller.method_calls[self].append((m.ctrl_path, arg_rec, enable_sig))
-
-        is_conditional = (
-            not isinstance(enable_call, Const)
-            or enable_call.value != 1
-            or len(m.ctrl_path.path) > len(caller.ctrl_path.path) + 1
-        )
-        if is_conditional:
-            caller.conditional_calls.add(self)
 
         return self.data_out
 

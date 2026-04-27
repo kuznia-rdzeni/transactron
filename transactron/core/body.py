@@ -39,7 +39,6 @@ class Body(TransactionBase["Body"]):
     stack: ClassVar[list["Body"]] = []
     ctrl_path: CtrlPath = CtrlPath(-1, ())
     method_calls: defaultdict["Method", list[tuple[CtrlPath, MethodStruct, Value]]]
-    conditional_calls: set["Method"]
 
     def __init__(
         self,
@@ -70,10 +69,17 @@ class Body(TransactionBase["Body"]):
             kwargs["validate_arguments"] if "validate_arguments" in kwargs else None
         )
         self.method_calls = defaultdict(list)
-        self.conditional_calls = set()
 
         if self.nonexclusive:
             assert len(self.data_in.as_value()) == 0 or "combiner" in kwargs
+
+    @property
+    def conditional_calls(self) -> set["Method"]:
+        return {
+            method
+            for method, calls in self.method_calls.items()
+            if any(len(ctrl_path.path) > len(self.ctrl_path.path) + 1 for ctrl_path, _, _ in calls)
+        }
 
     def _validate_arguments(self, en: Value, arg_rec: MethodStruct) -> ValueLike:
         if self.validate_arguments is not None:
