@@ -96,7 +96,7 @@ class TestExclusiveConflictRemoval(TestCaseWithSimulator):
         with self.run_simulation(dut, add_transaction_module=False):
             pass
 
-        cgr, _ = tm._conflict_graph(MethodMap(tm.transactions))
+        cgr, _ = tm._conflict_graph(MethodMap(tm.transactions, tm.methods))
 
         for s in cgr.values():
             assert not s

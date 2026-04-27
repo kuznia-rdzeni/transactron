@@ -203,6 +203,56 @@ class TestInvalidMethods(TestCase):
 
         self.assert_re("called twice", Twice())
 
+    def test_twice_nonexclusive(self):
+        class Twice(Elaboratable):
+            def __init__(self):
+                self.meth1 = Method()
+                self.meth2 = Method()
+
+            def elaborate(self, platform):
+                m = TModule()
+                m._MustUse__silence = True  # type: ignore
+
+                with self.meth1.body(m, nonexclusive=True):
+                    pass
+
+                with self.meth2.body(m):
+                    self.meth1(m)
+                    self.meth1(m)
+
+                return m
+
+        Fragment.get(TransactronContextElaboratable(Twice()), platform=None)
+
+    def test_twice_nonexclusive_diamond(self):
+        class Twice(Elaboratable):
+            def __init__(self):
+                self.meth1 = Method()
+                self.meth2 = Method()
+                self.meth3 = Method()
+                self.meth4 = Method()
+
+            def elaborate(self, platform):
+                m = TModule()
+                m._MustUse__silence = True  # type: ignore
+
+                with self.meth1.body(m, nonexclusive=True):
+                    pass
+
+                with self.meth2.body(m):
+                    self.meth1(m)
+
+                with self.meth3.body(m):
+                    self.meth1(m)
+
+                with self.meth4.body(m):
+                    self.meth2(m)
+                    self.meth3(m)
+
+                return m
+
+        Fragment.get(TransactronContextElaboratable(Twice()), platform=None)
+
     def test_twice_cond(self):
         class Twice(Elaboratable):
             def __init__(self):
@@ -270,6 +320,22 @@ class TestInvalidMethods(TestCase):
 
         m = Loop()
         self.assert_re("called twice", AdapterCircuit(m, [m.meth1]))
+
+    def test_loop_uncalled_method(self):
+        class Loop(Elaboratable):
+            def __init__(self):
+                self.meth1 = Method()
+
+            def elaborate(self, platform):
+                m = TModule()
+                m._MustUse__silence = True  # type: ignore
+
+                with self.meth1.body(m):
+                    self.meth1(m)
+
+                return m
+
+        self.assert_re("called twice", Loop())
 
     def test_cycle(self):
         class Cycle(Elaboratable):

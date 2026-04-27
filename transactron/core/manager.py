@@ -47,7 +47,7 @@ class CallInfo:
 
 
 class MethodMap:
-    def __init__(self, transactions: Iterable[Transaction]):
+    def __init__(self, transactions: Iterable[Transaction], methods: Iterable[Method]):
         self.methods_by_transaction = dict[TBody, list[MBody]]()
         self.transactions_by_method = defaultdict[MBody, list[TBody]](list)
         self.info_by_call = defaultdict[tuple[TBody, MBody], list[CallInfo]](list)
@@ -57,15 +57,12 @@ class MethodMap:
             return " -> ".join(f"{method.name} {method.src_loc}" for method in path)
 
         def report_bad_case(
-            transaction: TBody,
+            source: Body,
             method: MBody,
             first_ancestors: tuple[MBody, ...],
             second_ancestors: tuple[MBody, ...],
         ):
-            msg = (
-                f"Method '{method.name}' {method.src_loc} called twice from "
-                + f"transaction '{transaction.name}' {transaction.src_loc}"
-            )
+            msg = f"Method '{method.name}' {method.src_loc} called twice from '{source.name}' {source.src_loc}"
 
             if method in second_ancestors[1:]:
                 cycle_start = second_ancestors[1:].index(method) + 1
@@ -80,6 +77,28 @@ class MethodMap:
 
             raise RuntimeError(msg)
 
+        def validate_root_call_tree(root: Body):
+            info_by_call = defaultdict[MBody, list[tuple[tuple[MBody, ...], tuple[CtrlPath, ...]]]](list)
+
+            def rec_root(source: Body, ancestors: tuple[MBody, ...], call_path: tuple[CtrlPath, ...]):
+                for method_obj, calls in source.method_calls.items():
+                    method = MBody(method_obj._body)
+                    for call_ctrl_path, _, _ in calls:
+                        new_ancestors = (method, *ancestors)
+                        new_call_path = (*call_path, call_ctrl_path)
+
+                        if method in ancestors:
+                            report_bad_case(root, method, new_ancestors, new_ancestors)
+
+                        for old_ancestors, old_call_path in info_by_call[method]:
+                            if not method.nonexclusive and not call_paths_exclusive(old_call_path, new_call_path):
+                                report_bad_case(root, method, old_ancestors, new_ancestors)
+
+                        info_by_call[method].append((new_ancestors, new_call_path))
+                        rec_root(method, new_ancestors, new_call_path)
+
+            rec_root(root, (), ())
+
         def rec(
             transaction: TBody,
             source: Body,
@@ -93,12 +112,6 @@ class MethodMap:
                     new_ancestors = (method, *ancestors)
                     new_call_path = (*call_path, call_ctrl_path)
                     new_call_enable = call_enable & enable_sig
-                    if method in ancestors:
-                        report_bad_case(transaction, method, new_ancestors, new_ancestors)
-
-                    for old_call in self.info_by_call[(transaction, method)]:
-                        if not call_paths_exclusive(old_call.call_path, new_call_path):
-                            report_bad_case(transaction, method, old_call.ancestors, new_ancestors)
 
                     self.info_by_call[(transaction, method)].append(
                         CallInfo(
@@ -113,6 +126,9 @@ class MethodMap:
                         self.methods_by_transaction[transaction].append(method)
                         self.transactions_by_method[method].append(transaction)
                     rec(transaction, method, new_ancestors, new_call_path, new_call_enable)
+
+        for obj in chain(methods, transactions):
+            validate_root_call_tree(obj._body)
 
         for transaction in transactions:
             self.methods_by_transaction[TBody(transaction._body)] = []
@@ -318,7 +334,7 @@ class TransactionManager(Elaboratable):
         return ret
 
     def _simultaneous(self):
-        method_map = MethodMap(self.transactions)
+        method_map = MethodMap(self.transactions, self.methods)
 
         # remove orderings between simultaneous methods/transactions
         # TODO: can it be done after transitivity, possibly catching more cases?
@@ -441,7 +457,7 @@ class TransactionManager(Elaboratable):
         with silence_mustuse(self):
             merge_manager = self._simultaneous()
 
-            method_map = MethodMap(self.transactions)
+            method_map = MethodMap(self.transactions, self.methods)
             cgr, porder = TransactionManager._conflict_graph(method_map)
 
         ready_dependencies = TransactionManager._ready_dependencies(self.transactions, self.methods)
@@ -551,7 +567,7 @@ class TransactionManager(Elaboratable):
 
     def visual_graph(self, fragment):
         graph = OwnershipGraph(fragment)
-        method_map = MethodMap(self.transactions)
+        method_map = MethodMap(self.transactions, self.methods)
         for method, transactions in method_map.transactions_by_method.items():
             if len(method.data_in.as_value()) > len(method.data_out.as_value()):
                 direction = Direction.IN
@@ -567,7 +583,7 @@ class TransactionManager(Elaboratable):
         return graph
 
     def debug_signals(self) -> ValueBundle:
-        method_map = MethodMap(self.transactions)
+        method_map = MethodMap(self.transactions, self.methods)
         cgr, _ = TransactionManager._conflict_graph(method_map)
 
         def transaction_debug(t: TBody):
