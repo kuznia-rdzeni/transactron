@@ -1,6 +1,7 @@
 from typing import Any
 from amaranth import *
 from amaranth.hdl import ShapeCastable, ValueCastable
+from amaranth.hdl._ast import SwitchValue
 from amaranth.utils import bits_for, ceil_log2
 from amaranth.lib import data
 from collections.abc import Callable, Iterable, Mapping
@@ -11,6 +12,7 @@ from transactron.utils.typing import ValueBundle
 
 __all__ = [
     "mod_incr",
+    "mod_add",
     "popcount",
     "count_leading_zeros",
     "count_trailing_zeros",
@@ -28,13 +30,28 @@ __all__ = [
 ]
 
 
-def mod_incr(sig: Value, mod: int) -> Value:
+def mod_incr(sig: ValueLike, mod: int) -> Value:
     """
     Perform `(sig+1) % mod` operation.
     """
-    if mod == 2 ** len(sig):
-        return sig + 1
+    assert mod > 0
+    sig = Value.cast(sig)
+    if not (mod & (mod - 1)):
+        return (sig + 1) & (mod - 1)
     return Mux(sig == mod - 1, 0, sig + 1)
+
+
+def mod_add(sig: ValueLike, mod: int, incr: ValueLike, max_incr: int):
+    """
+    Perform `(sig+incr) % mod` operation, for `0 < incr <= max_incr`.
+    """
+    assert mod > 0
+    assert max_incr > 0
+    sig = Value.cast(sig)
+    incr = Value.cast(incr)
+    if not (mod & (mod - 1)):
+        return (sig + incr) & (mod - 1)
+    return SwitchValue(sig + incr, [(mod + i, i) for i in range(0, max_incr)] + [(None, sig + incr)])
 
 
 def popcount(s: Value):

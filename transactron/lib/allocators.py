@@ -4,8 +4,10 @@ from transactron.core import Method, Methods, TModule, def_method, def_methods
 from transactron.utils.amaranth_ext.elaboratables import MultiPriorityEncoder
 from amaranth.lib.data import ArrayLayout
 
+from transactron.utils.amaranth_ext.functions import mod_add
 
-__all__ = ["PriorityEncoderAllocator"]
+
+__all__ = ["PriorityEncoderAllocator", "PreservedOrderAllocator", "CircularAllocator"]
 
 
 class PriorityEncoderAllocator(Elaboratable):
@@ -127,5 +129,63 @@ class PreservedOrderAllocator(Elaboratable):
         @def_method(m, self.order, nonexclusive=True)
         def _():
             return {"used": used, "order": order}
+
+        return m
+
+
+class CircularAllocator(Elaboratable):
+    def __init__(self, entries: int, max_alloc: int = 1, max_free: int = 1, *, with_validate_arguments=True):
+        self.entries = entries
+        self.max_alloc = max_alloc
+        self.max_free = max_free
+        self.with_validate_arguments = with_validate_arguments
+
+        self.alloc = Method(
+            i=[("count", range(max_alloc + 1))], o=[("ident", range(entries)), ("new_end_idx", range(entries))]
+        )
+        self.free = Method(i=[("count", range(max_free + 1))], o=[("new_start_idx", range(entries))])
+        self.clear = Method()
+
+        self.start_idx = Signal(range(entries))
+        self.end_idx = Signal(range(entries))
+        self.allocated = Signal(range(entries + 1))
+
+    def elaborate(self, platform):
+        m = TModule()
+
+        alloc_count = Signal(range(self.max_alloc + 1))
+        free_count = Signal(range(self.max_free + 1))
+
+        m.d.sync += self.allocated.eq(self.allocated + alloc_count - free_count)
+
+        kwargs = {}
+        if self.with_validate_arguments and self.max_alloc > 1:
+            kwargs["validate_arguments"] = lambda count: self.allocated + count <= self.entries
+
+        @def_method(m, self.alloc, ready=self.allocated != self.entries, **kwargs)
+        def _(count):
+            new_end_idx = Signal.like(self.end_idx)
+            m.d.av_comb += new_end_idx.eq(mod_add(self.end_idx, self.entries, count, self.max_alloc))
+            m.d.sync += self.end_idx.eq(new_end_idx)
+            m.d.comb += alloc_count.eq(count)
+            return {"ident": self.end_idx, "new_end_idx": new_end_idx}
+
+        kwargs = {}
+        if self.with_validate_arguments and self.max_free > 1:
+            kwargs["validate_arguments"] = lambda count: count <= self.allocated
+
+        @def_method(m, self.free, ready=self.allocated != 0, **kwargs)
+        def _(count):
+            new_start_idx = Signal.like(self.start_idx)
+            m.d.av_comb += new_start_idx.eq(mod_add(self.start_idx, self.entries, count, self.max_free))
+            m.d.sync += self.start_idx.eq(new_start_idx)
+            m.d.comb += free_count.eq(count)
+            return {"new_start_idx": new_start_idx}
+
+        @def_method(m, self.clear)
+        def _():
+            m.d.sync += self.start_idx.eq(0)
+            m.d.sync += self.end_idx.eq(0)
+            m.d.sync += self.allocated.eq(0)
 
         return m
