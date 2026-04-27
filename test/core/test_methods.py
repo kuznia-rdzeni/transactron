@@ -13,6 +13,7 @@ from transactron.lib import *
 
 from unittest import TestCase
 
+from transactron.utils.amaranth_ext.functions import popcount
 from transactron.utils.assign import AssignArg
 
 
@@ -253,6 +254,29 @@ class TestInvalidMethods(TestCase):
 
         Fragment.get(TransactronContextElaboratable(Twice()), platform=None)
 
+    def test_twice_nonexclusive_with_unifier(self):
+        class TwiceWithUnifier(Elaboratable):
+            def __init__(self):
+                self.meth1 = Method()
+                self.meth2 = Method()
+                self.meth3 = Method()
+
+            def elaborate(self, platform):
+                m = TModule()
+                m._MustUse__silence = True  # type: ignore
+
+                with self.meth1.body(m, nonexclusive=True):
+                    pass
+
+                m.submodules.unified = unifier = MethodProduct.create((self.meth1, self.meth1))
+
+                with self.meth3.body(m):
+                    unifier.method(m)
+
+                return m
+
+        Fragment.get(TransactronContextElaboratable(TwiceWithUnifier()), platform=None)
+
     def test_twice_cond(self):
         class Twice(Elaboratable):
             def __init__(self):
@@ -319,7 +343,7 @@ class TestInvalidMethods(TestCase):
                 return m
 
         m = Loop()
-        self.assert_re("called twice", AdapterCircuit(m, [m.meth1]))
+        self.assert_re("calls itself", AdapterCircuit(m, [m.meth1]))
 
     def test_loop_uncalled_method(self):
         class Loop(Elaboratable):
@@ -335,7 +359,7 @@ class TestInvalidMethods(TestCase):
 
                 return m
 
-        self.assert_re("called twice", Loop())
+        self.assert_re("calls itself", Loop())
 
     def test_cycle(self):
         class Cycle(Elaboratable):
@@ -355,7 +379,7 @@ class TestInvalidMethods(TestCase):
                 return m
 
         m = Cycle()
-        self.assert_re("called twice", AdapterCircuit(m, [m.meth1]))
+        self.assert_re("calls itself", AdapterCircuit(m, [m.meth1]))
 
     def test_redefine(self):
         class Redefine(Elaboratable):
@@ -866,6 +890,48 @@ class TestProvide(TestCaseWithSimulator):
                 v = random.randrange(256)
                 res = await dut.m1.call(sim, data=v)
                 assert res["data"] == v
+
+        with self.run_simulation(dut) as sim:
+            sim.add_testbench(process)
+
+
+class TestNonexclusiveMultiple(TestCaseWithSimulator):
+    def test_twice_nonexclusive_combiner(self):
+        class Twice(Elaboratable):
+            def __init__(self):
+                self.meth1 = Method(i=[("count", 4)])
+                self.meth1_count = Signal(4)
+                self.enables = Signal(4)
+
+            def elaborate(self, platform):
+                m = TModule()
+                m._MustUse__silence = True  # type: ignore
+
+                def popcount_combiner(m: Module, args: Sequence[MethodStruct], runs: Value) -> AssignArg:
+                    count_sig = Signal(4)
+                    m.d.comb += count_sig.eq(popcount(runs))
+                    return {"count": count_sig}
+
+                @def_method(m, self.meth1, nonexclusive=True, combiner=popcount_combiner)
+                def _(count):
+                    m.d.av_comb += self.meth1_count.eq(count)
+
+                with Transaction().body(m):
+                    for i in range(4):
+                        with m.If(self.enables[i]):
+                            self.meth1(m, count=0)
+
+                return m
+
+        m = Twice()
+        dut = SimpleTestCircuit(m)
+
+        async def process(sim):
+            for i in range(2**4):
+                sim.set(m.enables, i)
+                await sim.tick()
+                expected_count = bin(i).count("1")
+                assert sim.get(m.meth1_count) == expected_count
 
         with self.run_simulation(dut) as sim:
             sim.add_testbench(process)

@@ -49,36 +49,37 @@ class CallInfo:
 class MethodMap:
     def __init__(self, transactions: Iterable[Transaction], methods: Iterable[Method]):
         self.methods_by_transaction = dict[TBody, list[MBody]]()
-        self.transactions_by_method = defaultdict[MBody, list[TBody]](list)
+        self.transactions_by_method = dict[MBody, list[TBody]]()
         self.info_by_call = defaultdict[tuple[TBody, MBody], list[CallInfo]](list)
         self.method_parents = defaultdict[MBody, list[Body]](list)
 
         def path_str(path: Sequence[MBody]) -> str:
             return " -> ".join(f"{method.name} {method.src_loc}" for method in path)
 
-        def report_bad_case(
-            source: Body,
+        def report_cycle(method: MBody, ancestors: tuple[MBody, ...]):
+            msg = f"Method '{method.name}' {method.src_loc} calls itself through the following call path:"
+            msg += f"\n{path_str(ancestors[ancestors.index(method) :])}"
+            raise RuntimeError(msg)
+
+        def report_double_call(
+            root: Body,
             method: MBody,
             first_ancestors: tuple[MBody, ...],
             second_ancestors: tuple[MBody, ...],
         ):
-            msg = f"Method '{method.name}' {method.src_loc} called twice from '{source.name}' {source.src_loc}"
+            first_path = tuple(reversed(first_ancestors))
+            second_path = tuple(reversed(second_ancestors))
 
-            if method in second_ancestors[1:]:
-                cycle_start = second_ancestors[1:].index(method) + 1
-                cycle = second_ancestors[cycle_start::-1]
-                msg += f"\nCycle: {path_str(cycle)}"
-            else:
-                first_path = tuple(reversed(first_ancestors))
-                second_path = tuple(reversed(second_ancestors))
+            lcp_len = len(longest_common_prefix(first_path, second_path))
+            lca_node = first_path[lcp_len - 1] if lcp_len > 0 else root
 
-                msg += f"\nFirst call path: {path_str(first_path)}"
-                msg += f"\nSecond call path: {path_str(second_path)}"
-
+            msg = f"Method '{method.name}' {method.src_loc} called twice from '{lca_node.name}' {lca_node.src_loc}"
+            msg += f"\nFirst call path: {path_str(first_path[lcp_len:])}"
+            msg += f"\nSecond call path: {path_str(second_path[lcp_len:])}"
             raise RuntimeError(msg)
 
         def validate_root_call_tree(root: Body):
-            info_by_call = defaultdict[MBody, list[tuple[tuple[MBody, ...], tuple[CtrlPath, ...]]]](list)
+            call_sights = defaultdict[MBody, list[tuple[tuple[MBody, ...], tuple[CtrlPath, ...]]]](list)
 
             def rec_root(source: Body, ancestors: tuple[MBody, ...], call_path: tuple[CtrlPath, ...]):
                 for method_obj, calls in source.method_calls.items():
@@ -88,13 +89,13 @@ class MethodMap:
                         new_call_path = (*call_path, call_ctrl_path)
 
                         if method in ancestors:
-                            report_bad_case(root, method, new_ancestors, new_ancestors)
+                            report_cycle(method, new_ancestors)
 
-                        for old_ancestors, old_call_path in info_by_call[method]:
+                        for old_ancestors, old_call_path in call_sights[method]:
                             if not method.nonexclusive and not call_paths_exclusive(old_call_path, new_call_path):
-                                report_bad_case(root, method, old_ancestors, new_ancestors)
+                                report_double_call(root, method, old_ancestors, new_ancestors)
 
-                        info_by_call[method].append((new_ancestors, new_call_path))
+                        call_sights[method].append((new_ancestors, new_call_path))
                         rec_root(method, new_ancestors, new_call_path)
 
             rec_root(root, (), ())
@@ -129,6 +130,9 @@ class MethodMap:
 
         for obj in chain(methods, transactions):
             validate_root_call_tree(obj._body)
+
+        for method in methods:
+            self.transactions_by_method[MBody(method._body)] = []
 
         for transaction in transactions:
             self.methods_by_transaction[TBody(transaction._body)] = []
@@ -425,6 +429,7 @@ class TransactionManager(Elaboratable):
             method._set_impl(transaction)
             DependencyContext.get().add_dependency(ProvidedMethodsKey(), method)
             methods[transaction] = method
+            self.methods.append(method)
 
         # step 5: construct merged transactions
         with DependencyContext(DependencyManager()):
@@ -523,6 +528,8 @@ class TransactionManager(Elaboratable):
         for method in method_map.methods:
             if method.single_caller and len(method_args[method]) > 1:
                 raise RuntimeError(f"Single-caller method '{method.name}' {method.src_loc} called more than once")
+            if not method_map.transactions_by_method[method]:
+                continue
             runs = Cat(method_runs[method])
             m.d.comb += assign(method.data_in, method.combiner(m, method_args[method], runs), fields=AssignType.ALL)
 
