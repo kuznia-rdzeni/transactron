@@ -1,6 +1,7 @@
 from collections import defaultdict, deque
 from collections.abc import Callable, Iterable, Sequence, Collection, Mapping
 import textwrap
+from dataclasses import dataclass
 from typing import TypeAlias
 from os import environ
 from amaranth import *
@@ -18,7 +19,7 @@ from .body import Body, TBody, MBody
 from .transaction import Transaction
 from .keys import DefinedMethodsKey, ProvidedMethodsKey, TransactionsKey
 from .method import Method
-from .tmodule import TModule
+from .tmodule import CtrlPath, TModule
 from .schedulers import eager_deterministic_cc_scheduler
 
 __all__ = ["TransactionManager"]
@@ -29,19 +30,38 @@ PriorityOrder: TypeAlias = dict[TBody, int]
 TransactionScheduler: TypeAlias = Callable[["MethodMap", TransactionGraph, TransactionGraphCC, PriorityOrder], Module]
 
 
+def call_paths_exclusive(path1: tuple[CtrlPath, ...], path2: tuple[CtrlPath, ...]):
+    common_prefix_len = len(longest_common_prefix(path1, path2))
+
+    if common_prefix_len == len(path1) or common_prefix_len == len(path2):
+        return False
+    return path1[common_prefix_len].exclusive_with(path2[common_prefix_len])
+
+
+@dataclass(frozen=True)
+class CallInfo:
+    ancestors: tuple[MBody, ...]
+    call_path: tuple[CtrlPath, ...]
+    arg: MethodStruct
+    enable: ValueLike
+
+
 class MethodMap:
     def __init__(self, transactions: Iterable[Transaction]):
         self.methods_by_transaction = dict[TBody, list[MBody]]()
         self.transactions_by_method = defaultdict[MBody, list[TBody]](list)
-        self.argument_by_call = dict[tuple[TBody, MBody], MethodStruct]()
-        self.ancestors_by_call = dict[tuple[TBody, MBody], tuple[MBody, ...]]()
+        self.info_by_call = defaultdict[tuple[TBody, MBody], list[CallInfo]](list)
         self.method_parents = defaultdict[MBody, list[Body]](list)
 
         def path_str(path: Sequence[MBody]) -> str:
             return " -> ".join(f"{method.name} {method.src_loc}" for method in path)
 
-        def report_bad_case(transaction: TBody, method: MBody, second_ancestors: tuple[MBody, ...]):
-            first_ancestors = self.ancestors_by_call[(transaction, method)]
+        def report_bad_case(
+            transaction: TBody,
+            method: MBody,
+            first_ancestors: tuple[MBody, ...],
+            second_ancestors: tuple[MBody, ...],
+        ):
             msg = (
                 f"Method '{method.name}' {method.src_loc} called twice from "
                 + f"transaction '{transaction.name}' {transaction.src_loc}"
@@ -60,29 +80,51 @@ class MethodMap:
 
             raise RuntimeError(msg)
 
-        def rec(transaction: TBody, source: Body, ancestors: tuple[MBody, ...]):
-            for method_obj, (arg_rec, _) in source.method_uses.items():
+        def rec(
+            transaction: TBody,
+            source: Body,
+            ancestors: tuple[MBody, ...],
+            call_path: tuple[CtrlPath, ...],
+            call_enable: ValueLike,
+        ):
+            for method_obj, calls in source.method_calls.items():
                 method = MBody(method_obj._body)
-                new_ancestors = (method, *ancestors)
-                if method in self.methods_by_transaction[transaction]:
-                    report_bad_case(transaction, method, new_ancestors)
-                self.methods_by_transaction[transaction].append(method)
-                self.transactions_by_method[method].append(transaction)
-                self.argument_by_call[(transaction, method)] = arg_rec
-                self.ancestors_by_call[(transaction, method)] = new_ancestors
-                rec(transaction, method, new_ancestors)
+                for call_ctrl_path, arg_rec, enable_sig in calls:
+                    new_ancestors = (method, *ancestors)
+                    new_call_path = (*call_path, call_ctrl_path)
+                    new_call_enable = call_enable & enable_sig
+                    if method in ancestors:
+                        report_bad_case(transaction, method, new_ancestors, new_ancestors)
+
+                    for old_call in self.info_by_call[(transaction, method)]:
+                        if not call_paths_exclusive(old_call.call_path, new_call_path):
+                            report_bad_case(transaction, method, old_call.ancestors, new_ancestors)
+
+                    self.info_by_call[(transaction, method)].append(
+                        CallInfo(
+                            ancestors=new_ancestors,
+                            call_path=new_call_path,
+                            arg=arg_rec,
+                            enable=new_call_enable,
+                        )
+                    )
+
+                    if method not in self.methods_by_transaction[transaction]:
+                        self.methods_by_transaction[transaction].append(method)
+                        self.transactions_by_method[method].append(transaction)
+                    rec(transaction, method, new_ancestors, new_call_path, new_call_enable)
 
         for transaction in transactions:
             self.methods_by_transaction[TBody(transaction._body)] = []
-            rec(TBody(transaction._body), transaction._body, ())
+            rec(TBody(transaction._body), transaction._body, (), (), C(1))
 
         for transaction_or_method in self.methods_and_transactions:
-            for method in transaction_or_method.method_uses.keys():
+            for method in transaction_or_method.method_calls.keys():
                 self.method_parents[MBody(method._body)].append(transaction_or_method)
 
     def transactions_for(self, elem: Body) -> Collection[TBody]:
         if elem in self.transactions_by_method:
-            return self.transactions_by_method[elem]
+            return self.transactions_by_method[MBody(elem)]
         else:
             assert elem in self.methods_by_transaction
             return [TBody(elem)]
@@ -173,10 +215,12 @@ class TransactionManager(Elaboratable):
         """
 
         def calls_nonexclusive(trans1: TBody, trans2: TBody, method: MBody):
-            ancestors1 = method_map.ancestors_by_call[(trans1, method)]
-            ancestors2 = method_map.ancestors_by_call[(trans2, method)]
-            common_ancestors = longest_common_prefix(ancestors1, ancestors2)
-            return common_ancestors[-1].nonexclusive
+            return all(
+                common_ancestors[-1].nonexclusive or call_paths_exclusive(call1.call_path, call2.call_path)
+                for call1 in method_map.info_by_call[(trans1, method)]
+                for call2 in method_map.info_by_call[(trans2, method)]
+                if (common_ancestors := longest_common_prefix(call1.ancestors, call2.ancestors))
+            )
 
         cgr: TransactionGraph = {}  # Conflict graph
         pgr: TransactionGraph = {}  # Priority graph
@@ -198,11 +242,7 @@ class TransactionManager(Elaboratable):
         for method in method_map.methods:
             for transaction1 in method_map.transactions_for(method):
                 for transaction2 in method_map.transactions_for(method):
-                    if (
-                        transaction1 is not transaction2
-                        and not TransactionManager._transactions_exclusive(method_map, transaction1, transaction2)
-                        and not calls_nonexclusive(transaction1, transaction2, method)
-                    ):
+                    if transaction1 is not transaction2 and not calls_nonexclusive(transaction1, transaction2, method):
                         add_edge(transaction1, transaction2, Priority.UNDEFINED, True)
 
         relations = TransactionManager._relations(method_map)
@@ -236,23 +276,6 @@ class TransactionManager(Elaboratable):
         return cgr, porder
 
     @staticmethod
-    def _method_enables(method_map: MethodMap) -> Mapping[TBody, Mapping[MBody, ValueLike]]:
-        method_enables = defaultdict[TBody, dict[MBody, ValueLike]](dict)
-        enables: list[ValueLike] = []
-
-        def rec(transaction: TBody, source: Body):
-            for method, (_, enable) in source.method_uses.items():
-                enables.append(enable)
-                rec(transaction, method._body)
-                method_enables[transaction][MBody(method._body)] = Cat(*enables).all()
-                enables.pop()
-
-        for transaction in method_map.transactions:
-            rec(transaction, transaction)
-
-        return method_enables
-
-    @staticmethod
     def _ready_dependencies(transactions: Sequence[Transaction], methods: Sequence[Method]) -> Graph[Body]:
         ready_dependencies = defaultdict[Body, set[Body]](set)
 
@@ -274,9 +297,10 @@ class TransactionManager(Elaboratable):
         runs = defaultdict[MBody, list[Value]](list)
 
         for source in method_map.methods_and_transactions:
-            for method, (arg, enable) in source.method_uses.items():
-                args[method._body].append(arg)
-                runs[method._body].append(source.run & enable)
+            for method, calls in source.method_calls.items():
+                for _, arg, enable in calls:
+                    args[method._body].append(arg)
+                    runs[method._body].append(source.run & enable)
 
         return (args, runs)
 
@@ -284,11 +308,12 @@ class TransactionManager(Elaboratable):
     def _conditionally_called_methods(method_map: MethodMap) -> set[MBody]:
         ret: set[MBody] = set()
 
-        for (transaction, method), ancestors in method_map.ancestors_by_call.items():
-            for callee, caller in zip(ancestors, (*ancestors[1:], transaction)):
-                if callee in [method._body for method in caller.conditional_calls]:
-                    ret.add(method)
-                    break
+        for (transaction, method), calls in method_map.info_by_call.items():
+            for call in calls:
+                for callee, caller in zip(call.ancestors, (*call.ancestors[1:], transaction)):
+                    if callee in [method._body for method in caller.conditional_calls]:
+                        ret.add(method)
+                        break
 
         return ret
 
@@ -438,9 +463,6 @@ class TransactionManager(Elaboratable):
         m._MustUse__silence = True  # type: ignore
         m.submodules.merge_manager = merge_manager
 
-        for elem in method_map.methods_and_transactions:
-            elem._set_method_uses(m)
-
         # Signals assigned here because `method.provide` sometimes needs to be used without a TModule.
         # Unfortunately, assignments across modules seem to cause a performance hit in pysim.
         provided_methods = DependencyContext.get().get_dependency(ProvidedMethodsKey())
@@ -451,23 +473,35 @@ class TransactionManager(Elaboratable):
             m.d.comb += method.data_out.eq(method._body.data_out)
 
         for transaction in method_map.transactions:
+
+            def validate_args_for_method(method: MBody):
+                calls = method_map.info_by_call[(transaction, method)]
+                arg_rec = Signal.like(method.data_in)
+                en = Signal()
+
+                # Only one call can be active per method and transaction due to call-path exclusivity.
+                for i in OneHotSwitchDynamic(m, Cat(call.enable for call in calls)):
+                    m.d.comb += arg_rec.eq(calls[i].arg)
+                    m.d.comb += en.eq(1)
+
+                return method._validate_arguments(en, arg_rec)
+
             runnable_terms = [
-                method._validate_arguments(method_map.argument_by_call[transaction, method])
-                for method in method_map.methods_by_transaction[transaction]
+                validate_args_for_method(method) for method in method_map.methods_by_transaction[transaction]
             ]
             runnable_terms.extend(
                 dep.run for body in method_map.ready_for_transaction(transaction) for dep in ready_dependencies[body]
             )
             m.d.comb += transaction.runnable.eq(Cat(runnable_terms).all())
 
-        ccs = _graph_ccs(cgr)
-
-        method_enables = self._method_enables(method_map)
-
         for method, transactions in method_map.transactions_by_method.items():
-            granted = Cat(transaction.run & method_enables[transaction][method] for transaction in transactions)
+            granted = Cat(
+                transaction.run & Cat(call.enable for call in method_map.info_by_call[(transaction, method)]).any()
+                for transaction in transactions
+            )
             m.d.comb += method.run.eq(granted.any())
 
+        ccs = _graph_ccs(cgr)
         (method_args, method_runs) = self._method_calls(m, method_map)
 
         for method in method_map.methods:

@@ -1,3 +1,5 @@
+import pytest
+
 from amaranth import *
 from itertools import product
 from transactron.core import (
@@ -11,7 +13,8 @@ from transactron.core import (
 from transactron.core.tmodule import CtrlPath
 from transactron.core.manager import MethodMap
 from unittest import TestCase
-from transactron.testing import TestCaseWithSimulator
+from transactron.testing import SimpleTestCircuit, TestCaseWithSimulator
+from transactron.utils.amaranth_ext.elaboratables import ModuleConnector
 from transactron.utils.dependencies import DependencyContext
 
 
@@ -97,3 +100,209 @@ class TestExclusiveConflictRemoval(TestCaseWithSimulator):
 
         for s in cgr.values():
             assert not s
+
+
+class ExclusiveDiamondCallCircuit(Elaboratable):
+    def __init__(self):
+        self.sel = Signal()
+        self.method_left = Method()
+        self.method_right = Method()
+        self.method_inner = Method(i=[("value", 2)])
+
+        self.running = Signal()
+
+    def elaborate(self, platform):
+        m = TModule()
+
+        @def_method(m, self.method_inner)
+        def _(value):
+            pass
+
+        @def_method(m, self.method_left)
+        def _():
+            self.method_inner(m, value=0b01)
+
+        @def_method(m, self.method_right)
+        def _():
+            self.method_inner(m, value=0b10)
+
+        with Transaction().body(m):
+            with m.If(self.sel):
+                self.method_left(m)
+            with m.Else():
+                self.method_right(m)
+
+            m.d.comb += self.running.eq(1)
+
+        return m
+
+
+class NonExclusiveDiamondCallCircuit(Elaboratable):
+    def __init__(self):
+        self.sel_left = Signal()
+        self.sel_right = Signal()
+        self.method_left = Method()
+        self.method_right = Method()
+        self.method_inner = Method()
+
+    def elaborate(self, platform):
+        m = TModule()
+
+        @def_method(m, self.method_inner)
+        def _():
+            pass
+
+        @def_method(m, self.method_left)
+        def _():
+            self.method_inner(m)
+
+        @def_method(m, self.method_right)
+        def _():
+            self.method_inner(m)
+
+        with Transaction().body(m):
+            with m.If(self.sel_left):
+                self.method_left(m)
+            with m.If(self.sel_right):
+                self.method_right(m)
+
+        return m
+
+
+class TestExclusiveDiamondCall(TestCaseWithSimulator):
+    def test_exclusive_diamond_call(self):
+        dut = ExclusiveDiamondCallCircuit()
+        circ = SimpleTestCircuit(dut)
+
+        async def run(sim):
+            sim.set(dut.sel, 0)
+            await sim.tick()
+            assert sim.get(dut.running)
+            assert sim.get(dut.method_right.run)
+            assert not sim.get(dut.method_left.run)
+            assert sim.get(dut.method_inner.run)
+            assert sim.get(dut.method_inner.data_in.value) == 0b10
+
+            sim.set(dut.sel, 1)
+            await sim.tick()
+            assert sim.get(dut.running)
+            assert sim.get(dut.method_left.run)
+            assert not sim.get(dut.method_right.run)
+            assert sim.get(dut.method_inner.run)
+            assert sim.get(dut.method_inner.data_in.value) == 0b01
+
+        with self.run_simulation(circ) as sim:
+            sim.add_testbench(run)
+
+
+class ExclusiveDiamondValidateArgumentsCircuit(Elaboratable):
+    def __init__(self):
+        self.sel = Signal()
+        self.filter_value = Signal(2)
+        self.method_left = Method()
+        self.method_right = Method()
+        self.method_inner = Method(i=[("value", 2)])
+        self.running = Signal()
+        self.value_out = Signal(2)
+
+    def elaborate(self, platform):
+        m = TModule()
+
+        @def_method(m, self.method_inner, validate_arguments=lambda value: value == self.filter_value)
+        def _(value):
+            m.d.comb += self.value_out.eq(value)
+
+        @def_method(m, self.method_left)
+        def _():
+            self.method_inner(m, value=0b01)
+
+        @def_method(m, self.method_right)
+        def _():
+            self.method_inner(m, value=0b10)
+
+        with Transaction().body(m):
+            with m.If(self.sel):
+                self.method_left(m)
+            with m.Else():
+                self.method_right(m)
+
+            m.d.comb += self.running.eq(1)
+
+        return m
+
+
+class ExclusiveValidateArgumentsCircuit(Elaboratable):
+    def __init__(self):
+        self.sel = Signal()
+        self.filter_value = Signal(2)
+        self.method_inner = Method(i=[("value", 2)])
+        self.running = Signal()
+        self.value_out = Signal(2)
+
+    def elaborate(self, platform):
+        m = TModule()
+
+        @def_method(m, self.method_inner, validate_arguments=lambda value: value == self.filter_value)
+        def _(value):
+            m.d.comb += self.value_out.eq(value)
+
+        with Transaction().body(m):
+            with m.If(self.sel):
+                self.method_inner(m, value=0b01)
+            with m.Else():
+                self.method_inner(m, value=0b10)
+
+            m.d.comb += self.running.eq(1)
+
+        return m
+
+
+class TestExclusiveDiamondValidateArguments(TestCaseWithSimulator):
+    def test_exclusive_diamond_validate_arguments(self):
+        dut1 = ExclusiveDiamondValidateArgumentsCircuit()
+        dut2 = ExclusiveValidateArgumentsCircuit()
+        dut = ModuleConnector(dut1, dut2)
+        circ = SimpleTestCircuit(dut)
+
+        async def run(sim):
+            for filter_left in (False, True):
+                for sel in (False, True):
+                    sim.set(dut1.filter_value, 0b01 if filter_left else 0b10)
+                    sim.set(dut2.filter_value, 0b01 if filter_left else 0b10)
+                    sim.set(dut1.sel, sel)
+                    sim.set(dut2.sel, sel)
+
+                    await sim.tick()
+                    running1 = sim.get(dut1.running)
+                    running2 = sim.get(dut2.running)
+                    left1 = sim.get(dut1.method_left.run)
+                    right1 = sim.get(dut1.method_right.run)
+                    inner1 = sim.get(dut1.method_inner.run)
+                    inner2 = sim.get(dut2.method_inner.run)
+                    value_out1 = sim.get(dut1.value_out)
+                    value_out2 = sim.get(dut2.value_out)
+
+                    assert running1 == running2
+                    assert inner1 == inner2
+                    assert value_out1 == value_out2
+                    if sel and filter_left:
+                        assert left1
+                        assert not right1
+                    elif not sel and not filter_left:
+                        assert not left1
+                        assert right1
+                    else:
+                        assert not left1
+                        assert not right1
+
+        with self.run_simulation(circ) as sim:
+            sim.add_testbench(run)
+
+
+class TestNonExclusiveDiamondCall(TestCaseWithSimulator):
+    def test_nonexclusive_diamond_call(self):
+        circ = SimpleTestCircuit(NonExclusiveDiamondCallCircuit())
+
+        with pytest.raises(RuntimeError):
+            with self.run_simulation(circ):
+                pass
