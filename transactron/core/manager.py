@@ -161,6 +161,10 @@ class MethodMap:
     def methods_and_transactions(self) -> Iterable[Body]:
         return chain(self.methods, self.transactions)
 
+    @property
+    def called_methods(self) -> Collection[MBody]:
+        return [method for method, transactions in self.transactions_by_method.items() if transactions]
+
     def ready_for_transaction(self, trans: TBody) -> Collection[Body]:
         # all bodies that need to be ready for transaction to run
         return [trans] + self.methods_by_transaction[trans]
@@ -525,11 +529,9 @@ class TransactionManager(Elaboratable):
         ccs = _graph_ccs(cgr)
         (method_args, method_runs) = self._method_calls(m, method_map)
 
-        for method in method_map.methods:
+        for method in method_map.called_methods:
             if method.single_caller and len(method_args[method]) > 1:
                 raise RuntimeError(f"Single-caller method '{method.name}' {method.src_loc} called more than once")
-            if not method_map.transactions_by_method[method]:
-                continue
             runs = Cat(method_runs[method])
             m.d.comb += assign(method.data_in, method.combiner(m, method_args[method], runs), fields=AssignType.ALL)
 
