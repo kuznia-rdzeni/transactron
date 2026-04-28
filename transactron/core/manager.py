@@ -369,6 +369,11 @@ class TransactionManager(Elaboratable):
 
         simultaneous = set[frozenset[TBody]]()
 
+        all_simultaneous = set[TBody]()
+        for elem in method_map.methods_and_transactions:
+            for sim_elem in elem.simultaneous_list:
+                all_simultaneous.update(method_map.transactions_for(sim_elem))
+
         conditionally_called_methods = self._conditionally_called_methods(method_map)
 
         for elem in method_map.methods_and_transactions:
@@ -379,13 +384,7 @@ class TransactionManager(Elaboratable):
                         "Simultaneity constraint for conditionally called method "
                         f"'{elem.name}' {elem.src_loc} not supported"
                     )
-            pruned_sim = False
             for sim_elem in elem.simultaneous_list:
-                if sim_elem not in method_map.methods_and_transactions:
-                    if sim_elem.independent_list:
-                        raise RuntimeError("Pruned method with independent list not supported")
-                    pruned_sim = True
-                    continue
                 for tr1, tr2 in product(method_map.transactions_for(elem), method_map.transactions_for(sim_elem)):
                     if tr1 in independents[tr2]:
                         raise RuntimeError(
@@ -395,8 +394,6 @@ class TransactionManager(Elaboratable):
                             )
                         )
                     simultaneous.add(frozenset({tr1, tr2}))
-            if pruned_sim and elem in method_map.transactions:
-                elem.ready = Signal()
 
         # step 2: transitivity computation
         tr_simultaneous = set[frozenset[TBody]]()
@@ -422,7 +419,8 @@ class TransactionManager(Elaboratable):
         # step 4: convert transactions to methods
         joined_transactions = set[TBody]().union(*final_simultaneous)
 
-        self.transactions = list(filter(lambda t: t._body not in joined_transactions, self.transactions))
+        self.transactions = list(filter(lambda tr: tr._body not in all_simultaneous, self.transactions))
+
         methods = dict[TBody, Method]()
 
         m = TModule()
