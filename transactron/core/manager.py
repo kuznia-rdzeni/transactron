@@ -88,15 +88,18 @@ class MethodMap:
                         new_ancestors = (method, *ancestors)
                         new_call_path = (*call_path, call_ctrl_path)
 
-                        if method in ancestors:
-                            report_cycle(method, new_ancestors)
+                        if not method.nonexclusive:
+                            if method in ancestors:
+                                report_cycle(method, new_ancestors)
 
-                        for old_ancestors, old_call_path in call_sights[method]:
-                            if not method.nonexclusive and not call_paths_exclusive(old_call_path, new_call_path):
-                                report_double_call(root, method, old_ancestors, new_ancestors)
+                            for old_ancestors, old_call_path in call_sights[method]:
+                                if not call_paths_exclusive(old_call_path, new_call_path):
+                                    report_double_call(root, method, old_ancestors, new_ancestors)
 
                         call_sights[method].append((new_ancestors, new_call_path))
-                        rec_root(method, new_ancestors, new_call_path)
+
+                        if method not in ancestors:
+                            rec_root(method, new_ancestors, new_call_path)
 
             rec_root(root, (), ())
 
@@ -126,7 +129,9 @@ class MethodMap:
                     if method not in self.methods_by_transaction[transaction]:
                         self.methods_by_transaction[transaction].append(method)
                         self.transactions_by_method[method].append(transaction)
-                    rec(transaction, method, new_ancestors, new_call_path, new_call_enable)
+
+                    if method not in ancestors:
+                        rec(transaction, method, new_ancestors, new_call_path, new_call_enable)
 
         for obj in chain(methods, transactions):
             validate_root_call_tree(obj._body)
