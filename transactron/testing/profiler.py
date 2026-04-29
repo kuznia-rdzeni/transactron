@@ -11,7 +11,7 @@ __all__ = ["profiler_process"]
 def profiler_process(transaction_manager: TransactionManager, profile: Profile):
     async def process(sim: ProcessContext) -> None:
         profile_data, get_id = ProfileData.make(transaction_manager)
-        method_map = MethodMap(transaction_manager.transactions)
+        method_map = MethodMap(transaction_manager.transactions, transaction_manager.methods)
         profile.transactions_and_methods = profile_data.transactions_and_methods
 
         transaction_sample_layout = StructLayout({"ready": 1, "runnable": 1, "run": 1})

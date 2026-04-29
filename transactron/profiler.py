@@ -75,7 +75,7 @@ class ProfileData:
         transactions_by_method = dict[int, list[int]]()
         transaction_conflicts = dict[int, list[int]]()
 
-        method_map = MethodMap(transaction_manager.transactions)
+        method_map = MethodMap(transaction_manager.transactions, transaction_manager.methods)
         cgr, _ = TransactionManager._conflict_graph(method_map)
         get_id = IdGenerator()
 

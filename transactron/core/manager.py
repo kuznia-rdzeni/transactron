@@ -47,38 +47,58 @@ class CallInfo:
 
 
 class MethodMap:
-    def __init__(self, transactions: Iterable[Transaction]):
+    def __init__(self, transactions: Iterable[Transaction], methods: Iterable[Method]):
         self.methods_by_transaction = dict[TBody, list[MBody]]()
-        self.transactions_by_method = defaultdict[MBody, list[TBody]](list)
+        self.transactions_by_method = dict[MBody, list[TBody]]()
         self.info_by_call = defaultdict[tuple[TBody, MBody], list[CallInfo]](list)
         self.method_parents = defaultdict[MBody, list[Body]](list)
 
         def path_str(path: Sequence[MBody]) -> str:
             return " -> ".join(f"{method.name} {method.src_loc}" for method in path)
 
-        def report_bad_case(
-            transaction: TBody,
+        def report_cycle(method: MBody, ancestors: tuple[MBody, ...]):
+            msg = f"Method '{method.name}' {method.src_loc} calls itself through the following call path:"
+            msg += f"\n{path_str(ancestors[ancestors.index(method) :])}"
+            raise RuntimeError(msg)
+
+        def report_double_call(
+            root: Body,
             method: MBody,
             first_ancestors: tuple[MBody, ...],
             second_ancestors: tuple[MBody, ...],
         ):
-            msg = (
-                f"Method '{method.name}' {method.src_loc} called twice from "
-                + f"transaction '{transaction.name}' {transaction.src_loc}"
-            )
+            first_path = tuple(reversed(first_ancestors))
+            second_path = tuple(reversed(second_ancestors))
 
-            if method in second_ancestors[1:]:
-                cycle_start = second_ancestors[1:].index(method) + 1
-                cycle = second_ancestors[cycle_start::-1]
-                msg += f"\nCycle: {path_str(cycle)}"
-            else:
-                first_path = tuple(reversed(first_ancestors))
-                second_path = tuple(reversed(second_ancestors))
+            lcp_len = len(longest_common_prefix(first_path, second_path))
+            lca_node = first_path[lcp_len - 1] if lcp_len > 0 else root
 
-                msg += f"\nFirst call path: {path_str(first_path)}"
-                msg += f"\nSecond call path: {path_str(second_path)}"
-
+            msg = f"Method '{method.name}' {method.src_loc} called twice from '{lca_node.name}' {lca_node.src_loc}"
+            msg += f"\nFirst call path: {path_str(first_path[lcp_len:])}"
+            msg += f"\nSecond call path: {path_str(second_path[lcp_len:])}"
             raise RuntimeError(msg)
+
+        def validate_root_call_tree(root: Body):
+            call_sights = defaultdict[MBody, list[tuple[tuple[MBody, ...], tuple[CtrlPath, ...]]]](list)
+
+            def rec_root(source: Body, ancestors: tuple[MBody, ...], call_path: tuple[CtrlPath, ...]):
+                for method_obj, calls in source.method_calls.items():
+                    method = MBody(method_obj._body)
+                    for call_ctrl_path, _, _ in calls:
+                        new_ancestors = (method, *ancestors)
+                        new_call_path = (*call_path, call_ctrl_path)
+
+                        if method in ancestors:
+                            report_cycle(method, new_ancestors)
+
+                        for old_ancestors, old_call_path in call_sights[method]:
+                            if not method.nonexclusive and not call_paths_exclusive(old_call_path, new_call_path):
+                                report_double_call(root, method, old_ancestors, new_ancestors)
+
+                        call_sights[method].append((new_ancestors, new_call_path))
+                        rec_root(method, new_ancestors, new_call_path)
+
+            rec_root(root, (), ())
 
         def rec(
             transaction: TBody,
@@ -93,12 +113,6 @@ class MethodMap:
                     new_ancestors = (method, *ancestors)
                     new_call_path = (*call_path, call_ctrl_path)
                     new_call_enable = call_enable & enable_sig
-                    if method in ancestors:
-                        report_bad_case(transaction, method, new_ancestors, new_ancestors)
-
-                    for old_call in self.info_by_call[(transaction, method)]:
-                        if not call_paths_exclusive(old_call.call_path, new_call_path):
-                            report_bad_case(transaction, method, old_call.ancestors, new_ancestors)
 
                     self.info_by_call[(transaction, method)].append(
                         CallInfo(
@@ -113,6 +127,12 @@ class MethodMap:
                         self.methods_by_transaction[transaction].append(method)
                         self.transactions_by_method[method].append(transaction)
                     rec(transaction, method, new_ancestors, new_call_path, new_call_enable)
+
+        for obj in chain(methods, transactions):
+            validate_root_call_tree(obj._body)
+
+        for method in methods:
+            self.transactions_by_method[MBody(method._body)] = []
 
         for transaction in transactions:
             self.methods_by_transaction[TBody(transaction._body)] = []
@@ -140,6 +160,10 @@ class MethodMap:
     @property
     def methods_and_transactions(self) -> Iterable[Body]:
         return chain(self.methods, self.transactions)
+
+    @property
+    def called_methods(self) -> Collection[MBody]:
+        return [method for method, transactions in self.transactions_by_method.items() if transactions]
 
     def ready_for_transaction(self, trans: TBody) -> Collection[Body]:
         # all bodies that need to be ready for transaction to run
@@ -318,7 +342,7 @@ class TransactionManager(Elaboratable):
         return ret
 
     def _simultaneous(self):
-        method_map = MethodMap(self.transactions)
+        method_map = MethodMap(self.transactions, self.methods)
 
         # remove orderings between simultaneous methods/transactions
         # TODO: can it be done after transitivity, possibly catching more cases?
@@ -345,6 +369,11 @@ class TransactionManager(Elaboratable):
 
         simultaneous = set[frozenset[TBody]]()
 
+        all_simultaneous = set[TBody]()
+        for elem in method_map.methods_and_transactions:
+            for sim_elem in elem.simultaneous_list:
+                all_simultaneous.update(method_map.transactions_for(sim_elem))
+
         conditionally_called_methods = self._conditionally_called_methods(method_map)
 
         for elem in method_map.methods_and_transactions:
@@ -355,13 +384,7 @@ class TransactionManager(Elaboratable):
                         "Simultaneity constraint for conditionally called method "
                         f"'{elem.name}' {elem.src_loc} not supported"
                     )
-            pruned_sim = False
             for sim_elem in elem.simultaneous_list:
-                if sim_elem not in method_map.methods_and_transactions:
-                    if sim_elem.independent_list:
-                        raise RuntimeError("Pruned method with independent list not supported")
-                    pruned_sim = True
-                    continue
                 for tr1, tr2 in product(method_map.transactions_for(elem), method_map.transactions_for(sim_elem)):
                     if tr1 in independents[tr2]:
                         raise RuntimeError(
@@ -371,8 +394,6 @@ class TransactionManager(Elaboratable):
                             )
                         )
                     simultaneous.add(frozenset({tr1, tr2}))
-            if pruned_sim and elem in method_map.transactions:
-                elem.ready = Signal()
 
         # step 2: transitivity computation
         tr_simultaneous = set[frozenset[TBody]]()
@@ -398,7 +419,8 @@ class TransactionManager(Elaboratable):
         # step 4: convert transactions to methods
         joined_transactions = set[TBody]().union(*final_simultaneous)
 
-        self.transactions = list(filter(lambda t: t._body not in joined_transactions, self.transactions))
+        self.transactions = list(filter(lambda tr: tr._body not in all_simultaneous, self.transactions))
+
         methods = dict[TBody, Method]()
 
         m = TModule()
@@ -409,6 +431,7 @@ class TransactionManager(Elaboratable):
             method._set_impl(transaction)
             DependencyContext.get().add_dependency(ProvidedMethodsKey(), method)
             methods[transaction] = method
+            self.methods.append(method)
 
         # step 5: construct merged transactions
         with DependencyContext(DependencyManager()):
@@ -441,7 +464,7 @@ class TransactionManager(Elaboratable):
         with silence_mustuse(self):
             merge_manager = self._simultaneous()
 
-            method_map = MethodMap(self.transactions)
+            method_map = MethodMap(self.transactions, self.methods)
             cgr, porder = TransactionManager._conflict_graph(method_map)
 
         ready_dependencies = TransactionManager._ready_dependencies(self.transactions, self.methods)
@@ -504,7 +527,7 @@ class TransactionManager(Elaboratable):
         ccs = _graph_ccs(cgr)
         (method_args, method_runs) = self._method_calls(m, method_map)
 
-        for method in method_map.methods:
+        for method in method_map.called_methods:
             if method.single_caller and len(method_args[method]) > 1:
                 raise RuntimeError(f"Single-caller method '{method.name}' {method.src_loc} called more than once")
             runs = Cat(method_runs[method])
@@ -551,7 +574,7 @@ class TransactionManager(Elaboratable):
 
     def visual_graph(self, fragment):
         graph = OwnershipGraph(fragment)
-        method_map = MethodMap(self.transactions)
+        method_map = MethodMap(self.transactions, self.methods)
         for method, transactions in method_map.transactions_by_method.items():
             if len(method.data_in.as_value()) > len(method.data_out.as_value()):
                 direction = Direction.IN
@@ -567,7 +590,7 @@ class TransactionManager(Elaboratable):
         return graph
 
     def debug_signals(self) -> ValueBundle:
-        method_map = MethodMap(self.transactions)
+        method_map = MethodMap(self.transactions, self.methods)
         cgr, _ = TransactionManager._conflict_graph(method_map)
 
         def transaction_debug(t: TBody):
