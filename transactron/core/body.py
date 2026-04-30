@@ -2,6 +2,7 @@ from collections import defaultdict
 from collections.abc import Iterator, Sequence
 from contextlib import contextmanager
 from itertools import count
+from functools import cached_property
 
 from amaranth.lib.data import StructLayout
 from transactron.core.tmodule import CtrlPath, TModule
@@ -73,7 +74,7 @@ class Body(TransactionBase["Body"]):
         if self.nonexclusive:
             assert len(self.data_in.as_value()) == 0 or "combiner" in kwargs
 
-    @property
+    @cached_property
     def conditional_calls(self) -> set["Method"]:
         return {
             method
