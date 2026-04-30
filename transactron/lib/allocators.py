@@ -1,6 +1,6 @@
 from amaranth import *
 
-from transactron.core import Method, Methods, TModule, def_method, def_methods
+from transactron.core import Method, Methods, TModule, def_method, def_methods, Provided
 from transactron.utils.amaranth_ext.elaboratables import MultiPriorityEncoder
 from amaranth.lib.data import ArrayLayout
 
@@ -134,7 +134,98 @@ class PreservedOrderAllocator(Elaboratable):
 
 
 class CircularAllocator(Elaboratable):
+    """Circular allocator.
+
+    Allows to allocate and deallocate identifiers in FIFO order. It is
+    possible to allocate or deallocate multiple identifiers in a single
+    clock cycle.
+    """
+
+    alloc: Provided[Method]
+    """
+    Allocates new identifiers. Ready only if there are free identifiers
+    available. The `count` argument must be less or equal to the number
+    of available free identifiers.
+
+    If `with_validate_arguments` is false, invalid calls are allowed but can
+    result in illegal state.
+
+    Parameters
+    ----------
+    count: range(max_alloc + 1)
+        The number of identifiers to allocate.
+
+    Returns
+    -------
+    idents: ArrayLayout(range(entries), max_alloc)
+        Array of allocated identifiers.
+    new_end_idx: range(entries)
+        First identifier after the last allocated one.
+    """
+
+    free: Provided[Method]
+    """
+    Frees previously allocated identifiers. Ready only if there are allocated
+    identifiers. The `count` argument must be less or equal to the number of
+    allocated identifiers.
+
+    If `with_validate_arguments` is false, invalid calls are allowed but can
+    result in illegal state.
+
+    Parameters
+    ----------
+    count: range(max_free + 1)
+        The number of identifiers to deallocate.
+
+    Returns
+    -------
+    idents: ArrayLayout(range(entries), max_alloc)
+        Array of freed identifiers.
+    new_start_idx: range(entries)
+        First identifier after the last freed one.
+    """
+
+    clear: Provided[Method]
+    """
+    Restores the allocator to its initial state.
+    """
+
+    start_idx: Signal
+    """
+    First pointer of the circular allocator. The oldest allocated identifier,
+    if one exists.
+    """
+
+    end_idx: Signal
+    """
+    Second pointer of the circular allocator. The first after the newest
+    allocated identifier, if one exists.
+    """
+
+    allocated: Signal
+    """
+    The number of allocated identifiers.
+    """
+
     def __init__(self, entries: int, max_alloc: int = 1, max_free: int = 1, *, with_validate_arguments=True):
+        """
+        Parameters
+        ----------
+        entries: int
+            The total number of identifiers available for allocation.
+        max_alloc: int, optional
+            The amount of identifiers that can be allocated in a single cycle.
+            Defaults to 1.
+        max_free: int, optional
+            The amount of identifiers that can be freed in a single cycle.
+            Defaults to 1.
+        with_validate_arguments: bool, optional
+            If true, `alloc` and `free` methods are guarded by argument
+            validation so that it is impossible to put the allocator into
+            an illegal state. Otherwise, the `count` argument needs to
+            be verified using external logic.
+            Defaults to true.
+        """
         self.entries = entries
         self.max_alloc = max_alloc
         self.max_free = max_free
