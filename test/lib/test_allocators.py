@@ -98,3 +98,68 @@ class TestPreservedOrderAllocator(TestCaseWithSimulator):
             sim.add_testbench(order_verifier, background=True)
             sim.add_testbench(allocator)
             sim.add_testbench(deallocator)
+
+
+class TestCircularAllocator(TestCaseWithSimulator):
+    @pytest.mark.parametrize("entries", [5, 8])
+    @pytest.mark.parametrize("max_alloc", [1, 3])
+    @pytest.mark.parametrize("max_free", [1, 3])
+    @pytest.mark.parametrize("with_validate_arguments", [False, True])
+    def test_allocator(self, entries: int, max_alloc: int, max_free: int, with_validate_arguments: bool):
+        m = CircularAllocator(entries, max_alloc, max_free, with_validate_arguments=with_validate_arguments)
+        dut = SimpleTestCircuit(m)
+
+        iterations = 5 * entries
+
+        start_idx = end_idx = allocated = 0
+
+        async def allocator(sim: TestbenchContext):
+            nonlocal allocated, end_idx
+            while True:
+                curr_max_alloc = max_alloc if with_validate_arguments else min(entries - allocated, max_alloc)
+                count = random.randrange(curr_max_alloc + 1)
+                ret = await dut.alloc.call_try(sim, count=count)
+                if ret is None:
+                    assert (with_validate_arguments and count > entries - allocated) or allocated == entries
+                    count = 1
+                    ret = await dut.alloc.call(sim, count=count)
+                for i in range(max_alloc):
+                    assert ret.idents[i] == (end_idx + i) % entries
+                await sim.delay(1e-12)
+                allocated = allocated + count
+                end_idx = (end_idx + count) % entries
+                assert ret.new_end_idx == end_idx
+                await sim.delay(1e-12)
+                await self.random_wait_geom(sim)
+
+        async def deallocator(sim: TestbenchContext):
+            nonlocal allocated, start_idx
+            for _ in range(iterations):
+                curr_max_free = max_free if with_validate_arguments else min(allocated, max_free)
+                count = random.randrange(curr_max_free + 1)
+                ret = await dut.free.call_try(sim, count=count)
+                if ret is None:
+                    assert (with_validate_arguments and count > allocated) or allocated == 0
+                    count = 1
+                    ret = await dut.free.call(sim, count=count)
+                for i in range(max_free):
+                    assert ret.idents[i] == (start_idx + i) % entries
+                await sim.delay(1e-12)
+                allocated = allocated - count
+                start_idx = (start_idx + count) % entries
+                assert ret.new_start_idx == start_idx
+                await sim.delay(1e-12)
+                await self.random_wait_geom(sim)
+
+        async def verifier(sim: TestbenchContext):
+            while True:
+                await sim.delay(2e-12)
+                assert allocated == sim.get(m.allocated)
+                assert start_idx == sim.get(m.start_idx)
+                assert end_idx == sim.get(m.end_idx)
+                await sim.tick()
+
+        with self.run_simulation(dut) as sim:
+            sim.add_testbench(allocator, background=True)
+            sim.add_testbench(deallocator)
+            sim.add_testbench(verifier, background=True)

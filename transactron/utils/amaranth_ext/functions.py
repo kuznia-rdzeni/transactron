@@ -46,7 +46,7 @@ def mod_add(sig: ValueLike, mod: int, incr: ValueLike, max_incr: int):
     Perform `(sig+incr) % mod` operation, for `0 < incr <= max_incr`.
     """
     assert mod > 0
-    assert max_incr > 0
+    assert max_incr >= 0
     sig = Value.cast(sig)
     incr = Value.cast(incr)
     if not (mod & (mod - 1)):

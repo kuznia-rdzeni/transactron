@@ -141,9 +141,13 @@ class CircularAllocator(Elaboratable):
         self.with_validate_arguments = with_validate_arguments
 
         self.alloc = Method(
-            i=[("count", range(max_alloc + 1))], o=[("ident", range(entries)), ("new_end_idx", range(entries))]
+            i=[("count", range(max_alloc + 1))],
+            o=[("idents", ArrayLayout(range(entries), max_alloc)), ("new_end_idx", range(entries))],
         )
-        self.free = Method(i=[("count", range(max_free + 1))], o=[("new_start_idx", range(entries))])
+        self.free = Method(
+            i=[("count", range(max_free + 1))],
+            o=[("idents", ArrayLayout(range(entries), max_free)), ("new_start_idx", range(entries))],
+        )
         self.clear = Method()
 
         self.start_idx = Signal(range(entries))
@@ -168,7 +172,10 @@ class CircularAllocator(Elaboratable):
             m.d.av_comb += new_end_idx.eq(mod_add(self.end_idx, self.entries, count, self.max_alloc))
             m.d.sync += self.end_idx.eq(new_end_idx)
             m.d.comb += alloc_count.eq(count)
-            return {"ident": self.end_idx, "new_end_idx": new_end_idx}
+            return {
+                "idents": [mod_add(self.end_idx, self.entries, i, i) for i in range(self.max_alloc)],
+                "new_end_idx": new_end_idx,
+            }
 
         kwargs = {}
         if self.with_validate_arguments and self.max_free > 1:
@@ -180,7 +187,10 @@ class CircularAllocator(Elaboratable):
             m.d.av_comb += new_start_idx.eq(mod_add(self.start_idx, self.entries, count, self.max_free))
             m.d.sync += self.start_idx.eq(new_start_idx)
             m.d.comb += free_count.eq(count)
-            return {"new_start_idx": new_start_idx}
+            return {
+                "idents": [mod_add(self.start_idx, self.entries, i, i) for i in range(self.max_free)],
+                "new_start_idx": new_start_idx,
+            }
 
         @def_method(m, self.clear)
         def _():
