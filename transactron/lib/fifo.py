@@ -4,6 +4,7 @@ import amaranth.lib.memory as memory
 import amaranth.lib.data as data
 from amaranth_types import ShapeLike, ValueLike, SrcLoc
 from transactron import Method, def_method, Priority, TModule
+from transactron.lib.allocators import CircularAllocator
 from transactron.utils.typing import MethodLayout, MethodStruct
 from transactron.utils.amaranth_ext import mod_incr, rotate_vec_right, rotate_vec_left
 from transactron.utils.amaranth_ext.functions import const_of
@@ -108,50 +109,39 @@ class BasicFifo(Elaboratable):
     def elaborate(self, platform):
         m = TModule()
 
-        next_read_idx = Signal.like(self.read_idx)
-        m.d.comb += next_read_idx.eq(mod_incr(self.read_idx, self.depth))
+        m.submodules.allocator = allocator = CircularAllocator(self.depth)
+        m.d.comb += self.read_idx.eq(allocator.start_idx)
+        m.d.comb += self.write_idx.eq(allocator.end_idx)
+        m.d.comb += self.level.eq(allocator.allocated)
 
         m.submodules.data = self.data
         data_wrport = self.data.write_port()
         data_rdport = self.data.read_port(domain="sync", transparent_for=[data_wrport])
 
-        read_ready = Signal()
-        write_ready = Signal()
-
-        m.d.comb += read_ready.eq(self.level != 0)
-        m.d.comb += write_ready.eq(self.level != self.depth)
-
-        with m.If(self.read.run & ~self.write.run):
-            m.d.sync += self.level.eq(self.level - 1)
-        with m.If(self.write.run & ~self.read.run):
-            m.d.sync += self.level.eq(self.level + 1)
-        with m.If(self.clear.run):
-            m.d.sync += self.level.eq(0)
-
-        m.d.comb += data_rdport.addr.eq(Mux(self.read.run, next_read_idx, self.read_idx))
+        m.d.comb += data_rdport.addr.eq(self.read_idx)
         m.d.comb += self.head.eq(data_rdport.data)
 
-        @def_method(m, self.write, ready=write_ready)
+        @def_method(m, self.write)
         def _(arg: MethodStruct) -> None:
             m.d.top_comb += data_wrport.addr.eq(self.write_idx)
             m.d.top_comb += data_wrport.data.eq(arg)
             m.d.comb += data_wrport.en.eq(1)
 
-            m.d.sync += self.write_idx.eq(mod_incr(self.write_idx, self.depth))
+            allocator.alloc(m, count=1)
 
-        @def_method(m, self.read, read_ready)
+        @def_method(m, self.read)
         def _() -> ValueLike:
-            m.d.sync += self.read_idx.eq(next_read_idx)
+            ret = allocator.free(m, count=1)
+            m.d.comb += data_rdport.addr.eq(ret.new_start_idx)
             return self.head
 
-        @def_method(m, self.peek, read_ready, nonexclusive=True)
+        @def_method(m, self.peek, allocator.free.ready, nonexclusive=True)
         def _() -> ValueLike:
             return self.head
 
         @def_method(m, self.clear)
         def _() -> None:
-            m.d.sync += self.read_idx.eq(0)
-            m.d.sync += self.write_idx.eq(0)
+            allocator.clear(m)
 
         return m
 
