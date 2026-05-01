@@ -144,13 +144,17 @@ class HDLLogWrapper(Elaboratable):
         elaboratable = Fragment.get(self.elaboratable, platform)
         m.submodules.elaboratable = elaboratable
 
+        any_trigger = Signal()
         cycle = Signal(64)
         m.d.sync += cycle.eq(cycle + 1)
+
         if self.print_cycle_separator:
-            m.d.sync += Print(Format("--- CYCLE {} ---", cycle))
+            with m.If(any_trigger):
+                m.d.sync += Print(Format("--- CYCLE {} ---", cycle))
 
         for record in tlog.get_log_records(self.level, self.namespace_regexp):
             with m.If(record.trigger):
+                m.d.comb += any_trigger.eq(1)
                 format_str = (
                     ("[{}] " if not self.print_cycle_separator else "")
                     + f"{logging.getLevelName(record.level)} "
