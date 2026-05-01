@@ -7,7 +7,7 @@ from transactron import *
 from transactron.lib.adapters import Adapter, AdapterTrans
 from transactron.lib.transformers import *
 from transactron.testing.testbenchio import CallTrigger
-from transactron.utils.typing import MethodStruct, RecordDict
+from transactron.utils.typing import MethodStruct, ReturnDict
 from transactron.utils import ModuleConnector
 from transactron.testing import (
     SimpleTestCircuit,
@@ -55,10 +55,10 @@ class TestMethodMap(TestCaseWithSimulator):
             sim.add_testbench(self.source)
 
     def test_method_transformer_dicts(self):
-        def itransform(_, v: MethodStruct) -> RecordDict:
+        def itransform(_, v: MethodStruct) -> ReturnDict:
             return {"data": v.data + 1}
 
-        def otransform(_, v: MethodStruct) -> RecordDict:
+        def otransform(_, v: MethodStruct) -> ReturnDict:
             return {"data": v.data - 1}
 
         tr = MethodMap(

@@ -11,9 +11,9 @@ def auto_debug_signals(thing) -> ValueBundle:
     """Automatic debug signal generation.
 
     Exposes class attributes with debug signals (Amaranth `Signal`\\s,
-    `Record`\\s, `Array`\\s and `Elaboratable`\\s, `Method`\\s, classes
-    which define `debug_signals`). Used for generating ``gtkw`` files in
-    tests, for use in ``gtkwave``.
+    `Array`\\s and `Elaboratable`\\s, `Method`\\s, classes which define
+    `debug_signals`). Used for generating ``gtkw`` files in tests, for
+    use in ``gtkwave``.
     """
 
     def auto_debug_signals_internal(thing, *, _visited: set) -> Optional[ValueBundle]:
@@ -47,12 +47,7 @@ def auto_debug_signals(thing) -> ValueBundle:
                 if smap:
                     return smap
                 return None
-            case Array():
-                for i, e in enumerate(thing):
-                    if isinstance(e, Record):
-                        e.name = f"[{i}]"
-                return thing
-            case Signal() | Record():
+            case Signal() | Array():
                 return thing
             case _:
                 try:

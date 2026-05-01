@@ -158,7 +158,7 @@ def def_methods(
             return fifo.read(m)
     """
 
-    def decorator(func: Callable[Concatenate[int, P], Optional[RecordDict]]):
+    def decorator(func: Callable[Concatenate[int, P], Optional[ReturnDict]]):
         for i in range(len(methods)):
             partial_f = partial(func, i)
             def_method(m, methods[i], ready(i), **kwargs)(partial_f)

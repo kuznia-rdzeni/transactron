@@ -2,6 +2,7 @@ from amaranth import *
 from amaranth_types import ValueLike, ModuleLike, HasElaborate
 
 from transactron.utils.transactron_helpers import get_src_loc
+from transactron.utils.typing import ReturnDict
 from ..core import *
 from ..utils import SrcLoc
 from typing import Iterable, Optional, Protocol
@@ -11,7 +12,6 @@ from transactron.utils import (
     AssignType,
     MethodStruct,
     MethodLayout,
-    RecordDict,
 )
 from .connectors import Forwarder, CrossbarConnectTrans
 from .simultaneous import condition
@@ -78,8 +78,8 @@ class MethodMap(Elaboratable, TransformerOneTarget):
         i_layout: MethodLayout = (),
         o_layout: MethodLayout = (),
         *,
-        i_transform: Optional[tuple[MethodLayout, Callable[[TModule, MethodStruct], RecordDict]]] = None,
-        o_transform: Optional[tuple[MethodLayout, Callable[[TModule, MethodStruct], RecordDict]]] = None,
+        i_transform: Optional[tuple[MethodLayout, Callable[[TModule, MethodStruct], ReturnDict]]] = None,
+        o_transform: Optional[tuple[MethodLayout, Callable[[TModule, MethodStruct], ReturnDict]]] = None,
         src_loc: int | SrcLoc = 0,
     ):
         """
@@ -116,8 +116,8 @@ class MethodMap(Elaboratable, TransformerOneTarget):
     def create(
         target: Method,
         *,
-        i_transform: Optional[tuple[MethodLayout, Callable[[TModule, MethodStruct], RecordDict]]] = None,
-        o_transform: Optional[tuple[MethodLayout, Callable[[TModule, MethodStruct], RecordDict]]] = None,
+        i_transform: Optional[tuple[MethodLayout, Callable[[TModule, MethodStruct], ReturnDict]]] = None,
+        o_transform: Optional[tuple[MethodLayout, Callable[[TModule, MethodStruct], ReturnDict]]] = None,
         src_loc: int | SrcLoc = 0,
     ):
         """
@@ -170,7 +170,7 @@ class MethodFilter(Elaboratable, TransformerOneTarget):
         i_layout: MethodLayout,
         o_layout: MethodLayout,
         condition: Callable[[TModule, MethodStruct], ValueLike],
-        default: Optional[RecordDict] = None,
+        default: Optional[ReturnDict] = None,
         *,
         use_condition: bool = False,
         src_loc: int | SrcLoc = 0,
@@ -209,7 +209,7 @@ class MethodFilter(Elaboratable, TransformerOneTarget):
     def create(
         target: Method,
         condition: Callable[[TModule, MethodStruct], ValueLike],
-        default: Optional[RecordDict] = None,
+        default: Optional[ReturnDict] = None,
         *,
         use_condition: bool = False,
         src_loc: int | SrcLoc = 0,
@@ -273,7 +273,7 @@ class MethodProduct(Elaboratable, Unifier):
         self,
         i_layout: MethodLayout = (),
         o_layouts: Iterable[MethodLayout] = (),
-        combiner: Optional[tuple[MethodLayout, Callable[[TModule, list[MethodStruct]], RecordDict]]] = None,
+        combiner: Optional[tuple[MethodLayout, Callable[[TModule, list[MethodStruct]], ReturnDict]]] = None,
         *,
         src_loc: int | SrcLoc = 0,
     ):
@@ -303,7 +303,7 @@ class MethodProduct(Elaboratable, Unifier):
     @staticmethod
     def create(
         targets: Iterable[Method],
-        combiner: Optional[tuple[MethodLayout, Callable[[TModule, list[MethodStruct]], RecordDict]]] = None,
+        combiner: Optional[tuple[MethodLayout, Callable[[TModule, list[MethodStruct]], ReturnDict]]] = None,
         *,
         src_loc: int | SrcLoc = 0,
     ):
@@ -359,7 +359,7 @@ class MethodTryProduct(Elaboratable, Unifier):
         i_layout: MethodLayout = (),
         o_layouts: Iterable[MethodLayout] = (),
         combiner: Optional[
-            tuple[MethodLayout, Callable[[TModule, list[tuple[Value, MethodStruct]]], RecordDict]]
+            tuple[MethodLayout, Callable[[TModule, list[tuple[Value, MethodStruct]]], ReturnDict]]
         ] = None,
         *,
         src_loc: int | SrcLoc = 0,
@@ -391,7 +391,7 @@ class MethodTryProduct(Elaboratable, Unifier):
     def create(
         targets: Iterable[Method],
         combiner: Optional[
-            tuple[MethodLayout, Callable[[TModule, list[tuple[Value, MethodStruct]]], RecordDict]]
+            tuple[MethodLayout, Callable[[TModule, list[tuple[Value, MethodStruct]]], ReturnDict]]
         ] = None,
         *,
         src_loc: int | SrcLoc = 0,
