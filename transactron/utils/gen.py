@@ -190,7 +190,7 @@ def collect_transaction_method_signals(
     transaction_signals_location: dict[int, TransactionSignalsLocation] = {}
     method_signals_location: dict[int, MethodSignalsLocation] = {}
 
-    method_map = MethodMap(transaction_manager.transactions)
+    method_map = MethodMap(transaction_manager.transactions, transaction_manager.methods)
     get_id = IdGenerator()
 
     for transaction in method_map.transactions:

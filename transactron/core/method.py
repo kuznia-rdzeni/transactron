@@ -318,11 +318,6 @@ class Method(TransactionBase["Transaction | Method"]):
         m.d.top_comb += assign(arg_rec, arg, fields=AssignType.ALL)
 
         caller = Body.get()
-        if not all(ctrl_path.exclusive_with(m.ctrl_path) for ctrl_path, _, _ in caller.method_calls[self]):
-            raise RuntimeError(
-                f"Method '{self.name}' {self.src_loc} can't be called twice "
-                f"from the same caller '{caller.name}' {caller.src_loc}"
-            )
         caller.method_calls[self].append((m.ctrl_path, arg_rec, enable_sig))
 
         is_conditional = (
