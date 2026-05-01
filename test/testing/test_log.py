@@ -1,10 +1,14 @@
 import pytest
 import re
+from io import StringIO
+from contextlib import redirect_stdout
+from textwrap import dedent
 from amaranth import *
 
 from transactron import *
 from transactron.testing import TestCaseWithSimulator, TestbenchContext
 from transactron.lib import logging
+from transactron.testing.logging import HDLLogWrapper
 
 LOGGER_NAME = "test_logger"
 
@@ -122,4 +126,28 @@ class TestLog(TestCaseWithSimulator):
         assert re.search(
             r"ERROR    test_logger:logging\.py:\d+ \[test/testing/test_log\.py:\d+\] Output differs",
             caplog.text,
+        )
+
+
+class TestLogWrapper(TestCaseWithSimulator):
+    def test_log_wrapper(self):
+        m = HDLLogWrapper(LogTest())
+
+        async def proc(sim: TestbenchContext):
+            await sim.tick()
+            await sim.tick()
+
+        output = StringIO()
+        with redirect_stdout(output):
+            with self.run_simulation(m) as sim:
+                sim.add_testbench(proc)
+
+        print(output.getvalue())
+        assert output.getvalue() == dedent(
+            """\
+            --- CYCLE 0 ---
+            WARNING test_logger: Input is even! input=0, counter=0
+            --- CYCLE 1 ---
+            WARNING test_logger: Input is even! input=0, counter=1
+            """
         )
