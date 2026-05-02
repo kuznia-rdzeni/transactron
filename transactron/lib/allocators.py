@@ -1,11 +1,13 @@
 from amaranth import *
 
-from transactron.core import Method, Methods, TModule, def_method, def_methods
+from transactron.core import Method, Methods, TModule, def_method, def_methods, Provided
 from transactron.utils.amaranth_ext.elaboratables import MultiPriorityEncoder
 from amaranth.lib.data import ArrayLayout
 
+from transactron.utils.amaranth_ext.functions import mod_add
 
-__all__ = ["PriorityEncoderAllocator"]
+
+__all__ = ["PriorityEncoderAllocator", "PreservedOrderAllocator", "CircularAllocator"]
 
 
 class PriorityEncoderAllocator(Elaboratable):
@@ -127,5 +129,164 @@ class PreservedOrderAllocator(Elaboratable):
         @def_method(m, self.order, nonexclusive=True)
         def _():
             return {"used": used, "order": order}
+
+        return m
+
+
+class CircularAllocator(Elaboratable):
+    """Circular allocator.
+
+    Allows to allocate and deallocate identifiers in FIFO order. It is
+    possible to allocate or deallocate multiple identifiers in a single
+    clock cycle.
+    """
+
+    alloc: Provided[Method]
+    """
+    Allocates new identifiers. Ready only if there are free identifiers
+    available. The `count` argument must be less or equal to the number
+    of available free identifiers.
+
+    If `with_validate_arguments` is false, invalid calls are allowed but can
+    result in illegal state.
+
+    Parameters
+    ----------
+    count: range(max_alloc + 1)
+        The number of identifiers to allocate.
+
+    Returns
+    -------
+    idents: ArrayLayout(range(entries), max_alloc)
+        Array of allocated identifiers.
+    new_end_idx: range(entries)
+        First identifier after the last allocated one.
+    """
+
+    free: Provided[Method]
+    """
+    Frees previously allocated identifiers. Ready only if there are allocated
+    identifiers. The `count` argument must be less or equal to the number of
+    allocated identifiers.
+
+    If `with_validate_arguments` is false, invalid calls are allowed but can
+    result in illegal state.
+
+    Parameters
+    ----------
+    count: range(max_free + 1)
+        The number of identifiers to deallocate.
+
+    Returns
+    -------
+    idents: ArrayLayout(range(entries), max_alloc)
+        Array of freed identifiers.
+    new_start_idx: range(entries)
+        First identifier after the last freed one.
+    """
+
+    clear: Provided[Method]
+    """
+    Restores the allocator to its initial state.
+    """
+
+    start_idx: Signal
+    """
+    First pointer of the circular allocator. The oldest allocated identifier,
+    if one exists.
+    """
+
+    end_idx: Signal
+    """
+    Second pointer of the circular allocator. The first after the newest
+    allocated identifier, if one exists.
+    """
+
+    allocated: Signal
+    """
+    The number of allocated identifiers.
+    """
+
+    def __init__(self, entries: int, max_alloc: int = 1, max_free: int = 1, *, with_validate_arguments=True):
+        """
+        Parameters
+        ----------
+        entries: int
+            The total number of identifiers available for allocation.
+        max_alloc: int, optional
+            The amount of identifiers that can be allocated in a single cycle.
+            Defaults to 1.
+        max_free: int, optional
+            The amount of identifiers that can be freed in a single cycle.
+            Defaults to 1.
+        with_validate_arguments: bool, optional
+            If true, `alloc` and `free` methods are guarded by argument
+            validation so that it is impossible to put the allocator into
+            an illegal state. Otherwise, the `count` argument needs to
+            be verified using external logic.
+            Defaults to true.
+        """
+        self.entries = entries
+        self.max_alloc = max_alloc
+        self.max_free = max_free
+        self.with_validate_arguments = with_validate_arguments
+
+        self.alloc = Method(
+            i=[("count", range(max_alloc + 1))],
+            o=[("idents", ArrayLayout(range(entries), max_alloc)), ("new_end_idx", range(entries))],
+        )
+        self.free = Method(
+            i=[("count", range(max_free + 1))],
+            o=[("idents", ArrayLayout(range(entries), max_free)), ("new_start_idx", range(entries))],
+        )
+        self.clear = Method()
+
+        self.start_idx = Signal(range(entries))
+        self.end_idx = Signal(range(entries))
+        self.allocated = Signal(range(entries + 1))
+
+    def elaborate(self, platform):
+        m = TModule()
+
+        alloc_count = Signal(range(self.max_alloc + 1))
+        free_count = Signal(range(self.max_free + 1))
+
+        m.d.sync += self.allocated.eq(self.allocated + alloc_count - free_count)
+
+        kwargs = {}
+        if self.with_validate_arguments and self.max_alloc > 1:
+            kwargs["validate_arguments"] = lambda count: self.allocated + count <= self.entries
+
+        @def_method(m, self.alloc, ready=self.allocated != self.entries, **kwargs)
+        def _(count):
+            new_end_idx = Signal.like(self.end_idx)
+            m.d.av_comb += new_end_idx.eq(mod_add(self.end_idx, self.entries, count, self.max_alloc))
+            m.d.sync += self.end_idx.eq(new_end_idx)
+            m.d.comb += alloc_count.eq(count)
+            return {
+                "idents": [mod_add(self.end_idx, self.entries, i, i) for i in range(self.max_alloc)],
+                "new_end_idx": new_end_idx,
+            }
+
+        kwargs = {}
+        if self.with_validate_arguments and self.max_free > 1:
+            kwargs["validate_arguments"] = lambda count: count <= self.allocated
+
+        @def_method(m, self.free, ready=self.allocated != 0, **kwargs)
+        def _(count):
+            new_start_idx = Signal.like(self.start_idx)
+            m.d.av_comb += new_start_idx.eq(mod_add(self.start_idx, self.entries, count, self.max_free))
+            m.d.sync += self.start_idx.eq(new_start_idx)
+            m.d.comb += free_count.eq(count)
+            return {
+                "idents": [mod_add(self.start_idx, self.entries, i, i) for i in range(self.max_free)],
+                "new_start_idx": new_start_idx,
+            }
+
+        @def_method(m, self.clear)
+        def _():
+            m.d.sync += self.start_idx.eq(0)
+            m.d.sync += self.end_idx.eq(0)
+            m.d.sync += self.allocated.eq(0)
 
         return m
