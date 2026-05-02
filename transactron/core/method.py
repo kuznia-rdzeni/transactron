@@ -220,7 +220,7 @@ class Method(TransactionBase["Transaction | Method"]):
 
         Returns
         -------
-        data_in : Record, out
+        data_in : StructLayout, out
             Data passed from the caller (a `Transaction` or another
             `Method`) to this `Method`.
 

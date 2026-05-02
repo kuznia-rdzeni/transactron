@@ -7,7 +7,7 @@ from transactron.core.body import AdapterBodyParams
 from transactron.lib.adapters import Adapter, AdapterBase
 from transactron.utils.transactron_helpers import async_mock_def_helper
 from .testbenchio import TestbenchIO
-from transactron.utils.typing import RecordIntDict
+from transactron.utils.typing import NameIntDict
 
 
 __all__ = ["MethodMock", "def_method_mock"]
@@ -17,7 +17,7 @@ class MethodMock:
     def __init__(
         self,
         adapter: AdapterBase,
-        function: Callable[..., Optional[RecordIntDict]],
+        function: Callable[..., Optional[NameIntDict]],
         *,
         validate_arguments: Optional[Callable[..., bool]] = None,
         enable: Callable[[], bool] = lambda: True,
@@ -108,7 +108,7 @@ class MethodMock:
 
 def def_method_mock(
     tb_getter: Callable[[], TestbenchIO] | Callable[[Any], TestbenchIO], **kwargs
-) -> Callable[[Callable[..., Optional[RecordIntDict]]], Callable[[], MethodMock]]:
+) -> Callable[[Callable[..., Optional[NameIntDict]]], Callable[[], MethodMock]]:
     """
     Decorator function to create method mock handlers. It should be applied on
     a function which describes functionality which we want to invoke on method call.
@@ -160,7 +160,7 @@ def def_method_mock(
     ```
     """
 
-    def decorator(func: Callable[..., Optional[RecordIntDict]]) -> Callable[[], MethodMock]:
+    def decorator(func: Callable[..., Optional[NameIntDict]]) -> Callable[[], MethodMock]:
         @functools.wraps(func)
         def mock(func_self=None, /) -> MethodMock:
             f = func

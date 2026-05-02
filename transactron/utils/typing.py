@@ -20,10 +20,9 @@ __all__ = [
     "LayoutListField",
     "LayoutList",
     "LayoutIterable",
-    "RecordIntDict",
-    "RecordIntDictRet",
-    "RecordValueDict",
-    "RecordDict",
+    "NameIntDict",
+    "NameValueDict",
+    "ReturnDict",
     "ROGraph",
     "Graph",
     "GraphCC",
@@ -31,17 +30,16 @@ __all__ = [
 ]
 
 # Internal Transactron types
-type ValueBundle = Value | Record | View | Iterable["ValueBundle"] | Mapping[str, "ValueBundle"]
+type ValueBundle = Value | View | Iterable["ValueBundle"] | Mapping[str, "ValueBundle"]
 type LayoutListField = tuple[str, "ShapeLike | LayoutList"]
 type LayoutList = list["LayoutListField"]
 type LayoutIterable = Iterable["LayoutListField"]
 type MethodLayout = StructLayout | LayoutIterable
 MethodStruct: TypeAlias = "View[StructLayout]"  # defined as TypeAlias because of def_method logic
 
-type RecordIntDict = Mapping[str, Union[int, "RecordIntDict"]]
-type RecordIntDictRet = Mapping[str, Any]  # full typing hard to work with
-type RecordValueDict = Mapping[str, Union[ValueLike, "RecordValueDict"]]
-type RecordDict = ValueLike | Mapping[str, "RecordDict"]
+type NameIntDict = Mapping[str, Union[int, "NameIntDict"]]
+type NameValueDict = Mapping[str, Union[ValueLike, "NameValueDict"]]
+type ReturnDict = ValueLike | NameValueDict
 
 type ROGraph[T] = Mapping[T, Iterable[T]]
 type Graph[T] = dict[T, set[T]]

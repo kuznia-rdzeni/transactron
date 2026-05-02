@@ -133,9 +133,6 @@ def flatten_signals(signals: ValueBundle) -> Iterable[Value]:
     elif isinstance(signals, Iterable):
         for x in signals:
             yield from flatten_signals(x)
-    elif isinstance(signals, Record):
-        for x in signals.fields.values():
-            yield from flatten_signals(x)
     elif isinstance(signals, data.View):
         for x, _ in signals.shape():
             yield from flatten_signals(signals[x])
