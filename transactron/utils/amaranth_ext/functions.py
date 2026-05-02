@@ -6,7 +6,7 @@ from amaranth.lib import data
 from collections.abc import Callable, Iterable, Mapping
 import operator
 
-from amaranth_types.types import ValueLike, ShapeLike
+from amaranth_types.types import ModuleLike, ValueLike, ShapeLike
 from transactron.utils.typing import ValueBundle
 
 __all__ = [
@@ -85,13 +85,19 @@ def count_trailing_zeros(s: Value) -> Value:
     return count_leading_zeros(s[::-1])
 
 
-def cyclic_mask(bits: int, start: Value, end: Value):
+def cyclic_mask(m: ModuleLike, bits: int, start: Value, end: Value):
     """
     Generate `bits` bit-wide mask with ones from `start` to `end` position, including both ends.
     If `end` value is < than `start` the mask wraps around.
     """
     start = start.as_unsigned()
     end = end.as_unsigned()
+
+    def check_index_out_of_bounds(name: str, v: Value):
+        m.d.sync += Assert((v >= 0) & (v < bits), Format(f"`cyclic_mask` index out of bounds {name} = " + "{}", v))
+
+    check_index_out_of_bounds("start", start)
+    check_index_out_of_bounds("end", end)
 
     # start <= end
     length = (end - start + 1).as_unsigned()
