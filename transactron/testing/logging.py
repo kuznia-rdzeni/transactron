@@ -7,7 +7,7 @@ from amaranth import *
 from amaranth.lib.wiring import Component, connect, flipped
 from amaranth.sim._async import ProcessContext
 from amaranth_types import AbstractComponent, HasElaborate
-from transactron.lib import logging as tlog
+from transactron.utils import logging as tlog
 from transactron.utils.dependencies import DependencyContext
 from .tick_count import TicksKey
 
@@ -119,7 +119,7 @@ def make_logging_process(level: tlog.LogLevel, namespace_regexp: str, on_error: 
 
 class HDLLogWrapper(Elaboratable):
     """
-    Wrapper for a module to enable `lib.logging` backend for printing in HDL simulation.
+    Wrapper for a module to enable `utils.logging` backend for printing in HDL simulation.
     """
 
     def __init__(

@@ -11,7 +11,7 @@ from transactron.core import TransactionManager
 from transactron.core.keys import TransactionManagerKey
 from transactron.core.manager import MethodMap
 from transactron.lib.metrics import HardwareMetricsManager
-from transactron.lib import logging
+from transactron.utils import logging
 from transactron.utils.dependencies import DependencyContext
 from transactron.utils.gen_hacks import fixup_vivado_transparent_memories
 from transactron.utils.idgen import IdGenerator

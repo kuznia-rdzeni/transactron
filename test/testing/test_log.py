@@ -7,7 +7,7 @@ from amaranth import *
 
 from transactron import *
 from transactron.testing import TestCaseWithSimulator, TestbenchContext
-from transactron.lib import logging
+from transactron.utils import logging
 from transactron.testing.logging import HDLLogWrapper
 
 LOGGER_NAME = "test_logger"
