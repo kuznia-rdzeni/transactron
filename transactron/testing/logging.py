@@ -3,13 +3,21 @@ from typing import Any
 import logging
 import itertools
 
+from amaranth import *
+from amaranth.lib.wiring import Component, connect, flipped
 from amaranth.sim._async import ProcessContext
+from amaranth_types import AbstractComponent, HasElaborate
 from transactron.lib import logging as tlog
 from transactron.utils.dependencies import DependencyContext
 from .tick_count import TicksKey
 
 
-__all__ = ["make_logging_process", "parse_logging_level"]
+__all__ = [
+    "make_logging_process",
+    "parse_logging_level",
+    "HDLLogWrapper",
+    "HDLLogWrapperComponent",
+]
 
 
 def parse_logging_level(str: str) -> tlog.LogLevel:
@@ -107,3 +115,87 @@ def make_logging_process(level: tlog.LogLevel, namespace_regexp: str, on_error: 
             handle_logs(record_vals)
 
     return log_process
+
+
+class HDLLogWrapper(Elaboratable):
+    """
+    Wrapper for a module to enable `lib.logging` backend for printing in HDL simulation.
+    """
+
+    def __init__(
+        self,
+        elaboratable: HasElaborate,
+        *,
+        print_cycle_separator=True,
+        print_src_loc=False,
+        level: tlog.LogLevel = 0,
+        namespace_regexp: str = ".*",
+    ):
+        self.elaboratable = elaboratable
+
+        self.print_cycle_separator = print_cycle_separator
+        self.print_src_loc = print_src_loc
+        self.level = level
+        self.namespace_regexp = namespace_regexp
+
+    def elaborate(self, platform):
+        m = Module()
+
+        elaboratable = Fragment.get(self.elaboratable, platform)
+        m.submodules.elaboratable = elaboratable
+
+        any_trigger = Signal()
+        cycle = Signal(64)
+        m.d.sync += cycle.eq(cycle + 1)
+
+        if self.print_cycle_separator:
+            with m.If(any_trigger):
+                m.d.sync += Print(Format("--- CYCLE {} ---", cycle))
+
+        for record in tlog.get_log_records(self.level, self.namespace_regexp):
+            with m.If(record.trigger):
+                m.d.comb += any_trigger.eq(1)
+                format_str = (
+                    ("[{}] " if not self.print_cycle_separator else "")
+                    + f"{logging.getLevelName(record.level)} "
+                    + (f"{record.location} " if self.print_src_loc else "")
+                    + f"{record.logger_name}: "
+                    + record.format_str
+                )
+                args = ([cycle] if not self.print_cycle_separator else []) + record.fields
+                m.d.sync += Print(Format(format_str, *args))
+
+        return m
+
+
+class HDLLogWrapperComponent(HDLLogWrapper, Component):
+    """
+    `HDLLogWrapper` variant for use with `Component`.
+    """
+
+    def __init__(
+        self,
+        component: AbstractComponent,
+        *,
+        print_cycle_separator=True,
+        print_src_loc=False,
+        level: tlog.LogLevel = 0,
+        namespace_regexp: str = ".*",
+    ):
+        HDLLogWrapper.__init__(
+            self,
+            component,
+            print_cycle_separator=print_cycle_separator,
+            print_src_loc=print_src_loc,
+            level=level,
+            namespace_regexp=namespace_regexp,
+        )
+        Component.__init__(self, component.signature)
+
+    def elaborate(self, platform):
+        m = super().elaborate(platform)
+
+        assert isinstance(self.elaboratable, Component)  # for typing
+        connect(m, flipped(self), self.elaboratable)
+
+        return m
