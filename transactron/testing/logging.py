@@ -107,7 +107,7 @@ def make_logging_process(level: tlog.LogLevel, namespace_regexp: str, on_error: 
         async for _, _, ticks_val, combined_trigger_val, *record_vals in (
             sim.tick()
             .sample(ticks, combined_trigger)
-            .sample(*itertools.chain(*([record.trigger] + record.fields for record in records)))
+            .sample(*itertools.chain(*((record.trigger, ) + record.fields for record in records)))
         ):
             if not combined_trigger_val:
                 continue
@@ -162,7 +162,7 @@ class HDLLogWrapper(Elaboratable):
                     + f"{record.logger_name}: "
                     + record.format_str
                 )
-                args = ([cycle] if not self.print_cycle_separator else []) + record.fields
+                args = ((cycle,) if not self.print_cycle_separator else tuple()) + record.fields
                 m.d.sync += Print(Format(format_str, *args))
 
         return m

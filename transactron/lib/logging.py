@@ -3,7 +3,8 @@ import re
 import operator
 import logging
 from functools import reduce
-from dataclasses import dataclass, field
+from dataclasses import dataclass
+from amaranth.hdl import ValueCastable
 from dataclasses_json import dataclass_json
 from typing import TypeAlias
 
@@ -11,7 +12,6 @@ from amaranth import *
 from amaranth.tracer import get_src_loc
 from amaranth_types import ModuleLike, ValueLike
 
-from ..core import TModule
 from transactron.utils import SrcLoc
 from transactron.utils.dependencies import DependencyContext, ListKey
 
@@ -25,25 +25,22 @@ LogLevel: TypeAlias = int
 @dataclass_json
 @dataclass
 class LogRecordInfo:
-    """Simulator-backend-agnostic information about a log record that can
+    """
+    Simulator-backend-agnostic information about a log record that can
     be serialized and used outside the Amaranth context.
-
-    Attributes
-    ----------
-    logger_name: str
-
-    level: LogLevel
-        The severity level of the log.
-    format_str: str
-        The template of the message. Should follow PEP 3101 standard.
-    location: SrcLoc
-        Source location of the log.
     """
 
     logger_name: str
+    """Name of the logger which produced the record."""
+
     level: LogLevel
+    """The severity level of the log."""
+
     format_str: str
+    """The template of the message. Should follow PEP 3101 standard."""
+
     location: SrcLoc
+    """Source location of the log."""
 
     def format(self, *args) -> str:
         """Format the log message with a set of concrete arguments."""
@@ -53,18 +50,13 @@ class LogRecordInfo:
 
 @dataclass
 class LogRecord(LogRecordInfo):
-    """A LogRecord instance represents an event being logged.
+    """A LogRecord instance represents an event being logged."""
 
-    Attributes
-    ----------
-    trigger: Signal
-        Amaranth signal triggering the log.
-    fields: Signal
-        Amaranth signals that will be used to format the message.
-    """
+    trigger: Value
+    """Amaranth signal triggering the log."""
 
-    trigger: Signal
-    fields: list[Signal] = field(default_factory=list)
+    fields: tuple[Value | ValueCastable, ...] = tuple()
+    """Amaranth signals that will be used to format the message."""
 
 
 @dataclass(frozen=True)
@@ -109,7 +101,15 @@ class HardwareLogger:
         """
         self.name = name
 
-    def log(self, m: ModuleLike, level: LogLevel, trigger: ValueLike, format: str, *args, src_loc_at: int = 0):
+    def log(
+        self,
+        m: ModuleLike,
+        level: LogLevel,
+        trigger: ValueLike,
+        format: str,
+        *args: Value | ValueCastable,
+        src_loc_at: int = 0,
+    ):
         """Registers a hardware log record with the given severity.
 
         Parameters
@@ -120,7 +120,7 @@ class HardwareLogger:
             If the value of this Amaranth expression is true, the log will reported.
         format: str
             The format of the message as defined in PEP 3101.
-        *args
+        *args: Value | ValueCastable
             Amaranth values that will be read during simulation and used to format
             the message.
         src_loc_at: int, optional
@@ -137,14 +137,8 @@ class HardwareLogger:
         m.d.comb += trigger_signal.eq(trigger)
 
         record = LogRecord(
-            logger_name=self.name, level=level, format_str=format, location=src_loc, trigger=trigger_signal
+            logger_name=self.name, level=level, format_str=format, location=src_loc, trigger=trigger_signal, fields=args
         )
-
-        top_comb = m.d.top_comb if isinstance(m, TModule) else m.d.comb
-        for arg in args:
-            sig = Signal.like(arg)
-            top_comb += sig.eq(arg)
-            record.fields.append(sig)
 
         dependencies = DependencyContext.get()
         dependencies.add_dependency(LogKey(), record)
