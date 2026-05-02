@@ -8,6 +8,7 @@ import operator
 
 from amaranth_types.types import ModuleLike, ValueLike, ShapeLike
 from transactron.utils.typing import ValueBundle
+from transactron.lib.logging import HardwareLogger
 
 __all__ = [
     "mod_incr",
@@ -26,6 +27,8 @@ __all__ = [
     "min_value",
     "max_value",
 ]
+
+log = HardwareLogger("transactron.utils")
 
 
 def mod_incr(sig: Value, mod: int) -> Value:
@@ -85,7 +88,7 @@ def count_trailing_zeros(s: Value) -> Value:
     return count_leading_zeros(s[::-1])
 
 
-def cyclic_mask(m: ModuleLike, bits: int, start: Value, end: Value):
+def cyclic_mask(m: ModuleLike, bits: int, start: Value, end: Value, *, out_of_bounds_assertion=True):
     """
     Generate `bits` bit-wide mask with ones from `start` to `end` position, including both ends.
     If `end` value is < than `start` the mask wraps around.
@@ -93,11 +96,13 @@ def cyclic_mask(m: ModuleLike, bits: int, start: Value, end: Value):
     start = start.as_unsigned()
     end = end.as_unsigned()
 
-    def check_index_out_of_bounds(name: str, v: Value):
-        m.d.sync += Assert((v >= 0) & (v < bits), Format(f"`cyclic_mask` index out of bounds {name} = " + "{}", v))
+    if out_of_bounds_assertion:
 
-    check_index_out_of_bounds("start", start)
-    check_index_out_of_bounds("end", end)
+        def check_index_out_of_bounds(name: str, v: Value):
+            log.assertion(m, (v >= 0) & (v < bits), f"`cyclic_mask` index out of bounds {name} = " + "{}", v)
+
+        check_index_out_of_bounds("start", start)
+        check_index_out_of_bounds("end", end)
 
     # start <= end
     length = (end - start + 1).as_unsigned()
