@@ -4,6 +4,7 @@ from io import StringIO
 from contextlib import redirect_stdout
 from textwrap import dedent
 from amaranth import *
+from amaranth.lib.enum import Enum, EnumView
 
 from transactron import *
 from transactron.testing import TestCaseWithSimulator, TestbenchContext
@@ -29,6 +30,23 @@ class LogTest(Elaboratable):
         log.warning(m, self.input[0] == 0, "Input is even! input={}, counter={}", self.input, self.counter)
 
         m.d.sync += self.counter.eq(self.counter + 1)
+
+        return m
+
+
+class FooEnum(Enum, shape=1):
+    FOO = 0
+    BAR = 1
+
+
+class ValueCastableLogTest(Elaboratable):
+    def __init__(self):
+        self.input: EnumView = Signal(FooEnum)  # type: ignore
+
+    def elaborate(self, platform):
+        m = TModule()
+
+        log.warning(m, True, "Input value is {}", self.input)
 
         return m
 
@@ -93,6 +111,24 @@ class TestLog(TestCaseWithSimulator):
                 caplog.text,
             )
 
+    def test_valuecastable(self, caplog):
+        m = ValueCastableLogTest()
+
+        async def proc(sim: TestbenchContext):
+            sim.set(m.input, FooEnum.FOO)
+            await sim.tick()
+            sim.set(m.input, FooEnum.BAR)
+            await sim.tick()
+
+        with self.run_simulation(m) as sim:
+            sim.add_testbench(proc)
+
+        for e in FooEnum:
+            assert re.search(
+                r"WARNING  test_logger:logging\.py:\d+ \[test/testing/test_log\.py:\d+\] " + f"Input value is {e}",
+                caplog.text,
+            )
+
     def test_error_log(self, caplog):
         m = ErrorLogTest()
 
@@ -142,7 +178,6 @@ class TestLogWrapper(TestCaseWithSimulator):
             with self.run_simulation(m) as sim:
                 sim.add_testbench(proc)
 
-        print(output.getvalue())
         assert output.getvalue() == dedent(
             """\
             --- CYCLE 0 ---
