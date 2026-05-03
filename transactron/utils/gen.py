@@ -280,16 +280,13 @@ def generate_verilog(
     elif ports is None:
         raise TypeError("The `generate_verilog()` function requires a `ports=` argument")
 
-    design = Fragment.get(elaboratable, platform=None).prepare(ports=ports)
+    wrapped_elaboratable = VerilogLogWrapper(elaboratable)
+    design = Fragment.get(wrapped_elaboratable, platform=None).prepare(ports=ports)
 
     if "fixup_vivado_transparent_memories" in enable_hacks:
         fixup_vivado_transparent_memories(design)
 
-    wrapped_design = VerilogLogWrapper(design)
-
-    verilog_text, name_map = verilog.convert_fragment(
-        wrapped_design, name=top_name, emit_src=True, strip_internal_attrs=True
-    )
+    verilog_text, name_map = verilog.convert_fragment(design, name=top_name, emit_src=True, strip_internal_attrs=True)
 
     transaction_manager = DependencyContext.get().get_dependency(TransactionManagerKey())
     transaction_signals, method_signals = collect_transaction_method_signals(
@@ -301,7 +298,7 @@ def generate_verilog(
         transaction_signals_location=transaction_signals,
         method_signals_location=method_signals,
         profile_data=profile_data,
-        logs=wrapped_design.collect_logs(name_map),
+        logs=wrapped_elaboratable.collect_logs(name_map),
     )
 
     return verilog_text, gen_info
