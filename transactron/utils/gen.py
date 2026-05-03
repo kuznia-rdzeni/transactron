@@ -1,10 +1,10 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, asdict
 from dataclasses_json import dataclass_json
 from typing import Iterable, Optional, TypeAlias
 
 from amaranth import *
 from amaranth.back import verilog
-from amaranth.hdl import Fragment
+from amaranth.hdl import Fragment, ValueCastable
 from amaranth_types import AbstractInterface
 
 from transactron.core import TransactionManager
@@ -206,24 +206,62 @@ def collect_transaction_method_signals(
     return (transaction_signals_location, method_signals_location)
 
 
-def collect_logs(name_map: "SignalDict") -> list[GeneratedLog]:
-    logs: list[GeneratedLog] = []
+@dataclass
+class SignalLogRecord(logging.LogRecordInfo):
+    """A SignalLogRecord instance represents an event being logged."""
 
-    # Get all records.
-    for record in logging.get_log_records(0):
-        trigger_loc = get_signal_location(record.trigger, name_map)
-        fields_loc = [get_signal_location(field, name_map) for field in record.fields]
-        log = GeneratedLog(
-            logger_name=record.logger_name,
-            level=record.level,
-            format_str=record.format_str,
-            location=record.location,
-            trigger_location=trigger_loc,
-            fields_location=fields_loc,
-        )
-        logs.append(log)
+    trigger: Signal
+    """Amaranth signal triggering the log."""
 
-    return logs
+    fields: tuple[Signal, ...] = tuple()
+    """Amaranth signals that will be used to format the message."""
+
+
+class VerilogLogWrapper(Elaboratable):
+    def __init__(self, elaboratable: Elaboratable):
+        self.elaboratable = elaboratable
+        self.records: list[SignalLogRecord] = []
+
+    def elaborate(self, platform):
+        m = Module()
+
+        elaboratable = Fragment.get(self.elaboratable, platform)
+        m.submodules.elaboratable = elaboratable
+
+        def to_signal(val: Value | ValueCastable):
+            val = Value.cast(val)
+            if isinstance(val, Signal):
+                return val
+            else:
+                sig = Signal.like(val)
+                m.d.comb += sig.eq(val)
+                return sig
+
+        for record in logging.get_log_records(0):
+            record_dict = asdict(record)
+            record_dict["trigger"] = to_signal(record.trigger)
+            record_dict["fields"] = tuple(to_signal(val) for val in record.fields)
+            self.records.append(SignalLogRecord(**record_dict))
+
+        return m
+
+    def collect_logs(self, name_map: "SignalDict") -> list[GeneratedLog]:
+        logs: list[GeneratedLog] = []
+
+        for record in self.records:
+            trigger_loc = get_signal_location(record.trigger, name_map)
+            fields_loc = [get_signal_location(field, name_map) for field in record.fields]
+            log = GeneratedLog(
+                logger_name=record.logger_name,
+                level=record.level,
+                format_str=record.format_str,
+                location=record.location,
+                trigger_location=trigger_loc,
+                fields_location=fields_loc,
+            )
+            logs.append(log)
+
+        return logs
 
 
 def generate_verilog(
@@ -247,7 +285,11 @@ def generate_verilog(
     if "fixup_vivado_transparent_memories" in enable_hacks:
         fixup_vivado_transparent_memories(design)
 
-    verilog_text, name_map = verilog.convert_fragment(design, name=top_name, emit_src=True, strip_internal_attrs=True)
+    wrapped_design = VerilogLogWrapper(design)
+
+    verilog_text, name_map = verilog.convert_fragment(
+        wrapped_design, name=top_name, emit_src=True, strip_internal_attrs=True
+    )
 
     transaction_manager = DependencyContext.get().get_dependency(TransactionManagerKey())
     transaction_signals, method_signals = collect_transaction_method_signals(
@@ -259,7 +301,7 @@ def generate_verilog(
         transaction_signals_location=transaction_signals,
         method_signals_location=method_signals,
         profile_data=profile_data,
-        logs=collect_logs(name_map),
+        logs=wrapped_design.collect_logs(name_map),
     )
 
     return verilog_text, gen_info
