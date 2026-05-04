@@ -146,28 +146,28 @@ class HardwareLogger:
 
         See `HardwareLogger.top_log` function for more details.
         """
-        self.top_log(logging.DEBUG, trigger, format, *args, src_loc=src_loc)
+        self.top_log(logging.DEBUG, trigger, format, *args, src_loc=get_src_loc(src_loc))
 
     def top_info(self, trigger: ValueLike, format: str, *args: ValueLike, src_loc: int | SrcLoc = 0):
         """Log a message with severity 'INFO'.
 
         See `HardwareLogger.top_log` function for more details.
         """
-        self.top_log(logging.INFO, trigger, format, *args, src_loc=src_loc)
+        self.top_log(logging.INFO, trigger, format, *args, src_loc=get_src_loc(src_loc))
 
     def top_warning(self, trigger: ValueLike, format: str, *args: ValueLike, src_loc: int | SrcLoc = 0):
         """Log a message with severity 'WARNING'.
 
         See `HardwareLogger.top_log` function for more details.
         """
-        self.top_log(logging.WARNING, trigger, format, *args, src_loc=src_loc)
+        self.top_log(logging.WARNING, trigger, format, *args, src_loc=get_src_loc(src_loc))
 
     def top_error(self, trigger: ValueLike, format: str, *args: ValueLike, src_loc: int | SrcLoc = 0):
         """Log a message with severity 'ERROR'.
 
         See `HardwareLogger.top_log` function for more details.
         """
-        self.top_log(logging.ERROR, trigger, format, *args, src_loc=src_loc)
+        self.top_log(logging.ERROR, trigger, format, *args, src_loc=get_src_loc(src_loc))
 
     def top_assertion(self, value: ValueLike, format: str, *args: ValueLike, src_loc: int | SrcLoc = 0):
         """Define an assertion.
@@ -260,7 +260,7 @@ def top_assertion(value: ValueLike, format: str, *args: ValueLike, name: str = "
     This is a short form, for use in generic code. For general use,
     see `HardwareLogger.top_assertion`.
     """
-    HardwareLogger(name).top_assertion(value, format, *args, src_loc=src_loc)
+    HardwareLogger(name).top_assertion(value, format, *args, src_loc=get_src_loc(src_loc))
 
 
 def assertion(
@@ -271,7 +271,7 @@ def assertion(
     This is a short form, for use in generic code. For general use,
     see `HardwareLogger.assertion`.
     """
-    HardwareLogger(name).assertion(m, value, format, *args, src_loc=src_loc)
+    HardwareLogger(name).assertion(m, value, format, *args, src_loc=get_src_loc(src_loc))
 
 
 def get_log_records(level: LogLevel, namespace_regexp: str = ".*") -> list[LogRecord]:
