@@ -14,7 +14,17 @@ from transactron.utils import SrcLoc, get_src_loc, local_src_loc
 from transactron.utils.dependencies import DependencyContext, ListKey
 
 
-__all__ = ["LogLevel", "LogRecordInfo", "LogRecord", "LogKey", "HardwareLogger", "get_log_records", "get_trigger_bit"]
+__all__ = [
+    "LogLevel",
+    "LogRecordInfo",
+    "LogRecord",
+    "LogKey",
+    "HardwareLogger",
+    "top_assertion",
+    "assertion",
+    "get_log_records",
+    "get_trigger_bit",
+]
 
 
 LogLevel: TypeAlias = int
@@ -242,6 +252,26 @@ class HardwareLogger:
         See `HardwareLogger.log` function for more details.
         """
         self.error(m, ~Value.cast(value), format, *args, src_loc=get_src_loc(src_loc))
+
+
+def top_assertion(value: ValueLike, format: str, *args: ValueLike, name: str = "global", src_loc: int | SrcLoc = 0):
+    """Define an assertion.
+
+    This is a short form, for use in generic code. For general use,
+    see `HardwareLogger.top_assertion`.
+    """
+    HardwareLogger(name).top_assertion(value, format, *args, src_loc=src_loc)
+
+
+def assertion(
+    m: ModuleLike, value: ValueLike, format: str, *args: ValueLike, name: str = "global", src_loc: int | SrcLoc = 0
+):
+    """Define an assertion.
+
+    This is a short form, for use in generic code. For general use,
+    see `HardwareLogger.assertion`.
+    """
+    HardwareLogger(name).assertion(m, value, format, *args, src_loc=src_loc)
 
 
 def get_log_records(level: LogLevel, namespace_regexp: str = ".*") -> list[LogRecord]:
