@@ -1,4 +1,3 @@
-import os
 import re
 import operator
 import logging
@@ -9,10 +8,9 @@ from dataclasses_json import dataclass_json
 from typing import TypeAlias
 
 from amaranth import *
-from amaranth.tracer import get_src_loc
 from amaranth_types import ModuleLike, ValueLike
 
-from transactron.utils import SrcLoc
+from transactron.utils import SrcLoc, get_src_loc, local_src_loc
 from transactron.utils.dependencies import DependencyContext, ListKey
 
 
@@ -101,14 +99,84 @@ class HardwareLogger:
         """
         self.name = name
 
+    def top_log(
+        self,
+        level: LogLevel,
+        trigger: ValueLike,
+        format: str,
+        *args: ValueLike,
+        src_loc: int | SrcLoc = 0,
+    ):
+        """Registers a hardware log record with the given severity.
+
+        The `top_*` logging functions ignore `m.If` etc. for triggering.
+        They can be used in contexts where a module is not available.
+
+        See `HardwareLogger.log` function for more details.
+        """
+        src_loc = local_src_loc(get_src_loc(src_loc))
+        trigger = Value.cast(trigger)
+
+        def convert(arg: ValueLike):
+            if isinstance(arg, (Value, ValueCastable)):
+                return arg
+            return Value.cast(arg)
+
+        args = tuple(convert(arg) for arg in args)
+
+        record = LogRecord(
+            logger_name=self.name, level=level, format_str=format, location=src_loc, trigger=trigger, fields=args
+        )
+
+        dependencies = DependencyContext.get()
+        dependencies.add_dependency(LogKey(), record)
+
+    def top_debug(self, trigger: ValueLike, format: str, *args: ValueLike, src_loc: int | SrcLoc = 0):
+        """Log a message with severity 'DEBUG'.
+
+        See `HardwareLogger.top_log` function for more details.
+        """
+        self.top_log(logging.DEBUG, trigger, format, *args, src_loc=src_loc)
+
+    def top_info(self, trigger: ValueLike, format: str, *args: ValueLike, src_loc: int | SrcLoc = 0):
+        """Log a message with severity 'INFO'.
+
+        See `HardwareLogger.top_log` function for more details.
+        """
+        self.top_log(logging.INFO, trigger, format, *args, src_loc=src_loc)
+
+    def top_warning(self, trigger: ValueLike, format: str, *args: ValueLike, src_loc: int | SrcLoc = 0):
+        """Log a message with severity 'WARNING'.
+
+        See `HardwareLogger.top_log` function for more details.
+        """
+        self.top_log(logging.WARNING, trigger, format, *args, src_loc=src_loc)
+
+    def top_error(self, trigger: ValueLike, format: str, *args: ValueLike, src_loc: int | SrcLoc = 0):
+        """Log a message with severity 'ERROR'.
+
+        See `HardwareLogger.top_log` function for more details.
+        """
+        self.top_log(logging.ERROR, trigger, format, *args, src_loc=src_loc)
+
+    def top_assertion(self, value: ValueLike, format: str, *args: ValueLike, src_loc: int | SrcLoc = 0):
+        """Define an assertion.
+
+        Unlike `HardwareLogger.assertion`, this function can be used in
+        contexts where a module is not available.
+
+        See `HardwareLogger.assertion` function for more details.
+        """
+        self.top_error(~Value.cast(value), format, *args, src_loc=get_src_loc(src_loc))
+
     def log(
         self,
         m: ModuleLike,
         level: LogLevel,
         trigger: ValueLike,
         format: str,
-        *args: Value | ValueCastable,
-        src_loc_at: int = 0,
+        *args: ValueLike,
+        src_loc: int | SrcLoc = 0,
     ):
         """Registers a hardware log record with the given severity.
 
@@ -120,51 +188,39 @@ class HardwareLogger:
             If the value of this Amaranth expression is true, the log will reported.
         format: str
             The format of the message as defined in PEP 3101.
-        *args: Value | ValueCastable
+        *args: ValueLike
             Amaranth values that will be read during simulation and used to format
             the message.
-        src_loc_at: int, optional
+        src_loc: int, optional
             How many stack frames below to look for the source location, used to
             identify the failing assertion.
         """
-
-        def local_src_loc(src_loc: SrcLoc):
-            return (os.path.relpath(src_loc[0]), src_loc[1])
-
-        src_loc = local_src_loc(get_src_loc(src_loc_at + 1))
-
         trigger_signal = Signal()
         m.d.comb += trigger_signal.eq(trigger)
+        self.top_log(level, trigger_signal, format, *args, src_loc=get_src_loc(src_loc))
 
-        record = LogRecord(
-            logger_name=self.name, level=level, format_str=format, location=src_loc, trigger=trigger_signal, fields=args
-        )
-
-        dependencies = DependencyContext.get()
-        dependencies.add_dependency(LogKey(), record)
-
-    def debug(self, m: ModuleLike, trigger: ValueLike, format: str, *args, **kwargs):
+    def debug(self, m: ModuleLike, trigger: ValueLike, format: str, *args: ValueLike, src_loc: int | SrcLoc = 0):
         """Log a message with severity 'DEBUG'.
 
         See `HardwareLogger.log` function for more details.
         """
-        self.log(m, logging.DEBUG, trigger, format, *args, **kwargs)
+        self.log(m, logging.DEBUG, trigger, format, *args, src_loc=get_src_loc(src_loc))
 
-    def info(self, m: ModuleLike, trigger: ValueLike, format: str, *args, **kwargs):
+    def info(self, m: ModuleLike, trigger: ValueLike, format: str, *args: ValueLike, src_loc: int | SrcLoc = 0):
         """Log a message with severity 'INFO'.
 
         See `HardwareLogger.log` function for more details.
         """
-        self.log(m, logging.INFO, trigger, format, *args, **kwargs)
+        self.log(m, logging.INFO, trigger, format, *args, src_loc=get_src_loc(src_loc))
 
-    def warning(self, m: ModuleLike, trigger: ValueLike, format: str, *args, **kwargs):
+    def warning(self, m: ModuleLike, trigger: ValueLike, format: str, *args: ValueLike, src_loc: int | SrcLoc = 0):
         """Log a message with severity 'WARNING'.
 
         See `HardwareLogger.log` function for more details.
         """
-        self.log(m, logging.WARNING, trigger, format, *args, **kwargs)
+        self.log(m, logging.WARNING, trigger, format, *args, src_loc=get_src_loc(src_loc))
 
-    def error(self, m: ModuleLike, trigger: ValueLike, format: str, *args, **kwargs):
+    def error(self, m: ModuleLike, trigger: ValueLike, format: str, *args: ValueLike, src_loc: int | SrcLoc = 0):
         """Log a message with severity 'ERROR'.
 
         This severity level has special semantics. If a log with this serverity
@@ -172,9 +228,9 @@ class HardwareLogger:
 
         See `HardwareLogger.log` function for more details.
         """
-        self.log(m, logging.ERROR, trigger, format, *args, **kwargs)
+        self.log(m, logging.ERROR, trigger, format, *args, src_loc=get_src_loc(src_loc))
 
-    def assertion(self, m: ModuleLike, value: Value, format: str = "", *args, src_loc_at: int = 0, **kwargs):
+    def assertion(self, m: ModuleLike, value: ValueLike, format: str = "", *args: ValueLike, src_loc: int | SrcLoc = 0):
         """Define an assertion.
 
         This function might help find some hardware bugs which might otherwise be
@@ -185,7 +241,7 @@ class HardwareLogger:
 
         See `HardwareLogger.log` function for more details.
         """
-        self.error(m, ~value, format, *args, **kwargs, src_loc_at=src_loc_at + 1)
+        self.error(m, ~Value.cast(value), format, *args, src_loc=get_src_loc(src_loc))
 
 
 def get_log_records(level: LogLevel, namespace_regexp: str = ".*") -> list[LogRecord]:

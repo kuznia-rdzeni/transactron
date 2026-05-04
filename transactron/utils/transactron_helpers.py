@@ -1,3 +1,4 @@
+import os
 import sys
 from contextlib import contextmanager
 from typing import Optional, Any, Concatenate, TypeGuard
@@ -23,6 +24,7 @@ __all__ = [
     "async_mock_def_helper",
     "SrcLoc",
     "get_src_loc",
+    "local_src_loc",
     "from_method_layout",
     "make_layout",
     "extend_layout",
@@ -148,6 +150,10 @@ def silence_mustuse(elaboratable: Elaboratable):
 
 def get_src_loc(src_loc: int | SrcLoc) -> SrcLoc:
     return tracer.get_src_loc(1 + src_loc) if isinstance(src_loc, int) else src_loc
+
+
+def local_src_loc(src_loc: SrcLoc) -> SrcLoc:
+    return (os.path.relpath(src_loc[0]), src_loc[1])
 
 
 def from_layout_field(shape: ShapeLike | LayoutList) -> ShapeLike:
