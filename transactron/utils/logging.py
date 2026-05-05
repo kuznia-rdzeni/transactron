@@ -205,7 +205,7 @@ class HardwareLogger:
             How many stack frames below to look for the source location, used to
             identify the failing assertion.
         """
-        trigger_signal = Signal()
+        trigger_signal = Signal.like(trigger)
         m.d.comb += trigger_signal.eq(trigger)
         self.top_log(level, trigger_signal, format, *args, src_loc=get_src_loc(src_loc))
 
