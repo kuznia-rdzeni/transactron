@@ -61,7 +61,7 @@ class LogRecord(LogRecordInfo):
     """A LogRecord instance represents an event being logged."""
 
     trigger: Value
-    """Amaranth signal triggering the log."""
+    """Single bit Amaranth signal triggering the log."""
 
     fields: tuple[Value | ValueCastable, ...] = tuple()
     """Amaranth signals that will be used to format the message."""
@@ -125,7 +125,7 @@ class HardwareLogger:
         See `HardwareLogger.log` function for more details.
         """
         src_loc = local_src_loc(get_src_loc(src_loc))
-        trigger = Value.cast(trigger)
+        trigger = Value.cast(trigger).any()
 
         def convert(arg: ValueLike):
             if isinstance(arg, (Value, ValueCastable)):
@@ -177,7 +177,7 @@ class HardwareLogger:
 
         See `HardwareLogger.assertion` function for more details.
         """
-        self.top_error(~Value.cast(value), format, *args, src_loc=get_src_loc(src_loc))
+        self.top_error(~Value.cast(value).any(), format, *args, src_loc=get_src_loc(src_loc))
 
     def log(
         self,
@@ -251,7 +251,7 @@ class HardwareLogger:
 
         See `HardwareLogger.log` function for more details.
         """
-        self.error(m, ~Value.cast(value), format, *args, src_loc=get_src_loc(src_loc))
+        self.error(m, ~Value.cast(value).any(), format, *args, src_loc=get_src_loc(src_loc))
 
 
 def top_assertion(value: ValueLike, format: str, *args: ValueLike, name: str = "global", src_loc: int | SrcLoc = 0):
