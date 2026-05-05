@@ -76,6 +76,14 @@ transactron.utils.idgen module
    :show-inheritance:
    :undoc-members:
 
+transactron.utils.logging module
+--------------------------------
+
+.. automodule:: transactron.utils.logging
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 transactron.utils.transactron\_helpers module
 ---------------------------------------------
 
