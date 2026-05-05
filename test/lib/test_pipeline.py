@@ -499,6 +499,7 @@ class TypeMismatchPipeline(Elaboratable):
 
     def elaborate(self, platform):
         m = TModule()
+        m._MustUse__silence = True  # type: ignore
 
         m.submodules.pipeline = p = PipelineBuilder()
         p.add_external(self.write)
@@ -515,7 +516,7 @@ class TypeMismatchPipeline(Elaboratable):
 class TestTypeValidation(TestCaseWithSimulator):
     def test_shape_mismatch_raises(self):
         with pytest.raises(ValueError, match="not matching"):
-            with self.run_simulation(SimpleTestCircuit(TypeMismatchPipeline())):
+            with self.run_simulation(TypeMismatchPipeline()):
                 pass
 
     def test_exit_field_missing_raises(self):
@@ -525,12 +526,14 @@ class TestTypeValidation(TestCaseWithSimulator):
 
             def elaborate(self, platform):
                 m = TModule()
+                m._MustUse__silence = True  # type: ignore
                 m.submodules.pipeline = p = PipelineBuilder()
+                p._MustUse__silence = True  # type: ignore
                 p.add_external(self.read)
                 return m
 
         with pytest.raises(ValueError, match="required but not provided"):
-            with self.run_simulation(SimpleTestCircuit(MissingFieldPipeline())):
+            with self.run_simulation(MissingFieldPipeline()):
                 pass
 
 
@@ -550,6 +553,7 @@ class ClearPipeline(Elaboratable):
 
     def elaborate(self, platform):
         m = TModule()
+        m._MustUse__silence = True  # type: ignore
 
         external_clear = Method()
 

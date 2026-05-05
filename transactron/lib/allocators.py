@@ -26,31 +26,32 @@ class PriorityEncoderAllocator(Elaboratable):
         Methods which deallocate a single identifier in one cycle.
     """
 
-    def __init__(self, entries: int, ways: int = 1, *, init: int = -1):
+    def __init__(self, entries: int, alloc_ways: int = 1, free_ways: int = 1, *, init: int = -1):
         """
         Parameters
         ----------
         entries : int
             The total number of identifiers available for allocation.
-        ways : int
-            The number of `alloc` and `free` methods.
+        alloc_ways : int
+            The number of `alloc` methods.
+        free_ways : int
+            The number of `free` methods.
         init : int
             Bit mask of identifiers which should be treated as free on reset.
             By default, every identifier is free on reset.
         """
         self.entries = entries
-        self.ways = ways
         self.init = init
 
-        self.alloc = Methods(ways, o=[("ident", range(entries))])
-        self.free = Methods(ways, i=[("ident", range(entries))])
+        self.alloc = Methods(alloc_ways, o=[("ident", range(entries))])
+        self.free = Methods(free_ways, i=[("ident", range(entries))])
 
     def elaborate(self, platform) -> TModule:
         m = TModule()
 
         not_used = Signal(self.entries, init=self.init)
 
-        m.submodules.priority_encoder = encoder = MultiPriorityEncoder(self.entries, self.ways)
+        m.submodules.priority_encoder = encoder = MultiPriorityEncoder(self.entries, len(self.alloc))
         m.d.top_comb += encoder.input.eq(not_used)
 
         @def_methods(m, self.alloc, ready=lambda i: encoder.valids[i])
