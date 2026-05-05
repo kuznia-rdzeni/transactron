@@ -14,17 +14,19 @@ from transactron.testing import (
 
 class TestPriorityEncoderAllocator(TestCaseWithSimulator):
     @pytest.mark.parametrize("entries", [5, 8])
-    @pytest.mark.parametrize("ways", [1, 3, 4])
+    @pytest.mark.parametrize("alloc_ways", [1, 3, 4])
+    @pytest.mark.parametrize("free_ways", [1, 3, 4])
     @pytest.mark.parametrize("init", [-1, 0])
-    def test_allocator(self, entries: int, ways: int, init: int):
-        dut = SimpleTestCircuit(PriorityEncoderAllocator(entries, ways, init=init))
+    def test_allocator(self, entries: int, alloc_ways: int, free_ways: int, init: int):
+        dut = SimpleTestCircuit(PriorityEncoderAllocator(entries, alloc_ways, free_ways, init=init))
 
-        iterations = 5 * entries
+        iterations = 4 * entries
 
         allocated = [i for i in range(entries) if not init & (1 << i)]
         free = [i for i in range(entries) if init & (1 << i)]
 
         init_allocated_count = len(allocated)
+        total = iterations * alloc_ways + init_allocated_count
 
         def make_allocator(i: int):
             async def process(sim: TestbenchContext):
@@ -39,7 +41,7 @@ class TestPriorityEncoderAllocator(TestCaseWithSimulator):
 
         def make_deallocator(i: int):
             async def process(sim: TestbenchContext):
-                for _ in range(iterations + (init_allocated_count + i) // ways):
+                for _ in range((total + i) // free_ways):
                     while not allocated:
                         await sim.tick()
                     val = allocated.pop(random.randrange(len(allocated)))
@@ -50,8 +52,9 @@ class TestPriorityEncoderAllocator(TestCaseWithSimulator):
             return process
 
         with self.run_simulation(dut) as sim:
-            for i in range(ways):
+            for i in range(alloc_ways):
                 sim.add_testbench(make_allocator(i))
+            for i in range(free_ways):
                 sim.add_testbench(make_deallocator(i))
 
 
