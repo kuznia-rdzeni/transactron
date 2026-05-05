@@ -502,14 +502,13 @@ class TransactionManager(Elaboratable):
                 arg_rec = Signal.like(method.data_in)
                 en = Signal()
 
+                m.d.comb += en.eq(Cat(call.enable for call in calls).any())
                 if len(calls) == 1:
                     m.d.comb += arg_rec.eq(calls[0].arg)
-                    m.d.comb += en.eq(1)
                 else:
                     # Only one call can be active per method and transaction due to call-path exclusivity.
                     for i in OneHotSwitchDynamic(m, Cat(call.enable for call in calls)):
                         m.d.comb += arg_rec.eq(calls[i].arg)
-                        m.d.comb += en.eq(1)
 
                 return method._validate_arguments(en, arg_rec)
 
