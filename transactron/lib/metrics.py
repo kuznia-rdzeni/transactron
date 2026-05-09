@@ -8,9 +8,9 @@ from enum import Enum
 from amaranth import *
 from amaranth.utils import bits_for, ceil_log2, exact_log2
 
-from transactron.utils import OneHotSwitchDynamic, ValueBundle
+from transactron.utils import OneHotSwitchDynamic, ValueBundle, logging
 from transactron import Method, Methods, def_methods, TModule
-from transactron.lib import WideFifo, AsyncMemoryBank, logging
+from transactron.lib import WideFifo, AsyncMemoryBank
 from transactron.utils.amaranth_ext.functions import and_value, max_value, min_value, or_value, sum_value, popcount
 from transactron.utils.dependencies import ListKey, DependencyContext, SimpleKey
 

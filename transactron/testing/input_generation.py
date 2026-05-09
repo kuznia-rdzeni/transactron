@@ -2,7 +2,7 @@ from amaranth import *
 from amaranth.lib.data import StructLayout
 import hypothesis.strategies as st
 from hypothesis.strategies import composite, DrawFn, integers, SearchStrategy
-from transactron.utils import MethodLayout, RecordIntDict
+from transactron.utils import MethodLayout, NameIntDict
 
 
 class OpNOP:
@@ -34,7 +34,7 @@ def generate_shrinkable_list[T](draw: DrawFn, length: int, generator: SearchStra
 
 
 @composite
-def generate_based_on_layout(draw: DrawFn, layout: MethodLayout) -> RecordIntDict:
+def generate_based_on_layout(draw: DrawFn, layout: MethodLayout) -> NameIntDict:
     if isinstance(layout, StructLayout):
         raise NotImplementedError("StructLayout is not supported in automatic value generation.")
     d = {}
@@ -79,7 +79,7 @@ def generate_nops_in_list[T](draw: DrawFn, max_nops: int, generate_list: SearchS
 
 
 @composite
-def generate_method_input(draw: DrawFn, args: list[tuple[str, MethodLayout]]) -> dict[str, RecordIntDict]:
+def generate_method_input(draw: DrawFn, args: list[tuple[str, MethodLayout]]) -> dict[str, NameIntDict]:
     out = []
     for name, layout in args:
         out.append((name, draw(generate_based_on_layout(layout))))
@@ -89,5 +89,5 @@ def generate_method_input(draw: DrawFn, args: list[tuple[str, MethodLayout]]) ->
 @composite
 def generate_process_input(
     draw: DrawFn, elem_count: int, max_nops: int, layouts: list[tuple[str, MethodLayout]]
-) -> list[dict[str, RecordIntDict] | OpNOP]:
+) -> list[dict[str, NameIntDict] | OpNOP]:
     return draw(generate_nops_in_list(max_nops, generate_shrinkable_list(elem_count, generate_method_input(layouts))))
