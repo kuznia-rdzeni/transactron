@@ -32,6 +32,8 @@ testing = [
     "pytest >= 8.0.0, < 10.0",
     "hypothesis <= 6.99.6, < 6.152.6",
 ]
+
+[dependency-groups]
 dev = [
     # Linting
     "pyright == 1.1.393",
