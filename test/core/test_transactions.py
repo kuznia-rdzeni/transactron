@@ -12,8 +12,7 @@ from collections import deque
 from typing import Iterable, Callable
 from transactron.core.keys import TransactionsKey
 
-from transactron.testing import TestbenchIO, data_layout
-from transactron.testing.test_case import TestCaseWithSimulator
+from transactron.testing import TestCaseWithSimulator, TestbenchIO, data_layout
 
 from transactron import *
 from transactron.lib import Adapter, AdapterTrans

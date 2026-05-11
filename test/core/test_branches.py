@@ -13,8 +13,7 @@ from transactron.core import (
 from transactron.core.tmodule import CtrlPath
 from transactron.core.manager import MethodMap
 from unittest import TestCase
-from transactron.testing import SimpleTestCircuit
-from transactron.testing.test_case import TestCaseWithSimulator
+from transactron.testing import SimpleTestCircuit, TestCaseWithSimulator
 from transactron.utils.amaranth_ext.elaboratables import ModuleConnector
 from transactron.utils.dependencies import DependencyContext
 

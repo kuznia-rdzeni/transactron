@@ -2,8 +2,7 @@ import pytest
 import random
 
 from transactron.utils import OneHotRoundRobin, StableSelectingNetwork
-from transactron.testing import TestbenchContext
-from transactron.testing.test_case import TestCaseWithSimulator
+from transactron.testing import TestCaseWithSimulator, TestbenchContext
 
 
 class TestScheduler(TestCaseWithSimulator):

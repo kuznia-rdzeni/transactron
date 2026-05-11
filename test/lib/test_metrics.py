@@ -11,8 +11,8 @@ from amaranth.lib.data import ArrayLayout
 
 from transactron.lib.metrics import *
 from transactron import *
-from transactron.testing import data_layout, SimpleTestCircuit, TestbenchContext, TicksKey
-from transactron.testing.test_case import TestCaseWithSimulator
+from transactron.testing import TestCaseWithSimulator, data_layout, SimpleTestCircuit, TestbenchContext
+from transactron.testing.tick_count import TicksKey
 from transactron.utils.dependencies import DependencyContext
 
 

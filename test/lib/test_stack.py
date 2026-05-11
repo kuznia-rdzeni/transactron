@@ -1,8 +1,7 @@
 import pytest
 import random
 from transactron.lib.stack import Stack
-from transactron.testing import data_layout, TestbenchContext, SimpleTestCircuit
-from transactron.testing.test_case import TestCaseWithSimulator
+from transactron.testing import TestCaseWithSimulator, data_layout, TestbenchContext, SimpleTestCircuit
 
 
 class TestStack(TestCaseWithSimulator):

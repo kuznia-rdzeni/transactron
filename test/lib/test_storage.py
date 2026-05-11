@@ -1,3 +1,4 @@
+from amaranth import *
 from collections.abc import Callable
 from amaranth_types import ShapeLike
 import pytest
@@ -8,8 +9,7 @@ from hypothesis import given, settings, Phase
 import amaranth.lib.memory as memory
 import amaranth_types.memory as amemory
 from transactron.testing import *
-from transactron.testing.input_generation import *
-from transactron.testing.test_case import TestCaseWithSimulator
+from transactron.testing.input_generation import OpNOP, generate_process_input
 from transactron.lib.storage import *
 from transactron.utils.amaranth_ext.memory import MultiportXORMemory, MultiportXORILVTMemory, MultiportOneHotILVTMemory
 from transactron.utils.transactron_helpers import make_layout

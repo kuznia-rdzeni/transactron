@@ -5,6 +5,16 @@ from hypothesis.strategies import composite, DrawFn, integers, SearchStrategy
 from transactron.utils import MethodLayout, NameIntDict
 
 
+__all__ = [
+    "OpNOP",
+    "generate_shrinkable_list",
+    "generate_based_on_layout",
+    "generate_nops_in_list",
+    "generate_method_input",
+    "generate_process_input",
+]
+
+
 class OpNOP:
     def __repr__(self):
         return "OpNOP()"

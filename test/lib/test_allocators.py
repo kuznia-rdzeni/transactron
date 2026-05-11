@@ -7,9 +7,9 @@ from transactron.lib.allocators import *
 from transactron.lib.allocators import PreservedOrderAllocator
 from transactron.testing import (
     SimpleTestCircuit,
+    TestCaseWithSimulator,
     TestbenchContext,
 )
-from transactron.testing.test_case import TestCaseWithSimulator
 
 
 class TestPriorityEncoderAllocator(TestCaseWithSimulator):

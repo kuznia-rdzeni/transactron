@@ -6,15 +6,15 @@ import pytest
 from transactron import *
 from transactron.lib.adapters import Adapter
 from transactron.lib.reqres import *
+from transactron.testing.method_mock import MethodMock
 from transactron.utils import ModuleConnector
 from transactron.testing import (
     SimpleTestCircuit,
+    TestCaseWithSimulator,
     def_method_mock,
     TestbenchIO,
     TestbenchContext,
-    MethodMock,
 )
-from transactron.testing.test_case import TestCaseWithSimulator
 
 
 @pytest.mark.parametrize("port_count", [2, 3])

@@ -6,15 +6,15 @@ from amaranth import *
 from transactron import *
 from transactron.lib.adapters import Adapter
 from transactron.lib.simultaneous import *
+from transactron.testing.method_mock import MethodMock
 from transactron.utils import ModuleConnector
 from transactron.testing import (
     SimpleTestCircuit,
-    MethodMock,
+    TestCaseWithSimulator,
     def_method_mock,
     TestbenchIO,
     TestbenchContext,
 )
-from transactron.testing.test_case import TestCaseWithSimulator
 
 
 class ConditionTestCircuit(Elaboratable):

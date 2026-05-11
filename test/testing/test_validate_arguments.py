@@ -2,8 +2,7 @@ import random
 from amaranth import *
 from amaranth.sim import *
 
-from transactron.testing import TestbenchIO, data_layout, TestbenchContext
-from transactron.testing.test_case import TestCaseWithSimulator
+from transactron.testing import TestCaseWithSimulator, TestbenchIO, data_layout, TestbenchContext
 
 from transactron import *
 from transactron.testing.method_mock import def_method_mock

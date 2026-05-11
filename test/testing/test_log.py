@@ -10,8 +10,7 @@ from amaranth import *
 from amaranth.lib.enum import Enum, EnumView
 
 from transactron import *
-from transactron.testing import TestbenchContext
-from transactron.testing.test_case import TestCaseWithSimulator
+from transactron.testing import TestCaseWithSimulator, TestbenchContext
 from transactron.utils import logging
 from transactron.testing.logging import HDLLogWrapper, make_logging_process
 

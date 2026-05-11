@@ -4,8 +4,7 @@ from amaranth.sim import *
 
 from transactron.utils import OneHotSwitch
 
-from transactron.testing import TestbenchContext
-from transactron.testing.test_case import TestCaseWithSimulator
+from transactron.testing import TestCaseWithSimulator, TestbenchContext
 
 
 class OneHotSwitchCircuit(Elaboratable):
