@@ -5,6 +5,7 @@ from amaranth.hdl import *
 from amaranth.sim import *
 from transactron.utils.amaranth_ext.coding import *
 from transactron.testing import *
+from transactron.testing.test_case import TestCaseWithSimulator
 
 
 class TestEncoder(TestCaseWithSimulator):

@@ -7,8 +7,8 @@ from transactron.lib.pipeline import PipelineBuilder
 from transactron.testing import (
     SimpleTestCircuit,
     TestbenchContext,
-    TestCaseWithSimulator,
 )
+from transactron.testing.test_case import TestCaseWithSimulator
 
 # ---------------------------------------------------------------------------
 # Simple pipeline: write → (+1) → read

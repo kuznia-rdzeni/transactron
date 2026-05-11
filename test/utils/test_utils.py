@@ -4,6 +4,7 @@ import pytest
 
 from amaranth import *
 from transactron.testing import *
+from transactron.testing.test_case import TestCaseWithSimulator
 from transactron.utils import (
     align_to_power_of_two,
     align_down_to_power_of_two,

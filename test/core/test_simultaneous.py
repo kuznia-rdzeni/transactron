@@ -8,7 +8,8 @@ from transactron.testing.testbenchio import TestbenchIO
 
 from transactron.utils import ModuleConnector
 
-from transactron.testing import SimpleTestCircuit, TestCaseWithSimulator, TestbenchContext
+from transactron.testing import SimpleTestCircuit, TestbenchContext
+from transactron.testing.test_case import TestCaseWithSimulator
 
 from transactron import *
 from transactron.lib import Adapter, Connect, ConnectTrans

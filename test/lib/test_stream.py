@@ -13,9 +13,9 @@ from transactron.lib.stream import StreamSink, StreamSource
 from transactron.testing import (
     SimpleTestCircuit,
     TestbenchContext,
-    TestCaseWithSimulator,
     data_layout,
 )
+from transactron.testing.test_case import TestCaseWithSimulator
 
 
 class TestStreamSink(TestCaseWithSimulator):

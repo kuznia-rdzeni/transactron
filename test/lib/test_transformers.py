@@ -11,12 +11,12 @@ from transactron.utils.typing import MethodStruct, ReturnDict
 from transactron.utils import ModuleConnector
 from transactron.testing import (
     SimpleTestCircuit,
-    TestCaseWithSimulator,
     data_layout,
     def_method_mock,
     TestbenchIO,
     TestbenchContext,
 )
+from transactron.testing.test_case import TestCaseWithSimulator
 
 
 class TestMethodMap(TestCaseWithSimulator):

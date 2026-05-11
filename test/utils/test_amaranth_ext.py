@@ -1,4 +1,6 @@
+from amaranth import *
 from transactron.testing import *
+from transactron.testing.test_case import TestCaseWithSimulator
 import random
 import pytest
 from transactron.utils.amaranth_ext import MultiPriorityEncoder, RingMultiPriorityEncoder

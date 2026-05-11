@@ -6,7 +6,8 @@ from amaranth.lib import data
 from transactron.lib.fifo import BasicFifo, WideFifo
 from transactron.utils.amaranth_ext import const_of
 
-from transactron.testing import TestCaseWithSimulator, data_layout, TestbenchContext, SimpleTestCircuit
+from transactron.testing import data_layout, TestbenchContext, SimpleTestCircuit
+from transactron.testing.test_case import TestCaseWithSimulator
 from collections import deque
 import random
 

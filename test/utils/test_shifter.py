@@ -8,7 +8,8 @@ from amaranth_types.types import ShapeLike, ValueLike
 from transactron.utils import assign
 from transactron.utils.amaranth_ext.functions import const_of
 from transactron.utils.amaranth_ext.shifter import *
-from transactron.testing import TestCaseWithSimulator, TestbenchContext
+from transactron.testing import TestbenchContext
+from transactron.testing.test_case import TestCaseWithSimulator
 
 
 class ShifterCircuit(Elaboratable):

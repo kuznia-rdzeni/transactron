@@ -2,7 +2,8 @@ import pytest
 import random
 from amaranth import *
 from collections import deque
-from transactron.testing import SimpleTestCircuit, TestCaseWithSimulator, ProcessContext, TestbenchContext, TestbenchIO
+from transactron.testing import SimpleTestCircuit, ProcessContext, TestbenchContext, TestbenchIO
+from transactron.testing.test_case import TestCaseWithSimulator
 from transactron.lib.basicio import InputSampler, OutputBuffer
 from transactron.utils.data_repr import data_layout
 

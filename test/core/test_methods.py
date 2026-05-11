@@ -5,7 +5,8 @@ from amaranth import *
 from amaranth.sim import *
 from amaranth.lib.data import StructLayout
 
-from transactron.testing import TestCaseWithSimulator, TestbenchIO, data_layout, SimpleTestCircuit
+from transactron.testing import TestbenchIO, data_layout, SimpleTestCircuit
+from transactron.testing.test_case import TestCaseWithSimulator
 
 from transactron import *
 from transactron.utils import MethodStruct

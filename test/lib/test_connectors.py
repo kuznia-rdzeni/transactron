@@ -7,13 +7,8 @@ from amaranth import *
 from transactron import *
 from transactron.utils.typing import MethodLayout
 from transactron.lib.connectors import *
-from transactron.testing.testbenchio import CallTrigger
-from transactron.testing import (
-    SimpleTestCircuit,
-    TestCaseWithSimulator,
-    data_layout,
-    TestbenchContext,
-)
+from transactron.testing import SimpleTestCircuit, data_layout, TestbenchContext, CallTrigger
+from transactron.testing.test_case import TestCaseWithSimulator
 
 
 class RevConnect(Elaboratable):
