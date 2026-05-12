@@ -13,6 +13,7 @@ from transactron.testing.input_generation import OpNOP, generate_process_input
 from transactron.lib.storage import *
 from transactron.utils.amaranth_ext.memory import MultiportXORMemory, MultiportXORILVTMemory, MultiportOneHotILVTMemory
 from transactron.utils.transactron_helpers import make_layout
+from transactron.utils.data_repr import data_layout
 
 
 class TestContentAddressableMemory(TestCaseWithSimulator):

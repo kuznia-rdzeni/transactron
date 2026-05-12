@@ -21,8 +21,23 @@ if TYPE_CHECKING:
 del TYPE_CHECKING
 
 
+__all__ = [
+    "TestbenchContext",
+    "ProcessContext",
+    "SimulatorContext",
+    "TestCaseWithSimulator",
+    "PysimSimulator",
+    "CallTrigger",
+    "SimpleTestCircuit",
+    "TestbenchIO",
+    "def_method_mock",
+    "data_const_to_dict",
+    "data_layout",
+]
+
+
 def __getattr__(name):
     if name in ["TestCaseWithSimulator"]:
-        module = __import__(".test_case", fromlist=[name])
+        module = __import__("transactron.testing.test_case", fromlist=[name])
         return getattr(module, name)
     raise AttributeError(f"module {__name__} has no attribute {name}")
