@@ -30,7 +30,7 @@ classifiers = [
 [project.optional-dependencies]
 testing = [
     "pytest >= 8.0.0, < 10.0",
-    "hypothesis <= 6.99.6, < 6.152.6",
+    "hypothesis <= 6.99.6, < 6.153",
 ]
 
 [dependency-groups]
