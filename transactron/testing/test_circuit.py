@@ -1,13 +1,12 @@
-from collections.abc import Iterable
+from collections.abc import Iterable, Mapping
 import inspect
 from typing import TypeGuard, Any
 from amaranth import *
 from amaranth.sim import *
-from transactron.core.method import MethodDir
 from transactron.lib.adapters import Adapter
 
 from .testbenchio import TestbenchIO
-from transactron import Method, Methods
+from transactron.core import Method, Methods, MethodDir, interface
 from transactron.lib import AdapterTrans
 from transactron.utils import ModuleConnector, auto_debug_signals
 from amaranth_types import HasElaborate
@@ -75,26 +74,14 @@ class SimpleTestCircuit[T: HasElaborate](Elaboratable):
 
         m = Module()
 
-        m.submodules.dut = self._dut
-        hints: dict[str, Any] = {}
-        for cls in reversed(self._dut.__class__.__mro__):
-            hints.update(inspect.get_annotations(cls, eval_str=True))
+        iface = interface(self._dut)
 
-        for name, attr in vars(self._dut).items():
+        for name, member in iface.items():
             if name in self._exclude:
                 continue
-            if guard_nested_collection(attr, Method, Methods) and attr:
-                if (
-                    name in hints
-                    and hasattr(hints[name], "__metadata__")
-                    and MethodDir.REQUIRED in hints[name].__metadata__
-                ):
-                    adapter_type = Adapter
-                else:  # PROVIDED is the default
-                    adapter_type = AdapterTrans
-                tb_cont, mc = transform_methods_to_testbenchios(adapter_type, attr)
-                self._io[name] = tb_cont
-                m.submodules[name] = mc
+            tb_cont, mc = transform_methods_to_testbenchios(member.dir, member.iface)
+            self._io[name] = tb_cont
+            m.submodules[name] = mc
 
         return m
 
