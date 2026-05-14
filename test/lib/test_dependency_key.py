@@ -41,7 +41,6 @@ class CacheTestKey(DependencyKey[None, int]):
 @dataclass(frozen=True)
 class KeyNoCache(CacheTestKey):
     cache = False
-    pass
 
 
 @dataclass(frozen=True)
@@ -54,7 +53,7 @@ class UnifierKeyProduct(UnifierKey, unifier=MethodProduct.create):
     pass
 
 
-class CircuitTestModule(Elaboratable):
+class UnifierKeyTestModule(Elaboratable):
     b: Required[Method]
     c: Required[Method]
 
@@ -82,7 +81,7 @@ class CircuitTestModule(Elaboratable):
 class TestDependencyKey(TestCaseWithSimulator):
 
     def test_unifier_key(self):
-        m = SimpleTestCircuit(CircuitTestModule())
+        m = SimpleTestCircuit(UnifierKeyTestModule())
 
         async def test_process(sim):
             m.b.enable(sim)

@@ -1,5 +1,4 @@
-from collections.abc import Callable
-from typing import Iterable
+from collections.abc import Callable, Iterable
 
 from .. import Method
 from .transformers import Unifier
@@ -19,9 +18,12 @@ class UnifierKey(DependencyKey["Method", tuple["Method", Iterable["Unifier"]]]):
     `Unifier` module needs to be added as submodule when calling `combine`.
     """
 
+    unifier: Callable[[list["Method"]], "Unifier"]
+
+    cache = False
+
     def __init_subclass__(cls, unifier: Callable[[list["Method"]], "Unifier"], **kwargs) -> None:
-        # drop `self` argument when assigning to cls
-        cls.unifier = lambda _, targets: unifier(targets)
+        cls.unifier = staticmethod(unifier)
         super().__init_subclass__(**kwargs)
 
     def combine(self, data: list["Method"]) -> tuple["Method", Iterable["Unifier"]]:
