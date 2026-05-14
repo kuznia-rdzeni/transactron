@@ -133,14 +133,14 @@ class TestContentAddressableMemory(TestCaseWithSimulator):
         generate_process_input(test_number, nop_number, [("addr", addr_layout)]),
         generate_process_input(test_number, nop_number, [("addr", addr_layout)]),
     )
+    @TestCaseWithSimulator.wrap_testing_env_next
     def test_random(self, in_push, in_write, in_read, in_remove):
-        with self.reinitialize_fixtures():
-            self.setUp()
-            with self.run_simulation(self.circ, max_cycles=500) as sim:
-                sim.add_testbench(self.push_process(in_push))
-                sim.add_testbench(self.read_process(in_read))
-                sim.add_testbench(self.write_process(in_write))
-                sim.add_testbench(self.remove_process(in_remove))
+        self.setUp()
+        with self.run_simulation(self.circ, max_cycles=500) as sim:
+            sim.add_testbench(self.push_process(in_push))
+            sim.add_testbench(self.read_process(in_read))
+            sim.add_testbench(self.write_process(in_write))
+            sim.add_testbench(self.remove_process(in_remove))
 
 
 bank_shapes = [

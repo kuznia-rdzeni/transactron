@@ -1,10 +1,10 @@
 import sys
-import pytest
 import logging
 import os
+import functools
 from contextlib import contextmanager
 from collections.abc import Callable
-from typing import Optional
+from typing import Concatenate, Optional
 from amaranth import *
 from amaranth.sim import *
 from amaranth_types import HasElaborate
@@ -17,10 +17,10 @@ from .simulator import PysimSimulator, tick, random_wait, random_wait_geom
 from transactron.core.keys import TransactionManagerKey
 
 
-__all__ = ["TestCaseWithSimulator"]
+__all__ = ["TestCaseWithSimulatorBase"]
 
 
-class TestCaseWithSimulator:
+class TestCaseWithSimulatorBase:
     dependency_manager: DependencyManager
 
     @contextmanager
@@ -99,7 +99,7 @@ class TestCaseWithSimulator:
         root_logger.handlers = handlers_before
 
     @contextmanager
-    def reinitialize_fixtures(self):
+    def ctx_testing_env_next(self):
         # File name to be used in the current test run (either standard or hypothesis iteration)
         # for standard tests it will always have the suffix "_0". For hypothesis tests, it will be suffixed
         # with the current hypothesis iteration number, so that each hypothesis run is saved to a
@@ -116,8 +116,8 @@ class TestCaseWithSimulator:
                     yield
         self._transactron_hypothesis_iter_counter += 1
 
-    @pytest.fixture(autouse=True)
-    def fixture_initialize_testing_env(self, request):
+    @contextmanager
+    def ctx_testing_env(self, base_output_file_name: str):
         # Hypothesis creates a single instance of a test class, which is later reused multiple times.
         # This means that pytest fixtures are only run once. We can take advantage of this behaviour and
         # initialise hypothesis related variables.
@@ -126,9 +126,30 @@ class TestCaseWithSimulator:
         # by `reinitialize_fixtures` which should be started at the beginning of each hypothesis run
         self._transactron_hypothesis_iter_counter = 0
         # Base name which will be used later to create file names for particular outputs
-        self._transactron_base_output_file_name = ".".join(request.node.nodeid.split("/"))
-        with self.reinitialize_fixtures():
+        self._transactron_base_output_file_name = base_output_file_name
+        with self.ctx_testing_env_next():
             yield
+
+    @staticmethod
+    def wrap_testing_env_next[S: "TestCaseWithSimulatorBase", T, **P](func: Callable[Concatenate[S, P], T]):
+        @functools.wraps(func)
+        def wrapper(self, *args: P.args, **kwargs: P.kwargs) -> T:
+            with self.ctx_testing_env_next():
+                return func(self, *args, **kwargs)
+
+        return wrapper
+
+    @staticmethod
+    def wrap_testing_env(base_output_file_name: str):
+        def wrap[S: "TestCaseWithSimulatorBase", T, **P](func: Callable[Concatenate[S, P], T]):
+            @functools.wraps(func)
+            def wrapper(self, *args: P.args, **kwargs: P.kwargs) -> T:
+                with self.ctx_testing_env(base_output_file_name):
+                    return func(self, *args, **kwargs)
+
+            return wrapper
+
+        return wrap
 
     @contextmanager
     def run_simulation(self, module: HasElaborate, max_cycles: float = 10e4, add_transaction_module=True):
