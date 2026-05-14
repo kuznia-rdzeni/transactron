@@ -5,7 +5,7 @@ import pytest
 from transactron.core import *
 from transactron.lib.dependencies import ListKey, UnifierKey
 from transactron.lib.transformers import MethodProduct
-from transactron.testing.infrastructure import TestCaseWithSimulator
+from transactron.testing import TestCaseWithSimulator
 
 from amaranth import *
 from transactron.testing.test_circuit import SimpleTestCircuit
