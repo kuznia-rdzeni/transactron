@@ -38,6 +38,8 @@ lint = [
     "pyright == 1.1.393",
     "flake8 == 7.0.0",
     "black == 24.4.2",
+    "pep8-naming == 0.13.3",
+    "pre-commit == 2.16.0",
 ]
 test = [
     "pytest == 8.0.0",
@@ -45,7 +47,6 @@ test = [
     "hypothesis == 6.99.6",
 ]
 docs = [
-    "pep8-naming == 0.13.3",
     "Sphinx == 8.2.3",
     "sphinx-rtd-theme == 3.0.2",
     "myst-parser == 4.0.1",
@@ -53,7 +54,6 @@ docs = [
     "sphinxcontrib-mermaid == 0.8.1",
 ]
 dev = [
-    "pre-commit == 2.16.0",
     {include-group = "lint"},
     {include-group = "test"},
     {include-group = "docs"},
