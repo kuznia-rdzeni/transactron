@@ -92,81 +92,6 @@
 <dd></dd></dl>
 
 </section>
-<section id="module-transactron.testing.infrastructure">
-<span id="transactron-testing-infrastructure-module"></span><h2>transactron.testing.infrastructure module<a class="headerlink" href="#module-transactron.testing.infrastructure" title="Link to this heading"></a></h2>
-<dl class="py class">
-<dt class="sig sig-object py" id="transactron.testing.infrastructure.PysimSimulator">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">transactron.testing.infrastructure.</span></span><span class="sig-name descname"><span class="pre">PysimSimulator</span></span><a class="headerlink" href="#transactron.testing.infrastructure.PysimSimulator" title="Link to this definition"></a></dt>
-<dd><p>Bases: <a class="reference external" href="https://amaranth-lang.org/docs/amaranth/v0.5.4/simulator.html#amaranth.sim.Simulator" title="(in Amaranth language &amp; toolchain v0.5.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Simulator</span></code></a></p>
-<dl class="py method">
-<dt class="sig sig-object py" id="transactron.testing.infrastructure.PysimSimulator.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">module</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">HasElaborate</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_cycles</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">100000.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">add_transaction_module</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">traces_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clk_period</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-06</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.testing.infrastructure.PysimSimulator.__init__" title="Link to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="transactron.testing.infrastructure.PysimSimulator.run">
-<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#transactron.testing.infrastructure.PysimSimulator.run" title="Link to this definition"></a></dt>
-<dd><p>Run the simulation indefinitely.</p>
-<p>This method advances the simulation while any critical testbenches or processes continue
-executing. It is equivalent to:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">advance</span><span class="p">():</span>
-    <span class="k">pass</span>
-</pre></div>
-</div>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="transactron.testing.infrastructure.TestCaseWithSimulator">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">transactron.testing.infrastructure.</span></span><span class="sig-name descname"><span class="pre">TestCaseWithSimulator</span></span><a class="headerlink" href="#transactron.testing.infrastructure.TestCaseWithSimulator" title="Link to this definition"></a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
-<dl class="py method">
-<dt class="sig sig-object py" id="transactron.testing.infrastructure.TestCaseWithSimulator.add_mock">
-<span class="sig-name descname"><span class="pre">add_mock</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#transactron.testing.infrastructure.PysimSimulator" title="transactron.testing.infrastructure.PysimSimulator"><span class="pre">PysimSimulator</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">val</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#transactron.testing.method_mock.MethodMock" title="transactron.testing.method_mock.MethodMock"><span class="pre">MethodMock</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.testing.infrastructure.TestCaseWithSimulator.add_mock" title="Link to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="transactron.testing.infrastructure.TestCaseWithSimulator.dependency_manager">
-<span class="sig-name descname"><span class="pre">dependency_manager</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="transactron.utils.html#transactron.utils.dependencies.DependencyManager" title="transactron.utils.dependencies.DependencyManager"><span class="pre">DependencyManager</span></a></em><a class="headerlink" href="#transactron.testing.infrastructure.TestCaseWithSimulator.dependency_manager" title="Link to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="transactron.testing.infrastructure.TestCaseWithSimulator.fixture_initialize_testing_env">
-<span class="sig-name descname"><span class="pre">fixture_initialize_testing_env</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.testing.infrastructure.TestCaseWithSimulator.fixture_initialize_testing_env" title="Link to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="transactron.testing.infrastructure.TestCaseWithSimulator.random_wait">
-<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">random_wait</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/v0.5.4/simulator.html#amaranth.sim.SimulatorContext" title="(in Amaranth language &amp; toolchain v0.5.4)"><span class="pre">SimulatorContext</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_cycle_cnt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_cycle_cnt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.testing.infrastructure.TestCaseWithSimulator.random_wait" title="Link to this definition"></a></dt>
-<dd><p>Wait for a random amount of cycles in range [min_cycle_cnt, max_cycle_cnt]</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="transactron.testing.infrastructure.TestCaseWithSimulator.random_wait_geom">
-<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">random_wait_geom</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/v0.5.4/simulator.html#amaranth.sim.SimulatorContext" title="(in Amaranth language &amp; toolchain v0.5.4)"><span class="pre">SimulatorContext</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">prob</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_cycle_cnt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">65536</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.testing.infrastructure.TestCaseWithSimulator.random_wait_geom" title="Link to this definition"></a></dt>
-<dd><p>Wait till the first success, where there is <cite>prob</cite> probability for success in each cycle.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="transactron.testing.infrastructure.TestCaseWithSimulator.reinitialize_fixtures">
-<span class="sig-name descname"><span class="pre">reinitialize_fixtures</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#transactron.testing.infrastructure.TestCaseWithSimulator.reinitialize_fixtures" title="Link to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="transactron.testing.infrastructure.TestCaseWithSimulator.run_simulation">
-<span class="sig-name descname"><span class="pre">run_simulation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">module</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">HasElaborate</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_cycles</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">100000.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">add_transaction_module</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.testing.infrastructure.TestCaseWithSimulator.run_simulation" title="Link to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="transactron.testing.infrastructure.TestCaseWithSimulator.tick">
-<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">tick</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/v0.5.4/simulator.html#amaranth.sim.SimulatorContext" title="(in Amaranth language &amp; toolchain v0.5.4)"><span class="pre">SimulatorContext</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cycle_cnt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.testing.infrastructure.TestCaseWithSimulator.tick" title="Link to this definition"></a></dt>
-<dd><p>Waits for the given number of cycles.</p>
-</dd></dl>
-
-</dd></dl>
-
-</section>
 <section id="module-transactron.testing.input_generation">
 <span id="transactron-testing-input-generation-module"></span><h2>transactron.testing.input_generation module<a class="headerlink" href="#module-transactron.testing.input_generation" title="Link to this heading"></a></h2>
 <dl class="py class">
@@ -201,11 +126,6 @@ executing. It is equivalent to:</p>
 <dd><p>Trick based on <a class="reference external" href="https://github.com/HypothesisWorks/hypothesis/blob/">https://github.com/HypothesisWorks/hypothesis/blob/</a>
 6867da71beae0e4ed004b54b92ef7c74d0722815/hypothesis-python/src/hypothesis/stateful.py#L143</p>
 </dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="transactron.testing.input_generation.insert_nops">
-<span class="sig-prename descclassname"><span class="pre">transactron.testing.input_generation.</span></span><span class="sig-name descname"><span class="pre">insert_nops</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">draw</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DrawFn</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_nops</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">lst</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.testing.input_generation.insert_nops" title="Link to this definition"></a></dt>
-<dd></dd></dl>
 
 </section>
 <section id="module-transactron.testing.logging">
@@ -267,17 +187,17 @@ of one of the predefined levels.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="transactron.testing.method_mock.MethodMock.effect_process">
-<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">effect_process</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/v0.5.4/simulator.html#amaranth.sim.SimulatorContext" title="(in Amaranth language &amp; toolchain v0.5.4)"><span class="pre">SimulatorContext</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#transactron.testing.method_mock.MethodMock.effect_process" title="Link to this definition"></a></dt>
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">effect_process</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#transactron.testing.SimulatorContext" title="amaranth.sim._async.SimulatorContext"><span class="pre">SimulatorContext</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#transactron.testing.method_mock.MethodMock.effect_process" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="transactron.testing.method_mock.MethodMock.output_process">
-<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">output_process</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/v0.5.4/simulator.html#amaranth.sim.SimulatorContext" title="(in Amaranth language &amp; toolchain v0.5.4)"><span class="pre">SimulatorContext</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#transactron.testing.method_mock.MethodMock.output_process" title="Link to this definition"></a></dt>
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">output_process</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#transactron.testing.SimulatorContext" title="amaranth.sim._async.SimulatorContext"><span class="pre">SimulatorContext</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#transactron.testing.method_mock.MethodMock.output_process" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="transactron.testing.method_mock.MethodMock.validate_arguments_process">
-<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">validate_arguments_process</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/v0.5.4/simulator.html#amaranth.sim.SimulatorContext" title="(in Amaranth language &amp; toolchain v0.5.4)"><span class="pre">SimulatorContext</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#transactron.testing.method_mock.MethodMock.validate_arguments_process" title="Link to this definition"></a></dt>
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">validate_arguments_process</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#transactron.testing.SimulatorContext" title="amaranth.sim._async.SimulatorContext"><span class="pre">SimulatorContext</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#transactron.testing.method_mock.MethodMock.validate_arguments_process" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -328,6 +248,126 @@ between different mocks and testbench processes.</p>
 <dd></dd></dl>
 
 </section>
+<section id="module-transactron.testing.simulator">
+<span id="transactron-testing-simulator-module"></span><h2>transactron.testing.simulator module<a class="headerlink" href="#module-transactron.testing.simulator" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="transactron.testing.simulator.PysimSimulator">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">transactron.testing.simulator.</span></span><span class="sig-name descname"><span class="pre">PysimSimulator</span></span><a class="headerlink" href="#transactron.testing.simulator.PysimSimulator" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://amaranth-lang.org/docs/amaranth/v0.5.4/simulator.html#amaranth.sim.Simulator" title="(in Amaranth language &amp; toolchain v0.5.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Simulator</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.testing.simulator.PysimSimulator.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">module</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">HasElaborate</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_cycles</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">100000.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">add_transaction_module</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">traces_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clk_period</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-06</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.testing.simulator.PysimSimulator.__init__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.testing.simulator.PysimSimulator.add_mock">
+<span class="sig-name descname"><span class="pre">add_mock</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">val</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#transactron.testing.method_mock.MethodMock" title="transactron.testing.method_mock.MethodMock"><span class="pre">MethodMock</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.testing.simulator.PysimSimulator.add_mock" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.testing.simulator.PysimSimulator.run">
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#transactron.testing.simulator.PysimSimulator.run" title="Link to this definition"></a></dt>
+<dd><p>Run the simulation indefinitely.</p>
+<p>This method advances the simulation while any critical testbenches or processes continue
+executing. It is equivalent to:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">advance</span><span class="p">():</span>
+    <span class="k">pass</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="transactron.testing.simulator.random_wait">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">transactron.testing.simulator.</span></span><span class="sig-name descname"><span class="pre">random_wait</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ctx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#transactron.testing.SimulatorContext" title="amaranth.sim._async.SimulatorContext"><span class="pre">SimulatorContext</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_cycle_cnt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_cycle_cnt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.testing.simulator.random_wait" title="Link to this definition"></a></dt>
+<dd><p>Wait for a random amount of cycles in range [min_cycle_cnt, max_cycle_cnt]</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="transactron.testing.simulator.random_wait_geom">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">transactron.testing.simulator.</span></span><span class="sig-name descname"><span class="pre">random_wait_geom</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ctx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#transactron.testing.SimulatorContext" title="amaranth.sim._async.SimulatorContext"><span class="pre">SimulatorContext</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">prob</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_cycle_cnt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">65536</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.testing.simulator.random_wait_geom" title="Link to this definition"></a></dt>
+<dd><p>Wait till the first success, where there is <cite>prob</cite> probability for success in each cycle.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="transactron.testing.simulator.tick">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">transactron.testing.simulator.</span></span><span class="sig-name descname"><span class="pre">tick</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ctx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#transactron.testing.SimulatorContext" title="amaranth.sim._async.SimulatorContext"><span class="pre">SimulatorContext</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cycle_cnt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.testing.simulator.tick" title="Link to this definition"></a></dt>
+<dd><p>Waits for the given number of cycles.</p>
+</dd></dl>
+
+</section>
+<section id="module-transactron.testing.test_case">
+<span id="transactron-testing-test-case-module"></span><h2>transactron.testing.test_case module<a class="headerlink" href="#module-transactron.testing.test_case" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="transactron.testing.test_case.TestCaseWithSimulatorBase">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">transactron.testing.test_case.</span></span><span class="sig-name descname"><span class="pre">TestCaseWithSimulatorBase</span></span><a class="headerlink" href="#transactron.testing.test_case.TestCaseWithSimulatorBase" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.testing.test_case.TestCaseWithSimulatorBase.ctx_testing_env">
+<span class="sig-name descname"><span class="pre">ctx_testing_env</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">base_output_file_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.testing.test_case.TestCaseWithSimulatorBase.ctx_testing_env" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.testing.test_case.TestCaseWithSimulatorBase.ctx_testing_env_next">
+<span class="sig-name descname"><span class="pre">ctx_testing_env_next</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#transactron.testing.test_case.TestCaseWithSimulatorBase.ctx_testing_env_next" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="transactron.testing.test_case.TestCaseWithSimulatorBase.dependency_manager">
+<span class="sig-name descname"><span class="pre">dependency_manager</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="transactron.utils.html#transactron.utils.dependencies.DependencyManager" title="transactron.utils.dependencies.DependencyManager"><span class="pre">DependencyManager</span></a></em><a class="headerlink" href="#transactron.testing.test_case.TestCaseWithSimulatorBase.dependency_manager" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.testing.test_case.TestCaseWithSimulatorBase.random_wait">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">random_wait</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ctx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#transactron.testing.SimulatorContext" title="amaranth.sim._async.SimulatorContext"><span class="pre">SimulatorContext</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_cycle_cnt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_cycle_cnt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.testing.test_case.TestCaseWithSimulatorBase.random_wait" title="Link to this definition"></a></dt>
+<dd><p>Wait for a random amount of cycles in range [min_cycle_cnt, max_cycle_cnt]</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.testing.test_case.TestCaseWithSimulatorBase.random_wait_geom">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">random_wait_geom</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ctx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#transactron.testing.SimulatorContext" title="amaranth.sim._async.SimulatorContext"><span class="pre">SimulatorContext</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">prob</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_cycle_cnt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">65536</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.testing.test_case.TestCaseWithSimulatorBase.random_wait_geom" title="Link to this definition"></a></dt>
+<dd><p>Wait till the first success, where there is <cite>prob</cite> probability for success in each cycle.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.testing.test_case.TestCaseWithSimulatorBase.run_simulation">
+<span class="sig-name descname"><span class="pre">run_simulation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">module</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">HasElaborate</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_cycles</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">100000.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">add_transaction_module</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.testing.test_case.TestCaseWithSimulatorBase.run_simulation" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.testing.test_case.TestCaseWithSimulatorBase.tick">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">tick</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ctx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#transactron.testing.SimulatorContext" title="amaranth.sim._async.SimulatorContext"><span class="pre">SimulatorContext</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cycle_cnt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.testing.test_case.TestCaseWithSimulatorBase.tick" title="Link to this definition"></a></dt>
+<dd><p>Waits for the given number of cycles.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.testing.test_case.TestCaseWithSimulatorBase.wrap_testing_env">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">wrap_testing_env</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">base_output_file_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.testing.test_case.TestCaseWithSimulatorBase.wrap_testing_env" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.testing.test_case.TestCaseWithSimulatorBase.wrap_testing_env_next">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">wrap_testing_env_next</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">func</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable" title="(in Python v3.14)"><span class="pre">Callable</span></a><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Concatenate" title="(in Python v3.14)"><span class="pre">Concatenate</span></a><span class="p"><span class="pre">[</span></span><span class="pre">S</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">P</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">T</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.testing.test_case.TestCaseWithSimulatorBase.wrap_testing_env_next" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-transactron.testing.test_case_pytest">
+<span id="transactron-testing-test-case-pytest-module"></span><h2>transactron.testing.test_case_pytest module<a class="headerlink" href="#module-transactron.testing.test_case_pytest" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="transactron.testing.test_case_pytest.TestCaseWithSimulator">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">transactron.testing.test_case_pytest.</span></span><span class="sig-name descname"><span class="pre">TestCaseWithSimulator</span></span><a class="headerlink" href="#transactron.testing.test_case_pytest.TestCaseWithSimulator" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#transactron.testing.test_case.TestCaseWithSimulatorBase" title="transactron.testing.test_case.TestCaseWithSimulatorBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">TestCaseWithSimulatorBase</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.testing.test_case_pytest.TestCaseWithSimulator.fixture_initialize_testing_env">
+<span class="sig-name descname"><span class="pre">fixture_initialize_testing_env</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.testing.test_case_pytest.TestCaseWithSimulator.fixture_initialize_testing_env" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
 <section id="module-transactron.testing.test_circuit">
 <span id="transactron-testing-test-circuit-module"></span><h2>transactron.testing.test_circuit module<a class="headerlink" href="#module-transactron.testing.test_circuit" title="Link to this heading"></a></h2>
 <dl class="py class">
@@ -361,7 +401,7 @@ when more control over the time when different calls happen is needed, this trig
 many methods in a single clock cycle.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="transactron.testing.testbenchio.CallTrigger.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/v0.5.4/simulator.html#amaranth.sim.SimulatorContext" title="(in Amaranth language &amp; toolchain v0.5.4)"><span class="pre">SimulatorContext</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">_calls</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterable" title="(in Python v3.14)"><span class="pre">Iterable</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/v0.5.4/reference.html#amaranth.hdl.Value" title="(in Amaranth language &amp; toolchain v0.5.4)"><span class="pre">Value</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/enum.html#enum.Enum" title="(in Python v3.14)"><span class="pre">Enum</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/v0.5.4/reference.html#amaranth.hdl.ValueCastable" title="(in Amaranth language &amp; toolchain v0.5.4)"><span class="pre">ValueCastable</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#transactron.testing.testbenchio.TestbenchIO" title="transactron.testing.testbenchio.TestbenchIO"><span class="pre">TestbenchIO</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">()</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.testing.testbenchio.CallTrigger.__init__" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#transactron.testing.SimulatorContext" title="amaranth.sim._async.SimulatorContext"><span class="pre">SimulatorContext</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">_calls</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterable" title="(in Python v3.14)"><span class="pre">Iterable</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/v0.5.4/reference.html#amaranth.hdl.Value" title="(in Amaranth language &amp; toolchain v0.5.4)"><span class="pre">Value</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/enum.html#enum.Enum" title="(in Python v3.14)"><span class="pre">Enum</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/v0.5.4/reference.html#amaranth.hdl.ValueCastable" title="(in Amaranth language &amp; toolchain v0.5.4)"><span class="pre">ValueCastable</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#transactron.testing.testbenchio.TestbenchIO" title="transactron.testing.testbenchio.TestbenchIO"><span class="pre">TestbenchIO</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">()</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.testing.testbenchio.CallTrigger.__init__" title="Link to this definition"></a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
@@ -439,32 +479,32 @@ methods were not enabled. In case we only want to focus on the cycles when one o
 
 <dl class="py method">
 <dt class="sig sig-object py" id="transactron.testing.testbenchio.TestbenchIO.call">
-<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">call</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/v0.5.4/simulator.html#amaranth.sim.SimulatorContext" title="(in Amaranth language &amp; toolchain v0.5.4)"><span class="pre">SimulatorContext</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="positional-only-separator o"><abbr title="Positional-only parameter separator (PEP 570)"><span class="pre">/</span></abbr></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwdata</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">data.Const</span><span class="p"><span class="pre">[</span></span><span class="pre">data.StructLayout</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#transactron.testing.testbenchio.TestbenchIO.call" title="Link to this definition"></a></dt>
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">call</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#transactron.testing.SimulatorContext" title="amaranth.sim._async.SimulatorContext"><span class="pre">SimulatorContext</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="positional-only-separator o"><abbr title="Positional-only parameter separator (PEP 570)"><span class="pre">/</span></abbr></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwdata</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">data.Const</span><span class="p"><span class="pre">[</span></span><span class="pre">data.StructLayout</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#transactron.testing.testbenchio.TestbenchIO.call" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="transactron.testing.testbenchio.TestbenchIO.call_do">
-<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">call_do</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/v0.5.4/simulator.html#amaranth.sim.SimulatorContext" title="(in Amaranth language &amp; toolchain v0.5.4)"><span class="pre">SimulatorContext</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">data.Const</span><span class="p"><span class="pre">[</span></span><span class="pre">data.StructLayout</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#transactron.testing.testbenchio.TestbenchIO.call_do" title="Link to this definition"></a></dt>
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">call_do</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#transactron.testing.SimulatorContext" title="amaranth.sim._async.SimulatorContext"><span class="pre">SimulatorContext</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">data.Const</span><span class="p"><span class="pre">[</span></span><span class="pre">data.StructLayout</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#transactron.testing.testbenchio.TestbenchIO.call_do" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="transactron.testing.testbenchio.TestbenchIO.call_init">
-<span class="sig-name descname"><span class="pre">call_init</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/v0.5.4/simulator.html#amaranth.sim.SimulatorContext" title="(in Amaranth language &amp; toolchain v0.5.4)"><span class="pre">SimulatorContext</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="positional-only-separator o"><abbr title="Positional-only parameter separator (PEP 570)"><span class="pre">/</span></abbr></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwdata</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.testing.testbenchio.TestbenchIO.call_init" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">call_init</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#transactron.testing.SimulatorContext" title="amaranth.sim._async.SimulatorContext"><span class="pre">SimulatorContext</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="positional-only-separator o"><abbr title="Positional-only parameter separator (PEP 570)"><span class="pre">/</span></abbr></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwdata</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.testing.testbenchio.TestbenchIO.call_init" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="transactron.testing.testbenchio.TestbenchIO.call_result">
-<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">call_result</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/v0.5.4/simulator.html#amaranth.sim.SimulatorContext" title="(in Amaranth language &amp; toolchain v0.5.4)"><span class="pre">SimulatorContext</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">data.Const</span><span class="p"><span class="pre">[</span></span><span class="pre">data.StructLayout</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#transactron.testing.testbenchio.TestbenchIO.call_result" title="Link to this definition"></a></dt>
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">call_result</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#transactron.testing.SimulatorContext" title="amaranth.sim._async.SimulatorContext"><span class="pre">SimulatorContext</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">data.Const</span><span class="p"><span class="pre">[</span></span><span class="pre">data.StructLayout</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#transactron.testing.testbenchio.TestbenchIO.call_result" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="transactron.testing.testbenchio.TestbenchIO.call_try">
-<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">call_try</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/v0.5.4/simulator.html#amaranth.sim.SimulatorContext" title="(in Amaranth language &amp; toolchain v0.5.4)"><span class="pre">SimulatorContext</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="positional-only-separator o"><abbr title="Positional-only parameter separator (PEP 570)"><span class="pre">/</span></abbr></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwdata</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">data.Const</span><span class="p"><span class="pre">[</span></span><span class="pre">data.StructLayout</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#transactron.testing.testbenchio.TestbenchIO.call_try" title="Link to this definition"></a></dt>
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">call_try</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#transactron.testing.SimulatorContext" title="amaranth.sim._async.SimulatorContext"><span class="pre">SimulatorContext</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="positional-only-separator o"><abbr title="Positional-only parameter separator (PEP 570)"><span class="pre">/</span></abbr></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwdata</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">data.Const</span><span class="p"><span class="pre">[</span></span><span class="pre">data.StructLayout</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#transactron.testing.testbenchio.TestbenchIO.call_try" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="transactron.testing.testbenchio.TestbenchIO.disable">
-<span class="sig-name descname"><span class="pre">disable</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/v0.5.4/simulator.html#amaranth.sim.SimulatorContext" title="(in Amaranth language &amp; toolchain v0.5.4)"><span class="pre">SimulatorContext</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.testing.testbenchio.TestbenchIO.disable" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">disable</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#transactron.testing.SimulatorContext" title="amaranth.sim._async.SimulatorContext"><span class="pre">SimulatorContext</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.testing.testbenchio.TestbenchIO.disable" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py property">
@@ -474,22 +514,22 @@ methods were not enabled. In case we only want to focus on the cycles when one o
 
 <dl class="py method">
 <dt class="sig sig-object py" id="transactron.testing.testbenchio.TestbenchIO.enable">
-<span class="sig-name descname"><span class="pre">enable</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/v0.5.4/simulator.html#amaranth.sim.SimulatorContext" title="(in Amaranth language &amp; toolchain v0.5.4)"><span class="pre">SimulatorContext</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.testing.testbenchio.TestbenchIO.enable" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">enable</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#transactron.testing.SimulatorContext" title="amaranth.sim._async.SimulatorContext"><span class="pre">SimulatorContext</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.testing.testbenchio.TestbenchIO.enable" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="transactron.testing.testbenchio.TestbenchIO.get_call_result">
-<span class="sig-name descname"><span class="pre">get_call_result</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TestbenchContext</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">data.Const</span><span class="p"><span class="pre">[</span></span><span class="pre">data.StructLayout</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#transactron.testing.testbenchio.TestbenchIO.get_call_result" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_call_result</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#transactron.testing.TestbenchContext" title="amaranth.sim._async.TestbenchContext"><span class="pre">TestbenchContext</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">data.Const</span><span class="p"><span class="pre">[</span></span><span class="pre">data.StructLayout</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#transactron.testing.testbenchio.TestbenchIO.get_call_result" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="transactron.testing.testbenchio.TestbenchIO.get_done">
-<span class="sig-name descname"><span class="pre">get_done</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TestbenchContext</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.testing.testbenchio.TestbenchIO.get_done" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_done</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#transactron.testing.TestbenchContext" title="amaranth.sim._async.TestbenchContext"><span class="pre">TestbenchContext</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.testing.testbenchio.TestbenchIO.get_done" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="transactron.testing.testbenchio.TestbenchIO.get_outputs">
-<span class="sig-name descname"><span class="pre">get_outputs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TestbenchContext</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">data.Const</span><span class="p"><span class="pre">[</span></span><span class="pre">data.StructLayout</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#transactron.testing.testbenchio.TestbenchIO.get_outputs" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_outputs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#transactron.testing.TestbenchContext" title="amaranth.sim._async.TestbenchContext"><span class="pre">TestbenchContext</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">data.Const</span><span class="p"><span class="pre">[</span></span><span class="pre">data.StructLayout</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#transactron.testing.testbenchio.TestbenchIO.get_outputs" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py property">
@@ -499,27 +539,27 @@ methods were not enabled. In case we only want to focus on the cycles when one o
 
 <dl class="py method">
 <dt class="sig sig-object py" id="transactron.testing.testbenchio.TestbenchIO.sample_outputs">
-<span class="sig-name descname"><span class="pre">sample_outputs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/v0.5.4/simulator.html#amaranth.sim.SimulatorContext" title="(in Amaranth language &amp; toolchain v0.5.4)"><span class="pre">SimulatorContext</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.testing.testbenchio.TestbenchIO.sample_outputs" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">sample_outputs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#transactron.testing.SimulatorContext" title="amaranth.sim._async.SimulatorContext"><span class="pre">SimulatorContext</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.testing.testbenchio.TestbenchIO.sample_outputs" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="transactron.testing.testbenchio.TestbenchIO.sample_outputs_done">
-<span class="sig-name descname"><span class="pre">sample_outputs_done</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/v0.5.4/simulator.html#amaranth.sim.SimulatorContext" title="(in Amaranth language &amp; toolchain v0.5.4)"><span class="pre">SimulatorContext</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.testing.testbenchio.TestbenchIO.sample_outputs_done" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">sample_outputs_done</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#transactron.testing.SimulatorContext" title="amaranth.sim._async.SimulatorContext"><span class="pre">SimulatorContext</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.testing.testbenchio.TestbenchIO.sample_outputs_done" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="transactron.testing.testbenchio.TestbenchIO.sample_outputs_until_done">
-<span class="sig-name descname"><span class="pre">sample_outputs_until_done</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/v0.5.4/simulator.html#amaranth.sim.SimulatorContext" title="(in Amaranth language &amp; toolchain v0.5.4)"><span class="pre">SimulatorContext</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.testing.testbenchio.TestbenchIO.sample_outputs_until_done" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">sample_outputs_until_done</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#transactron.testing.SimulatorContext" title="amaranth.sim._async.SimulatorContext"><span class="pre">SimulatorContext</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.testing.testbenchio.TestbenchIO.sample_outputs_until_done" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="transactron.testing.testbenchio.TestbenchIO.set_enable">
-<span class="sig-name descname"><span class="pre">set_enable</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/v0.5.4/simulator.html#amaranth.sim.SimulatorContext" title="(in Amaranth language &amp; toolchain v0.5.4)"><span class="pre">SimulatorContext</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">en</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.testing.testbenchio.TestbenchIO.set_enable" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">set_enable</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#transactron.testing.SimulatorContext" title="amaranth.sim._async.SimulatorContext"><span class="pre">SimulatorContext</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">en</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.testing.testbenchio.TestbenchIO.set_enable" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="transactron.testing.testbenchio.TestbenchIO.set_inputs">
-<span class="sig-name descname"><span class="pre">set_inputs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/v0.5.4/simulator.html#amaranth.sim.SimulatorContext" title="(in Amaranth language &amp; toolchain v0.5.4)"><span class="pre">SimulatorContext</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.testing.testbenchio.TestbenchIO.set_inputs" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">set_inputs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#transactron.testing.SimulatorContext" title="amaranth.sim._async.SimulatorContext"><span class="pre">SimulatorContext</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.testing.testbenchio.TestbenchIO.set_inputs" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -546,6 +586,678 @@ methods were not enabled. In case we only want to focus on the cycles when one o
 </section>
 <section id="module-transactron.testing">
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-transactron.testing" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="transactron.testing.CallTrigger">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">transactron.testing.</span></span><span class="sig-name descname"><span class="pre">CallTrigger</span></span><a class="headerlink" href="#transactron.testing.CallTrigger" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>A trigger which allows to call multiple methods and sample signals.</p>
+<p>The <cite>call()</cite> and <cite>call_try()</cite> methods on a <cite>TestbenchIO</cite> always wait at least one clock cycle. It follows
+that these methods can’t be used to perform calls to multiple methods in a single clock cycle. Usually
+this is not a problem, as different methods can be called from different simulation processes. But in cases
+when more control over the time when different calls happen is needed, this trigger class allows to call
+many methods in a single clock cycle.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.testing.CallTrigger.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#transactron.testing.SimulatorContext" title="amaranth.sim._async.SimulatorContext"><span class="pre">SimulatorContext</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">_calls</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterable" title="(in Python v3.14)"><span class="pre">Iterable</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/v0.5.4/reference.html#amaranth.hdl.Value" title="(in Amaranth language &amp; toolchain v0.5.4)"><span class="pre">Value</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/enum.html#enum.Enum" title="(in Python v3.14)"><span class="pre">Enum</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/v0.5.4/reference.html#amaranth.hdl.ValueCastable" title="(in Amaranth language &amp; toolchain v0.5.4)"><span class="pre">ValueCastable</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#transactron.testing.testbenchio.TestbenchIO" title="transactron.testing.testbenchio.TestbenchIO"><span class="pre">TestbenchIO</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">()</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.testing.CallTrigger.__init__" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>sim: SimulatorContext</strong></dt><dd><p>Amaranth simulator context.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.testing.CallTrigger.call">
+<span class="sig-name descname"><span class="pre">call</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tbio</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#transactron.testing.testbenchio.TestbenchIO" title="transactron.testing.testbenchio.TestbenchIO"><span class="pre">TestbenchIO</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="positional-only-separator o"><abbr title="Positional-only parameter separator (PEP 570)"><span class="pre">/</span></abbr></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwdata</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.testing.CallTrigger.call" title="Link to this definition"></a></dt>
+<dd><p>Call a method and sample its result.</p>
+<p>Adds a method call to the trigger. The method result is sampled on a clock edge. If the call did not
+succeed, the sampled value is <cite>None</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>tbio: TestbenchIO</strong></dt><dd><p>The method to call.</p>
+</dd>
+<dt><strong>data: dict[str, Any]</strong></dt><dd><p>Method call arguments stored in a dict.</p>
+</dd>
+<dt><strong>**kwdata: Any</strong></dt><dd><p>Method call arguments passed as keyword arguments. If keyword arguments are used,
+the <cite>data</cite> argument should not be provided.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.testing.CallTrigger.sample">
+<span class="sig-name descname"><span class="pre">sample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">values</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/v0.5.4/reference.html#amaranth.hdl.Value" title="(in Amaranth language &amp; toolchain v0.5.4)"><span class="pre">Value</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/enum.html#enum.Enum" title="(in Python v3.14)"><span class="pre">Enum</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/v0.5.4/reference.html#amaranth.hdl.ValueCastable" title="(in Amaranth language &amp; toolchain v0.5.4)"><span class="pre">ValueCastable</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="#transactron.testing.testbenchio.TestbenchIO" title="transactron.testing.testbenchio.TestbenchIO"><span class="pre">TestbenchIO</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.testing.CallTrigger.sample" title="Link to this definition"></a></dt>
+<dd><p>Sample a signal or a method result on a clock edge.</p>
+<p>Values are sampled like in standard Amaranth <cite>TickTrigger</cite>. Sampling a method result works like <cite>call()</cite>,
+but the method is not called - another process can do that instead. If the method was not called, the
+sampled value is <cite>None</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>*values: ValueLike | TestbenchIO</strong></dt><dd><p>Value or method to sample.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.testing.CallTrigger.until_all_done">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">until_all_done</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span></span><a class="headerlink" href="#transactron.testing.CallTrigger.until_all_done" title="Link to this definition"></a></dt>
+<dd><p>Same as <cite>until_done</cite> but wait for all results instead of any result.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.testing.CallTrigger.until_done">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">until_done</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span></span><a class="headerlink" href="#transactron.testing.CallTrigger.until_done" title="Link to this definition"></a></dt>
+<dd><p>Wait until at least one of the calls succeeds.</p>
+<p>The <cite>CallTrigger</cite> normally acts like <cite>TickTrigger</cite>, e.g. awaiting on it advances the clock to the next
+clock edge. It is possible that none of the calls could not be performed, for example because the called
+methods were not enabled. In case we only want to focus on the cycles when one of the calls succeeded,
+<cite>until_done</cite> can be used. This works like <cite>until()</cite> in <cite>TickTrigger</cite>.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="transactron.testing.MethodMock">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">transactron.testing.</span></span><span class="sig-name descname"><span class="pre">MethodMock</span></span><a class="headerlink" href="#transactron.testing.MethodMock" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.testing.MethodMock.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">adapter:</span> <span class="pre">~transactron.lib.adapters.AdapterBase,</span> <span class="pre">function:</span> <span class="pre">~typing.Callable[[...],</span> <span class="pre">NameIntDict</span> <span class="pre">|</span> <span class="pre">None],</span> <span class="pre">*,</span> <span class="pre">validate_arguments:</span> <span class="pre">~typing.Callable[[...],</span> <span class="pre">bool]</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None,</span> <span class="pre">enable:</span> <span class="pre">~typing.Callable[[],</span> <span class="pre">bool]</span> <span class="pre">=</span> <span class="pre">&lt;function</span> <span class="pre">MethodMock.&lt;lambda&gt;&gt;,</span> <span class="pre">delay:</span> <span class="pre">float</span> <span class="pre">=</span> <span class="pre">0,</span> <span class="pre">**kwargs:</span> <span class="pre">~typing.Unpack[~transactron.core.body.AdapterBodyParams]</span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.testing.MethodMock.__init__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.testing.MethodMock.effect">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">effect</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">effect</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Callable" title="(in Python v3.14)"><span class="pre">Callable</span></a><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.testing.MethodMock.effect" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.testing.MethodMock.effect_process">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">effect_process</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#transactron.testing.SimulatorContext" title="amaranth.sim._async.SimulatorContext"><span class="pre">SimulatorContext</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#transactron.testing.MethodMock.effect_process" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.testing.MethodMock.output_process">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">output_process</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#transactron.testing.SimulatorContext" title="amaranth.sim._async.SimulatorContext"><span class="pre">SimulatorContext</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#transactron.testing.MethodMock.output_process" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.testing.MethodMock.validate_arguments_process">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">validate_arguments_process</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#transactron.testing.SimulatorContext" title="amaranth.sim._async.SimulatorContext"><span class="pre">SimulatorContext</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#transactron.testing.MethodMock.validate_arguments_process" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="transactron.testing.ProcessContext">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">transactron.testing.</span></span><span class="sig-name descname"><span class="pre">ProcessContext</span></span><a class="headerlink" href="#transactron.testing.ProcessContext" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#transactron.testing.SimulatorContext" title="amaranth.sim._async.SimulatorContext"><code class="xref py py-class docutils literal notranslate"><span class="pre">SimulatorContext</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.testing.ProcessContext.get">
+<span class="sig-name descname"><span class="pre">get</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">expr</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/v0.5.4/reference.html#amaranth.hdl.ValueLike" title="(in Amaranth language &amp; toolchain v0.5.4)"><span class="pre">ValueLike</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Never" title="(in Python v3.14)"><span class="pre">Never</span></a></span></span><a class="headerlink" href="#transactron.testing.ProcessContext.get" title="Link to this definition"></a></dt>
+<dd><p>Sample the value of an expression.</p>
+<p>The behavior of this method depends on the type of <code class="code highlight py python docutils literal highlight-python"><span class="n">expr</span></code>:</p>
+<ul class="simple">
+<li><p>If it is a <code class="xref py py-class docutils literal notranslate"><span class="pre">ValueCastable</span></code> whose shape is a <code class="xref py py-class docutils literal notranslate"><span class="pre">ShapeCastable</span></code>,
+its numeric value is converted to a higher-level representation using
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">from_bits()</span></code> and then returned.</p></li>
+<li><p>If it is a <code class="xref py py-class docutils literal notranslate"><span class="pre">Value</span></code> or a <code class="xref py py-class docutils literal notranslate"><span class="pre">ValueCastable</span></code> whose shape is
+a <code class="xref py py-class docutils literal notranslate"><span class="pre">Shape</span></code>, the numeric value is returned as an <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>.</p></li>
+</ul>
+<p>This method is only available in testbenches.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#TypeError" title="(in Python v3.14)"><code class="xref py py-exc docutils literal notranslate"><span class="pre">TypeError</span></code></a></dt><dd><p>If the caller is a process.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.testing.ProcessContext.set">
+<span class="sig-name descname"><span class="pre">set</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">expr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.testing.ProcessContext.set" title="Link to this definition"></a></dt>
+<dd><p>Update the value of an expression.</p>
+<p>The behavior of this method depends on the type of <code class="code highlight py python docutils literal highlight-python"><span class="n">expr</span></code>:</p>
+<ul class="simple">
+<li><p>If it is a <code class="xref py py-class docutils literal notranslate"><span class="pre">ValueCastable</span></code> whose shape is a <code class="xref py py-class docutils literal notranslate"><span class="pre">ShapeCastable</span></code>,
+<code class="code highlight py python docutils literal highlight-python"><span class="n">value</span></code> is converted to a numeric representation using
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">const()</span></code> and then assigned.</p></li>
+<li><p>If it is a <code class="xref py py-class docutils literal notranslate"><span class="pre">Value</span></code> or a <code class="xref py py-class docutils literal notranslate"><span class="pre">ValueCastable</span></code> whose shape is
+a <code class="xref py py-class docutils literal notranslate"><span class="pre">Shape</span></code>, <code class="code highlight py python docutils literal highlight-python"><span class="n">value</span></code> is assigned as-is.</p></li>
+</ul>
+<p>This method is available in both processes and testbenches.</p>
+<p>When used in a testbench, this method runs all processes that wait (directly or
+indirectly) for the signals in <code class="code highlight py python docutils literal highlight-python"><span class="n">expr</span></code> to change, and returns only after the change
+propagates through the simulated circuits.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="transactron.testing.PysimSimulator">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">transactron.testing.</span></span><span class="sig-name descname"><span class="pre">PysimSimulator</span></span><a class="headerlink" href="#transactron.testing.PysimSimulator" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://amaranth-lang.org/docs/amaranth/v0.5.4/simulator.html#amaranth.sim.Simulator" title="(in Amaranth language &amp; toolchain v0.5.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Simulator</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.testing.PysimSimulator.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">module</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">HasElaborate</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_cycles</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">100000.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">add_transaction_module</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">traces_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clk_period</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-06</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.testing.PysimSimulator.__init__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.testing.PysimSimulator.add_mock">
+<span class="sig-name descname"><span class="pre">add_mock</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">val</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#transactron.testing.method_mock.MethodMock" title="transactron.testing.method_mock.MethodMock"><span class="pre">MethodMock</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.testing.PysimSimulator.add_mock" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.testing.PysimSimulator.run">
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#transactron.testing.PysimSimulator.run" title="Link to this definition"></a></dt>
+<dd><p>Run the simulation indefinitely.</p>
+<p>This method advances the simulation while any critical testbenches or processes continue
+executing. It is equivalent to:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">advance</span><span class="p">():</span>
+    <span class="k">pass</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="transactron.testing.SimpleTestCircuit">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">transactron.testing.</span></span><span class="sig-name descname"><span class="pre">SimpleTestCircuit</span></span><a class="headerlink" href="#transactron.testing.SimpleTestCircuit" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Elaboratable</span></code>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Generic" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Generic</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.testing.SimpleTestCircuit.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dut</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">T</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">exclude</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterable" title="(in Python v3.14)"><span class="pre">Iterable</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">()</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.testing.SimpleTestCircuit.__init__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.testing.SimpleTestCircuit.debug_signals">
+<span class="sig-name descname"><span class="pre">debug_signals</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#transactron.testing.SimpleTestCircuit.debug_signals" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="transactron.testing.SimulatorContext">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">transactron.testing.</span></span><span class="sig-name descname"><span class="pre">SimulatorContext</span></span><a class="headerlink" href="#transactron.testing.SimulatorContext" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Simulator context.</p>
+<p>Simulator processes and testbenches are <code class="code highlight py python docutils literal highlight-python"><span class="k">async</span></code> Python functions that interact with
+the simulation using the only argument they receive: the <em>context</em>. Using a context, it is
+possible to sample or update signals and wait for events to occur in the simulation.</p>
+<p>The context has two kinds of methods: <code class="code highlight py python docutils literal highlight-python"><span class="k">async</span></code> methods and non-<code class="code highlight py python docutils literal highlight-python"><span class="k">async</span></code> methods. Calling
+an <code class="code highlight py python docutils literal highlight-python"><span class="k">async</span></code> method may cause the caller to be preempted (be paused such that the simulation
+time can advance), while calling non-<code class="code highlight py python docutils literal highlight-python"><span class="k">async</span></code> methods never causes that.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>While a testbench or process is executing without calling <code class="code highlight py python docutils literal highlight-python"><span class="k">async</span></code> methods, no other
+testbench or process will run, with one exception: if a testbench calls <a class="reference internal" href="#transactron.testing.SimulatorContext.set" title="transactron.testing.SimulatorContext.set"><code class="xref py py-meth docutils literal notranslate"><span class="pre">set()</span></code></a>, all
+processes that wait (directly or indirectly) for the updated signals to change will execute
+before the call returns.</p>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.testing.SimulatorContext.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">design</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">engine</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">BaseEngine</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">process</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">BaseProcess</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.testing.SimulatorContext.__init__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.testing.SimulatorContext.changed">
+<span class="sig-name descname"><span class="pre">changed</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">signals</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/v0.5.4/simulator.html#amaranth.sim.TriggerCombination" title="(in Amaranth language &amp; toolchain v0.5.4)"><span class="pre">TriggerCombination</span></a></span></span><a class="headerlink" href="#transactron.testing.SimulatorContext.changed" title="Link to this definition"></a></dt>
+<dd><p>Asynchronously wait until one of the signals change.</p>
+<p>This method returns a <code class="xref py py-class docutils literal notranslate"><span class="pre">TriggerCombination</span></code> object that, when awaited, pauses
+the execution of the calling process or testbench until any of the <code class="code highlight py python docutils literal highlight-python"><span class="n">signals</span></code> change.
+The returned object may be used to wait for multiple events.</p>
+<p>The values captured by this trigger are the values of <code class="code highlight py python docutils literal highlight-python"><span class="n">signals</span></code> at the time the wait
+has completed.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>The simulation may produce <em>glitches</em>: transient changes to signals (e.g. from 0 to 1
+and back to 0) during combinational propagation that are invisible in testbenches or
+waveform captures. Glitches will wake up <strong>both processes and testbenches</strong> that use
+this method to wait for a signal to change, and both processes and testbenches must be
+prepared to handle such spurious wakeups. The presence, count, and sequence in which
+glitches occur may also vary between simulation runs.</p>
+<p>Testbenches that wait for a signal to change using an <code class="code highlight py python docutils literal highlight-python"><span class="k">await</span></code> statement might only
+observe the final value of the signal, and testbenches that wait for changes using
+an <code class="code highlight py python docutils literal highlight-python"><span class="k">async</span> <span class="k">for</span></code> loop will crash with a <code class="xref py py-exc docutils literal notranslate"><span class="pre">BrokenTrigger</span></code> exception if they
+encounter a glitch.</p>
+<p>Processes will observe all of the transient values of the signal.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.testing.SimulatorContext.critical">
+<span class="sig-name descname"><span class="pre">critical</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#transactron.testing.SimulatorContext.critical" title="Link to this definition"></a></dt>
+<dd><p>Context manager that temporarily makes the caller critical.</p>
+<p>Testbenches and processes may be <em>background</em> or <em>critical</em>, where critical ones prevent
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">Simulator.run()</span></code> from finishing. Processes are always created background, while
+testbenches are created critical by default, but may also be created background.
+This context manager makes the caller critical for the span of the <code class="code highlight py python docutils literal highlight-python"><span class="k">with</span></code> statement.</p>
+<p>This may be useful in cases where an operation (for example, a bus transaction) takes
+multiple clock cycles to complete, and must be completed after starting, but the testbench
+or process performing it never finishes, always waiting for the next operation to arrive.
+In this case, the caller would elevate itself to become critical only for the duration of
+the operation itself using this context manager, for example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">testbench_bus_transaction</span><span class="p">(</span><span class="n">ctx</span><span class="p">):</span>
+    <span class="c1"># On every cycle, check whether the bus has an active transaction...</span>
+    <span class="k">async</span> <span class="k">for</span> <span class="n">clk_edge</span><span class="p">,</span> <span class="n">rst_active</span><span class="p">,</span> <span class="n">bus_active_value</span> <span class="ow">in</span> <span class="n">ctx</span><span class="o">.</span><span class="n">tick</span><span class="p">()</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">bus</span><span class="o">.</span><span class="n">active</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">bus_active_value</span><span class="p">:</span> <span class="c1"># ... if it does...</span>
+            <span class="k">with</span> <span class="n">ctx</span><span class="o">.</span><span class="n">critical</span><span class="p">():</span> <span class="c1"># ... make this testbench critical...</span>
+                <span class="n">addr_value</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">bus</span><span class="o">.</span><span class="n">r_addr</span><span class="p">)</span>
+                <span class="n">ctx</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">bus</span><span class="o">.</span><span class="n">r_data</span><span class="p">,</span> <span class="o">...</span><span class="p">)</span> <span class="c1"># ... perform the access...</span>
+                <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">tick</span><span class="p">()</span>
+                <span class="n">ctx</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">bus</span><span class="o">.</span><span class="n">done</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+                <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">tick</span><span class="p">()</span>
+                <span class="n">ctx</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">bus</span><span class="o">.</span><span class="n">done</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="c1"># ... and complete the transaction later.</span>
+            <span class="c1"># The `run()` method could return at this point, but not before.</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.testing.SimulatorContext.delay">
+<span class="sig-name descname"><span class="pre">delay</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">interval</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/v0.5.4/simulator.html#amaranth.sim.TriggerCombination" title="(in Amaranth language &amp; toolchain v0.5.4)"><span class="pre">TriggerCombination</span></a></span></span><a class="headerlink" href="#transactron.testing.SimulatorContext.delay" title="Link to this definition"></a></dt>
+<dd><p>Wait until a time interval has elapsed.</p>
+<p>This method returns a <code class="xref py py-class docutils literal notranslate"><span class="pre">TriggerCombination</span></code> object that, when awaited, pauses
+the execution of the calling process or testbench by <code class="code highlight py python docutils literal highlight-python"><span class="n">interval</span></code> seconds. The returned
+object may be used to wait for multiple events.</p>
+<p>The value captured by this trigger is <code class="code highlight py python docutils literal highlight-python"><span class="kc">True</span></code> if the delay has expired when the wait has
+completed, and <code class="code highlight py python docutils literal highlight-python"><span class="kc">False</span></code> otherwise.</p>
+<p>The <code class="code highlight py python docutils literal highlight-python"><span class="n">interval</span></code> may be zero, in which case the caller will be scheduled for execution
+immediately after all of the processes and testbenches scheduled for the current time step
+finish executing. In other words, if a call to <code class="xref py py-meth docutils literal notranslate"><span class="pre">Simulator.advance()</span></code> schedules a process
+or testbench and it performs <code class="code highlight py python docutils literal highlight-python"><span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">delay</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span></code>, this process or testbench will
+continue execution only during the next call to <code class="xref py py-meth docutils literal notranslate"><span class="pre">Simulator.advance()</span></code>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Although the behavior of <code class="code highlight py python docutils literal highlight-python"><span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">delay</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span></code> is well-defined, it may make waveforms
+difficult to understand and simulations hard to reason about.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.14)"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code></a></dt><dd><p>If <code class="code highlight py python docutils literal highlight-python"><span class="n">delay</span></code> is negative.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.testing.SimulatorContext.edge">
+<span class="sig-name descname"><span class="pre">edge</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">signal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">polarity</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/v0.5.4/simulator.html#amaranth.sim.TriggerCombination" title="(in Amaranth language &amp; toolchain v0.5.4)"><span class="pre">TriggerCombination</span></a></span></span><a class="headerlink" href="#transactron.testing.SimulatorContext.edge" title="Link to this definition"></a></dt>
+<dd><p>Asynchronously wait until a low-to-high or high-to-low transition of a signal occurs.</p>
+<p>This method returns a <code class="xref py py-class docutils literal notranslate"><span class="pre">TriggerCombination</span></code> object that, when awaited, pauses
+the execution of the calling process or testbench until the value of <code class="code highlight py python docutils literal highlight-python"><span class="n">signal</span></code>
+(a single-bit signal or a single-bit slice of a signal) changes from <code class="code highlight py python docutils literal highlight-python"><span class="ow">not</span> <span class="n">polarity</span></code>
+to <code class="code highlight py python docutils literal highlight-python"><span class="n">polarity</span></code>. The returned object may be used to wait for multiple events.</p>
+<p>The value captured by this trigger is <code class="code highlight py python docutils literal highlight-python"><span class="kc">True</span></code> if the relevant transition has occurred
+at the time the wait has completed, and <code class="code highlight py python docutils literal highlight-python"><span class="kc">False</span></code> otherwise.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>In most cases, this method should not be used to wait for a status signal to be asserted
+or deasserted in a testbench because it is likely to introduce a race condition.
+Whenever a suitable clock domain is available, use
+<code class="code highlight py python docutils literal highlight-python"><span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">tick</span><span class="p">()</span><span class="o">.</span><span class="n">until</span><span class="p">(</span><span class="n">signal</span> <span class="o">==</span> <span class="n">polarity</span><span class="p">)</span></code> instead.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#TypeError" title="(in Python v3.14)"><code class="xref py py-exc docutils literal notranslate"><span class="pre">TypeError</span></code></a></dt><dd><p>If <code class="code highlight py python docutils literal highlight-python"><span class="n">signal</span></code> is neither a single-bit <code class="xref py py-class docutils literal notranslate"><span class="pre">Signal</span></code> nor a single-bit slice of
+a <code class="xref py py-class docutils literal notranslate"><span class="pre">Signal</span></code>.</p>
+</dd>
+<dt><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#TypeError" title="(in Python v3.14)"><code class="xref py py-exc docutils literal notranslate"><span class="pre">TypeError</span></code></a></dt><dd><p>If the shape of <code class="code highlight py python docutils literal highlight-python"><span class="n">signal</span></code> is a <code class="xref py py-class docutils literal notranslate"><span class="pre">ShapeCastable</span></code>.</p>
+</dd>
+<dt><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.14)"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code></a></dt><dd><p>If <code class="code highlight py python docutils literal highlight-python"><span class="n">polarity</span></code> is neither 0 nor 1.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.testing.SimulatorContext.get">
+<span class="sig-name descname"><span class="pre">get</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">expr</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.testing.SimulatorContext.get" title="Link to this definition"></a></dt>
+<dd><p>Sample the value of an expression.</p>
+<p>The behavior of this method depends on the type of <code class="code highlight py python docutils literal highlight-python"><span class="n">expr</span></code>:</p>
+<ul class="simple">
+<li><p>If it is a <code class="xref py py-class docutils literal notranslate"><span class="pre">ValueCastable</span></code> whose shape is a <code class="xref py py-class docutils literal notranslate"><span class="pre">ShapeCastable</span></code>,
+its numeric value is converted to a higher-level representation using
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">from_bits()</span></code> and then returned.</p></li>
+<li><p>If it is a <code class="xref py py-class docutils literal notranslate"><span class="pre">Value</span></code> or a <code class="xref py py-class docutils literal notranslate"><span class="pre">ValueCastable</span></code> whose shape is
+a <code class="xref py py-class docutils literal notranslate"><span class="pre">Shape</span></code>, the numeric value is returned as an <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>.</p></li>
+</ul>
+<p>This method is only available in testbenches.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#TypeError" title="(in Python v3.14)"><code class="xref py py-exc docutils literal notranslate"><span class="pre">TypeError</span></code></a></dt><dd><p>If the caller is a process.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.testing.SimulatorContext.negedge">
+<span class="sig-name descname"><span class="pre">negedge</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">signal</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/v0.5.4/simulator.html#amaranth.sim.TriggerCombination" title="(in Amaranth language &amp; toolchain v0.5.4)"><span class="pre">TriggerCombination</span></a></span></span><a class="headerlink" href="#transactron.testing.SimulatorContext.negedge" title="Link to this definition"></a></dt>
+<dd><p>Asynchronously wait until a signal is deasserted.</p>
+<p>Equivalent to <a class="reference internal" href="#transactron.testing.SimulatorContext.edge" title="transactron.testing.SimulatorContext.edge"><code class="xref py py-meth docutils literal notranslate"><span class="pre">edge(signal,</span> <span class="pre">0)</span></code></a>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.testing.SimulatorContext.posedge">
+<span class="sig-name descname"><span class="pre">posedge</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">signal</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/v0.5.4/simulator.html#amaranth.sim.TriggerCombination" title="(in Amaranth language &amp; toolchain v0.5.4)"><span class="pre">TriggerCombination</span></a></span></span><a class="headerlink" href="#transactron.testing.SimulatorContext.posedge" title="Link to this definition"></a></dt>
+<dd><p>Asynchronously wait until a signal is asserted.</p>
+<p>Equivalent to <a class="reference internal" href="#transactron.testing.SimulatorContext.edge" title="transactron.testing.SimulatorContext.edge"><code class="xref py py-meth docutils literal notranslate"><span class="pre">edge(signal,</span> <span class="pre">1)</span></code></a>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.testing.SimulatorContext.set">
+<span class="sig-name descname"><span class="pre">set</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">expr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.testing.SimulatorContext.set" title="Link to this definition"></a></dt>
+<dd><p>Update the value of an expression.</p>
+<p>The behavior of this method depends on the type of <code class="code highlight py python docutils literal highlight-python"><span class="n">expr</span></code>:</p>
+<ul class="simple">
+<li><p>If it is a <code class="xref py py-class docutils literal notranslate"><span class="pre">ValueCastable</span></code> whose shape is a <code class="xref py py-class docutils literal notranslate"><span class="pre">ShapeCastable</span></code>,
+<code class="code highlight py python docutils literal highlight-python"><span class="n">value</span></code> is converted to a numeric representation using
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">const()</span></code> and then assigned.</p></li>
+<li><p>If it is a <code class="xref py py-class docutils literal notranslate"><span class="pre">Value</span></code> or a <code class="xref py py-class docutils literal notranslate"><span class="pre">ValueCastable</span></code> whose shape is
+a <code class="xref py py-class docutils literal notranslate"><span class="pre">Shape</span></code>, <code class="code highlight py python docutils literal highlight-python"><span class="n">value</span></code> is assigned as-is.</p></li>
+</ul>
+<p>This method is available in both processes and testbenches.</p>
+<p>When used in a testbench, this method runs all processes that wait (directly or
+indirectly) for the signals in <code class="code highlight py python docutils literal highlight-python"><span class="n">expr</span></code> to change, and returns only after the change
+propagates through the simulated circuits.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.testing.SimulatorContext.tick">
+<span class="sig-name descname"><span class="pre">tick</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">domain</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'sync'</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.testing.SimulatorContext.tick" title="Link to this definition"></a></dt>
+<dd><p>Wait until an active clock edge or an asynchronous reset occurs.</p>
+<p>This method returns a <code class="xref py py-class docutils literal notranslate"><span class="pre">TickTrigger</span></code> object that, when awaited, pauses the execution
+of the calling process or testbench until the active edge of the clock, or the asynchronous
+reset (if applicable), occurs. The returned object may be used to repeatedly wait for one
+of these events until a condition is satisfied or a specific number of times. See
+the <a class="reference external" href="https://amaranth-lang.org/docs/amaranth/v0.5.4/simulator.html#sim-tick-trigger" title="(in Amaranth language &amp; toolchain v0.5.4)"><span class="xref std std-ref">tick trigger reference</span></a> for more details.</p>
+<p>The <code class="code highlight py python docutils literal highlight-python"><span class="n">domain</span></code> may be either a <code class="xref py py-class docutils literal notranslate"><span class="pre">ClockDomain</span></code> or a <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>. If it is
+a <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, a clock domain with this name is looked up in
+the <a class="reference external" href="https://amaranth-lang.org/docs/amaranth/v0.5.4/guide.html#lang-elaboration" title="(in Amaranth language &amp; toolchain v0.5.4)"><span class="xref std std-ref">elaboratable</span></a> <code class="code highlight py python docutils literal highlight-python"><span class="n">context</span></code>, or in <code class="code highlight py python docutils literal highlight-python"><span class="n">toplevel</span></code> if
+<code class="code highlight py python docutils literal highlight-python"><span class="n">context</span></code> is not provided.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.14)"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code></a></dt><dd><p>If <code class="code highlight py python docutils literal highlight-python"><span class="n">domain</span></code> is <code class="code highlight py python docutils literal highlight-python"><span class="s2">&quot;comb&quot;</span></code>.</p>
+</dd>
+<dt><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.14)"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code></a></dt><dd><p>If <code class="code highlight py python docutils literal highlight-python"><span class="n">domain</span></code> is a <code class="xref py py-class docutils literal notranslate"><span class="pre">ClockDomain</span></code> and <code class="code highlight py python docutils literal highlight-python"><span class="n">context</span></code> is provided and not
+<code class="code highlight py python docutils literal highlight-python"><span class="kc">None</span></code>.</p>
+</dd>
+<dt><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.14)"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code></a></dt><dd><p>If <code class="code highlight py python docutils literal highlight-python"><span class="n">context</span></code> is an elaboratable that is not a direct or indirect submodule of
+<code class="code highlight py python docutils literal highlight-python"><span class="n">toplevel</span></code>.</p>
+</dd>
+<dt><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#NameError" title="(in Python v3.14)"><code class="xref py py-exc docutils literal notranslate"><span class="pre">NameError</span></code></a></dt><dd><p>If <code class="code highlight py python docutils literal highlight-python"><span class="n">domain</span></code> is a <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, but there is no clock domain with this name in
+<code class="code highlight py python docutils literal highlight-python"><span class="n">context</span></code> or <code class="code highlight py python docutils literal highlight-python"><span class="n">toplevel</span></code>.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="transactron.testing.TestCaseWithSimulatorBase">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">transactron.testing.</span></span><span class="sig-name descname"><span class="pre">TestCaseWithSimulatorBase</span></span><a class="headerlink" href="#transactron.testing.TestCaseWithSimulatorBase" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.testing.TestCaseWithSimulatorBase.ctx_testing_env">
+<span class="sig-name descname"><span class="pre">ctx_testing_env</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">base_output_file_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.testing.TestCaseWithSimulatorBase.ctx_testing_env" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.testing.TestCaseWithSimulatorBase.ctx_testing_env_next">
+<span class="sig-name descname"><span class="pre">ctx_testing_env_next</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#transactron.testing.TestCaseWithSimulatorBase.ctx_testing_env_next" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="transactron.testing.TestCaseWithSimulatorBase.dependency_manager">
+<span class="sig-name descname"><span class="pre">dependency_manager</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="transactron.utils.html#transactron.utils.dependencies.DependencyManager" title="transactron.utils.dependencies.DependencyManager"><span class="pre">DependencyManager</span></a></em><a class="headerlink" href="#transactron.testing.TestCaseWithSimulatorBase.dependency_manager" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.testing.TestCaseWithSimulatorBase.random_wait">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">random_wait</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ctx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#transactron.testing.SimulatorContext" title="amaranth.sim._async.SimulatorContext"><span class="pre">SimulatorContext</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_cycle_cnt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_cycle_cnt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.testing.TestCaseWithSimulatorBase.random_wait" title="Link to this definition"></a></dt>
+<dd><p>Wait for a random amount of cycles in range [min_cycle_cnt, max_cycle_cnt]</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.testing.TestCaseWithSimulatorBase.random_wait_geom">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">random_wait_geom</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ctx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#transactron.testing.SimulatorContext" title="amaranth.sim._async.SimulatorContext"><span class="pre">SimulatorContext</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">prob</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_cycle_cnt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">65536</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.testing.TestCaseWithSimulatorBase.random_wait_geom" title="Link to this definition"></a></dt>
+<dd><p>Wait till the first success, where there is <cite>prob</cite> probability for success in each cycle.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.testing.TestCaseWithSimulatorBase.run_simulation">
+<span class="sig-name descname"><span class="pre">run_simulation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">module</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">HasElaborate</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_cycles</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">100000.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">add_transaction_module</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.testing.TestCaseWithSimulatorBase.run_simulation" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.testing.TestCaseWithSimulatorBase.tick">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">tick</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ctx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#transactron.testing.SimulatorContext" title="amaranth.sim._async.SimulatorContext"><span class="pre">SimulatorContext</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cycle_cnt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.testing.TestCaseWithSimulatorBase.tick" title="Link to this definition"></a></dt>
+<dd><p>Waits for the given number of cycles.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.testing.TestCaseWithSimulatorBase.wrap_testing_env">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">wrap_testing_env</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">base_output_file_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.testing.TestCaseWithSimulatorBase.wrap_testing_env" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.testing.TestCaseWithSimulatorBase.wrap_testing_env_next">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">wrap_testing_env_next</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">func</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable" title="(in Python v3.14)"><span class="pre">Callable</span></a><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Concatenate" title="(in Python v3.14)"><span class="pre">Concatenate</span></a><span class="p"><span class="pre">[</span></span><span class="pre">S</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">P</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">T</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.testing.TestCaseWithSimulatorBase.wrap_testing_env_next" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="transactron.testing.TestbenchContext">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">transactron.testing.</span></span><span class="sig-name descname"><span class="pre">TestbenchContext</span></span><a class="headerlink" href="#transactron.testing.TestbenchContext" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#transactron.testing.SimulatorContext" title="amaranth.sim._async.SimulatorContext"><code class="xref py py-class docutils literal notranslate"><span class="pre">SimulatorContext</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.testing.TestbenchContext.get">
+<span class="sig-name descname"><span class="pre">get</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">expr</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.testing.TestbenchContext.get" title="Link to this definition"></a></dt>
+<dd><p>Sample the value of an expression.</p>
+<p>The behavior of this method depends on the type of <code class="code highlight py python docutils literal highlight-python"><span class="n">expr</span></code>:</p>
+<ul class="simple">
+<li><p>If it is a <code class="xref py py-class docutils literal notranslate"><span class="pre">ValueCastable</span></code> whose shape is a <code class="xref py py-class docutils literal notranslate"><span class="pre">ShapeCastable</span></code>,
+its numeric value is converted to a higher-level representation using
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">from_bits()</span></code> and then returned.</p></li>
+<li><p>If it is a <code class="xref py py-class docutils literal notranslate"><span class="pre">Value</span></code> or a <code class="xref py py-class docutils literal notranslate"><span class="pre">ValueCastable</span></code> whose shape is
+a <code class="xref py py-class docutils literal notranslate"><span class="pre">Shape</span></code>, the numeric value is returned as an <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>.</p></li>
+</ul>
+<p>This method is only available in testbenches.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#TypeError" title="(in Python v3.14)"><code class="xref py py-exc docutils literal notranslate"><span class="pre">TypeError</span></code></a></dt><dd><p>If the caller is a process.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.testing.TestbenchContext.set">
+<span class="sig-name descname"><span class="pre">set</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">expr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.testing.TestbenchContext.set" title="Link to this definition"></a></dt>
+<dd><p>Update the value of an expression.</p>
+<p>The behavior of this method depends on the type of <code class="code highlight py python docutils literal highlight-python"><span class="n">expr</span></code>:</p>
+<ul class="simple">
+<li><p>If it is a <code class="xref py py-class docutils literal notranslate"><span class="pre">ValueCastable</span></code> whose shape is a <code class="xref py py-class docutils literal notranslate"><span class="pre">ShapeCastable</span></code>,
+<code class="code highlight py python docutils literal highlight-python"><span class="n">value</span></code> is converted to a numeric representation using
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">const()</span></code> and then assigned.</p></li>
+<li><p>If it is a <code class="xref py py-class docutils literal notranslate"><span class="pre">Value</span></code> or a <code class="xref py py-class docutils literal notranslate"><span class="pre">ValueCastable</span></code> whose shape is
+a <code class="xref py py-class docutils literal notranslate"><span class="pre">Shape</span></code>, <code class="code highlight py python docutils literal highlight-python"><span class="n">value</span></code> is assigned as-is.</p></li>
+</ul>
+<p>This method is available in both processes and testbenches.</p>
+<p>When used in a testbench, this method runs all processes that wait (directly or
+indirectly) for the signals in <code class="code highlight py python docutils literal highlight-python"><span class="n">expr</span></code> to change, and returns only after the change
+propagates through the simulated circuits.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="transactron.testing.TestbenchIO">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">transactron.testing.</span></span><span class="sig-name descname"><span class="pre">TestbenchIO</span></span><a class="headerlink" href="#transactron.testing.TestbenchIO" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Elaboratable</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.testing.TestbenchIO.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">adapter</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="transactron.lib.html#transactron.lib.adapters.AdapterBase" title="transactron.lib.adapters.AdapterBase"><span class="pre">AdapterBase</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.testing.TestbenchIO.__init__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.testing.TestbenchIO.call">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">call</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#transactron.testing.SimulatorContext" title="amaranth.sim._async.SimulatorContext"><span class="pre">SimulatorContext</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="positional-only-separator o"><abbr title="Positional-only parameter separator (PEP 570)"><span class="pre">/</span></abbr></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwdata</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">data.Const</span><span class="p"><span class="pre">[</span></span><span class="pre">data.StructLayout</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#transactron.testing.TestbenchIO.call" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.testing.TestbenchIO.call_do">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">call_do</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#transactron.testing.SimulatorContext" title="amaranth.sim._async.SimulatorContext"><span class="pre">SimulatorContext</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">data.Const</span><span class="p"><span class="pre">[</span></span><span class="pre">data.StructLayout</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#transactron.testing.TestbenchIO.call_do" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.testing.TestbenchIO.call_init">
+<span class="sig-name descname"><span class="pre">call_init</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#transactron.testing.SimulatorContext" title="amaranth.sim._async.SimulatorContext"><span class="pre">SimulatorContext</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="positional-only-separator o"><abbr title="Positional-only parameter separator (PEP 570)"><span class="pre">/</span></abbr></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwdata</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.testing.TestbenchIO.call_init" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.testing.TestbenchIO.call_result">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">call_result</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#transactron.testing.SimulatorContext" title="amaranth.sim._async.SimulatorContext"><span class="pre">SimulatorContext</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">data.Const</span><span class="p"><span class="pre">[</span></span><span class="pre">data.StructLayout</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#transactron.testing.TestbenchIO.call_result" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.testing.TestbenchIO.call_try">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">call_try</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#transactron.testing.SimulatorContext" title="amaranth.sim._async.SimulatorContext"><span class="pre">SimulatorContext</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="positional-only-separator o"><abbr title="Positional-only parameter separator (PEP 570)"><span class="pre">/</span></abbr></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwdata</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">data.Const</span><span class="p"><span class="pre">[</span></span><span class="pre">data.StructLayout</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#transactron.testing.TestbenchIO.call_try" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.testing.TestbenchIO.disable">
+<span class="sig-name descname"><span class="pre">disable</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#transactron.testing.SimulatorContext" title="amaranth.sim._async.SimulatorContext"><span class="pre">SimulatorContext</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.testing.TestbenchIO.disable" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="transactron.testing.TestbenchIO.done">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">done</span></span><a class="headerlink" href="#transactron.testing.TestbenchIO.done" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.testing.TestbenchIO.enable">
+<span class="sig-name descname"><span class="pre">enable</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#transactron.testing.SimulatorContext" title="amaranth.sim._async.SimulatorContext"><span class="pre">SimulatorContext</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.testing.TestbenchIO.enable" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.testing.TestbenchIO.get_call_result">
+<span class="sig-name descname"><span class="pre">get_call_result</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#transactron.testing.TestbenchContext" title="amaranth.sim._async.TestbenchContext"><span class="pre">TestbenchContext</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">data.Const</span><span class="p"><span class="pre">[</span></span><span class="pre">data.StructLayout</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#transactron.testing.TestbenchIO.get_call_result" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.testing.TestbenchIO.get_done">
+<span class="sig-name descname"><span class="pre">get_done</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#transactron.testing.TestbenchContext" title="amaranth.sim._async.TestbenchContext"><span class="pre">TestbenchContext</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.testing.TestbenchIO.get_done" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.testing.TestbenchIO.get_outputs">
+<span class="sig-name descname"><span class="pre">get_outputs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#transactron.testing.TestbenchContext" title="amaranth.sim._async.TestbenchContext"><span class="pre">TestbenchContext</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">data.Const</span><span class="p"><span class="pre">[</span></span><span class="pre">data.StructLayout</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#transactron.testing.TestbenchIO.get_outputs" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="transactron.testing.TestbenchIO.outputs">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">outputs</span></span><a class="headerlink" href="#transactron.testing.TestbenchIO.outputs" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.testing.TestbenchIO.sample_outputs">
+<span class="sig-name descname"><span class="pre">sample_outputs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#transactron.testing.SimulatorContext" title="amaranth.sim._async.SimulatorContext"><span class="pre">SimulatorContext</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.testing.TestbenchIO.sample_outputs" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.testing.TestbenchIO.sample_outputs_done">
+<span class="sig-name descname"><span class="pre">sample_outputs_done</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#transactron.testing.SimulatorContext" title="amaranth.sim._async.SimulatorContext"><span class="pre">SimulatorContext</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.testing.TestbenchIO.sample_outputs_done" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.testing.TestbenchIO.sample_outputs_until_done">
+<span class="sig-name descname"><span class="pre">sample_outputs_until_done</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#transactron.testing.SimulatorContext" title="amaranth.sim._async.SimulatorContext"><span class="pre">SimulatorContext</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.testing.TestbenchIO.sample_outputs_until_done" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.testing.TestbenchIO.set_enable">
+<span class="sig-name descname"><span class="pre">set_enable</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#transactron.testing.SimulatorContext" title="amaranth.sim._async.SimulatorContext"><span class="pre">SimulatorContext</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">en</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.testing.TestbenchIO.set_enable" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.testing.TestbenchIO.set_inputs">
+<span class="sig-name descname"><span class="pre">set_inputs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#transactron.testing.SimulatorContext" title="amaranth.sim._async.SimulatorContext"><span class="pre">SimulatorContext</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.testing.TestbenchIO.set_inputs" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="transactron.testing.data_const_to_dict">
+<span class="sig-prename descclassname"><span class="pre">transactron.testing.</span></span><span class="sig-name descname"><span class="pre">data_const_to_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">c</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">data.Const</span><span class="p"><span class="pre">[</span></span><span class="pre">data.Layout</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.testing.data_const_to_dict" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="transactron.testing.data_layout">
+<span class="sig-prename descclassname"><span class="pre">transactron.testing.</span></span><span class="sig-name descname"><span class="pre">data_layout</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">val</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/v0.5.4/reference.html#amaranth.hdl.Shape" title="(in Amaranth language &amp; toolchain v0.5.4)"><span class="pre">Shape</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#range" title="(in Python v3.14)"><span class="pre">range</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.14)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/enum.html#enum.Enum" title="(in Python v3.14)"><span class="pre">Enum</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/v0.5.4/reference.html#amaranth.hdl.ShapeCastable" title="(in Amaranth language &amp; toolchain v0.5.4)"><span class="pre">ShapeCastable</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">MethodLayout</span></span></span><a class="headerlink" href="#transactron.testing.data_layout" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="transactron.testing.def_method_mock">
+<span class="sig-prename descclassname"><span class="pre">transactron.testing.</span></span><span class="sig-name descname"><span class="pre">def_method_mock</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tb_getter</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Callable" title="(in Python v3.14)"><span class="pre">Callable</span></a><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#transactron.testing.testbenchio.TestbenchIO" title="transactron.testing.testbenchio.TestbenchIO"><span class="pre">TestbenchIO</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Callable" title="(in Python v3.14)"><span class="pre">Callable</span></a><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#transactron.testing.testbenchio.TestbenchIO" title="transactron.testing.testbenchio.TestbenchIO"><span class="pre">TestbenchIO</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Callable" title="(in Python v3.14)"><span class="pre">Callable</span></a><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Callable" title="(in Python v3.14)"><span class="pre">Callable</span></a><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">NameIntDict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Callable" title="(in Python v3.14)"><span class="pre">Callable</span></a><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#transactron.testing.method_mock.MethodMock" title="transactron.testing.method_mock.MethodMock"><span class="pre">MethodMock</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#transactron.testing.def_method_mock" title="Link to this definition"></a></dt>
+<dd><p>Decorator function to create method mock handlers. It should be applied on
+a function which describes functionality which we want to invoke on method call.
+This function will be called on every clock cycle when the method is active,
+and also on combinational changes to inputs.</p>
+<p>The decorated function can have a single argument <cite>arg</cite>, which receives
+the arguments passed to a method as a <cite>data.Const</cite>, or multiple named arguments,
+which correspond to named arguments of the method.</p>
+<p>This decorator can be applied to function definitions or method definitions.
+When applied to a method definition, lambdas passed to <cite>def_method_mock</cite>
+need to take a <cite>self</cite> argument, which should be the first.</p>
+<p>Mocks defined at class level or at test level are automatically discovered and
+don’t need to be manually added to the simulation.</p>
+<p>Any side effects (state modification, assertions, etc.) need to be guarded
+using the <cite>MethodMock.effect</cite> decorator.</p>
+<p>Make sure to defer accessing state, since decorators are evaluated eagerly
+during function declaration.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>tb_getter</strong><span class="classifier">Callable[[], TestbenchIO] | Callable[[Any], TestbenchIO]</span></dt><dd><p>Function to get the TestbenchIO of the mocked method.</p>
+</dd>
+<dt><strong>enable</strong><span class="classifier">Callable[[], bool] | Callable[[Any], bool]</span></dt><dd><p>Function which decides if the method is enabled in a given clock cycle.</p>
+</dd>
+<dt><strong>validate_arguments</strong><span class="classifier">Callable[…, bool]</span></dt><dd><p>Function which validates call arguments. This applies only to Adapters
+with <cite>with_validate_arguments</cite> set to True.</p>
+</dd>
+<dt><strong>delay</strong><span class="classifier">float</span></dt><dd><p>Simulation time delay for method mock calling. Used for synchronization
+between different mocks and testbench processes.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 </section>
 
@@ -561,7 +1273,7 @@ methods were not enabled. In case we only want to focus on the cycles when one o
 
   <div role="contentinfo">
     <p>&#169; Copyright Kuźnia Rdzeni, 2026.
-      <span class="lastupdated">Last updated on 20:59 2026-05-14.
+      <span class="lastupdated">Last updated on 10:19 2026-05-15.
       </span></p>
   </div>
 

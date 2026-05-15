@@ -12,14 +12,6 @@ transactron.testing.functions module
    :show-inheritance:
    :undoc-members:
 
-transactron.testing.infrastructure module
------------------------------------------
-
-.. automodule:: transactron.testing.infrastructure
-   :members:
-   :show-inheritance:
-   :undoc-members:
-
 transactron.testing.input\_generation module
 --------------------------------------------
 
@@ -48,6 +40,30 @@ transactron.testing.profiler module
 -----------------------------------
 
 .. automodule:: transactron.testing.profiler
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+transactron.testing.simulator module
+------------------------------------
+
+.. automodule:: transactron.testing.simulator
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+transactron.testing.test\_case module
+-------------------------------------
+
+.. automodule:: transactron.testing.test_case
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+transactron.testing.test\_case\_pytest module
+---------------------------------------------
+
+.. automodule:: transactron.testing.test_case_pytest
    :members:
    :show-inheritance:
    :undoc-members:
