@@ -7,6 +7,7 @@ from .core import (
     def_methods,
     Required,
     Provided,
+    Priority,
     TransactronContextElaboratable,
     TransactronContextComponent,
 )
@@ -23,6 +24,7 @@ __all__ = [
     "def_methods",
     "Required",
     "Provided",
+    "Priority",
     "TransactronContextElaboratable",
     "TransactronContextComponent",
     # utils
