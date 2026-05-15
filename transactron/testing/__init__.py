@@ -32,6 +32,7 @@ __all__ = [
     "CallTrigger",
     "SimpleTestCircuit",
     "TestbenchIO",
+    "MethodMock",
     "def_method_mock",
     "data_const_to_dict",
     "data_layout",
