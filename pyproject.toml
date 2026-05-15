@@ -28,24 +28,35 @@ classifiers = [
 "Bug Tracker" = "https://github.com/kuznia-rdzeni/transactron/issues"
 
 [project.optional-dependencies]
-dev = [
-    # Linting
+testing = [
+    "pytest >= 8.0.0, < 10.0",
+    "hypothesis <= 6.99.6, < 6.153",
+]
+
+[dependency-groups]
+lint = [
     "pyright == 1.1.393",
     "flake8 == 7.0.0",
     "black == 24.4.2",
-    # Testing
+    "pep8-naming == 0.13.3",
+    "pre-commit == 2.16.0",
+]
+test = [
     "pytest == 8.0.0",
     "pytest-xdist == 3.5.0",
     "hypothesis == 6.99.6",
-    # Documentation
-    "pep8-naming == 0.13.3",
+]
+docs = [
     "Sphinx == 8.2.3",
     "sphinx-rtd-theme == 3.0.2",
     "myst-parser == 4.0.1",
     "numpydoc == 1.5.0",
     "sphinxcontrib-mermaid == 0.8.1",
-    # Other
-    "pre-commit == 2.16.0"
+]
+dev = [
+    {include-group = "lint"},
+    {include-group = "test"},
+    {include-group = "docs"},
 ]
 
 [project.scripts]

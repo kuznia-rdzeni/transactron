@@ -180,7 +180,7 @@ class TestMethodProduct(TestCaseWithSimulator):
         with self.run_simulation(m) as sim:
             sim.add_testbench(method_process)
             for k in range(targets):
-                self.add_mock(sim, target_process(k))
+                sim.add_mock(target_process(k))
 
 
 class TestMethodTryProduct(TestCaseWithSimulator):
@@ -225,7 +225,7 @@ class TestMethodTryProduct(TestCaseWithSimulator):
         with self.run_simulation(m) as sim:
             sim.add_testbench(method_process)
             for k in range(targets):
-                self.add_mock(sim, target_process(k))
+                sim.add_mock(target_process(k))
 
 
 class NonexclusiveWrapperTestCircuit(Elaboratable):
@@ -278,7 +278,7 @@ class TestNonexclusiveWrapper(TestCaseWithSimulator):
             return {"data": data + 1}
 
         with self.run_simulation(m) as sim:
-            self.add_mock(sim, target())
+            sim.add_mock(target())
             for i in range(wrappers):
                 sim.add_testbench(caller_process(i))
 

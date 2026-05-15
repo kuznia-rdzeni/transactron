@@ -2,6 +2,9 @@ import amaranth.lib.data as data
 from typing import TypeAlias
 
 
+__all__ = ["MethodData", "data_const_to_dict"]
+
+
 MethodData: TypeAlias = "data.Const[data.StructLayout]"
 
 

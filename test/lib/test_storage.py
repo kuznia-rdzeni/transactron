@@ -1,3 +1,4 @@
+from amaranth import *
 from collections.abc import Callable
 from amaranth_types import ShapeLike
 import pytest
@@ -8,9 +9,11 @@ from hypothesis import given, settings, Phase
 import amaranth.lib.memory as memory
 import amaranth_types.memory as amemory
 from transactron.testing import *
+from transactron.testing.input_generation import OpNOP, generate_process_input
 from transactron.lib.storage import *
 from transactron.utils.amaranth_ext.memory import MultiportXORMemory, MultiportXORILVTMemory, MultiportOneHotILVTMemory
 from transactron.utils.transactron_helpers import make_layout
+from transactron.utils.data_repr import data_layout
 
 
 class TestContentAddressableMemory(TestCaseWithSimulator):
@@ -130,14 +133,14 @@ class TestContentAddressableMemory(TestCaseWithSimulator):
         generate_process_input(test_number, nop_number, [("addr", addr_layout)]),
         generate_process_input(test_number, nop_number, [("addr", addr_layout)]),
     )
+    @TestCaseWithSimulator.wrap_testing_env_next
     def test_random(self, in_push, in_write, in_read, in_remove):
-        with self.reinitialize_fixtures():
-            self.setUp()
-            with self.run_simulation(self.circ, max_cycles=500) as sim:
-                sim.add_testbench(self.push_process(in_push))
-                sim.add_testbench(self.read_process(in_read))
-                sim.add_testbench(self.write_process(in_write))
-                sim.add_testbench(self.remove_process(in_remove))
+        self.setUp()
+        with self.run_simulation(self.circ, max_cycles=500) as sim:
+            sim.add_testbench(self.push_process(in_push))
+            sim.add_testbench(self.read_process(in_read))
+            sim.add_testbench(self.write_process(in_write))
+            sim.add_testbench(self.remove_process(in_remove))
 
 
 bank_shapes = [
