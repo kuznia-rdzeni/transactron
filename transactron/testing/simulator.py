@@ -1,5 +1,6 @@
 import os
 import random
+import math
 import functools
 from contextlib import nullcontext
 from collections.abc import Callable
@@ -115,7 +116,9 @@ async def random_wait_geom(ctx: SimulatorContext, prob: float = 0.5, max_cycle_c
     """
     Wait till the first success, where there is `prob` probability for success in each cycle.
     """
-    cycle_cnt = 0
-    while random.random() > prob and cycle_cnt < max_cycle_cnt:
-        await ctx.tick()
-        cycle_cnt += 1
+    assert prob > 0 and prob <= 1
+    if prob == 1:
+        cycle_cnt = 0
+    else:
+        cycle_cnt = min(max_cycle_cnt, math.floor(math.log(1 - random.random()) / math.log(1 - prob)))
+    await tick(ctx, cycle_cnt)
