@@ -34,7 +34,10 @@ jobs:
           pip3 install --group test .[testing]
 
       - name: Run tests
-        run: pytest --verbose -n auto --transactron-traces --transactron-profile --durations 0
+        run: COVERAGE_CORE=sysmon pytest --verbose -n auto --transactron-traces --transactron-profile --durations 0 --cov transactron
+
+      - name: Write coverage report to summary
+        run: coverage report --format=markdown >> $GITHUB_STEP_SUMMARY
 
   lint:
     name: Check code formatting and typing
