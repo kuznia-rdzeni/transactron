@@ -47,6 +47,4 @@ This way, you can ensure that the contribution fits the project and will be merg
 
 ## License
 
-Copyright © 2022-2024, University of Wrocław.
-
-This project is [three-clause BSD](https://github.com/kuznia-rdzeni/transactron/blob/master/LICENSE) licensed.
+This project is [three-clause BSD licensed](https://github.com/kuznia-rdzeni/transactron/blob/master/LICENSE).
