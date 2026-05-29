@@ -710,7 +710,7 @@ class OneHotMux(Elaboratable):
         m.d.comb += Value.cast(self.output).eq(
             one_hot_mux(
                 self.select,
-                [field for (_, field) in self.inputs],
+                [self.inputs[i] for i in range(len(self.select))],
                 default=self.default_input if self.has_default else None,
                 priority=self.priority,
                 assert_one_hot=False,
