@@ -499,18 +499,9 @@ class TransactionManager(Elaboratable):
 
             def validate_args_for_method(method: MBody):
                 calls = method_map.info_by_call[(transaction, method)]
-                arg_rec = Signal.like(method.data_in)
-                en = Signal()
-
-                m.d.comb += en.eq(Cat(call.enable for call in calls).any())
-                if len(calls) == 1:
-                    m.d.comb += arg_rec.eq(calls[0].arg)
-                else:
-                    # Only one call can be active per method and transaction due to call-path exclusivity.
-                    for i in OneHotSwitchDynamic(m, Cat(call.enable for call in calls)):
-                        m.d.comb += arg_rec.eq(calls[i].arg)
-
-                return method._validate_arguments(en, arg_rec)
+                runs = Cat(call.enable for call in calls)
+                combined = one_hot_mux(runs, [Value.cast(call.arg) for call in calls], assert_one_hot=False)
+                return method._validate_arguments(runs.any(), method.data_in.shape()(combined))
 
             runnable_terms = [
                 validate_args_for_method(method) for method in method_map.methods_by_transaction[transaction]
