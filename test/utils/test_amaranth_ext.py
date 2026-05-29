@@ -43,12 +43,10 @@ def one_hot_mux_reference(select_values, input_values, default_value, is_priorit
                 selected_index = index
                 break
 
+    assert selected_index is not None or default_value is not None, "Invalid select values with no default value"
+
     if selected_index is None:
-        if default_value is not None:
-            return default_value
-        if len(input_values) == 1:
-            return input_values[0]
-        return 0
+        return default_value
 
     return input_values[selected_index]
 
