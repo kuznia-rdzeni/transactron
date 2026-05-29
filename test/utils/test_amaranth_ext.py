@@ -1,10 +1,8 @@
-from amaranth import ValueCastable
-
 from transactron.testing import *
 import random
 import pytest
 from amaranth import *
-from amaranth.lib.enum import Enum
+from amaranth.lib.data import ArrayLayout
 from transactron.utils.amaranth_ext import MultiPriorityEncoder, OneHotMux, RingMultiPriorityEncoder
 
 
@@ -31,96 +29,106 @@ def get_expected_ring(input_width, output_count, input, first, last):
     return places
 
 
-class OneHotMuxEnum(Enum, shape=1):
-    ZERO = 0
-    ONE = 1
+def one_hot_mux_reference(select_values, input_values, default_value, is_priority):
+    selected_index = None
+    if is_priority:
+        for index, select in enumerate(select_values):
+            if select:
+                selected_index = index
+                break
+    else:
+        assert sum(1 for select in select_values if select) <= 1
+        for index, select in enumerate(select_values):
+            if select:
+                selected_index = index
+                break
+
+    if selected_index is None:
+        if default_value is not None:
+            return default_value
+        if len(input_values) == 1:
+            return input_values[0]
+        return 0
+
+    return input_values[selected_index]
+
+
+class OneHotMuxDUT(Elaboratable):
+    def __init__(self, shape, input_count, is_priority, has_default):
+        self.select = [Signal() for _ in range(input_count)]
+        self.inputs = [Signal(shape) for _ in range(input_count)]  # type: ignore
+        self.output = Signal(shape)  # type: ignore
+        self.default = Signal(shape) if has_default else None  # type: ignore
+        self.is_priority = is_priority
+        self.has_default = has_default
+
+    def elaborate(self, platform):
+        m = Module()
+        m.d.comb += Value.cast(self.output).eq(
+            OneHotMux.create(
+                m,
+                list(zip(self.select, self.inputs)),
+                self.default if self.has_default else None,
+                priority=self.is_priority,
+            )
+        )
+        return m
 
 
 class TestOneHotMux(TestCaseWithSimulator):
-    def test_values(self):
-        class DUT(Elaboratable):
-            def __init__(self):
-                self.select_0 = Signal()
-                self.select_1 = Signal()
-                self.input_0 = Signal(2)
-                self.input_1 = Signal(2)
-                self.default = Const(3, 2)
-                self.output = Signal(2)
+    @pytest.mark.parametrize("is_valuecastable", [False, True])
+    @pytest.mark.parametrize("has_default", [False, True])
+    @pytest.mark.parametrize("is_priority", [False, True])
+    @pytest.mark.parametrize("input_count", [1, 3, 7])
+    @pytest.mark.parametrize("width", [1, 6, 15])
+    def test_randomized(self, is_valuecastable, has_default, is_priority, input_count, width):
+        random.seed(f"{int(is_valuecastable)}-{int(has_default)}-{int(is_priority)}-{input_count}-{width}")
 
-            def elaborate(self, platform):
-                m = Module()
-                m.d.comb += self.output.eq(
-                    OneHotMux.create(
-                        m,
-                        [(self.select_0, self.input_0), (self.select_1, self.input_1)],
-                        self.default,
-                    )
-                )
-                return m
+        shape = ArrayLayout(1, width) if is_valuecastable else width
+        dut = OneHotMuxDUT(shape=shape, input_count=input_count, is_priority=is_priority, has_default=has_default)
 
-        dut = DUT()
+        def from_repr(x):
+            return shape.from_bits(x) if is_valuecastable else x
 
         async def proc(sim: TestbenchContext):
-            test_vectors = [
-                (0, 0, 1, 2, 3),
-                (1, 0, 1, 2, 1),
-                (0, 1, 1, 2, 2),
-            ]
-            for select_0, select_1, input_0, input_1, expected in test_vectors:
-                sim.set(dut.select_0, select_0)
-                sim.set(dut.select_1, select_1)
-                sim.set(dut.input_0, input_0)
-                sim.set(dut.input_1, input_1)
-                await sim.tick()
-                assert sim.get(dut.output) == expected
+            for _ in range(100):
+                if is_priority:
+                    if has_default:
+                        select = random.randrange(0, 2**input_count)
+                    else:
+                        select = random.randrange(1, 2**input_count)
+                else:
+                    if has_default:
+                        select = random.randrange(0, input_count + 1)
+                        select = 0 if select == input_count else 1 << select
+                    else:
+                        select = 1 << random.randrange(0, input_count)
 
-        with self.run_simulation(dut) as sim:
-            sim.add_testbench(proc)
+                values = [random.randrange(0, 2**width) for _ in range(input_count)]
+                default_value = random.randrange(0, 2**width) if has_default else None
 
-    def test_valuecastables(self):
-        class DUT(Elaboratable):
-            select_0: Value
-            select_1: Value
-            input_0: ValueCastable
-            input_1: ValueCastable
-            default: ValueCastable
-            output: ValueCastable
+                for i in range(input_count):
+                    sim.set(dut.select[i], (select >> i) & 1)
+                    sim.set(dut.inputs[i], from_repr(values[i]))  # type: ignore
 
-            def __init__(self):
-                self.select_0 = Signal()
-                self.select_1 = Signal()
-                self.input_0 = Signal(OneHotMuxEnum)  # type: ignore
-                self.input_1 = Signal(OneHotMuxEnum)  # type: ignore
-                self.default = Signal(OneHotMuxEnum)  # type: ignore
-                self.output = Signal(OneHotMuxEnum)  # type: ignore
+                if has_default:
+                    sim.set(dut.default, from_repr(default_value))  # type: ignore
 
-            def elaborate(self, platform):
-                m = Module()
-                m.d.comb += Value.cast(self.output).eq(
-                    OneHotMux.create(
-                        m,
-                        [(self.select_0, self.input_0), (self.select_1, self.input_1)],
-                        self.default,
-                    )
+                await sim.delay(1e-7)
+
+                got = sim.get(dut.output)
+
+                if is_valuecastable:
+                    got = Const.cast(got).value
+
+                expected = one_hot_mux_reference(
+                    select_values=[(select >> i) & 1 for i in range(input_count)],
+                    input_values=values,
+                    default_value=default_value,
+                    is_priority=is_priority,
                 )
-                return m
 
-        dut = DUT()
-
-        async def proc(sim: TestbenchContext):
-            test_vectors = [
-                (0, 0, OneHotMuxEnum.ZERO, OneHotMuxEnum.ONE, OneHotMuxEnum.ZERO),
-                (1, 0, OneHotMuxEnum.ZERO, OneHotMuxEnum.ONE, OneHotMuxEnum.ZERO),
-                (0, 1, OneHotMuxEnum.ZERO, OneHotMuxEnum.ONE, OneHotMuxEnum.ONE),
-            ]
-            for select_0, select_1, input_0, input_1, expected in test_vectors:
-                sim.set(dut.select_0, select_0)
-                sim.set(dut.select_1, select_1)
-                sim.set(dut.input_0, input_0)
-                sim.set(dut.input_1, input_1)
-                sim.set(dut.default, OneHotMuxEnum.ZERO)
-                await sim.tick()
-                assert sim.get(dut.output) == expected
+                assert got == expected
 
         with self.run_simulation(dut) as sim:
             sim.add_testbench(proc)

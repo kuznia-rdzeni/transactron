@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import Required
 
 import pytest
 from transactron.core import *
