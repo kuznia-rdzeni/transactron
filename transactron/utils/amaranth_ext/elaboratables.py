@@ -3,11 +3,10 @@ from contextlib import contextmanager
 from typing import Literal, Optional, overload
 from collections.abc import Iterable
 from amaranth import *
-from amaranth import ValueCastable
 from amaranth.lib.data import ArrayLayout, View
 from amaranth_types import HasElaborate, ShapeLike, ModuleLike, ValueLike
 
-from transactron.utils.amaranth_ext.functions import one_hot_mux
+from transactron.utils.amaranth_ext.functions import one_hot_mux, shape_of
 
 __all__ = [
     "OneHotSwitchDynamic",
@@ -18,6 +17,7 @@ __all__ = [
     "MultiPriorityEncoder",
     "RingMultiPriorityEncoder",
     "StableSelectingNetwork",
+    "OneHotMux",
 ]
 
 
@@ -615,21 +615,7 @@ class StableSelectingNetwork(Elaboratable):
 
 
 class OneHotMux(Elaboratable):
-    """One-hot multiplexer.
-
-    Parameters
-    ----------
-    shape: ShapeLike
-         Shape of the inputs and output.
-    inputs_count: int
-        Number of inputs to select from.
-    priority: bool
-        If True do not assume that the select bits are one-hot, but choose the lowest on bit.
-    has_default: bool
-        Whether the multiplexer has a default input. If True, the output will be set to the default
-        input when all select bits are 0. If False, the output is zero when inputs_count > 1,
-        the only value if inputs_count == 1 and 0 vector if inputs_count == 0.
-    """
+    """One-hot multiplexer."""
 
     inputs: View
     """
@@ -652,6 +638,20 @@ class OneHotMux(Elaboratable):
     """
 
     def __init__(self, shape: ShapeLike, inputs_count: int, priority: bool = False, has_default: bool = True):
+        """Parameters
+        ----------
+        shape: ShapeLike
+            Shape of the inputs and output.
+        inputs_count: int
+            Number of inputs to select from.
+        priority: bool
+            If True do not assume that the select bits are one-hot, but choose the lowest on bit.
+        has_default: bool
+            Whether the multiplexer has a default input. If True, the output will be set to the default
+            input when all select bits are 0. If False, the output is zero when inputs_count > 1,
+            the only value if inputs_count == 1 and 0 vector if inputs_count == 0.
+        """
+
         self.inputs = Signal(ArrayLayout(shape, inputs_count))
         self.select = Signal(inputs_count)
         if has_default:
@@ -684,12 +684,10 @@ class OneHotMux(Elaboratable):
         """
         inputs = list(inputs)
 
-        if isinstance(default_input, ValueCastable):
-            input_shape = default_input.shape()
-        elif default_input is not None:
-            input_shape = Value.cast(default_input).shape()
+        if default_input is not None:
+            input_shape = shape_of(default_input)
         elif len(inputs) > 0:
-            input_shape = Value.cast(inputs[0][1]).shape()
+            input_shape = shape_of(inputs[0][1])
         else:
             raise ValueError(
                 "Can not infer the shape of the inputs for OneHotMux,"
@@ -708,17 +706,14 @@ class OneHotMux(Elaboratable):
     def elaborate(self, platform):
         m = Module()
 
-        if len(self.inputs) > 0:
-            m.d.comb += self.output.eq(
-                one_hot_mux(
-                    self.select,
-                    [self.inputs[i] for i in range(len(self.inputs))],
-                    default=self.default_input if self.has_default else None,
-                    priority=self.priority,
-                    assert_one_hot=False,
-                )
+        m.d.comb += Value.cast(self.output).eq(
+            one_hot_mux(
+                self.select,
+                [self.inputs[i] for i in range(len(self.inputs))],
+                default=self.default_input if self.has_default else None,
+                priority=self.priority,
+                assert_one_hot=False,
             )
-        elif self.has_default:
-            m.d.comb += self.output.eq(Value.cast(self.default_input))
+        )
 
         return m
