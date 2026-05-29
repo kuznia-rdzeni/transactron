@@ -500,7 +500,7 @@ class TransactionManager(Elaboratable):
             def validate_args_for_method(method: MBody):
                 calls = method_map.info_by_call[(transaction, method)]
                 runs = Cat(call.enable for call in calls)
-                combined = one_hot_mux(runs, [Value.cast(call.arg) for call in calls], assert_one_hot=False)
+                combined = one_hot_mux(runs, [call.arg for call in calls], assert_one_hot=False)
                 return method._validate_arguments(runs.any(), method.data_in.shape()(combined))
 
             runnable_terms = [

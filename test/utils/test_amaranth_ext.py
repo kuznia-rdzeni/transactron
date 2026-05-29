@@ -1,8 +1,11 @@
+from amaranth import ValueCastable
+
 from transactron.testing import *
 import random
 import pytest
 from amaranth import *
-from transactron.utils.amaranth_ext import MultiPriorityEncoder, RingMultiPriorityEncoder
+from amaranth.lib.enum import Enum
+from transactron.utils.amaranth_ext import MultiPriorityEncoder, OneHotMux, RingMultiPriorityEncoder
 
 
 def get_expected_multi(input_width, output_count, input, *args):
@@ -26,6 +29,101 @@ def get_expected_ring(input_width, output_count, input, first, last):
         input //= 2
     places += [None] * output_count
     return places
+
+
+class OneHotMuxEnum(Enum, shape=1):
+    ZERO = 0
+    ONE = 1
+
+
+class TestOneHotMux(TestCaseWithSimulator):
+    def test_values(self):
+        class DUT(Elaboratable):
+            def __init__(self):
+                self.select_0 = Signal()
+                self.select_1 = Signal()
+                self.input_0 = Signal(2)
+                self.input_1 = Signal(2)
+                self.default = Const(3, 2)
+                self.output = Signal(2)
+
+            def elaborate(self, platform):
+                m = Module()
+                m.d.comb += self.output.eq(
+                    OneHotMux.create(
+                        m,
+                        [(self.select_0, self.input_0), (self.select_1, self.input_1)],
+                        self.default,
+                    )
+                )
+                return m
+
+        dut = DUT()
+
+        async def proc(sim: TestbenchContext):
+            test_vectors = [
+                (0, 0, 1, 2, 3),
+                (1, 0, 1, 2, 1),
+                (0, 1, 1, 2, 2),
+            ]
+            for select_0, select_1, input_0, input_1, expected in test_vectors:
+                sim.set(dut.select_0, select_0)
+                sim.set(dut.select_1, select_1)
+                sim.set(dut.input_0, input_0)
+                sim.set(dut.input_1, input_1)
+                await sim.tick()
+                assert sim.get(dut.output) == expected
+
+        with self.run_simulation(dut) as sim:
+            sim.add_testbench(proc)
+
+    def test_valuecastables(self):
+        class DUT(Elaboratable):
+            select_0: Value
+            select_1: Value
+            input_0: ValueCastable
+            input_1: ValueCastable
+            default: ValueCastable
+            output: ValueCastable
+
+            def __init__(self):
+                self.select_0 = Signal()
+                self.select_1 = Signal()
+                self.input_0 = Signal(OneHotMuxEnum)  # type: ignore
+                self.input_1 = Signal(OneHotMuxEnum)  # type: ignore
+                self.default = Signal(OneHotMuxEnum)  # type: ignore
+                self.output = Signal(OneHotMuxEnum)  # type: ignore
+
+            def elaborate(self, platform):
+                m = Module()
+                m.d.comb += Value.cast(self.output).eq(
+                    OneHotMux.create(
+                        m,
+                        [(self.select_0, self.input_0), (self.select_1, self.input_1)],
+                        self.default,
+                    )
+                )
+                return m
+
+        dut = DUT()
+
+        async def proc(sim: TestbenchContext):
+            test_vectors = [
+                (0, 0, OneHotMuxEnum.ZERO, OneHotMuxEnum.ONE, OneHotMuxEnum.ZERO),
+                (1, 0, OneHotMuxEnum.ZERO, OneHotMuxEnum.ONE, OneHotMuxEnum.ZERO),
+                (0, 1, OneHotMuxEnum.ZERO, OneHotMuxEnum.ONE, OneHotMuxEnum.ONE),
+            ]
+            for select_0, select_1, input_0, input_1, expected in test_vectors:
+                sim.set(dut.select_0, select_0)
+                sim.set(dut.select_1, select_1)
+                sim.set(dut.input_0, input_0)
+                sim.set(dut.input_1, input_1)
+                sim.set(dut.default, OneHotMuxEnum.ZERO)
+                await sim.tick()
+                assert sim.get(dut.output) == expected.value
+
+        with self.run_simulation(dut) as sim:
+            sim.add_testbench(proc)
 
 
 @pytest.mark.parametrize(

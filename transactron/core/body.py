@@ -120,7 +120,7 @@ class Body(TransactionBase["Body"]):
     def _default_combiner(shape: ShapeLike):
         def impl(m: Module, args: Sequence[MethodStruct], runs: Value) -> AssignArg:
             arg = Signal(shape)
-            m.d.comb += arg.eq(one_hot_mux(runs, [Value.cast(arg) for arg in args], assert_one_hot=False))
+            m.d.comb += arg.eq(one_hot_mux(runs, args, assert_one_hot=False))
             return arg
 
         return impl

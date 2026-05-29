@@ -4,7 +4,7 @@ from amaranth.hdl import ShapeCastable, ValueCastable
 from amaranth.hdl._ast import SwitchValue
 from amaranth.utils import bits_for, ceil_log2
 from amaranth.lib import data
-from collections.abc import Callable, Iterable, Mapping
+from collections.abc import Callable, Iterable, Mapping, Sequence
 import operator
 
 from amaranth_types.types import ValueLike, ShapeLike
@@ -199,7 +199,7 @@ def max_value(*values: ValueBundle) -> Value:
 
 def one_hot_mux(
     select: ValueLike,
-    inputs: list[ValueLike],
+    inputs: Sequence[ValueLike],
     default: Optional[ValueLike] = None,
     priority: bool = False,
     assert_one_hot: bool = True,
@@ -215,6 +215,8 @@ def one_hot_mux(
     If default is provided and select signal is 0, the output is default,
     otherwise select must have at least one bit set.
     """
+    inputs = list(inputs)
+
     if len(inputs) == 0:
         return Value.cast(default) if default is not None else C(0)
 

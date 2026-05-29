@@ -3,6 +3,7 @@ from contextlib import contextmanager
 from typing import Literal, Optional, overload
 from collections.abc import Iterable
 from amaranth import *
+from amaranth import ValueCastable
 from amaranth.lib.data import ArrayLayout, View
 from amaranth_types import HasElaborate, ShapeLike, ModuleLike, ValueLike
 
@@ -627,12 +628,12 @@ class OneHotMux(Elaboratable):
     Selection signal. When one of the select bits is set, the corresponding input is assigned to `output`.
     """
 
-    default_input: Value
+    default_input: ValueCastable
     """
     Default input signal. Only present if `has_default` is True.
     """
 
-    output: Value
+    output: ValueCastable
     """
     Output signal. It is set to `default_input` or one of `inputs` depending on `select`.
     """
@@ -655,8 +656,8 @@ class OneHotMux(Elaboratable):
         self.inputs = Signal(ArrayLayout(shape, inputs_count))
         self.select = Signal(inputs_count)
         if has_default:
-            self.default_input = Signal(shape)
-        self.output = Signal(shape)
+            self.default_input = Signal(shape)  # type: ignore
+        self.output = Signal(shape)  # type: ignore
 
         self.shape = Shape.cast(shape)
         self.priority = priority
@@ -699,7 +700,7 @@ class OneHotMux(Elaboratable):
         if default_input is not None:
             m.d.comb += Value.cast(fw_net.default_input).eq(default_input)
         for i, (sel_bit, input) in enumerate(inputs):
-            m.d.comb += fw_net.select[i].eq(sel_bit)
+            m.d.comb += fw_net.select[i].eq(Value.cast(sel_bit).any())
             m.d.comb += Value.cast(fw_net.inputs[i]).eq(input)
         return fw_net.output
 
@@ -709,7 +710,7 @@ class OneHotMux(Elaboratable):
         m.d.comb += Value.cast(self.output).eq(
             one_hot_mux(
                 self.select,
-                [self.inputs[i] for i in range(len(self.inputs))],
+                [field for (_, field) in self.inputs],
                 default=self.default_input if self.has_default else None,
                 priority=self.priority,
                 assert_one_hot=False,
