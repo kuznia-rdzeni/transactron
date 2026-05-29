@@ -215,15 +215,8 @@ def one_hot_mux(
     If default is provided and select signal is 0, the output is default,
     otherwise select must have at least one bit set.
     """
-    if default is not None:
-        shape = shape_of(default)
-    elif len(inputs) > 0:
-        shape = shape_of(inputs[0])
-    else:
-        raise ValueError("At least one input or default value must be provided")
-
     if len(inputs) == 0:
-        return Value.cast(default) if default is not None else C(0, shape)
+        return Value.cast(default) if default is not None else C(0)
 
     select = Value.cast(select).as_unsigned()
 
@@ -249,8 +242,6 @@ def one_hot_mux(
         )
 
     value_combined = or_value([Mux(select_one_hot[i], Value.cast(inputs[i]), 0) for i in range(len(inputs))])
-
-    print(value_combined.shape())
 
     if default is None:
         return value_combined
