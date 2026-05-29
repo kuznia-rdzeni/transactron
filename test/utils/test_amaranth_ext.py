@@ -120,7 +120,7 @@ class TestOneHotMux(TestCaseWithSimulator):
                 sim.set(dut.input_1, input_1)
                 sim.set(dut.default, OneHotMuxEnum.ZERO)
                 await sim.tick()
-                assert sim.get(dut.output) == expected.value
+                assert sim.get(dut.output) == expected
 
         with self.run_simulation(dut) as sim:
             sim.add_testbench(proc)
