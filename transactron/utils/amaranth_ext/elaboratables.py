@@ -715,6 +715,7 @@ class OneHotMux(Elaboratable):
                     [self.inputs[i] for i in range(len(self.inputs))],
                     default=self.default_input if self.has_default else None,
                     priority=self.priority,
+                    assert_one_hot=False,
                 )
             )
         elif self.has_default:
