@@ -58,7 +58,6 @@ class OneHotMuxDUT(Elaboratable):
         self.output = Signal(shape)  # type: ignore
         self.default = Signal(shape) if has_default else None  # type: ignore
         self.is_priority = is_priority
-        self.has_default = has_default
 
     def elaborate(self, platform):
         m = Module()
@@ -66,7 +65,7 @@ class OneHotMuxDUT(Elaboratable):
             OneHotMux.create(
                 m,
                 list(zip(self.select, self.inputs)),
-                self.default if self.has_default else None,
+                self.default,
                 priority=self.is_priority,
             )
         )
