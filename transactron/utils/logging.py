@@ -10,7 +10,7 @@ from typing import TypeAlias
 from amaranth import *
 from amaranth_types import ModuleLike, ValueLike
 
-from transactron.utils import SrcLoc, get_src_loc, local_src_loc
+from transactron.utils.transactron_helpers import SrcLoc, get_src_loc, local_src_loc
 from transactron.utils.dependencies import DependencyContext, ListKey
 
 

@@ -1,14 +1,15 @@
-from typing import Any
+from typing import Any, Optional
 from amaranth import *
 from amaranth.hdl import ShapeCastable, ValueCastable
 from amaranth.hdl._ast import SwitchValue
 from amaranth.utils import bits_for, ceil_log2
 from amaranth.lib import data
-from collections.abc import Callable, Iterable, Mapping
+from collections.abc import Callable, Iterable, Mapping, Sequence
 import operator
 
 from amaranth_types.types import ValueLike, ShapeLike
 from transactron.utils.typing import ValueBundle
+from transactron.utils.logging import top_assertion
 
 __all__ = [
     "mod_incr",
@@ -27,6 +28,7 @@ __all__ = [
     "generic_min_value",
     "min_value",
     "max_value",
+    "one_hot_mux",
 ]
 
 
@@ -193,3 +195,57 @@ def min_value(*values: ValueBundle) -> Value:
 
 def max_value(*values: ValueBundle) -> Value:
     return generic_min_value(*values, operator=operator.gt)
+
+
+def one_hot_mux(
+    select: ValueLike,
+    inputs: Sequence[ValueLike],
+    default: Optional[ValueLike] = None,
+    priority: bool = False,
+    assert_one_hot: bool = True,
+) -> Value:
+    """
+    One-hot multiplexer.
+    Takes n input values and a one-hot select signal of n bits and outputs the value corresponding
+    to the bit set in the select signal.
+    If priority is False and multiple bits are set, the output is undefined.
+    If priority is True and multiple bits are set, the output corresponds to the lowest set bit in the select signal.
+    If assert_one_hot is True and priority is False, an assertion is added that checks
+    that the select signal is one-hot.
+    If default is provided and select signal is 0, the output is default,
+    otherwise select must have at least one bit set.
+    """
+    inputs = list(inputs)
+
+    if len(inputs) == 0:
+        return Value.cast(default) if default is not None else C(0)
+
+    select = Value.cast(select).as_unsigned()
+
+    if default is None and assert_one_hot:
+        top_assertion(
+            select.any(),
+            "Select signal must be one-hot, but no bits are set",
+            src_loc=1,
+        )
+
+    if default is None and len(inputs) == 1:
+        return Value.cast(inputs[0])
+
+    select_first = select & (~select + 1)
+    select_one_hot = select_first if priority else select
+
+    if not priority and assert_one_hot:
+        top_assertion(
+            select == select_first,
+            "Select signal must be one-hot with priority=False, select: {:b}",
+            select,
+            src_loc=1,
+        )
+
+    value_combined = or_value([Mux(select_one_hot[i], Value.cast(inputs[i]), 0) for i in range(len(inputs))])
+
+    if default is None:
+        return value_combined
+
+    return Mux(select.any(), value_combined, Value.cast(default))
