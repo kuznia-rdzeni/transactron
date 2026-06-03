@@ -343,6 +343,7 @@ class TransactionManager(Elaboratable):
 
     def _simultaneous(self):
         method_map = MethodMap(self.transactions, self.methods)
+        ready_dependencies = TransactionManager._ready_dependencies(self.transactions, self.methods)
 
         # remove orderings between simultaneous methods/transactions
         # TODO: can it be done after transitivity, possibly catching more cases?
@@ -439,7 +440,9 @@ class TransactionManager(Elaboratable):
                 name = "_".join([t.name for t in group])
                 with Transaction(name=name).body(m):
                     for transaction in group:
-                        methods[transaction](m)
+                        methods[transaction](
+                            m, enable_call=Cat(dep.run for dep in ready_dependencies[transaction]).all()
+                        )
             self.transactions += DependencyContext.get().get_dependency(TransactionsKey())
 
         return m
