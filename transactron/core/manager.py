@@ -380,7 +380,7 @@ class TransactionManager(Elaboratable):
         for elem in method_map.methods_and_transactions:
             if elem.simultaneous_list and elem in conditionally_called_methods:
                 # nested definitions do not trigger the issue
-                if any(not elem.ctrl_path.is_proper_prefix(sim_elem.ctrl_path) for sim_elem in elem.simultaneous_list):
+                if any(elem not in ready_dependencies[sim_elem] for sim_elem in elem.simultaneous_list):
                     raise RuntimeError(
                         "Simultaneity constraint for conditionally called method "
                         f"'{elem.name}' {elem.src_loc} not supported"
