@@ -22,9 +22,11 @@ __all__ = [
     "shape_of",
     "const_of",
     "binary_tree_reduce",
+    "bitwise_reduce",
     "sum_value",
     "or_value",
     "and_value",
+    "xor_value",
     "generic_min_value",
     "min_value",
     "max_value",
@@ -170,16 +172,40 @@ def binary_tree_reduce(*values: ValueBundle, neutral: Value, operator: Callable[
     return min_layers[0]
 
 
+def bitwise_reduce(*values: ValueBundle, neutral: Value, reduce: Callable[[Value], Value]) -> Value:
+    vals = [Value.cast(v) for v in flatten_signals(values)]
+    if not vals:
+        vals.append(Value.cast(neutral))
+
+    max_len = max(v.shape().width for v in vals)
+
+    def extend(v):
+        if v.shape().signed:
+            return Cat(v, C(v[-1], shape=max_len - v.shape().width)).as_signed()
+        else:
+            return Cat(v, C(0, shape=max_len - v.shape().width)).as_unsigned()
+
+    vals = [extend(v) for v in vals]
+    result = Cat(reduce(Cat(v[i] for v in vals)) for i in range(max_len))
+
+    any_signed = any(v.shape().signed for v in vals)
+    return result.as_signed() if any_signed else result.as_unsigned()
+
+
 def sum_value(*values: ValueBundle):
     return binary_tree_reduce(*values, neutral=C(0), operator=operator.add)
 
 
 def or_value(*values: ValueBundle):
-    return binary_tree_reduce(*values, neutral=C(0), operator=operator.or_)
+    return bitwise_reduce(*values, neutral=C(0), reduce=lambda v: v.any())
 
 
 def and_value(*values: ValueBundle):
-    return binary_tree_reduce(*values, neutral=C(-1), operator=operator.and_)
+    return bitwise_reduce(*values, neutral=C(-1), reduce=lambda v: v.all())
+
+
+def xor_value(*values: ValueBundle):
+    return bitwise_reduce(*values, neutral=C(0), reduce=lambda v: v.xor())
 
 
 def generic_min_value(*values: ValueBundle, operator: Callable[[Value, Value], Value]) -> Value:
