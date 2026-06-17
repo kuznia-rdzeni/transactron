@@ -5,7 +5,7 @@ from collections.abc import Iterable
 from amaranth import *
 from amaranth import ValueCastable
 from amaranth.lib.data import ArrayLayout, View
-from amaranth_types import HasElaborate, ShapeLike, ModuleLike, ValueLike
+from amaranth_types import FlatValueLike, HasElaborate, ShapeLike, ModuleLike, ValueLike
 
 from transactron.utils.amaranth_ext.functions import one_hot_mux, shape_of
 
@@ -662,6 +662,23 @@ class OneHotMux(Elaboratable):
         self.shape = Shape.cast(shape)
         self.priority = priority
         self.has_default = has_default
+
+    @overload
+    @staticmethod
+    def create[
+        T: ValueCastable
+    ](
+        m: ModuleLike, inputs: Iterable[tuple[ValueLike, T]], default_input: Optional[T] = None, priority: bool = False
+    ) -> T: ...
+
+    @overload
+    @staticmethod
+    def create(
+        m: ModuleLike,
+        inputs: Iterable[tuple[ValueLike, FlatValueLike]],
+        default_input: Optional[FlatValueLike] = None,
+        priority: bool = False,
+    ) -> Value: ...
 
     @staticmethod
     def create(
