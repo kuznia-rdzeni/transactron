@@ -450,7 +450,7 @@ class Connector(HasElaborate, Protocol):
     Returns
     -------
     MethodStruct
-        Data with layout `write.layout_out`
+        Data with layout `write.layout_in`
     """
     peek: Method
     """Returns the element that would be output from `read`.
@@ -466,7 +466,7 @@ class Connector(HasElaborate, Protocol):
     Returns
     -------
     MethodStruct
-        Data with layout `write.layout_out`.
+        Data with layout `write.layout_in`.
     """
     write: Method
     """Writes to the connector.
@@ -479,7 +479,7 @@ class Connector(HasElaborate, Protocol):
     m: TModule
         Transactron module.
     **kwargs: ValueLike
-        Arguments as specified by the data layout.
+        Arguments as specified by the layout.
     """
 
 
