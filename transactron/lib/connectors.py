@@ -489,7 +489,7 @@ class ClearableConnector(Connector, Protocol):
     clear: Method
     """Clears the connector.
 
-    The connector must be empty the cycle after the clear regardless of the status to `write`.
+    The connector must be empty the cycle after the clear regardless of `write` being run or not.
     Connector being empty means that all perviously written values should be considered consumed.
 
     Parameters
