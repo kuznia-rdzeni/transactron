@@ -437,51 +437,63 @@ class CrossbarConnectTrans(Elaboratable):
 
 
 class Connector(HasElaborate, Protocol):
-    """Module used for connecting two methods.
+    """Module implementing fifo-ordered connector."""
 
-    Additional requirements:
-    - read and peek must have the same output layout as write's input layout
-    - read and peek's input layout and write's output layout be empty
-    - peek and read methods must not be in conflict
+    read: Method
+    """Reads from the connector.
 
-    Attributes
+    Parameters
     ----------
-    read: Method
-        The read method. Accepts an empty argument, returns a structure.
-    peek: Method, nonexclusive
-        Like `read`, but doesn't take the value from the connector.
-    write: Method
-        The write method. Accepts a structure, returns empty result.
-    """
+    m: TModule
+        Transactron module.
 
-    read: Method
+    Returns
+    -------
+    MethodStruct
+        Data with layout `write.layout_out`
+    """
     peek: Method
+    """Returns the element that would be output from `read`.
+
+    This method must not be in conflict with `read`.
+    This method must be nonexclusive.
+
+    Parameters
+    ----------
+    m: TModule
+        Transactron module.
+
+    Returns
+    -------
+    MethodStruct
+        Data with layout `write.layout_out`.
+    """
     write: Method
+    """Writes to the connector.
+
+    The values written via this method must show to the `read` and `peek` methods
+    in the same order as they were written.
+
+    Parameters
+    ----------
+    m: TModule
+        Transactron module.
+    **kwargs: ValueLike
+        Arguments as specified by the data layout.
+    """
 
 
 class ClearableConnector(Connector, Protocol):
-    """Connector with a clear support.
+    """Connector with a clear support."""
 
-    Other than requirements of `Connector`, also requires a `clear` method.
+    clear: Method
+    """Clears the connector.
 
-    The `clear` must:
-    - have an empty input and output layout
-    - actually clear the connector, i.e. no value from before `clear`
-    should be ever returned by `read` or `peek`.
-    - if `write` and `clear` were run in the same cycle, the value can be
-    returned by `read` or `peek` only in this cycle, otherwise it should
-    not be returned.
+    The connector must be empty the cycle after the clear regardless of the status to `write`.
+    Connector being empty means that all perviously written values should be considered consumed.
 
-    Attributes
+    Parameters
     ----------
-    read: Method
-        The read method. Accepts an empty argument, returns a structure.
-    peek: Method, nonexclusive
-        Like `read`, but doesn't take the value from the connector.
-    write: Method
-        The write method. Accepts a structure, returns empty result.
-    clear: Method
-        The clear method. Accepts an empty argument, returns empty result.
+    m: TModule
+        Transactron module.
     """
-
-    clear: Method
