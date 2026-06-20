@@ -145,7 +145,7 @@ class Stack(Elaboratable):
         def _() -> ValueLike:
             return self.head
 
-        @def_method(m, self.clear, nonexclusive=True)
+        @def_method(m, self.clear)
         def _() -> None:
             pass  # size change handled in earlier code
 
