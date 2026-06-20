@@ -3,7 +3,7 @@ from amaranth import *
 import amaranth.lib.memory as memory
 import amaranth.lib.data as data
 from amaranth_types import ShapeLike, ValueLike, SrcLoc
-from transactron import Method, def_method, Priority, TModule
+from transactron import Method, def_method, TModule
 from transactron.lib.allocators import CircularAllocator
 from transactron.utils.typing import MethodLayout, MethodStruct
 from transactron.utils.amaranth_ext import mod_incr, rotate_vec_right, rotate_vec_left
@@ -365,9 +365,6 @@ class Semaphore(Elaboratable):
 
         self.count = Signal(range(self.max_count + 1))
         self.count_next = Signal(range(self.max_count + 1))
-
-        self.clear.add_conflict(self.acquire, Priority.LEFT)
-        self.clear.add_conflict(self.release, Priority.LEFT)
 
     def elaborate(self, platform) -> TModule:
         m = TModule()
