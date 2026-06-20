@@ -139,7 +139,7 @@ class BasicFifo(Elaboratable):
         def _() -> ValueLike:
             return self.head
 
-        @def_method(m, self.clear)
+        @def_method(m, self.clear, nonexclusive=True)
         def _() -> None:
             allocator.clear(m)
 
@@ -334,7 +334,7 @@ class WideFifo(Elaboratable):
         def _():
             return {"count": read_available, "data": head}
 
-        @def_method(m, self.clear)
+        @def_method(m, self.clear, nonexclusive=True)
         def _() -> None:
             m.d.sync += write_idx.eq(0)
             m.d.sync += read_idx.eq(0)
@@ -387,7 +387,7 @@ class Semaphore(Elaboratable):
         def _() -> None:
             pass
 
-        @def_method(m, self.clear)
+        @def_method(m, self.clear, nonexclusive=True)
         def _() -> None:
             pass
 

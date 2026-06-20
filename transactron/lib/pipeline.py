@@ -526,7 +526,7 @@ class PipelineBuilder(Elaboratable):
 
             clear_methods.append(fwd.clear)
 
-        @def_method(m, self.clear)
+        @def_method(m, self.clear, nonexclusive=True)
         def _():
             for clear_method in clear_methods:
                 _ = clear_method(m)
