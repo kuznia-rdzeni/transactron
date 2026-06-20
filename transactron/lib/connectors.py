@@ -123,10 +123,6 @@ class Forwarder(Elaboratable):
         self.write = Method(i=layout, src_loc=src_loc)
         self.clear = Method(src_loc=src_loc)
 
-        self.clear.add_conflict(self.read, Priority.LEFT)
-        self.clear.add_conflict(self.peek, Priority.LEFT)
-        self.clear.add_conflict(self.write, Priority.LEFT)
-
     def elaborate(self, platform):
         m = TModule()
 
@@ -201,10 +197,6 @@ class Pipe(Elaboratable):
         self.write = Method(i=layout, src_loc=src_loc)
         self.clear = Method()
         self.head = Signal.like(self.read.data_out)
-
-        self.clear.add_conflict(self.read, Priority.LEFT)
-        self.clear.add_conflict(self.peek, Priority.LEFT)
-        self.clear.add_conflict(self.write, Priority.LEFT)
 
     def elaborate(self, platform):
         m = TModule()
@@ -472,11 +464,13 @@ class ClearableConnector(Connector, Protocol):
 
     Other than requirements of `Connector`, also requires a `clear` method.
 
-    The `clear` method must be in conflict with all other methods of the connector, and have priority over them.
-    Furthermore `clear` must:
+    The `clear` must:
     - have an empty input and output layout
-    - actually clear the connector, i.e. no value from before or the same cycle as the `clear`
+    - actually clear the connector, i.e. no value from before `clear`
     should be ever returned by `read` or `peek`.
+    - if `write` and `clear` were run in the same cycle, the value can be
+    returned by `read` or `peek` only in this cycle, otherwise it should
+    not be returned.
 
     Attributes
     ----------
