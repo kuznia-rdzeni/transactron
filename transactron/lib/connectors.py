@@ -151,7 +151,7 @@ class Forwarder(Elaboratable):
         def _():
             return read_value
 
-        @def_method(m, self.clear)
+        @def_method(m, self.clear, nonexclusive=True)
         def _():
             m.d.sync += reg_valid.eq(0)
 
@@ -221,7 +221,7 @@ class Pipe(Elaboratable):
             m.d.sync += reg.eq(arg)
             m.d.sync += reg_valid.eq(1)
 
-        @def_method(m, self.clear)
+        @def_method(m, self.clear, nonexclusive=True)
         def _():
             m.d.sync += reg_valid.eq(0)
 

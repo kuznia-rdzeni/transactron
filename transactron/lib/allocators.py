@@ -284,7 +284,7 @@ class CircularAllocator(Elaboratable):
                 "new_start_idx": new_start_idx,
             }
 
-        @def_method(m, self.clear)
+        @def_method(m, self.clear, nonexclusive=True)
         def _():
             m.d.sync += self.start_idx.eq(0)
             m.d.sync += self.end_idx.eq(0)
