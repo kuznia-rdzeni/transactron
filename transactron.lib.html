@@ -618,30 +618,21 @@ data layout <cite>layout</cite> passed to <cite>__init__</cite>. Returns an empt
 <em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">transactron.lib.connectors.</span></span><span class="sig-name descname"><span class="pre">ClearableConnector</span></span><a class="headerlink" href="#transactron.lib.connectors.ClearableConnector" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#transactron.lib.connectors.Connector" title="transactron.lib.connectors.Connector"><code class="xref py py-class docutils literal notranslate"><span class="pre">Connector</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Protocol" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Protocol</span></code></a></p>
 <p>Connector with a clear support.</p>
-<p>Other than requirements of <cite>Connector</cite>, also requires a <cite>clear</cite> method.</p>
-<p>The <cite>clear</cite> method must be in conflict with all other methods of the connector, and have priority over them.
-Furthermore <cite>clear</cite> must:
-- have an empty input and output layout
-- actually clear the connector, i.e. no value from before or the same cycle as the <cite>clear</cite>
-should be ever returned by <cite>read</cite> or <cite>peek</cite>.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Attributes<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>read: Method</strong></dt><dd><p>The read method. Accepts an empty argument, returns a structure.</p>
-</dd>
-<dt><strong>peek: Method, nonexclusive</strong></dt><dd><p>Like <cite>read</cite>, but doesn’t take the value from the connector.</p>
-</dd>
-<dt><strong>write: Method</strong></dt><dd><p>The write method. Accepts a structure, returns empty result.</p>
-</dd>
-<dt><strong>clear: Method</strong></dt><dd><p>The clear method. Accepts an empty argument, returns empty result.</p>
-</dd>
-</dl>
-</dd>
-</dl>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="transactron.lib.connectors.ClearableConnector.clear">
 <span class="sig-name descname"><span class="pre">clear</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="transactron.core.html#transactron.core.method.Method" title="transactron.core.method.Method"><span class="pre">Method</span></a></em><a class="headerlink" href="#transactron.lib.connectors.ClearableConnector.clear" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Clears the connector.</p>
+<p>The connector must be empty the cycle after the clear regardless of <cite>write</cite> being run or not.
+Connector being empty means that all perviously written values should be considered consumed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>m: TModule</strong></dt><dd><p>Transactron module.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
 
 </dd></dl>
 
@@ -751,37 +742,66 @@ Alternatively, the source location to use instead of the default.</p>
 <dt class="sig sig-object py" id="transactron.lib.connectors.Connector">
 <em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">transactron.lib.connectors.</span></span><span class="sig-name descname"><span class="pre">Connector</span></span><a class="headerlink" href="#transactron.lib.connectors.Connector" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">HasElaborate</span></code>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Protocol" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Protocol</span></code></a></p>
-<p>Module used for connecting two methods.</p>
-<p>Additional requirements:
-- read and peek must have the same output layout as write’s input layout
-- read and peek’s input layout and write’s output layout be empty
-- peek and read methods must not be in conflict</p>
-<dl class="field-list simple">
-<dt class="field-odd">Attributes<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>read: Method</strong></dt><dd><p>The read method. Accepts an empty argument, returns a structure.</p>
-</dd>
-<dt><strong>peek: Method, nonexclusive</strong></dt><dd><p>Like <cite>read</cite>, but doesn’t take the value from the connector.</p>
-</dd>
-<dt><strong>write: Method</strong></dt><dd><p>The write method. Accepts a structure, returns empty result.</p>
-</dd>
-</dl>
-</dd>
-</dl>
+<p>Module implementing fifo-ordered connector.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="transactron.lib.connectors.Connector.peek">
 <span class="sig-name descname"><span class="pre">peek</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="transactron.core.html#transactron.core.method.Method" title="transactron.core.method.Method"><span class="pre">Method</span></a></em><a class="headerlink" href="#transactron.lib.connectors.Connector.peek" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Returns the element that would be output from <cite>read</cite>.</p>
+<p>This method must not be in conflict with <cite>read</cite>.
+This method must be nonexclusive.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>m: TModule</strong></dt><dd><p>Transactron module.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>MethodStruct</dt><dd><p>Data with layout <cite>write.layout_in</cite>.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="transactron.lib.connectors.Connector.read">
 <span class="sig-name descname"><span class="pre">read</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="transactron.core.html#transactron.core.method.Method" title="transactron.core.method.Method"><span class="pre">Method</span></a></em><a class="headerlink" href="#transactron.lib.connectors.Connector.read" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Reads from the connector.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>m: TModule</strong></dt><dd><p>Transactron module.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>MethodStruct</dt><dd><p>Data with layout <cite>write.layout_in</cite></p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="transactron.lib.connectors.Connector.write">
 <span class="sig-name descname"><span class="pre">write</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="transactron.core.html#transactron.core.method.Method" title="transactron.core.method.Method"><span class="pre">Method</span></a></em><a class="headerlink" href="#transactron.lib.connectors.Connector.write" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Writes to the connector.</p>
+<p>The values written via this method must show to the <cite>read</cite> and <cite>peek</cite> methods
+in the same order as they were written.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>m: TModule</strong></dt><dd><p>Transactron module.</p>
+</dd>
+<dt><strong>**kwargs: ValueLike</strong></dt><dd><p>Arguments as specified by the layout.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
 
 </dd></dl>
 
@@ -3204,7 +3224,7 @@ Alternatively, the source location to use instead of the default.</p>
 
   <div role="contentinfo">
     <p>&#169; Copyright Kuźnia Rdzeni, 2026.
-      <span class="lastupdated">Last updated on 17:52 2026-06-18.
+      <span class="lastupdated">Last updated on 07:18 2026-06-22.
       </span></p>
   </div>
 
