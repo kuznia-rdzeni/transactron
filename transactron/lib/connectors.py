@@ -123,10 +123,6 @@ class Forwarder(Elaboratable):
         self.write = Method(i=layout, src_loc=src_loc)
         self.clear = Method(src_loc=src_loc)
 
-        self.clear.add_conflict(self.read, Priority.LEFT)
-        self.clear.add_conflict(self.peek, Priority.LEFT)
-        self.clear.add_conflict(self.write, Priority.LEFT)
-
     def elaborate(self, platform):
         m = TModule()
 
@@ -155,7 +151,7 @@ class Forwarder(Elaboratable):
         def _():
             return read_value
 
-        @def_method(m, self.clear)
+        @def_method(m, self.clear, nonexclusive=True)
         def _():
             m.d.sync += reg_valid.eq(0)
 
@@ -202,10 +198,6 @@ class Pipe(Elaboratable):
         self.clear = Method()
         self.head = Signal.like(self.read.data_out)
 
-        self.clear.add_conflict(self.read, Priority.LEFT)
-        self.clear.add_conflict(self.peek, Priority.LEFT)
-        self.clear.add_conflict(self.write, Priority.LEFT)
-
     def elaborate(self, platform):
         m = TModule()
 
@@ -229,7 +221,7 @@ class Pipe(Elaboratable):
             m.d.sync += reg.eq(arg)
             m.d.sync += reg_valid.eq(1)
 
-        @def_method(m, self.clear)
+        @def_method(m, self.clear, nonexclusive=True)
         def _():
             m.d.sync += reg_valid.eq(0)
 
@@ -445,49 +437,63 @@ class CrossbarConnectTrans(Elaboratable):
 
 
 class Connector(HasElaborate, Protocol):
-    """Module used for connecting two methods.
+    """Module implementing fifo-ordered connector."""
 
-    Additional requirements:
-    - read and peek must have the same output layout as write's input layout
-    - read and peek's input layout and write's output layout be empty
-    - peek and read methods must not be in conflict
+    read: Method
+    """Reads from the connector.
 
-    Attributes
+    Parameters
     ----------
-    read: Method
-        The read method. Accepts an empty argument, returns a structure.
-    peek: Method, nonexclusive
-        Like `read`, but doesn't take the value from the connector.
-    write: Method
-        The write method. Accepts a structure, returns empty result.
-    """
+    m: TModule
+        Transactron module.
 
-    read: Method
+    Returns
+    -------
+    MethodStruct
+        Data with layout `write.layout_in`
+    """
     peek: Method
+    """Returns the element that would be output from `read`.
+
+    This method must not be in conflict with `read`.
+    This method must be nonexclusive.
+
+    Parameters
+    ----------
+    m: TModule
+        Transactron module.
+
+    Returns
+    -------
+    MethodStruct
+        Data with layout `write.layout_in`.
+    """
     write: Method
+    """Writes to the connector.
+
+    The values written via this method must show to the `read` and `peek` methods
+    in the same order as they were written.
+
+    Parameters
+    ----------
+    m: TModule
+        Transactron module.
+    **kwargs: ValueLike
+        Arguments as specified by the layout.
+    """
 
 
 class ClearableConnector(Connector, Protocol):
-    """Connector with a clear support.
+    """Connector with a clear support."""
 
-    Other than requirements of `Connector`, also requires a `clear` method.
+    clear: Method
+    """Clears the connector.
 
-    The `clear` method must be in conflict with all other methods of the connector, and have priority over them.
-    Furthermore `clear` must:
-    - have an empty input and output layout
-    - actually clear the connector, i.e. no value from before or the same cycle as the `clear`
-    should be ever returned by `read` or `peek`.
+    The connector must be empty the cycle after the clear regardless of `write` being run or not.
+    Connector being empty means that all perviously written values should be considered consumed.
 
-    Attributes
+    Parameters
     ----------
-    read: Method
-        The read method. Accepts an empty argument, returns a structure.
-    peek: Method, nonexclusive
-        Like `read`, but doesn't take the value from the connector.
-    write: Method
-        The write method. Accepts a structure, returns empty result.
-    clear: Method
-        The clear method. Accepts an empty argument, returns empty result.
+    m: TModule
+        Transactron module.
     """
-
-    clear: Method
