@@ -124,3 +124,42 @@ class TestUncalledMethod(TestCaseWithSimulator):
 
         with self.run_simulation(circ) as sim:
             sim.add_testbench(process)
+
+
+class NotRunningConditionCallingCircuit(Elaboratable):
+    def __init__(self):
+        self.sig = Signal()
+
+    def elaborate(self, platform):
+        m = TModule()
+
+        cond = Method()
+        called = Method()
+
+        @def_method(m, cond)
+        def _():
+            with condition(m) as branch:
+                with branch():
+                    called(m)
+
+        @def_method(m, called)
+        def _():
+            m.d.comb += self.sig.eq(1)
+
+        with Transaction().body(m):
+            with m.If(0):
+                cond(m)
+
+        return m
+
+
+class TestNotRunningConditionCalling(TestCaseWithSimulator):
+    def test_not_running_condition(self):
+        circ = NotRunningConditionCallingCircuit()
+
+        async def process(sim: TestbenchContext):
+            _, _, val = await sim.tick().sample(circ.sig)
+            assert val == 0
+
+        with self.run_simulation(circ) as sim:
+            sim.add_testbench(process)
