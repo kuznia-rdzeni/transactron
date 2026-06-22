@@ -1,6 +1,6 @@
 from contextlib import contextmanager
 import functools
-from typing import Callable, Any, Optional, Unpack
+from typing import Callable, Any, Optional, Unpack, NotRequired
 
 from amaranth.sim._async import SimulatorContext
 from transactron.core.body import AdapterBodyParams
@@ -13,27 +13,30 @@ from transactron.utils.typing import NameIntDict
 __all__ = ["MethodMock", "def_method_mock"]
 
 
+class MethodMockParams(AdapterBodyParams):
+    validate_arguments: NotRequired[Callable[..., bool]]
+    enable: NotRequired[Callable[[], bool]]
+    delay: NotRequired[float]
+
+
 class MethodMock:
     def __init__(
         self,
         adapter: AdapterBase,
         function: Callable[..., Optional[NameIntDict]],
-        *,
-        validate_arguments: Optional[Callable[..., bool]] = None,
-        enable: Callable[[], bool] = lambda: True,
-        delay: float = 0,
-        **kwargs: Unpack[AdapterBodyParams],
+        **kwargs: Unpack[MethodMockParams],
     ):
+        abp = AdapterBodyParams(**{k: kwargs[k] for k in AdapterBodyParams.__annotations__ if k in kwargs})
         if isinstance(adapter, Adapter):
-            adapter.set(with_validate_arguments=validate_arguments is not None).update_args(**kwargs)
+            adapter.set(with_validate_arguments="validate_arguments" in kwargs).update_args(**abp)
         else:
-            assert validate_arguments is None
-            assert kwargs == {}
+            assert "validate_arguments" not in kwargs
+            assert abp == {}
         self.adapter = adapter
         self.function = function
-        self.validate_arguments = validate_arguments
-        self.enable = enable
-        self.delay = delay
+        self.validate_arguments = kwargs["validate_arguments"] if "validate_arguments" in kwargs else None
+        self.enable = kwargs["enable"] if "enable" in kwargs else lambda: True
+        self.delay = kwargs["delay"] if "delay" in kwargs else 0
         self._effects: list[Callable[[], None]] = []
         self._freeze = False
 
@@ -107,7 +110,7 @@ class MethodMock:
 
 
 def def_method_mock(
-    tb_getter: Callable[[], TestbenchIO] | Callable[[Any], TestbenchIO], **kwargs
+    tb_getter: Callable[[], TestbenchIO] | Callable[[Any], TestbenchIO], **kwargs: Unpack[MethodMockParams]
 ) -> Callable[[Callable[..., Optional[NameIntDict]]], Callable[[], MethodMock]]:
     """
     Decorator function to create method mock handlers. It should be applied on
@@ -169,7 +172,7 @@ def def_method_mock(
             if func_self is not None:
                 getter = getter.__get__(func_self)
                 f = f.__get__(func_self)
-                kw = {}
+                kw = MethodMockParams()
                 for k, v in kwargs.items():
                     bind = getattr(v, "__get__", None)
                     kw[k] = bind(func_self) if bind else v
