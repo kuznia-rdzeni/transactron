@@ -440,9 +440,8 @@ class TransactionManager(Elaboratable):
                 name = "_".join([t.name for t in group])
                 with Transaction(name=name).body(m):
                     for transaction in group:
-                        methods[transaction](
-                            m, enable_call=Cat(dep.run for dep in ready_dependencies[transaction]).all()
-                        )
+                        nontrivial_deps = ready_dependencies[transaction] & conditionally_called_methods
+                        methods[transaction](m, enable_call=Cat(dep.run for dep in nontrivial_deps).all())
             self.transactions += DependencyContext.get().get_dependency(TransactionsKey())
 
         return m
