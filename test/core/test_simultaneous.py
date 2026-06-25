@@ -130,7 +130,9 @@ class NoSimultaneousConditionalTestCircuit(Elaboratable):
                 else:
                     with m.If(self.cond):
                         internal2(m)
+
         else:
+
             @def_method(m, self.method_a)
             def _():
                 if self.use_enable:

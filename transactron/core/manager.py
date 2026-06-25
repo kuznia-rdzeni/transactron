@@ -346,7 +346,8 @@ class TransactionManager(Elaboratable):
             ready_dependent = {relation.end for relation in method.relations if relation.ready_dependent}
             for dep in method.simultaneous_list:
                 if dep in ready_dependent and dep in method_map.transactions:
-                    # dep is simultaneous with conditionally called method - all called methods of dep are also conditionally called
+                    # dep is simultaneous with conditionally called method - all called methods of dep are also
+                    # conditionally called
                     for called_method in method_map.methods_by_transaction[TBody(dep)]:
                         if called_method not in ret:
                             ret.add(called_method)
