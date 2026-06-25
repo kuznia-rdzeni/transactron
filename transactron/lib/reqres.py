@@ -1,4 +1,5 @@
 from amaranth import *
+from dataclasses import dataclass
 
 from transactron.utils.transactron_helpers import from_method_layout
 from ..core import *
@@ -10,6 +11,7 @@ from amaranth.utils import *
 __all__ = [
     "ArgumentsToResultsZipper",
     "Serializer",
+    "SerializerDynamic",
 ]
 
 
@@ -168,6 +170,18 @@ class Serializer(Elaboratable):
     def elaborate(self, platform) -> TModule:
         m = TModule()
 
+        if self.port_count == 1:
+            self.serialize_in[0].provide(self.serialized_req_method)
+            self.serialize_out[0].provide(self.serialized_resp_method)
+
+        if self.port_count <= 1:
+
+            @def_method(m, self.clear, nonexclusive=True)
+            def _():
+                pass
+
+            return m
+
         pending_requests = BasicFifo(self.id_layout, self.depth, src_loc=self.src_loc)
         m.submodules.pending_requests = pending_requests
 
@@ -184,5 +198,84 @@ class Serializer(Elaboratable):
                 return self.serialized_resp_method(m)
 
         self.clear.provide(pending_requests.clear)
+
+        return m
+
+
+@dataclass(frozen=True)
+class SerializerPort:
+    request: Provided[Method]
+    response: Provided[Method]
+
+
+class SerializerDynamic(Elaboratable):
+    """Module to serialize request-response methods for potentially unknown count of clients.
+
+    For more information see `Serializer`
+    """
+
+    def __init__(
+        self,
+        *,
+        serialized_req_method: Method,
+        serialized_resp_method: Method,
+        depth: int = 4,
+        src_loc: int | SrcLoc = 0,
+    ):
+        """
+        Parameters
+        ----------
+        serialized_req_method: Method
+            Request method provided by server's `Module`.
+        serialized_resp_method: Method
+            Response method provided by server's `Module`.
+        depth: int
+            Number of requests which can be forwarded to server, before server provides first response. Describe
+            the resistance of `Serializer` to latency of server in case when server is fully pipelined.
+        src_loc: int | SrcLoc
+            How many stack frames deep the source location is taken from.
+            Alternatively, the source location to use instead of the default.
+        """
+        if serialized_req_method.layout_out.size != 0:
+            raise ValueError("serialized_req_method must not return values")
+        if serialized_resp_method.layout_in.size != 0:
+            raise ValueError("serialized_resp_method must not accept arguments")
+
+        self.src_loc = get_src_loc(src_loc)
+        self.serialized_req_method = serialized_req_method
+        self.serialized_resp_method = serialized_resp_method
+
+        self.depth = depth
+
+        self.clear = Method()
+        self._port_interfaces: list[SerializerPort] = []
+
+    def get_port(self, *, src_loc: int | SrcLoc = 0) -> SerializerPort:
+        """Get a serializer port."""
+        src_loc = get_src_loc(src_loc)
+
+        ret = SerializerPort(
+            request=Method(i=self.serialized_req_method.layout_in, src_loc=src_loc),
+            response=Method(o=self.serialized_resp_method.layout_out, src_loc=src_loc),
+        )
+        self._port_interfaces.append(ret)
+        return ret
+
+    def elaborate(self, platform) -> TModule:
+        m = TModule()
+
+        m.submodules.serializer = serializer = Serializer(
+            port_count=len(self._port_interfaces),
+            depth=self.depth,
+            serialized_req_method=self.serialized_req_method,
+            serialized_resp_method=self.serialized_resp_method,
+            src_loc=self.src_loc,
+        )
+
+        for i, port in enumerate(self._port_interfaces):
+            port.request.provide(serializer.serialize_in[i])
+            port.response.provide(serializer.serialize_out[i])
+
+        self.clear.provide(serializer.clear)
 
         return m
