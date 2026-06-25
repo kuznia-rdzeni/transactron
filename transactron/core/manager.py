@@ -300,11 +300,10 @@ class TransactionManager(Elaboratable):
         return cgr, porder
 
     @staticmethod
-    def _ready_dependencies(transactions: Sequence[Transaction], methods: Sequence[Method]) -> Graph[Body]:
+    def _ready_dependencies(method_map: MethodMap) -> Graph[Body]:
         ready_dependencies = defaultdict[Body, set[Body]](set)
 
-        for elem in chain(transactions, methods):
-            body = elem._body
+        for body in method_map.methods_and_transactions:
             for relation in body.relations:
                 if not relation.ready_dependent:
                     continue
@@ -329,8 +328,8 @@ class TransactionManager(Elaboratable):
         return (args, runs)
 
     @staticmethod
-    def _conditionally_called_methods(method_map: MethodMap) -> set[MBody]:
-        ret: set[MBody] = set()
+    def _conditionally_called(method_map: MethodMap) -> set[Body]:
+        ret: set[Body] = set()
 
         for (transaction, method), calls in method_map.info_by_call.items():
             for call in calls:
@@ -352,6 +351,7 @@ class TransactionManager(Elaboratable):
                         if called_method not in ret:
                             ret.add(called_method)
                             conditional_to_infect.append(called_method)
+                    ret.add(dep)
                 else:
                     # dep is not ready dependent - semantics unclear
                     raise RuntimeError(
@@ -363,8 +363,8 @@ class TransactionManager(Elaboratable):
 
     def _simultaneous(self):
         method_map = MethodMap(self.transactions, self.methods)
-        ready_dependencies = TransactionManager._ready_dependencies(self.transactions, self.methods)
-        conditionally_called_methods = self._conditionally_called_methods(method_map)
+        ready_dependencies = self._ready_dependencies(method_map)
+        conditionally_called = self._conditionally_called(method_map)
 
         # remove orderings between simultaneous methods/transactions
         # TODO: can it be done after transitivity, possibly catching more cases?
@@ -452,7 +452,7 @@ class TransactionManager(Elaboratable):
                 name = "_".join([t.name for t in group])
                 with Transaction(name=name).body(m):
                     for transaction in group:
-                        nontrivial_deps = ready_dependencies[transaction] & conditionally_called_methods
+                        nontrivial_deps = ready_dependencies[transaction] & conditionally_called
                         methods[transaction](m, enable_call=Cat(dep.run for dep in nontrivial_deps).all())
             self.transactions += DependencyContext.get().get_dependency(TransactionsKey())
 
@@ -481,7 +481,7 @@ class TransactionManager(Elaboratable):
             method_map = MethodMap(self.transactions, self.methods)
             cgr, porder = TransactionManager._conflict_graph(method_map)
 
-        ready_dependencies = TransactionManager._ready_dependencies(self.transactions, self.methods)
+        ready_dependencies = self._ready_dependencies(method_map)
 
         for transaction in method_map.transactions:
             for dep in ready_dependencies[transaction]:
