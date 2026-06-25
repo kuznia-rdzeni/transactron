@@ -119,7 +119,7 @@ class NoSimultaneousConditionalTestCircuit(Elaboratable):
             @def_method(m, internal2)
             def _():
                 with Transaction().body(m) as t:
-                    internal_method(m)
+                    self.method_b(m)
 
                 internal2.simultaneous(t)
 
