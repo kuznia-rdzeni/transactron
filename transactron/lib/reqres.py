@@ -248,10 +248,15 @@ class SerializerDynamic(Elaboratable):
         self.depth = depth
 
         self.clear = Method()
+
         self._port_interfaces: list[SerializerPort] = []
+        self._frozen = False
 
     def get_port(self, *, src_loc: int | SrcLoc = 0) -> SerializerPort:
         """Get a serializer port."""
+        if self._frozen:
+            raise AlreadyElaborated("Cannot add a port to module that has already been elaborated")
+
         src_loc = get_src_loc(src_loc)
 
         ret = SerializerPort(
@@ -262,6 +267,8 @@ class SerializerDynamic(Elaboratable):
         return ret
 
     def elaborate(self, platform) -> TModule:
+        self._frozen = True
+
         m = TModule()
 
         m.submodules.serializer = serializer = Serializer(
