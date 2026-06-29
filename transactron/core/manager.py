@@ -300,11 +300,10 @@ class TransactionManager(Elaboratable):
         return cgr, porder
 
     @staticmethod
-    def _ready_dependencies(transactions: Sequence[Transaction], methods: Sequence[Method]) -> Graph[Body]:
+    def _ready_dependencies(method_map: MethodMap) -> Graph[Body]:
         ready_dependencies = defaultdict[Body, set[Body]](set)
 
-        for elem in chain(transactions, methods):
-            body = elem._body
+        for body in method_map.methods_and_transactions:
             for relation in body.relations:
                 if not relation.ready_dependent:
                     continue
@@ -329,8 +328,8 @@ class TransactionManager(Elaboratable):
         return (args, runs)
 
     @staticmethod
-    def _conditionally_called_methods(method_map: MethodMap) -> set[MBody]:
-        ret: set[MBody] = set()
+    def _conditionally_called(method_map: MethodMap) -> set[Body]:
+        ret: set[Body] = set()
 
         for (transaction, method), calls in method_map.info_by_call.items():
             for call in calls:
@@ -339,11 +338,34 @@ class TransactionManager(Elaboratable):
                         ret.add(method)
                         break
 
+        # Transactions that are simultaneous and have ready dependency to an conditionally called method behave
+        # like conditionally called -> add them to the set
+        conditional_to_infect = list(ret)
+        while conditional_to_infect:
+            method = conditional_to_infect.pop()
+            ready_dependent = {relation.end for relation in method.relations if relation.ready_dependent}
+            for dep in method.simultaneous_list:
+                if dep in ready_dependent and dep in method_map.transactions:
+                    # dep is simultaneous with conditionally called method - all called methods of dep are also
+                    # conditionally called
+                    for called_method in method_map.methods_by_transaction[TBody(dep)]:
+                        if called_method not in ret:
+                            ret.add(called_method)
+                            conditional_to_infect.append(called_method)
+                    ret.add(dep)
+                else:
+                    # dep is not ready dependent - semantics unclear
+                    raise RuntimeError(
+                        "Simultaneity constraint for conditionally called method "
+                        f"'{method.name}' {method.src_loc} not supported"
+                    )
+
         return ret
 
     def _simultaneous(self):
         method_map = MethodMap(self.transactions, self.methods)
-        ready_dependencies = TransactionManager._ready_dependencies(self.transactions, self.methods)
+        ready_dependencies = self._ready_dependencies(method_map)
+        conditionally_called = self._conditionally_called(method_map)
 
         # remove orderings between simultaneous methods/transactions
         # TODO: can it be done after transitivity, possibly catching more cases?
@@ -375,16 +397,7 @@ class TransactionManager(Elaboratable):
             for sim_elem in elem.simultaneous_list:
                 all_simultaneous.update(method_map.transactions_for(sim_elem))
 
-        conditionally_called_methods = self._conditionally_called_methods(method_map)
-
         for elem in method_map.methods_and_transactions:
-            if elem.simultaneous_list and elem in conditionally_called_methods:
-                # nested definitions do not trigger the issue
-                if any(elem not in ready_dependencies[sim_elem] for sim_elem in elem.simultaneous_list):
-                    raise RuntimeError(
-                        "Simultaneity constraint for conditionally called method "
-                        f"'{elem.name}' {elem.src_loc} not supported"
-                    )
             for sim_elem in elem.simultaneous_list:
                 for tr1, tr2 in product(method_map.transactions_for(elem), method_map.transactions_for(sim_elem)):
                     if tr1 in independents[tr2]:
@@ -440,9 +453,8 @@ class TransactionManager(Elaboratable):
                 name = "_".join([t.name for t in group])
                 with Transaction(name=name).body(m):
                     for transaction in group:
-                        methods[transaction](
-                            m, enable_call=Cat(dep.run for dep in ready_dependencies[transaction]).all()
-                        )
+                        nontrivial_deps = ready_dependencies[transaction] & conditionally_called
+                        methods[transaction](m, enable_call=Cat(dep.run for dep in nontrivial_deps).all())
             self.transactions += DependencyContext.get().get_dependency(TransactionsKey())
 
         return m
@@ -470,7 +482,7 @@ class TransactionManager(Elaboratable):
             method_map = MethodMap(self.transactions, self.methods)
             cgr, porder = TransactionManager._conflict_graph(method_map)
 
-        ready_dependencies = TransactionManager._ready_dependencies(self.transactions, self.methods)
+        ready_dependencies = self._ready_dependencies(method_map)
 
         for transaction in method_map.transactions:
             for dep in ready_dependencies[transaction]:
