@@ -78,17 +78,31 @@ class TestPriorityEncoderAllocator(TestCaseWithSimulator):
 
             return process
 
+        async def peeker(ctx: TestbenchContext):
+            while True:
+                expect: int = sum(1 << i for i in free)
+                ret = await dut.peek.call(ctx)
+                assert ret.mask == expect
+
         async def clearer(sim: TestbenchContext):
             nonlocal clearing, total
             while True:
                 await self.random_wait_geom(sim, 0.05)
-                await dut.clear.call(sim)
+                if random.random() < 0.5:
+                    new_allocated = init_allocated
+                    new_free = init_free
+                    await dut.clear.call(sim)
+                else:
+                    new_mask = random.randrange(2**entries)
+                    new_allocated = tuple(i for i in range(entries) if not new_mask & (1 << i))
+                    new_free = tuple(i for i in range(entries) if new_mask & (1 << i))
+                    await dut.replace.call(sim, mask=new_mask)
                 clearing = True
-                total += len(init_allocated) - len(allocated)
+                total += len(new_allocated) - len(allocated)
                 allocated.clear()
-                allocated.update(init_allocated)
+                allocated.update(new_allocated)
                 free.clear()
-                free.update(init_free)
+                free.update(new_free)
                 await sim.delay(1e-12)
                 clearing = False
 
@@ -99,6 +113,7 @@ class TestPriorityEncoderAllocator(TestCaseWithSimulator):
                 sim.add_testbench(make_deallocator(i))
             for i in range(alloc_ways):
                 sim.add_testbench(make_allocator(i))
+            sim.add_testbench(peeker, background=True)
 
 
 class TestPreservedOrderAllocator(TestCaseWithSimulator):
