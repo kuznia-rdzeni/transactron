@@ -401,26 +401,42 @@ if one exists.</p>
 continuous range. The order of allocations is preserved in the form of
 a permutation of identifiers. Smaller positions correspond to earlier
 (older) allocations.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Attributes<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>alloc</strong><span class="classifier">Method</span></dt><dd><p>Allocates a fresh identifier.</p>
-</dd>
-<dt><strong>free</strong><span class="classifier">Method</span></dt><dd><p>Frees a previously allocated identifier.</p>
-</dd>
-<dt><strong>free_idx</strong><span class="classifier">Method</span></dt><dd><p>Frees a previously allocated identifier at the given index of the
-allocation order.</p>
-</dd>
-<dt><strong>order</strong><span class="classifier">Method</span></dt><dd><p>Returns the allocation order as a permutation of identifiers
-and the number of allocated identifiers.</p>
-</dd>
-</dl>
-</dd>
-</dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="transactron.lib.allocators.PreservedOrderAllocator.__init__">
 <span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">entries</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.lib.allocators.PreservedOrderAllocator.__init__" title="Link to this definition"></a></dt>
 <dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="transactron.lib.allocators.PreservedOrderAllocator.alloc">
+<span class="sig-name descname"><span class="pre">alloc</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="transactron.core.html#transactron.core.method.Method" title="transactron.core.method.Method"><span class="pre">Method</span></a></em><a class="headerlink" href="#transactron.lib.allocators.PreservedOrderAllocator.alloc" title="Link to this definition"></a></dt>
+<dd><p>Allocates a fresh identifier.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="transactron.lib.allocators.PreservedOrderAllocator.clear">
+<span class="sig-name descname"><span class="pre">clear</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="transactron.core.html#transactron.core.method.Method" title="transactron.core.method.Method"><span class="pre">Method</span></a></em><a class="headerlink" href="#transactron.lib.allocators.PreservedOrderAllocator.clear" title="Link to this definition"></a></dt>
+<dd><p>Restores the initial state of the allocator.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="transactron.lib.allocators.PreservedOrderAllocator.free">
+<span class="sig-name descname"><span class="pre">free</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="transactron.core.html#transactron.core.method.Method" title="transactron.core.method.Method"><span class="pre">Method</span></a></em><a class="headerlink" href="#transactron.lib.allocators.PreservedOrderAllocator.free" title="Link to this definition"></a></dt>
+<dd><p>Frees a previously allocated identifier.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="transactron.lib.allocators.PreservedOrderAllocator.free_idx">
+<span class="sig-name descname"><span class="pre">free_idx</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="transactron.core.html#transactron.core.method.Method" title="transactron.core.method.Method"><span class="pre">Method</span></a></em><a class="headerlink" href="#transactron.lib.allocators.PreservedOrderAllocator.free_idx" title="Link to this definition"></a></dt>
+<dd><p>Frees a previously allocated identifier at the given index of the
+allocation order.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="transactron.lib.allocators.PreservedOrderAllocator.order">
+<span class="sig-name descname"><span class="pre">order</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="transactron.core.html#transactron.core.method.Method" title="transactron.core.method.Method"><span class="pre">Method</span></a></em><a class="headerlink" href="#transactron.lib.allocators.PreservedOrderAllocator.order" title="Link to this definition"></a></dt>
+<dd><p>Returns the allocation order as a permutation of identifiers
+and the number of allocated identifiers.</p>
+</dd></dl>
 
 </dd></dl>
 
@@ -432,17 +448,6 @@ and the number of allocated identifiers.</p>
 <p>This module allows to allocate and deallocate identifiers from a continuous
 range. Multiple identifiers can be allocated or deallocated in a single
 clock cycle.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Attributes<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>alloc</strong><span class="classifier">Methods</span></dt><dd><p>Methods which allocate a fresh identifier. If there is too little free
-identifiers, some or all of the methods are disabled.</p>
-</dd>
-<dt><strong>free</strong><span class="classifier">Methods</span></dt><dd><p>Methods which deallocate a single identifier in one cycle.</p>
-</dd>
-</dl>
-</dd>
-</dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="transactron.lib.allocators.PriorityEncoderAllocator.__init__">
 <span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">entries</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">alloc_ways</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">free_ways</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">init</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">-1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.lib.allocators.PriorityEncoderAllocator.__init__" title="Link to this definition"></a></dt>
@@ -461,6 +466,37 @@ By default, every identifier is free on reset.</p>
 </dl>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="transactron.lib.allocators.PriorityEncoderAllocator.alloc">
+<span class="sig-name descname"><span class="pre">alloc</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="transactron.core.html#transactron.core.method.Methods" title="transactron.core.method.Methods"><span class="pre">Methods</span></a></em><a class="headerlink" href="#transactron.lib.allocators.PriorityEncoderAllocator.alloc" title="Link to this definition"></a></dt>
+<dd><p>Allocates a fresh identifier. If there is not enough free identifiers,
+some or all of the methods are disabled.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="transactron.lib.allocators.PriorityEncoderAllocator.clear">
+<span class="sig-name descname"><span class="pre">clear</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="transactron.core.html#transactron.core.method.Method" title="transactron.core.method.Method"><span class="pre">Method</span></a></em><a class="headerlink" href="#transactron.lib.allocators.PriorityEncoderAllocator.clear" title="Link to this definition"></a></dt>
+<dd><p>Restore the initial state of the allocator.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="transactron.lib.allocators.PriorityEncoderAllocator.free">
+<span class="sig-name descname"><span class="pre">free</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="transactron.core.html#transactron.core.method.Methods" title="transactron.core.method.Methods"><span class="pre">Methods</span></a></em><a class="headerlink" href="#transactron.lib.allocators.PriorityEncoderAllocator.free" title="Link to this definition"></a></dt>
+<dd><p>Deallocates a single identifier in one cycle.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="transactron.lib.allocators.PriorityEncoderAllocator.peek">
+<span class="sig-name descname"><span class="pre">peek</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="transactron.core.html#transactron.core.method.Method" title="transactron.core.method.Method"><span class="pre">Method</span></a></em><a class="headerlink" href="#transactron.lib.allocators.PriorityEncoderAllocator.peek" title="Link to this definition"></a></dt>
+<dd><p>Returns the bitmask of free identifiers.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="transactron.lib.allocators.PriorityEncoderAllocator.replace">
+<span class="sig-name descname"><span class="pre">replace</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="transactron.core.html#transactron.core.method.Method" title="transactron.core.method.Method"><span class="pre">Method</span></a></em><a class="headerlink" href="#transactron.lib.allocators.PriorityEncoderAllocator.replace" title="Link to this definition"></a></dt>
+<dd><p>Replaces the bitmask of free identifiers.</p>
 </dd></dl>
 
 </dd></dl>
@@ -3224,7 +3260,7 @@ Alternatively, the source location to use instead of the default.</p>
 
   <div role="contentinfo">
     <p>&#169; Copyright Kuźnia Rdzeni, 2026.
-      <span class="lastupdated">Last updated on 07:07 2026-06-29.
+      <span class="lastupdated">Last updated on 14:33 2026-07-02.
       </span></p>
   </div>
 

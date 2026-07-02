@@ -377,12 +377,18 @@
 </li>
       <li><a href="transactron.utils.html#transactron.utils.data_repr.align_to_power_of_two">align_to_power_of_two() (in module transactron.utils.data_repr)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="transactron.utils.html#transactron.utils.assign.AssignType.ALL">ALL (transactron.utils.assign.AssignType attribute)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="transactron.lib.html#transactron.lib.allocators.CircularAllocator.alloc">alloc (transactron.lib.allocators.CircularAllocator attribute)</a>
+
+      <ul>
+        <li><a href="transactron.lib.html#transactron.lib.allocators.PreservedOrderAllocator.alloc">(transactron.lib.allocators.PreservedOrderAllocator attribute)</a>
 </li>
+        <li><a href="transactron.lib.html#transactron.lib.allocators.PriorityEncoderAllocator.alloc">(transactron.lib.allocators.PriorityEncoderAllocator attribute)</a>
+</li>
+      </ul></li>
       <li><a href="transactron.lib.html#transactron.lib.allocators.CircularAllocator.allocated">allocated (transactron.lib.allocators.CircularAllocator attribute)</a>
 </li>
       <li><a href="transactron.html#transactron.profiler.Profile.analyze_methods">analyze_methods() (transactron.profiler.Profile method)</a>
@@ -508,6 +514,10 @@
       <li><a href="transactron.lib.html#transactron.lib.allocators.CircularAllocator.clear">clear (transactron.lib.allocators.CircularAllocator attribute)</a>
 
       <ul>
+        <li><a href="transactron.lib.html#transactron.lib.allocators.PreservedOrderAllocator.clear">(transactron.lib.allocators.PreservedOrderAllocator attribute)</a>
+</li>
+        <li><a href="transactron.lib.html#transactron.lib.allocators.PriorityEncoderAllocator.clear">(transactron.lib.allocators.PriorityEncoderAllocator attribute)</a>
+</li>
         <li><a href="transactron.lib.html#transactron.lib.connectors.ClearableConnector.clear">(transactron.lib.connectors.ClearableConnector attribute)</a>
 </li>
         <li><a href="transactron.lib.html#transactron.lib.fifo.BasicFifo.clear">(transactron.lib.fifo.BasicFifo attribute)</a>
@@ -880,6 +890,16 @@
       <li><a href="transactron.lib.html#transactron.lib.connectors.Forwarder">Forwarder (class in transactron.lib.connectors)</a>
 </li>
       <li><a href="transactron.lib.html#transactron.lib.allocators.CircularAllocator.free">free (transactron.lib.allocators.CircularAllocator attribute)</a>
+
+      <ul>
+        <li><a href="transactron.lib.html#transactron.lib.allocators.PreservedOrderAllocator.free">(transactron.lib.allocators.PreservedOrderAllocator attribute)</a>
+</li>
+        <li><a href="transactron.lib.html#transactron.lib.allocators.PriorityEncoderAllocator.free">(transactron.lib.allocators.PriorityEncoderAllocator attribute)</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="transactron.lib.html#transactron.lib.allocators.PreservedOrderAllocator.free_idx">free_idx (transactron.lib.allocators.PreservedOrderAllocator attribute)</a>
 </li>
       <li><a href="transactron.lib.html#transactron.lib.metrics.MetricModel.from_dict">from_dict() (transactron.lib.metrics.MetricModel class method)</a>
 
@@ -899,8 +919,6 @@
         <li><a href="transactron.utils.html#transactron.utils.logging.LogRecordInfo.from_dict">(transactron.utils.logging.LogRecordInfo class method)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="transactron.lib.html#transactron.lib.metrics.MetricModel.from_json">from_json() (transactron.lib.metrics.MetricModel class method)</a>
 
       <ul>
@@ -1462,10 +1480,12 @@
 </li>
       <li><a href="transactron.utils.amaranth_ext.html#transactron.utils.amaranth_ext.functions.or_value">or_value() (in module transactron.utils.amaranth_ext.functions)</a>
 </li>
-      <li><a href="transactron.html#transactron.graph.Direction.OUT">OUT (transactron.graph.Direction attribute)</a>
+      <li><a href="transactron.lib.html#transactron.lib.allocators.PreservedOrderAllocator.order">order (transactron.lib.allocators.PreservedOrderAllocator attribute)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="transactron.html#transactron.graph.Direction.OUT">OUT (transactron.graph.Direction attribute)</a>
+</li>
       <li><a href="transactron.utils.amaranth_ext.html#transactron.utils.amaranth_ext.elaboratables.OneHotMux.output">output (transactron.utils.amaranth_ext.elaboratables.OneHotMux attribute)</a>
 </li>
       <li><a href="transactron.testing.html#transactron.testing.method_mock.MethodMock.output_process">output_process() (transactron.testing.method_mock.MethodMock method)</a>
@@ -1498,9 +1518,11 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="transactron.testing.html#transactron.testing.logging.parse_logging_level">parse_logging_level() (in module transactron.testing.logging)</a>
 </li>
-      <li><a href="transactron.lib.html#transactron.lib.connectors.Connector.peek">peek (transactron.lib.connectors.Connector attribute)</a>
+      <li><a href="transactron.lib.html#transactron.lib.allocators.PriorityEncoderAllocator.peek">peek (transactron.lib.allocators.PriorityEncoderAllocator attribute)</a>
 
       <ul>
+        <li><a href="transactron.lib.html#transactron.lib.connectors.Connector.peek">(transactron.lib.connectors.Connector attribute)</a>
+</li>
         <li><a href="transactron.lib.html#transactron.lib.fifo.BasicFifo.peek">(transactron.lib.fifo.BasicFifo attribute)</a>
 </li>
         <li><a href="transactron.lib.html#transactron.lib.stack.Stack.peek">(transactron.lib.stack.Stack attribute)</a>
@@ -1617,6 +1639,8 @@
       <li><a href="transactron.html#transactron.graph.OwnershipGraph.remember">remember() (transactron.graph.OwnershipGraph method)</a>
 </li>
       <li><a href="transactron.html#transactron.graph.OwnershipGraph.remember_field">remember_field() (transactron.graph.OwnershipGraph method)</a>
+</li>
+      <li><a href="transactron.lib.html#transactron.lib.allocators.PriorityEncoderAllocator.replace">replace (transactron.lib.allocators.PriorityEncoderAllocator attribute)</a>
 </li>
       <li><a href="transactron.core.html#transactron.core.method.MethodDir.REQUIRED">REQUIRED (transactron.core.method.MethodDir attribute)</a>
 </li>
@@ -2544,7 +2568,7 @@
 
   <div role="contentinfo">
     <p>&#169; Copyright Kuźnia Rdzeni, 2026.
-      <span class="lastupdated">Last updated on 07:07 2026-06-29.
+      <span class="lastupdated">Last updated on 14:33 2026-07-02.
       </span></p>
   </div>
 
