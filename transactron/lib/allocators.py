@@ -84,7 +84,7 @@ class PriorityEncoderAllocator(Elaboratable):
         def _(mask):
             m.d.sync += not_used.eq(mask)
 
-        @def_method(m, self.clear)
+        @def_method(m, self.clear, nonexclusive=True)
         def _():
             self.replace(m, mask=self.init)
 
