@@ -1,3 +1,4 @@
+from itertools import count
 import pytest
 import random
 
@@ -20,42 +21,99 @@ class TestPriorityEncoderAllocator(TestCaseWithSimulator):
     def test_allocator(self, entries: int, alloc_ways: int, free_ways: int, init: int):
         dut = SimpleTestCircuit(PriorityEncoderAllocator(entries, alloc_ways, free_ways, init=init))
 
-        iterations = 4 * entries
+        iterations = 8 * entries
 
-        allocated = [i for i in range(entries) if not init & (1 << i)]
-        free = [i for i in range(entries) if init & (1 << i)]
+        init_allocated = tuple(i for i in range(entries) if not init & (1 << i))
+        init_free = tuple(i for i in range(entries) if init & (1 << i))
+
+        allocated = set(init_allocated)
+        free = set(init_free)
+        selected = set()
+
+        clearing = False
 
         init_allocated_count = len(allocated)
         total = iterations * alloc_ways + init_allocated_count
 
+        async def selected_reset(sim: TestbenchContext):
+            while True:
+                selected.clear()
+                await sim.tick()
+
         def make_allocator(i: int):
             async def process(sim: TestbenchContext):
+                nonlocal total
                 for _ in range(iterations):
                     val = (await dut.alloc[i].call(sim)).ident
-                    assert val in free
-                    free.remove(val)
-                    allocated.append(val)
+                    if not clearing:
+                        assert val in free
+                        free.remove(val)
+                        allocated.add(val)
+                    else:
+                        total -= 1
                     await self.random_wait_geom(sim, 0.5)
 
             return process
 
         def make_deallocator(i: int):
             async def process(sim: TestbenchContext):
-                for _ in range((total + i) // free_ways):
-                    while not allocated:
+                nonlocal total
+                while True:
+                    await sim.delay(1e-12)  # to ensure that alloc/free were modified fine
+                    if total <= 0:
+                        return
+                    while not (set(allocated) - selected):
+                        if total <= 0:
+                            return
                         await sim.tick()
-                    val = allocated.pop(random.randrange(len(allocated)))
+                        await sim.delay(1e-12)
+                    val = random.choice(list(allocated - selected))
+                    selected.add(val)
                     await dut.free[i].call(sim, ident=val)
-                    free.append(val)
+                    if not clearing:
+                        free.add(val)
+                        allocated.remove(val)
+                        total -= 1
                     await self.random_wait_geom(sim, 0.3)
 
             return process
 
+        async def peeker(ctx: TestbenchContext):
+            while True:
+                expect: int = sum(1 << i for i in free)
+                ret = await dut.peek.call(ctx)
+                assert ret.mask == expect
+
+        async def clearer(sim: TestbenchContext):
+            nonlocal clearing, total
+            while True:
+                await self.random_wait_geom(sim, 0.05)
+                if random.random() < 0.5:
+                    new_allocated = init_allocated
+                    new_free = init_free
+                    await dut.clear.call(sim)
+                else:
+                    new_mask = random.randrange(2**entries)
+                    new_allocated = tuple(i for i in range(entries) if not new_mask & (1 << i))
+                    new_free = tuple(i for i in range(entries) if new_mask & (1 << i))
+                    await dut.replace.call(sim, mask=new_mask)
+                clearing = True
+                total += len(new_allocated) - len(allocated)
+                allocated.clear()
+                allocated.update(new_allocated)
+                free.clear()
+                free.update(new_free)
+                await sim.delay(1e-12)
+                clearing = False
+
         with self.run_simulation(dut) as sim:
-            for i in range(alloc_ways):
-                sim.add_testbench(make_allocator(i))
+            sim.add_testbench(selected_reset, background=True)
+            sim.add_testbench(clearer, background=True)
             for i in range(free_ways):
                 sim.add_testbench(make_deallocator(i))
+            for i in range(alloc_ways):
+                sim.add_testbench(make_allocator(i))
+            sim.add_testbench(peeker, background=True)
 
 
 class TestPreservedOrderAllocator(TestCaseWithSimulator):
@@ -63,22 +121,31 @@ class TestPreservedOrderAllocator(TestCaseWithSimulator):
     def test_allocator(self, entries: int):
         dut = SimpleTestCircuit(PreservedOrderAllocator(entries))
 
-        iterations = 5 * entries
+        iterations = 20 * entries
+        total = iterations
 
         allocated: list[int] = []
         free: list[int] = list(range(entries))
+        clearing = False
 
         async def allocator(sim: TestbenchContext):
+            nonlocal total
             for _ in range(iterations):
                 val = (await dut.alloc.call(sim)).ident
-                sim.delay(1e-9)  # Runs after deallocator
-                free.remove(val)
-                allocated.append(val)
+                if not clearing:
+                    free.remove(val)
+                    allocated.append(val)
+                else:
+                    total -= 1  # allocation was made but erased
                 await self.random_wait_geom(sim, 0.5)
 
         async def deallocator(sim: TestbenchContext):
-            for _ in range(iterations):
+            nonlocal total
+            for i in count():
                 while not allocated:
+                    assert i <= total
+                    if i == total:
+                        return
                     await sim.tick()
                 idx = random.randrange(len(allocated))
                 val = allocated[idx]
@@ -86,21 +153,37 @@ class TestPreservedOrderAllocator(TestCaseWithSimulator):
                     await dut.free.call(sim, ident=val)
                 else:
                     await dut.free_idx.call(sim, idx=idx)
-                free.append(val)
-                allocated.pop(idx)
+                if not clearing:
+                    free.append(val)
+                    allocated.pop(idx)
+                else:
+                    total += 1  # deallocation was made but erased
                 await self.random_wait_geom(sim, 0.4)
+
+        async def clearer(sim: TestbenchContext):
+            nonlocal clearing, total
+            while True:
+                await self.random_wait_geom(sim, 0.05)
+                await dut.clear.call(sim)
+                clearing = True
+                total -= len(allocated)
+                allocated.clear()
+                free.clear()
+                free.extend(range(entries))
+                await sim.delay(1e-12)
+                clearing = False
 
         async def order_verifier(sim: TestbenchContext):
             while True:
                 val = await dut.order.call(sim)
-                sim.delay(2e-9)  # Runs after allocator and deallocator
                 assert val.used == len(allocated)
                 assert val.order == allocated + free
 
         with self.run_simulation(dut) as sim:
             sim.add_testbench(order_verifier, background=True)
-            sim.add_testbench(allocator)
+            sim.add_testbench(clearer, background=True)
             sim.add_testbench(deallocator)
+            sim.add_testbench(allocator)
 
 
 class TestCircularAllocator(TestCaseWithSimulator):
