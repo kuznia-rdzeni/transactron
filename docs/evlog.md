@@ -1,12 +1,12 @@
 # Event log
 
-The `transactron.evlog` package instruments a hardware design with structured, typed events which are captured during simulation into an *event log*. Event logs are consumed by downstream tools - pipeline trace converters, statistics scripts, checkers - without touching the hardware description again.
+The {py:mod}`transactron.evlog` package instruments a hardware design with structured, typed events which are captured during simulation into an *event log*. Event logs are consumed by downstream tools - pipeline trace converters, statistics scripts, checkers - without touching the hardware description again.
 
 The event log carries machine-readable payloads: named, typed fields with a stable schema. The same captured log can be decoded offline, long after the simulation finished, as long as the schema (saved together with the log) and the event definitions are available.
 
 ## Defining events
 
-Events are dataclasses declared with the `event` decorator. The event name must be globally unique:
+Events are dataclasses declared with the {py:func}`~transactron.evlog.event.event` decorator. The event name must be globally unique:
 
 ```python
 from transactron.evlog import Event, Static, event
@@ -21,11 +21,11 @@ class ExecUnitStart(Event):
 There are two kinds of fields:
 
 - **dynamic** fields are backed by hardware signals, sampled in every cycle in which the event fires. Annotate them with the *decoded* Python type: `int`, `bool` or an `enum.Enum` subclass (raw integers are converted back to the annotated type when a log is decoded). Signal widths are not declared - they are inferred from the actual Amaranth values at elaboration time and recorded in the schema, so parameterized designs need no special handling.
-- **static** fields (annotated with `Static[...]`) hold plain Python values fixed at elaboration time and cost no hardware. Use them for properties of the emission site, such as a lane index or a unit name.
+- **static** fields (annotated with {py:obj}`~transactron.evlog.event.Static`) hold plain Python values fixed at elaboration time and cost no hardware. Use them for properties of the emission site, such as a lane index or a unit name.
 
 ## Emitting events
 
-`EventSource` mirrors the `HardwareLogger` API. Since during elaboration the dynamic fields hold Amaranth values rather than their declared types, instances are constructed with the `Event.hw` classmethod:
+{py:class}`~transactron.evlog.emit.EventSource` mirrors the {py:class}`~transactron.utils.logging.HardwareLogger` API. Since during elaboration the dynamic fields hold Amaranth values rather than their declared types, instances are constructed with the {py:meth}`Event.hw <transactron.evlog.event.Event.hw>` classmethod:
 
 ```python
 from transactron.evlog import EventSource
@@ -37,9 +37,9 @@ def elaborate(self, platform):
     self.evlog.emit(m, ExecUnitStart.hw(insn_tag=tag, kind=kind, lane=0), when=start)
 ```
 
-The event fires in every cycle in which `when` is true and the surrounding module context (`m.If`, transaction or method body) is active. `top_emit` is available for contexts without a module. Emitting the same event type multiple times (e.g. once per superscalar lane, distinguished by a static field) creates separate emission sites.
+The event fires in every cycle in which `when` is true and the surrounding module context (`m.If`, transaction or method body) is active. {py:meth}`~transactron.evlog.emit.EventSource.top_emit` is available for contexts without a module. Emitting the same event type multiple times (e.g. once per superscalar lane, distinguished by a static field) creates separate emission sites.
 
-Event logging is disabled by default and `emit` is then a no-op, so instrumentation has no cost in synthesis flows. Enable it before elaboration with:
+Event logging is disabled by default and {py:meth}`~transactron.evlog.emit.EventSource.emit` is then a no-op, so instrumentation has no cost in synthesis flows. Enable it before elaboration with:
 
 ```python
 DependencyContext.get().add_dependency(EvLogEnabledKey(), True)
@@ -47,9 +47,9 @@ DependencyContext.get().add_dependency(EvLogEnabledKey(), True)
 
 ## Capturing events
 
-Every emission site registered during elaboration is described by an `EvLogSchema`: the event name, source name, dynamic field names and widths, and static field values. The schema is the only contract between the elaborated design and event log consumers.
+Every emission site registered during elaboration is described by an {py:class}`~transactron.evlog.schema.EvLogSchema`: the event name, source name, dynamic field names and widths, and static field values. The schema is the only contract between the elaborated design and event log consumers.
 
-With the Amaranth simulator, capture events with `transactron.testing.evlog`:
+With the Amaranth simulator, capture events with {py:func}`~transactron.testing.evlog.capture_evlog`:
 
 ```python
 from transactron.testing.evlog import capture_evlog
@@ -62,9 +62,9 @@ with self.run_simulation(m) as sim:
 events = log.decoded()      # or log.save("events.jsonl")
 ```
 
-Tests based on `TestCaseWithSimulator` capture event logs automatically when pytest is invoked with `--transactron-evlog`: every test which registered any emission sites (i.e. tests which enabled the event log themselves) saves its captured events to `test/__evlogs__/<test name>.jsonl`. The flag only controls capturing - enabling the event log stays a separate concern.
+Tests based on {py:class}`~transactron.testing.test_case.TestCaseWithSimulator` capture event logs automatically when pytest is invoked with `--transactron-evlog`: every test which registered any emission sites (i.e. tests which enabled the event log themselves) saves its captured events to `test/__evlogs__/<test name>.jsonl`. The flag only controls capturing - enabling the event log stays a separate concern.
 
-For generated Verilog, `generate_verilog` records the event log schema together with signal locations in `GenerationInfo.evlog`, including a packed vector of all event triggers so that a simulator only needs a single signal read per cycle to check all sites. `GeneratedEvLogSampler` samples events through any backend able to read signals by hierarchical location (e.g. cocotb on top of Verilator):
+For generated Verilog, {py:func}`~transactron.utils.gen.generate_verilog` records the event log schema together with signal locations in {py:attr}`GenerationInfo.evlog <transactron.utils.gen.GenerationInfo.evlog>`, including a packed vector of all event triggers so that a simulator only needs a single signal read per cycle to check all sites. {py:class}`~transactron.evlog.sampler.GeneratedEvLogSampler` samples events through any backend able to read signals by hierarchical location (e.g. cocotb on top of Verilator):
 
 ```python
 from transactron.evlog import EventLogWriter, GeneratedEvLogSampler
@@ -77,7 +77,7 @@ with EventLogWriter("events.jsonl", gen_info.evlog.schema) as writer:
 
 ## Event log files and consumers
 
-Event logs are stored as JSON lines: a header with the schema and free-form metadata, followed by one record per fired event. `EventLog.load` reads a log into memory; `EventLogReader` decodes it lazily for logs too large to hold in memory.
+Event logs are stored as JSON lines: a header with the schema and free-form metadata, followed by one record per fired event. {py:meth}`EventLog.load <transactron.evlog.log.EventLog.load>` reads a log into memory; {py:class}`~transactron.evlog.log.EventLogReader` decodes it lazily for logs too large to hold in memory.
 
 The `transactron-evlog` command pretty-prints event log files. It works from the schema alone; passing `-m <module>` imports the event definitions so that enum fields are printed as member names:
 
@@ -91,7 +91,7 @@ $ transactron-evlog -m coreblocks.telemetry -f "ftq" -c 8:10 events.jsonl
 
 `--schema` prints a summary of the emission sites instead; `-x`/`-d` force hex/decimal field values.
 
-Consumers subclass `EventConsumer` and declare one handler per event type; dispatch is keyed by the registered event name:
+Consumers subclass {py:class}`~transactron.evlog.consumer.EventConsumer` and declare one handler per event type with {py:func}`~transactron.evlog.consumer.handles`; dispatch is keyed by the registered event name:
 
 ```python
 from transactron.evlog import DecodedEvent, EventConsumer, EventLogReader, handles
@@ -104,4 +104,4 @@ class KonataConverter(EventConsumer):
 KonataConverter().run(EventLogReader("events.jsonl"))
 ```
 
-`EventConsumer.run` sorts records by cycle, so capture order does not matter - which is convenient for output formats requiring monotonic timestamps. Events without a handler go to `on_unhandled`; override it to detect drift between the schema and the consumer.
+{py:meth}`EventConsumer.run <transactron.evlog.consumer.EventConsumer.run>` sorts records by cycle, so capture order does not matter - which is convenient for output formats requiring monotonic timestamps. Events without a handler go to {py:meth}`~transactron.evlog.consumer.EventConsumer.on_unhandled`; override it to detect drift between the schema and the consumer.
