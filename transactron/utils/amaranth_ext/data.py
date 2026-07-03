@@ -1,5 +1,5 @@
-from collections.abc import Callable
-from typing import cast
+from collections.abc import Callable, Sequence
+from typing import cast, overload
 from amaranth import Cat, Value
 from amaranth.lib import data
 from amaranth_types import ShapeLike
@@ -8,7 +8,19 @@ from amaranth_types import ShapeLike
 __all__ = ["layout_keys", "transpose"]
 
 
-def layout_keys(layout: data.Layout) -> list[str | int]:
+@overload
+def layout_keys(layout: data.ArrayLayout) -> Sequence[int]:
+    ...
+
+@overload
+def layout_keys(layout: data.StructLayout | data.UnionLayout) -> Sequence[str]:
+    ...
+
+@overload
+def layout_keys(layout: data.Layout) -> Sequence[str | int]:
+    ...
+
+def layout_keys(layout: data.Layout) -> Sequence[str | int]:
     if isinstance(layout, data.ArrayLayout):
         return list(range(layout.length))
     elif isinstance(layout, (data.StructLayout, data.UnionLayout)):
