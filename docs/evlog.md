@@ -62,7 +62,7 @@ with self.run_simulation(m) as sim:
 events = log.decoded()      # or log.save("events.jsonl")
 ```
 
-Tests based on {py:class}`~transactron.testing.test_case.TestCaseWithSimulator` capture event logs automatically when pytest is invoked with `--transactron-evlog`: every test which registered any emission sites (i.e. tests which enabled the event log themselves) saves its captured events to `test/__evlogs__/<test name>.jsonl`. The flag only controls capturing - enabling the event log stays a separate concern.
+Tests based on {py:class}`~transactron.testing.test_case.TestCaseWithSimulator` capture event logs automatically when pytest is invoked with `__TRANSACTRON_EVLOG=1` in the environment: every test which registered any emission sites (i.e. tests which enabled the event log themselves) saves its captured events to `test/__evlogs__/<test name>.jsonl`. The flag only controls capturing - enabling the event log stays a separate concern.
 
 For generated Verilog, {py:func}`~transactron.utils.gen.generate_verilog` records the event log schema together with signal locations in {py:attr}`GenerationInfo.evlog <transactron.utils.gen.GenerationInfo.evlog>`, including a packed vector of all event triggers so that a simulator only needs a single signal read per cycle to check all sites. {py:class}`~transactron.evlog.sampler.GeneratedEvLogSampler` samples events through any backend able to read signals by hierarchical location (e.g. cocotb on top of Verilator):
 
