@@ -10,6 +10,7 @@ from .method_mock import *  # noqa: F401
 from .testbenchio import *  # noqa: F401
 from .profiler import *  # noqa: F401
 from .logging import *  # noqa: F401
+from .evlog import *  # noqa: F401
 from .tick_count import *  # noqa: F401
 from .test_case import *  # noqa: F401
 

@@ -63,6 +63,7 @@ dev = [
 
 [project.scripts]
 transactron-prof = "transactron.cmd.tprof:main"
+transactron-evlog = "transactron.cmd.evlog:main"
 
 [tool.setuptools_scm]
 

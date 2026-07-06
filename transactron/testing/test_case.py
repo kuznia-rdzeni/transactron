@@ -9,7 +9,9 @@ from amaranth import *
 from amaranth.sim import *
 from amaranth_types import HasElaborate
 
+from transactron.evlog import EventLog
 from transactron.utils.dependencies import DependencyContext, DependencyManager
+from .evlog import capture_evlog
 from .profiler import profiler_process, Profile
 from .logging import make_logging_process, parse_logging_level, _LogFormatter
 from .tick_count import make_tick_count_process
@@ -80,6 +82,25 @@ class TestCaseWithSimulatorBase:
             profile.encode(f"{profile_dir}/{profile_file}.json")
 
     @contextmanager
+    def _configure_evlog(self):
+        log: Optional[EventLog] = None
+        if "__TRANSACTRON_EVLOG" in os.environ:
+
+            def f():
+                nonlocal log
+                log, process = capture_evlog()
+                return process
+
+            self._transactron_sim_processes_to_add.append(f)
+
+        yield
+
+        if log is not None and log.schema.sites:
+            evlog_dir = "test/__evlogs__"
+            os.makedirs(evlog_dir, exist_ok=True)
+            log.save(f"{evlog_dir}/{self._transactron_current_output_file_name}.jsonl")
+
+    @contextmanager
     def _configure_logging(self):
         def on_error():
             assert False, "Simulation finished due to an error"
@@ -111,9 +132,10 @@ class TestCaseWithSimulatorBase:
         with self._configure_dependency_context():
             self._configure_traces()
             with self._configure_profiles():
-                with self._configure_logging():
-                    self._transactron_sim_processes_to_add.append(make_tick_count_process)
-                    yield
+                with self._configure_evlog():
+                    with self._configure_logging():
+                        self._transactron_sim_processes_to_add.append(make_tick_count_process)
+                        yield
         self._transactron_hypothesis_iter_counter += 1
 
     @contextmanager
