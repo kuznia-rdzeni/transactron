@@ -87,10 +87,12 @@ class TestTranspose(TestCaseWithSimulator):
 
         async def testbench(ctx: TestbenchContext):
             for i in range(self.iterations):
+                const = mk_const(layout)
+                ctx.set(sig, const)
+                tr_const = ctx.get(tr_sig)
                 for o_key in o_keys:
                     for i_key in i_keys:
-                        ctx.set(sig[o_key][i_key], random.randrange(2 ** sig[o_key][i_key].shape().width))
-                        assert ctx.get(sig[o_key][i_key]) == ctx.get(tr_sig[i_key][o_key])
+                        assert const[o_key][i_key] == tr_const[i_key][o_key]
 
         with self.run_simulation(dut) as sim:
             sim.add_testbench(testbench)
