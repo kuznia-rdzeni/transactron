@@ -120,24 +120,34 @@ def transpose_layout_with_keys(layout: data.Layout) -> tuple[data.Layout, Sequen
     return ret_layout, o_keys, i_keys
 
 
-def transpose(view: data.View) -> data.View:
-    """Transpose a view over a two-level layout.
+@overload
+def transpose(view: data.Const) -> data.Const: ...
 
-    Builds a new `View`, over the layout returned by `transpose_layout`, whose
-    contents are the same as `view` but with the outer and inner levels swapped,
-    so that ``transpose(view)[i_key][o_key]`` is equal to ``view[o_key][i_key]``
-    for every valid pair of keys.
+
+@overload
+def transpose(view: data.View) -> data.View: ...
+
+
+def transpose(view: data.View | data.Const) -> data.View | data.Const:
+    """Transpose a view or constant over a two-level layout.
+
+    Builds a new `View` or `Const` (matching the type of `view`), over the layout
+    returned by `transpose_layout`, whose contents are the same as `view` but with
+    the outer and inner levels swapped, so that ``transpose(view)[i_key][o_key]``
+    is equal to ``view[o_key][i_key]`` for every valid pair of keys.
 
     Parameters
     ----------
-    view : data.View
-        The view to transpose. Its shape must satisfy the requirements of
-        `transpose_layout`.
+    view : data.View | data.Const
+        The view or constant to transpose. Its shape must satisfy the requirements
+        of `transpose_layout`.
 
     Returns
     -------
-    data.View
-        A view of the same underlying value, over the transposed layout.
+    data.View | data.Const
+        A `Const` with the same value as `view`, if `view` is a `data.Const`;
+        otherwise a `View` of the same underlying value; in both cases over the
+        transposed layout.
 
     Raises
     ------
@@ -145,5 +155,7 @@ def transpose(view: data.View) -> data.View:
         See `transpose_layout`.
     """
     ret_layout, o_keys, i_keys = transpose_layout_with_keys(view.shape())
+    if isinstance(view, data.Const):
+        return ret_layout.const({i_key: {o_key: view[o_key][i_key] for o_key in o_keys} for i_key in i_keys})
     ret_target = Cat(Value.cast(view[o_key][i_key]) for i_key in i_keys for o_key in o_keys)
     return data.View(ret_layout, ret_target)
