@@ -360,6 +360,136 @@ Flip is applied only in resulting <cite>signature</cite> property.</p>
 </dd></dl>
 
 </section>
+<section id="module-transactron.utils.amaranth_ext.data">
+<span id="transactron-utils-amaranth-ext-data-module"></span><h2>transactron.utils.amaranth_ext.data module<a class="headerlink" href="#module-transactron.utils.amaranth_ext.data" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="transactron.utils.amaranth_ext.data.layout_keys">
+<span class="sig-prename descclassname"><span class="pre">transactron.utils.amaranth_ext.data.</span></span><span class="sig-name descname"><span class="pre">layout_keys</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">layout</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/v0.5.4/stdlib/data.html#amaranth.lib.data.ArrayLayout" title="(in Amaranth language &amp; toolchain v0.5.4)"><span class="pre">ArrayLayout</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.14)"><span class="pre">Sequence</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#transactron.utils.amaranth_ext.data.layout_keys" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">transactron.utils.amaranth_ext.data.</span></span><span class="sig-name descname"><span class="pre">layout_keys</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">layout</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/v0.5.4/stdlib/data.html#amaranth.lib.data.StructLayout" title="(in Amaranth language &amp; toolchain v0.5.4)"><span class="pre">StructLayout</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/v0.5.4/stdlib/data.html#amaranth.lib.data.UnionLayout" title="(in Amaranth language &amp; toolchain v0.5.4)"><span class="pre">UnionLayout</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.14)"><span class="pre">Sequence</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span></span></dt>
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">transactron.utils.amaranth_ext.data.</span></span><span class="sig-name descname"><span class="pre">layout_keys</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">layout</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/v0.5.4/stdlib/data.html#amaranth.lib.data.Layout" title="(in Amaranth language &amp; toolchain v0.5.4)"><span class="pre">Layout</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.14)"><span class="pre">Sequence</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span></span></span></dt>
+<dd><p>Get the field keys of a layout, in order.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>layout</strong><span class="classifier">data.Layout</span></dt><dd><p>The layout to get the keys of. If it is an <cite>ArrayLayout</cite>, the keys are
+the field indices (<cite>int</cite>); if it is a <cite>StructLayout</cite> or <cite>UnionLayout</cite>,
+the keys are the field names (<cite>str</cite>).</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>Sequence[str | int]</dt><dd><p>The keys of <cite>layout</cite>, in the order in which they are defined.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="transactron.utils.amaranth_ext.data.transpose">
+<span class="sig-prename descclassname"><span class="pre">transactron.utils.amaranth_ext.data.</span></span><span class="sig-name descname"><span class="pre">transpose</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">view</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/v0.5.4/stdlib/data.html#amaranth.lib.data.Const" title="(in Amaranth language &amp; toolchain v0.5.4)"><span class="pre">Const</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/v0.5.4/stdlib/data.html#amaranth.lib.data.Const" title="(in Amaranth language &amp; toolchain v0.5.4)"><span class="pre">Const</span></a></span></span><a class="headerlink" href="#transactron.utils.amaranth_ext.data.transpose" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">transactron.utils.amaranth_ext.data.</span></span><span class="sig-name descname"><span class="pre">transpose</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">view</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/v0.5.4/stdlib/data.html#amaranth.lib.data.View" title="(in Amaranth language &amp; toolchain v0.5.4)"><span class="pre">View</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/v0.5.4/stdlib/data.html#amaranth.lib.data.View" title="(in Amaranth language &amp; toolchain v0.5.4)"><span class="pre">View</span></a></span></span></dt>
+<dd><p>Transpose a view or constant over a two-level layout.</p>
+<p>Builds a new <cite>View</cite> or <cite>Const</cite> (matching the type of <cite>view</cite>), over the layout
+returned by <cite>transpose_layout</cite>, whose contents are the same as <cite>view</cite> but with
+the outer and inner levels swapped, so that <code class="docutils literal notranslate"><span class="pre">transpose(view)[i_key][o_key]</span></code>
+is equal to <code class="docutils literal notranslate"><span class="pre">view[o_key][i_key]</span></code> for every valid pair of keys.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>view</strong><span class="classifier">data.View | data.Const</span></dt><dd><p>The view or constant to transpose. Its shape must satisfy the requirements
+of <cite>transpose_layout</cite>.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>data.View | data.Const</dt><dd><p>Transposed <cite>Const</cite>, if <cite>view</cite> is a <cite>data.Const</cite>, otherwise transposed
+<cite>View</cite>; over transposed layout.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt>ValueError</dt><dd><p>See <cite>transpose_layout</cite>.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="transactron.utils.amaranth_ext.data.transpose_layout">
+<span class="sig-prename descclassname"><span class="pre">transactron.utils.amaranth_ext.data.</span></span><span class="sig-name descname"><span class="pre">transpose_layout</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">layout</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/v0.5.4/stdlib/data.html#amaranth.lib.data.Layout" title="(in Amaranth language &amp; toolchain v0.5.4)"><span class="pre">Layout</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/v0.5.4/stdlib/data.html#amaranth.lib.data.Layout" title="(in Amaranth language &amp; toolchain v0.5.4)"><span class="pre">Layout</span></a></span></span><a class="headerlink" href="#transactron.utils.amaranth_ext.data.transpose_layout" title="Link to this definition"></a></dt>
+<dd><p>Transpose a two-level layout.</p>
+<p><cite>layout</cite> is expected to be an <cite>ArrayLayout</cite> or <cite>StructLayout</cite> whose every field
+is itself an <cite>ArrayLayout</cite> or <cite>StructLayout</cite>, with all of the fields sharing the
+same set of inner keys. The transposition swaps the outer and inner levels, so
+that a value which was addressed as <code class="docutils literal notranslate"><span class="pre">value[o_key][i_key]</span></code> in the original
+layout is addressed as <code class="docutils literal notranslate"><span class="pre">transposed[i_key][o_key]</span></code> in the resulting layout.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>layout</strong><span class="classifier">data.Layout</span></dt><dd><p>The layout to transpose. Must be an <cite>ArrayLayout</cite> or <cite>StructLayout</cite> whose
+fields are all <cite>ArrayLayout</cite>s or <cite>StructLayout</cite>s sharing identical keys.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>data.Layout</dt><dd><p>The transposed layout.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt>ValueError</dt><dd><p>If <cite>layout</cite> is not an <cite>ArrayLayout</cite> or <cite>StructLayout</cite>; if it has no fields;
+if its fields are not all <cite>ArrayLayout</cite>s or <cite>StructLayout</cite>s; if its
+fields have no keys; or if its fields do not all share the same keys.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="transactron.utils.amaranth_ext.data.transpose_layout_with_keys">
+<span class="sig-prename descclassname"><span class="pre">transactron.utils.amaranth_ext.data.</span></span><span class="sig-name descname"><span class="pre">transpose_layout_with_keys</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">layout</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/v0.5.4/stdlib/data.html#amaranth.lib.data.Layout" title="(in Amaranth language &amp; toolchain v0.5.4)"><span class="pre">Layout</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/v0.5.4/stdlib/data.html#amaranth.lib.data.Layout" title="(in Amaranth language &amp; toolchain v0.5.4)"><span class="pre">Layout</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.14)"><span class="pre">Sequence</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.14)"><span class="pre">Sequence</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#transactron.utils.amaranth_ext.data.transpose_layout_with_keys" title="Link to this definition"></a></dt>
+<dd><p>Extended version of <cite>transpose_layout</cite> that also returns the keys of both levels.</p>
+<p>Behaves exactly like <cite>transpose_layout</cite>, but additionally returns the outer and
+inner keys of <cite>layout</cite> that were used to perform the transposition, so that
+callers can address the original fields without recomputing them.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>layout</strong><span class="classifier">data.Layout</span></dt><dd><p>The layout to transpose. See <cite>transpose_layout</cite> for the requirements it
+must satisfy.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>tuple[data.Layout, Sequence[str | int], Sequence[str | int]]</dt><dd><p>A tuple <code class="docutils literal notranslate"><span class="pre">(ret_layout,</span> <span class="pre">o_keys,</span> <span class="pre">i_keys)</span></code>, where <cite>ret_layout</cite> is the layout
+that would be returned by <cite>transpose_layout</cite>, <cite>o_keys</cite> are the outer
+(top-level) keys of <cite>layout</cite>, and <cite>i_keys</cite> are the inner keys shared by
+all of its fields.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt>ValueError</dt><dd><p>See <cite>transpose_layout</cite>.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
 <section id="module-transactron.utils.amaranth_ext.elaboratables">
 <span id="transactron-utils-amaranth-ext-elaboratables-module"></span><h2>transactron.utils.amaranth_ext.elaboratables module<a class="headerlink" href="#module-transactron.utils.amaranth_ext.elaboratables" title="Link to this heading"></a></h2>
 <dl class="py class">
@@ -1398,7 +1528,7 @@ The entries of <cite>data</cite> must be of the same width.</p>
 
   <div role="contentinfo">
     <p>&#169; Copyright Kuźnia Rdzeni, 2026.
-      <span class="lastupdated">Last updated on 09:54 2026-07-06.
+      <span class="lastupdated">Last updated on 16:51 2026-07-06.
       </span></p>
   </div>
 

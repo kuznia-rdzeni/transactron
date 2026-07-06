@@ -20,6 +20,14 @@ transactron.utils.amaranth\_ext.component\_interface module
    :show-inheritance:
    :undoc-members:
 
+transactron.utils.amaranth\_ext.data module
+-------------------------------------------
+
+.. automodule:: transactron.utils.amaranth_ext.data
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 transactron.utils.amaranth\_ext.elaboratables module
 ----------------------------------------------------
 
