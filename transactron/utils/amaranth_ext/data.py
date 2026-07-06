@@ -145,9 +145,8 @@ def transpose(view: data.View | data.Const) -> data.View | data.Const:
     Returns
     -------
     data.View | data.Const
-        A `Const` with the same value as `view`, if `view` is a `data.Const`;
-        otherwise a `View` of the same underlying value; in both cases over the
-        transposed layout.
+        Transposed `Const`, if `view` is a `data.Const`, otherwise transposed
+        `View`; over transposed layout.
 
     Raises
     ------
