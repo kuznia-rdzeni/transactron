@@ -9,6 +9,7 @@ Subpackages
 
    transactron.cmd
    transactron.core
+   transactron.evlog
    transactron.lib
    transactron.testing
    transactron.utils

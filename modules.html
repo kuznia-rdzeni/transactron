@@ -47,6 +47,7 @@
 <li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="transactions.html">Documentation for Transactron</a></li>
 <li class="toctree-l1"><a class="reference internal" href="pipeline-guide.html">Pipeline Builder</a></li>
+<li class="toctree-l1"><a class="reference internal" href="evlog.html">Event log</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api.html">API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="development-environment.html">Development environment</a></li>
 </ul>
@@ -83,6 +84,7 @@
 <li class="toctree-l2"><a class="reference internal" href="transactron.html#subpackages">Subpackages</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="transactron.cmd.html">transactron.cmd package</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="transactron.cmd.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.cmd.html#module-transactron.cmd.evlog">transactron.cmd.evlog module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="transactron.cmd.html#module-transactron.cmd.tprof">transactron.cmd.tprof module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="transactron.cmd.html#module-transactron.cmd">Module contents</a></li>
 </ul>
@@ -100,6 +102,17 @@
 <li class="toctree-l4"><a class="reference internal" href="transactron.core.html#module-transactron.core.transaction">transactron.core.transaction module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="transactron.core.html#module-transactron.core.transaction_base">transactron.core.transaction_base module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="transactron.core.html#module-transactron.core">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="transactron.evlog.html">transactron.evlog package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="transactron.evlog.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.evlog.html#module-transactron.evlog.consumer">transactron.evlog.consumer module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.evlog.html#module-transactron.evlog.emit">transactron.evlog.emit module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.evlog.html#module-transactron.evlog.event">transactron.evlog.event module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.evlog.html#module-transactron.evlog.log">transactron.evlog.log module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.evlog.html#module-transactron.evlog.sampler">transactron.evlog.sampler module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.evlog.html#module-transactron.evlog.schema">transactron.evlog.schema module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.evlog.html#module-transactron.evlog">Module contents</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="transactron.lib.html">transactron.lib package</a><ul>
@@ -123,6 +136,7 @@
 </li>
 <li class="toctree-l3"><a class="reference internal" href="transactron.testing.html">transactron.testing package</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="transactron.testing.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.testing.html#module-transactron.testing.evlog">transactron.testing.evlog module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="transactron.testing.html#module-transactron.testing.functions">transactron.testing.functions module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="transactron.testing.html#module-transactron.testing.input_generation">transactron.testing.input_generation module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="transactron.testing.html#module-transactron.testing.logging">transactron.testing.logging module</a></li>
@@ -298,7 +312,7 @@
 
   <div role="contentinfo">
     <p>&#169; Copyright Kuźnia Rdzeni, 2026.
-      <span class="lastupdated">Last updated on 14:33 2026-07-02.
+      <span class="lastupdated">Last updated on 09:54 2026-07-06.
       </span></p>
   </div>
 

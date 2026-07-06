@@ -49,6 +49,7 @@
 <li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="transactions.html">Documentation for Transactron</a></li>
 <li class="toctree-l1"><a class="reference internal" href="pipeline-guide.html">Pipeline Builder</a></li>
+<li class="toctree-l1"><a class="reference internal" href="evlog.html">Event log</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api.html">API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="development-environment.html">Development environment</a></li>
 </ul>
@@ -83,6 +84,33 @@
 <h1>transactron.testing package<a class="headerlink" href="#transactron-testing-package" title="Link to this heading"></a></h1>
 <section id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading"></a></h2>
+</section>
+<section id="module-transactron.testing.evlog">
+<span id="transactron-testing-evlog-module"></span><h2>transactron.testing.evlog module<a class="headerlink" href="#module-transactron.testing.evlog" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="transactron.testing.evlog.capture_evlog">
+<span class="sig-prename descclassname"><span class="pre">transactron.testing.evlog.</span></span><span class="sig-name descname"><span class="pre">capture_evlog</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metadata</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.testing.evlog.capture_evlog" title="Link to this definition"></a></dt>
+<dd><p>Creates an in-memory event log capturing all registered event emission
+sites, together with the simulation process filling it.</p>
+<p>Must be called after the design is elaborated. Usage:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">run_simulation</span><span class="p">(</span><span class="n">m</span><span class="p">)</span> <span class="k">as</span> <span class="n">sim</span><span class="p">:</span>
+    <span class="n">log</span><span class="p">,</span> <span class="n">process</span> <span class="o">=</span> <span class="n">capture_evlog</span><span class="p">()</span>
+    <span class="n">sim</span><span class="o">.</span><span class="n">add_process</span><span class="p">(</span><span class="n">process</span><span class="p">)</span>
+    <span class="n">sim</span><span class="o">.</span><span class="n">add_testbench</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+
+<span class="n">events</span> <span class="o">=</span> <span class="n">log</span><span class="o">.</span><span class="n">decoded</span><span class="p">()</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>metadata: dict[str, Any], optional</strong></dt><dd><p>Metadata stored in the event log schema.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 <section id="module-transactron.testing.functions">
 <span id="transactron-testing-functions-module"></span><h2>transactron.testing.functions module<a class="headerlink" href="#module-transactron.testing.functions" title="Link to this heading"></a></h2>
@@ -1273,7 +1301,7 @@ between different mocks and testbench processes.</p>
 
   <div role="contentinfo">
     <p>&#169; Copyright Kuźnia Rdzeni, 2026.
-      <span class="lastupdated">Last updated on 14:33 2026-07-02.
+      <span class="lastupdated">Last updated on 09:54 2026-07-06.
       </span></p>
   </div>
 

@@ -49,6 +49,7 @@
 <li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="transactions.html">Documentation for Transactron</a></li>
 <li class="toctree-l1"><a class="reference internal" href="pipeline-guide.html">Pipeline Builder</a></li>
+<li class="toctree-l1"><a class="reference internal" href="evlog.html">Event log</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api.html">API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="development-environment.html">Development environment</a></li>
 </ul>
@@ -86,6 +87,17 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="transactron.cmd.html">transactron.cmd package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="transactron.cmd.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="transactron.cmd.html#module-transactron.cmd.evlog">transactron.cmd.evlog module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="transactron.cmd.html#transactron.cmd.evlog.format_event"><code class="docutils literal notranslate"><span class="pre">format_event()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="transactron.cmd.html#transactron.cmd.evlog.format_static"><code class="docutils literal notranslate"><span class="pre">format_static()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="transactron.cmd.html#transactron.cmd.evlog.format_value"><code class="docutils literal notranslate"><span class="pre">format_value()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="transactron.cmd.html#transactron.cmd.evlog.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="transactron.cmd.html#transactron.cmd.evlog.parse_cycle_range"><code class="docutils literal notranslate"><span class="pre">parse_cycle_range()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="transactron.cmd.html#transactron.cmd.evlog.print_events"><code class="docutils literal notranslate"><span class="pre">print_events()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="transactron.cmd.html#transactron.cmd.evlog.print_schema"><code class="docutils literal notranslate"><span class="pre">print_schema()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="transactron.cmd.html#transactron.cmd.evlog.site_field_types"><code class="docutils literal notranslate"><span class="pre">site_field_types()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="transactron.cmd.html#module-transactron.cmd.tprof">transactron.cmd.tprof module</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="transactron.cmd.html#transactron.cmd.tprof.filter_nodes"><code class="docutils literal notranslate"><span class="pre">filter_nodes()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="transactron.cmd.html#transactron.cmd.tprof.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
@@ -253,6 +265,177 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="transactron.core.html#module-transactron.core">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="transactron.evlog.html">transactron.evlog package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="transactron.evlog.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="transactron.evlog.html#module-transactron.evlog.consumer">transactron.evlog.consumer module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.consumer.EventConsumer"><code class="docutils literal notranslate"><span class="pre">EventConsumer</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.consumer.EventConsumer.dispatch"><code class="docutils literal notranslate"><span class="pre">EventConsumer.dispatch()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.consumer.EventConsumer.on_unhandled"><code class="docutils literal notranslate"><span class="pre">EventConsumer.on_unhandled()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.consumer.EventConsumer.run"><code class="docutils literal notranslate"><span class="pre">EventConsumer.run()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.consumer.handles"><code class="docutils literal notranslate"><span class="pre">handles()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="transactron.evlog.html#module-transactron.evlog.emit">transactron.evlog.emit module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.emit.EmittedEvent"><code class="docutils literal notranslate"><span class="pre">EmittedEvent</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.emit.EmittedEvent.__init__"><code class="docutils literal notranslate"><span class="pre">EmittedEvent.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.emit.EmittedEvent.event_type"><code class="docutils literal notranslate"><span class="pre">EmittedEvent.event_type</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.emit.EmittedEvent.fields"><code class="docutils literal notranslate"><span class="pre">EmittedEvent.fields</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.emit.EmittedEvent.location"><code class="docutils literal notranslate"><span class="pre">EmittedEvent.location</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.emit.EmittedEvent.source_name"><code class="docutils literal notranslate"><span class="pre">EmittedEvent.source_name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.emit.EmittedEvent.statics"><code class="docutils literal notranslate"><span class="pre">EmittedEvent.statics</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.emit.EmittedEvent.trigger"><code class="docutils literal notranslate"><span class="pre">EmittedEvent.trigger</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.emit.EvLogEnabledKey"><code class="docutils literal notranslate"><span class="pre">EvLogEnabledKey</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.emit.EvLogEnabledKey.__init__"><code class="docutils literal notranslate"><span class="pre">EvLogEnabledKey.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.emit.EvLogEnabledKey.default_value"><code class="docutils literal notranslate"><span class="pre">EvLogEnabledKey.default_value</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.emit.EvLogEnabledKey.empty_valid"><code class="docutils literal notranslate"><span class="pre">EvLogEnabledKey.empty_valid</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.emit.EvLogKey"><code class="docutils literal notranslate"><span class="pre">EvLogKey</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.emit.EvLogKey.__init__"><code class="docutils literal notranslate"><span class="pre">EvLogKey.__init__()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.emit.EventSource"><code class="docutils literal notranslate"><span class="pre">EventSource</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.emit.EventSource.__init__"><code class="docutils literal notranslate"><span class="pre">EventSource.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.emit.EventSource.emit"><code class="docutils literal notranslate"><span class="pre">EventSource.emit()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.emit.EventSource.top_emit"><code class="docutils literal notranslate"><span class="pre">EventSource.top_emit()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.emit.evlog_enabled"><code class="docutils literal notranslate"><span class="pre">evlog_enabled()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.emit.get_emitted_events"><code class="docutils literal notranslate"><span class="pre">get_emitted_events()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="transactron.evlog.html#module-transactron.evlog.event">transactron.evlog.event module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.event.Event"><code class="docutils literal notranslate"><span class="pre">Event</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.event.Event.event_name"><code class="docutils literal notranslate"><span class="pre">Event.event_name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.event.Event.from_raw"><code class="docutils literal notranslate"><span class="pre">Event.from_raw()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.event.Event.hw"><code class="docutils literal notranslate"><span class="pre">Event.hw()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.event.event"><code class="docutils literal notranslate"><span class="pre">event()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.event.get_event_class"><code class="docutils literal notranslate"><span class="pre">get_event_class()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="transactron.evlog.html#module-transactron.evlog.log">transactron.evlog.log module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.log.DecodedEvent"><code class="docutils literal notranslate"><span class="pre">DecodedEvent</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.log.DecodedEvent.__init__"><code class="docutils literal notranslate"><span class="pre">DecodedEvent.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.log.DecodedEvent.cycle"><code class="docutils literal notranslate"><span class="pre">DecodedEvent.cycle</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.log.DecodedEvent.event"><code class="docutils literal notranslate"><span class="pre">DecodedEvent.event</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.log.DecodedEvent.site"><code class="docutils literal notranslate"><span class="pre">DecodedEvent.site</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.log.DecodedEvent.source_name"><code class="docutils literal notranslate"><span class="pre">DecodedEvent.source_name</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.log.EventDecoder"><code class="docutils literal notranslate"><span class="pre">EventDecoder</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.log.EventDecoder.__init__"><code class="docutils literal notranslate"><span class="pre">EventDecoder.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.log.EventDecoder.decode"><code class="docutils literal notranslate"><span class="pre">EventDecoder.decode()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.log.EventLog"><code class="docutils literal notranslate"><span class="pre">EventLog</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.log.EventLog.__init__"><code class="docutils literal notranslate"><span class="pre">EventLog.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.log.EventLog.decoded"><code class="docutils literal notranslate"><span class="pre">EventLog.decoded()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.log.EventLog.emit_raw"><code class="docutils literal notranslate"><span class="pre">EventLog.emit_raw()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.log.EventLog.load"><code class="docutils literal notranslate"><span class="pre">EventLog.load()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.log.EventLog.save"><code class="docutils literal notranslate"><span class="pre">EventLog.save()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.log.EventLogReader"><code class="docutils literal notranslate"><span class="pre">EventLogReader</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.log.EventLogReader.__init__"><code class="docutils literal notranslate"><span class="pre">EventLogReader.__init__()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.log.EventLogWriter"><code class="docutils literal notranslate"><span class="pre">EventLogWriter</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.log.EventLogWriter.__init__"><code class="docutils literal notranslate"><span class="pre">EventLogWriter.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.log.EventLogWriter.close"><code class="docutils literal notranslate"><span class="pre">EventLogWriter.close()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.log.EventLogWriter.emit_raw"><code class="docutils literal notranslate"><span class="pre">EventLogWriter.emit_raw()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.log.RawEvent"><code class="docutils literal notranslate"><span class="pre">RawEvent</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.log.RawEventSink"><code class="docutils literal notranslate"><span class="pre">RawEventSink</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.log.RawEventSink.__init__"><code class="docutils literal notranslate"><span class="pre">RawEventSink.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.log.RawEventSink.emit_raw"><code class="docutils literal notranslate"><span class="pre">RawEventSink.emit_raw()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="transactron.evlog.html#module-transactron.evlog.sampler">transactron.evlog.sampler module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.sampler.GeneratedEvLogSampler"><code class="docutils literal notranslate"><span class="pre">GeneratedEvLogSampler</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.sampler.GeneratedEvLogSampler.__init__"><code class="docutils literal notranslate"><span class="pre">GeneratedEvLogSampler.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.sampler.GeneratedEvLogSampler.sample"><code class="docutils literal notranslate"><span class="pre">GeneratedEvLogSampler.sample()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.sampler.HandleResolver"><code class="docutils literal notranslate"><span class="pre">HandleResolver</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.sampler.SignalReader"><code class="docutils literal notranslate"><span class="pre">SignalReader</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="transactron.evlog.html#module-transactron.evlog.schema">transactron.evlog.schema module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.schema.EvLogSchema"><code class="docutils literal notranslate"><span class="pre">EvLogSchema</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.schema.EvLogSchema.__init__"><code class="docutils literal notranslate"><span class="pre">EvLogSchema.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.schema.EvLogSchema.from_dict"><code class="docutils literal notranslate"><span class="pre">EvLogSchema.from_dict()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.schema.EvLogSchema.from_json"><code class="docutils literal notranslate"><span class="pre">EvLogSchema.from_json()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.schema.EvLogSchema.metadata"><code class="docutils literal notranslate"><span class="pre">EvLogSchema.metadata</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.schema.EvLogSchema.schema"><code class="docutils literal notranslate"><span class="pre">EvLogSchema.schema()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.schema.EvLogSchema.sites"><code class="docutils literal notranslate"><span class="pre">EvLogSchema.sites</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.schema.EvLogSchema.to_dict"><code class="docutils literal notranslate"><span class="pre">EvLogSchema.to_dict()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.schema.EvLogSchema.to_json"><code class="docutils literal notranslate"><span class="pre">EvLogSchema.to_json()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.schema.EventFieldSchema"><code class="docutils literal notranslate"><span class="pre">EventFieldSchema</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.schema.EventFieldSchema.__init__"><code class="docutils literal notranslate"><span class="pre">EventFieldSchema.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.schema.EventFieldSchema.from_dict"><code class="docutils literal notranslate"><span class="pre">EventFieldSchema.from_dict()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.schema.EventFieldSchema.from_json"><code class="docutils literal notranslate"><span class="pre">EventFieldSchema.from_json()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.schema.EventFieldSchema.name"><code class="docutils literal notranslate"><span class="pre">EventFieldSchema.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.schema.EventFieldSchema.schema"><code class="docutils literal notranslate"><span class="pre">EventFieldSchema.schema()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.schema.EventFieldSchema.signed"><code class="docutils literal notranslate"><span class="pre">EventFieldSchema.signed</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.schema.EventFieldSchema.to_dict"><code class="docutils literal notranslate"><span class="pre">EventFieldSchema.to_dict()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.schema.EventFieldSchema.to_json"><code class="docutils literal notranslate"><span class="pre">EventFieldSchema.to_json()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.schema.EventFieldSchema.width"><code class="docutils literal notranslate"><span class="pre">EventFieldSchema.width</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.schema.EventSiteLocation"><code class="docutils literal notranslate"><span class="pre">EventSiteLocation</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.schema.EventSiteLocation.__init__"><code class="docutils literal notranslate"><span class="pre">EventSiteLocation.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.schema.EventSiteLocation.fields"><code class="docutils literal notranslate"><span class="pre">EventSiteLocation.fields</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.schema.EventSiteLocation.from_dict"><code class="docutils literal notranslate"><span class="pre">EventSiteLocation.from_dict()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.schema.EventSiteLocation.from_json"><code class="docutils literal notranslate"><span class="pre">EventSiteLocation.from_json()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.schema.EventSiteLocation.schema"><code class="docutils literal notranslate"><span class="pre">EventSiteLocation.schema()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.schema.EventSiteLocation.to_dict"><code class="docutils literal notranslate"><span class="pre">EventSiteLocation.to_dict()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.schema.EventSiteLocation.to_json"><code class="docutils literal notranslate"><span class="pre">EventSiteLocation.to_json()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.schema.EventSiteLocation.trigger"><code class="docutils literal notranslate"><span class="pre">EventSiteLocation.trigger</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.schema.EventSiteSchema"><code class="docutils literal notranslate"><span class="pre">EventSiteSchema</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.schema.EventSiteSchema.__init__"><code class="docutils literal notranslate"><span class="pre">EventSiteSchema.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.schema.EventSiteSchema.event_name"><code class="docutils literal notranslate"><span class="pre">EventSiteSchema.event_name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.schema.EventSiteSchema.fields"><code class="docutils literal notranslate"><span class="pre">EventSiteSchema.fields</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.schema.EventSiteSchema.from_dict"><code class="docutils literal notranslate"><span class="pre">EventSiteSchema.from_dict()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.schema.EventSiteSchema.from_json"><code class="docutils literal notranslate"><span class="pre">EventSiteSchema.from_json()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.schema.EventSiteSchema.location"><code class="docutils literal notranslate"><span class="pre">EventSiteSchema.location</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.schema.EventSiteSchema.schema"><code class="docutils literal notranslate"><span class="pre">EventSiteSchema.schema()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.schema.EventSiteSchema.source_name"><code class="docutils literal notranslate"><span class="pre">EventSiteSchema.source_name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.schema.EventSiteSchema.statics"><code class="docutils literal notranslate"><span class="pre">EventSiteSchema.statics</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.schema.EventSiteSchema.to_dict"><code class="docutils literal notranslate"><span class="pre">EventSiteSchema.to_dict()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.schema.EventSiteSchema.to_json"><code class="docutils literal notranslate"><span class="pre">EventSiteSchema.to_json()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.schema.GeneratedEvLog"><code class="docutils literal notranslate"><span class="pre">GeneratedEvLog</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.schema.GeneratedEvLog.__init__"><code class="docutils literal notranslate"><span class="pre">GeneratedEvLog.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.schema.GeneratedEvLog.from_dict"><code class="docutils literal notranslate"><span class="pre">GeneratedEvLog.from_dict()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.schema.GeneratedEvLog.from_json"><code class="docutils literal notranslate"><span class="pre">GeneratedEvLog.from_json()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.schema.GeneratedEvLog.schema"><code class="docutils literal notranslate"><span class="pre">GeneratedEvLog.schema()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.schema.GeneratedEvLog.site_locations"><code class="docutils literal notranslate"><span class="pre">GeneratedEvLog.site_locations</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.schema.GeneratedEvLog.to_dict"><code class="docutils literal notranslate"><span class="pre">GeneratedEvLog.to_dict()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.schema.GeneratedEvLog.to_json"><code class="docutils literal notranslate"><span class="pre">GeneratedEvLog.to_json()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.schema.GeneratedEvLog.triggers_location"><code class="docutils literal notranslate"><span class="pre">GeneratedEvLog.triggers_location</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.schema.SignalHandle"><code class="docutils literal notranslate"><span class="pre">SignalHandle</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="transactron.evlog.html#transactron.evlog.schema.schema_from_records"><code class="docutils literal notranslate"><span class="pre">schema_from_records()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="transactron.evlog.html#module-transactron.evlog">Module contents</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="transactron.lib.html">transactron.lib package</a><ul>
@@ -630,6 +813,10 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="transactron.testing.html">transactron.testing package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="transactron.testing.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="transactron.testing.html#module-transactron.testing.evlog">transactron.testing.evlog module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="transactron.testing.html#transactron.testing.evlog.capture_evlog"><code class="docutils literal notranslate"><span class="pre">capture_evlog()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="transactron.testing.html#module-transactron.testing.functions">transactron.testing.functions module</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="transactron.testing.html#transactron.testing.functions.data_const_to_dict"><code class="docutils literal notranslate"><span class="pre">data_const_to_dict()</span></code></a></li>
 </ul>
@@ -946,6 +1133,7 @@
 <li class="toctree-l4"><a class="reference internal" href="transactron.utils.html#transactron.utils.gen.GenerationInfo.__init__"><code class="docutils literal notranslate"><span class="pre">GenerationInfo.__init__()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="transactron.utils.html#transactron.utils.gen.GenerationInfo.decode"><code class="docutils literal notranslate"><span class="pre">GenerationInfo.decode()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="transactron.utils.html#transactron.utils.gen.GenerationInfo.encode"><code class="docutils literal notranslate"><span class="pre">GenerationInfo.encode()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.utils.html#transactron.utils.gen.GenerationInfo.evlog"><code class="docutils literal notranslate"><span class="pre">GenerationInfo.evlog</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="transactron.utils.html#transactron.utils.gen.GenerationInfo.from_dict"><code class="docutils literal notranslate"><span class="pre">GenerationInfo.from_dict()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="transactron.utils.html#transactron.utils.gen.GenerationInfo.from_json"><code class="docutils literal notranslate"><span class="pre">GenerationInfo.from_json()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="transactron.utils.html#transactron.utils.gen.GenerationInfo.logs"><code class="docutils literal notranslate"><span class="pre">GenerationInfo.logs</span></code></a></li>
@@ -1664,7 +1852,7 @@ It was too difficult to hook into, so this has to be a near-exact copy.</p>
 
   <div role="contentinfo">
     <p>&#169; Copyright Kuźnia Rdzeni, 2026.
-      <span class="lastupdated">Last updated on 14:33 2026-07-02.
+      <span class="lastupdated">Last updated on 09:54 2026-07-06.
       </span></p>
   </div>
 

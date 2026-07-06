@@ -4,6 +4,14 @@ transactron.cmd package
 Submodules
 ----------
 
+transactron.cmd.evlog module
+----------------------------
+
+.. automodule:: transactron.cmd.evlog
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 transactron.cmd.tprof module
 ----------------------------
 

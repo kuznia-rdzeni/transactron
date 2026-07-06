@@ -4,6 +4,14 @@ transactron.testing package
 Submodules
 ----------
 
+transactron.testing.evlog module
+--------------------------------
+
+.. automodule:: transactron.testing.evlog
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 transactron.testing.functions module
 ------------------------------------
 

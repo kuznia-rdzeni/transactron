@@ -46,6 +46,7 @@
 <li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="transactions.html">Documentation for Transactron</a></li>
 <li class="toctree-l1"><a class="reference internal" href="pipeline-guide.html">Pipeline Builder</a></li>
+<li class="toctree-l1"><a class="reference internal" href="evlog.html">Event log</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api.html">API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="development-environment.html">Development environment</a></li>
 </ul>
@@ -129,6 +130,38 @@
         <li><a href="transactron.core.html#transactron.core.transaction.Transaction.__init__">(transactron.core.transaction.Transaction method)</a>
 </li>
         <li><a href="transactron.core.html#transactron.core.transaction_base.TransactionBase.__init__">(transactron.core.transaction_base.TransactionBase method)</a>
+</li>
+        <li><a href="transactron.evlog.html#transactron.evlog.emit.EmittedEvent.__init__">(transactron.evlog.emit.EmittedEvent method)</a>
+</li>
+        <li><a href="transactron.evlog.html#transactron.evlog.emit.EventSource.__init__">(transactron.evlog.emit.EventSource method)</a>
+</li>
+        <li><a href="transactron.evlog.html#transactron.evlog.emit.EvLogEnabledKey.__init__">(transactron.evlog.emit.EvLogEnabledKey method)</a>
+</li>
+        <li><a href="transactron.evlog.html#transactron.evlog.emit.EvLogKey.__init__">(transactron.evlog.emit.EvLogKey method)</a>
+</li>
+        <li><a href="transactron.evlog.html#transactron.evlog.log.DecodedEvent.__init__">(transactron.evlog.log.DecodedEvent method)</a>
+</li>
+        <li><a href="transactron.evlog.html#transactron.evlog.log.EventDecoder.__init__">(transactron.evlog.log.EventDecoder method)</a>
+</li>
+        <li><a href="transactron.evlog.html#transactron.evlog.log.EventLog.__init__">(transactron.evlog.log.EventLog method)</a>
+</li>
+        <li><a href="transactron.evlog.html#transactron.evlog.log.EventLogReader.__init__">(transactron.evlog.log.EventLogReader method)</a>
+</li>
+        <li><a href="transactron.evlog.html#transactron.evlog.log.EventLogWriter.__init__">(transactron.evlog.log.EventLogWriter method)</a>
+</li>
+        <li><a href="transactron.evlog.html#transactron.evlog.log.RawEventSink.__init__">(transactron.evlog.log.RawEventSink method)</a>
+</li>
+        <li><a href="transactron.evlog.html#transactron.evlog.sampler.GeneratedEvLogSampler.__init__">(transactron.evlog.sampler.GeneratedEvLogSampler method)</a>
+</li>
+        <li><a href="transactron.evlog.html#transactron.evlog.schema.EventFieldSchema.__init__">(transactron.evlog.schema.EventFieldSchema method)</a>
+</li>
+        <li><a href="transactron.evlog.html#transactron.evlog.schema.EventSiteLocation.__init__">(transactron.evlog.schema.EventSiteLocation method)</a>
+</li>
+        <li><a href="transactron.evlog.html#transactron.evlog.schema.EventSiteSchema.__init__">(transactron.evlog.schema.EventSiteSchema method)</a>
+</li>
+        <li><a href="transactron.evlog.html#transactron.evlog.schema.EvLogSchema.__init__">(transactron.evlog.schema.EvLogSchema method)</a>
+</li>
+        <li><a href="transactron.evlog.html#transactron.evlog.schema.GeneratedEvLog.__init__">(transactron.evlog.schema.GeneratedEvLog method)</a>
 </li>
         <li><a href="transactron.html#transactron.graph.Owned.__init__">(transactron.graph.Owned method)</a>
 </li>
@@ -503,6 +536,8 @@
         <li><a href="transactron.testing.html#transactron.testing.testbenchio.CallTrigger">(class in transactron.testing.testbenchio)</a>
 </li>
       </ul></li>
+      <li><a href="transactron.testing.html#transactron.testing.evlog.capture_evlog">capture_evlog() (in module transactron.testing.evlog)</a>
+</li>
       <li><a href="transactron.core.html#transactron.core.tmodule.TModule.Case">Case() (transactron.core.tmodule.TModule method)</a>
 </li>
       <li><a href="transactron.testing.html#transactron.testing.SimulatorContext.changed">changed() (transactron.testing.SimulatorContext method)</a>
@@ -528,6 +563,8 @@
 </li>
       </ul></li>
       <li><a href="transactron.lib.html#transactron.lib.connectors.ClearableConnector">ClearableConnector (class in transactron.lib.connectors)</a>
+</li>
+      <li><a href="transactron.evlog.html#transactron.evlog.log.EventLogWriter.close">close() (transactron.evlog.log.EventLogWriter method)</a>
 </li>
       <li><a href="transactron.lib.html#transactron.lib.transformers.Collector">Collector (class in transactron.lib.transformers)</a>
 </li>
@@ -643,6 +680,8 @@
         <li><a href="transactron.testing.html#transactron.testing.TestCaseWithSimulatorBase.ctx_testing_env_next">(transactron.testing.TestCaseWithSimulatorBase method)</a>
 </li>
       </ul></li>
+      <li><a href="transactron.evlog.html#transactron.evlog.log.DecodedEvent.cycle">cycle (transactron.evlog.log.DecodedEvent attribute)</a>
+</li>
       <li><a href="transactron.html#transactron.profiler.Profile.cycles">cycles (transactron.profiler.Profile attribute)</a>
 </li>
       <li><a href="transactron.utils.amaranth_ext.html#transactron.utils.amaranth_ext.functions.cyclic_mask">cyclic_mask() (in module transactron.utils.amaranth_ext.functions)</a>
@@ -693,12 +732,18 @@
         <li><a href="transactron.utils.html#transactron.utils.typing.HasDebugSignals.debug_signals">(transactron.utils.typing.HasDebugSignals method)</a>
 </li>
       </ul></li>
-      <li><a href="transactron.html#transactron.profiler.Profile.decode">decode() (transactron.profiler.Profile static method)</a>
+      <li><a href="transactron.evlog.html#transactron.evlog.log.EventDecoder.decode">decode() (transactron.evlog.log.EventDecoder method)</a>
 
       <ul>
+        <li><a href="transactron.html#transactron.profiler.Profile.decode">(transactron.profiler.Profile static method)</a>
+</li>
         <li><a href="transactron.utils.html#transactron.utils.gen.GenerationInfo.decode">(transactron.utils.gen.GenerationInfo static method)</a>
 </li>
       </ul></li>
+      <li><a href="transactron.evlog.html#transactron.evlog.log.EventLog.decoded">decoded() (transactron.evlog.log.EventLog method)</a>
+</li>
+      <li><a href="transactron.evlog.html#transactron.evlog.log.DecodedEvent">DecodedEvent (class in transactron.evlog.log)</a>
+</li>
       <li><a href="transactron.utils.amaranth_ext.html#transactron.utils.amaranth_ext.coding.Decoder">Decoder (class in transactron.utils.amaranth_ext.coding)</a>
 </li>
       <li><a href="transactron.core.html#transactron.core.body.Body.def_counter">def_counter (transactron.core.body.Body attribute)</a>
@@ -715,17 +760,19 @@
       </ul></li>
       <li><a href="transactron.core.html#transactron.core.sugar.def_methods">def_methods() (in module transactron.core.sugar)</a>
 </li>
-      <li><a href="transactron.core.html#transactron.core.body.Body.def_order">def_order (transactron.core.body.Body attribute)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="transactron.core.html#transactron.core.body.Body.def_order">def_order (transactron.core.body.Body attribute)</a>
+</li>
       <li><a href="transactron.core.html#transactron.core.tmodule.TModule.Default">Default() (transactron.core.tmodule.TModule method)</a>
 </li>
       <li><a href="transactron.utils.amaranth_ext.html#transactron.utils.amaranth_ext.elaboratables.OneHotMux.default_input">default_input (transactron.utils.amaranth_ext.elaboratables.OneHotMux attribute)</a>
 </li>
-      <li><a href="transactron.lib.html#transactron.lib.dependencies.SimpleKey.default_value">default_value (transactron.lib.dependencies.SimpleKey attribute)</a>
+      <li><a href="transactron.evlog.html#transactron.evlog.emit.EvLogEnabledKey.default_value">default_value (transactron.evlog.emit.EvLogEnabledKey attribute)</a>
 
       <ul>
+        <li><a href="transactron.lib.html#transactron.lib.dependencies.SimpleKey.default_value">(transactron.lib.dependencies.SimpleKey attribute)</a>
+</li>
         <li><a href="transactron.lib.html#transactron.lib.metrics.HwMetricsEnabledKey.default_value">(transactron.lib.metrics.HwMetricsEnabledKey attribute)</a>
 </li>
         <li><a href="transactron.utils.html#transactron.utils.dependencies.SimpleKey.default_value">(transactron.utils.dependencies.SimpleKey attribute)</a>
@@ -771,6 +818,8 @@
         <li><a href="transactron.testing.html#transactron.testing.testbenchio.TestbenchIO.disable">(transactron.testing.testbenchio.TestbenchIO method)</a>
 </li>
       </ul></li>
+      <li><a href="transactron.evlog.html#transactron.evlog.consumer.EventConsumer.dispatch">dispatch() (transactron.evlog.consumer.EventConsumer method)</a>
+</li>
       <li><a href="transactron.lib.html#transactron.lib.adapters.AdapterBase.done">done (transactron.lib.adapters.AdapterBase attribute)</a>
 
       <ul>
@@ -813,9 +862,23 @@
 </li>
       <li><a href="transactron.core.html#transactron.core.tmodule.TModule.Else">Else() (transactron.core.tmodule.TModule method)</a>
 </li>
-      <li><a href="transactron.lib.html#transactron.lib.dependencies.DependencyKey.empty_valid">empty_valid (transactron.lib.dependencies.DependencyKey attribute)</a>
+      <li><a href="transactron.evlog.html#transactron.evlog.emit.EventSource.emit">emit() (transactron.evlog.emit.EventSource method)</a>
+</li>
+      <li><a href="transactron.evlog.html#transactron.evlog.log.EventLog.emit_raw">emit_raw() (transactron.evlog.log.EventLog method)</a>
 
       <ul>
+        <li><a href="transactron.evlog.html#transactron.evlog.log.EventLogWriter.emit_raw">(transactron.evlog.log.EventLogWriter method)</a>
+</li>
+        <li><a href="transactron.evlog.html#transactron.evlog.log.RawEventSink.emit_raw">(transactron.evlog.log.RawEventSink method)</a>
+</li>
+      </ul></li>
+      <li><a href="transactron.evlog.html#transactron.evlog.emit.EmittedEvent">EmittedEvent (class in transactron.evlog.emit)</a>
+</li>
+      <li><a href="transactron.evlog.html#transactron.evlog.emit.EvLogEnabledKey.empty_valid">empty_valid (transactron.evlog.emit.EvLogEnabledKey attribute)</a>
+
+      <ul>
+        <li><a href="transactron.lib.html#transactron.lib.dependencies.DependencyKey.empty_valid">(transactron.lib.dependencies.DependencyKey attribute)</a>
+</li>
         <li><a href="transactron.lib.html#transactron.lib.dependencies.ListKey.empty_valid">(transactron.lib.dependencies.ListKey attribute)</a>
 </li>
         <li><a href="transactron.lib.html#transactron.lib.metrics.HwMetricsEnabledKey.empty_valid">(transactron.lib.metrics.HwMetricsEnabledKey attribute)</a>
@@ -825,8 +888,6 @@
         <li><a href="transactron.utils.html#transactron.utils.dependencies.ListKey.empty_valid">(transactron.utils.dependencies.ListKey attribute)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="transactron.lib.html#transactron.lib.adapters.AdapterBase.en">en (transactron.lib.adapters.AdapterBase attribute)</a>
 </li>
       <li><a href="transactron.testing.html#transactron.testing.TestbenchIO.enable">enable() (transactron.testing.TestbenchIO method)</a>
@@ -841,11 +902,55 @@
         <li><a href="transactron.utils.html#transactron.utils.gen.GenerationInfo.encode">(transactron.utils.gen.GenerationInfo method)</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="transactron.utils.amaranth_ext.html#transactron.utils.amaranth_ext.coding.Encoder">Encoder (class in transactron.utils.amaranth_ext.coding)</a>
 </li>
       <li><a href="transactron.lib.html#transactron.lib.allocators.CircularAllocator.end_idx">end_idx (transactron.lib.allocators.CircularAllocator attribute)</a>
 </li>
       <li><a href="transactron.utils.html#transactron.utils.logging.HardwareLogger.error">error() (transactron.utils.logging.HardwareLogger method)</a>
+</li>
+      <li><a href="transactron.evlog.html#transactron.evlog.event.Event">Event (class in transactron.evlog.event)</a>
+</li>
+      <li><a href="transactron.evlog.html#transactron.evlog.log.DecodedEvent.event">event (transactron.evlog.log.DecodedEvent attribute)</a>
+</li>
+      <li><a href="transactron.evlog.html#transactron.evlog.event.event">event() (in module transactron.evlog.event)</a>
+</li>
+      <li><a href="transactron.evlog.html#transactron.evlog.event.Event.event_name">event_name (transactron.evlog.event.Event attribute)</a>
+
+      <ul>
+        <li><a href="transactron.evlog.html#transactron.evlog.schema.EventSiteSchema.event_name">(transactron.evlog.schema.EventSiteSchema attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="transactron.evlog.html#transactron.evlog.emit.EmittedEvent.event_type">event_type (transactron.evlog.emit.EmittedEvent attribute)</a>
+</li>
+      <li><a href="transactron.evlog.html#transactron.evlog.consumer.EventConsumer">EventConsumer (class in transactron.evlog.consumer)</a>
+</li>
+      <li><a href="transactron.evlog.html#transactron.evlog.log.EventDecoder">EventDecoder (class in transactron.evlog.log)</a>
+</li>
+      <li><a href="transactron.evlog.html#transactron.evlog.schema.EventFieldSchema">EventFieldSchema (class in transactron.evlog.schema)</a>
+</li>
+      <li><a href="transactron.evlog.html#transactron.evlog.log.EventLog">EventLog (class in transactron.evlog.log)</a>
+</li>
+      <li><a href="transactron.evlog.html#transactron.evlog.log.EventLogReader">EventLogReader (class in transactron.evlog.log)</a>
+</li>
+      <li><a href="transactron.evlog.html#transactron.evlog.log.EventLogWriter">EventLogWriter (class in transactron.evlog.log)</a>
+</li>
+      <li><a href="transactron.evlog.html#transactron.evlog.schema.EventSiteLocation">EventSiteLocation (class in transactron.evlog.schema)</a>
+</li>
+      <li><a href="transactron.evlog.html#transactron.evlog.schema.EventSiteSchema">EventSiteSchema (class in transactron.evlog.schema)</a>
+</li>
+      <li><a href="transactron.evlog.html#transactron.evlog.emit.EventSource">EventSource (class in transactron.evlog.emit)</a>
+</li>
+      <li><a href="transactron.utils.html#transactron.utils.gen.GenerationInfo.evlog">evlog (transactron.utils.gen.GenerationInfo attribute)</a>
+</li>
+      <li><a href="transactron.evlog.html#transactron.evlog.emit.evlog_enabled">evlog_enabled() (in module transactron.evlog.emit)</a>
+</li>
+      <li><a href="transactron.evlog.html#transactron.evlog.emit.EvLogEnabledKey">EvLogEnabledKey (class in transactron.evlog.emit)</a>
+</li>
+      <li><a href="transactron.evlog.html#transactron.evlog.emit.EvLogKey">EvLogKey (class in transactron.evlog.emit)</a>
+</li>
+      <li><a href="transactron.evlog.html#transactron.evlog.schema.EvLogSchema">EvLogSchema (class in transactron.evlog.schema)</a>
 </li>
       <li><a href="transactron.utils.html#transactron.utils.transactron_helpers.extend_layout">extend_layout() (in module transactron.utils.transactron_helpers)</a>
 </li>
@@ -855,8 +960,16 @@
 <h2 id="F">F</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="transactron.utils.html#transactron.utils.logging.LogRecord.fields">fields (transactron.utils.logging.LogRecord attribute)</a>
+      <li><a href="transactron.evlog.html#transactron.evlog.emit.EmittedEvent.fields">fields (transactron.evlog.emit.EmittedEvent attribute)</a>
+
+      <ul>
+        <li><a href="transactron.evlog.html#transactron.evlog.schema.EventSiteLocation.fields">(transactron.evlog.schema.EventSiteLocation attribute)</a>
 </li>
+        <li><a href="transactron.evlog.html#transactron.evlog.schema.EventSiteSchema.fields">(transactron.evlog.schema.EventSiteSchema attribute)</a>
+</li>
+        <li><a href="transactron.utils.html#transactron.utils.logging.LogRecord.fields">(transactron.utils.logging.LogRecord attribute)</a>
+</li>
+      </ul></li>
       <li><a href="transactron.utils.html#transactron.utils.gen.GeneratedLog.fields_location">fields_location (transactron.utils.gen.GeneratedLog attribute)</a>
 </li>
       <li><a href="transactron.lib.html#transactron.lib.connectors.FIFO">FIFO (class in transactron.lib.connectors)</a>
@@ -885,7 +998,13 @@
 </li>
       <li><a href="transactron.utils.html#transactron.utils.logging.LogRecordInfo.format">format() (transactron.utils.logging.LogRecordInfo method)</a>
 </li>
+      <li><a href="transactron.cmd.html#transactron.cmd.evlog.format_event">format_event() (in module transactron.cmd.evlog)</a>
+</li>
+      <li><a href="transactron.cmd.html#transactron.cmd.evlog.format_static">format_static() (in module transactron.cmd.evlog)</a>
+</li>
       <li><a href="transactron.utils.html#transactron.utils.logging.LogRecordInfo.format_str">format_str (transactron.utils.logging.LogRecordInfo attribute)</a>
+</li>
+      <li><a href="transactron.cmd.html#transactron.cmd.evlog.format_value">format_value() (in module transactron.cmd.evlog)</a>
 </li>
       <li><a href="transactron.lib.html#transactron.lib.connectors.Forwarder">Forwarder (class in transactron.lib.connectors)</a>
 </li>
@@ -897,13 +1016,21 @@
         <li><a href="transactron.lib.html#transactron.lib.allocators.PriorityEncoderAllocator.free">(transactron.lib.allocators.PriorityEncoderAllocator attribute)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="transactron.lib.html#transactron.lib.allocators.PreservedOrderAllocator.free_idx">free_idx (transactron.lib.allocators.PreservedOrderAllocator attribute)</a>
 </li>
-      <li><a href="transactron.lib.html#transactron.lib.metrics.MetricModel.from_dict">from_dict() (transactron.lib.metrics.MetricModel class method)</a>
+      <li><a href="transactron.evlog.html#transactron.evlog.schema.EventFieldSchema.from_dict">from_dict() (transactron.evlog.schema.EventFieldSchema class method)</a>
 
       <ul>
+        <li><a href="transactron.evlog.html#transactron.evlog.schema.EventSiteLocation.from_dict">(transactron.evlog.schema.EventSiteLocation class method)</a>
+</li>
+        <li><a href="transactron.evlog.html#transactron.evlog.schema.EventSiteSchema.from_dict">(transactron.evlog.schema.EventSiteSchema class method)</a>
+</li>
+        <li><a href="transactron.evlog.html#transactron.evlog.schema.EvLogSchema.from_dict">(transactron.evlog.schema.EvLogSchema class method)</a>
+</li>
+        <li><a href="transactron.evlog.html#transactron.evlog.schema.GeneratedEvLog.from_dict">(transactron.evlog.schema.GeneratedEvLog class method)</a>
+</li>
+        <li><a href="transactron.lib.html#transactron.lib.metrics.MetricModel.from_dict">(transactron.lib.metrics.MetricModel class method)</a>
+</li>
         <li><a href="transactron.lib.html#transactron.lib.metrics.MetricRegisterModel.from_dict">(transactron.lib.metrics.MetricRegisterModel class method)</a>
 </li>
         <li><a href="transactron.html#transactron.profiler.Profile.from_dict">(transactron.profiler.Profile class method)</a>
@@ -919,9 +1046,21 @@
         <li><a href="transactron.utils.html#transactron.utils.logging.LogRecordInfo.from_dict">(transactron.utils.logging.LogRecordInfo class method)</a>
 </li>
       </ul></li>
-      <li><a href="transactron.lib.html#transactron.lib.metrics.MetricModel.from_json">from_json() (transactron.lib.metrics.MetricModel class method)</a>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="transactron.evlog.html#transactron.evlog.schema.EventFieldSchema.from_json">from_json() (transactron.evlog.schema.EventFieldSchema class method)</a>
 
       <ul>
+        <li><a href="transactron.evlog.html#transactron.evlog.schema.EventSiteLocation.from_json">(transactron.evlog.schema.EventSiteLocation class method)</a>
+</li>
+        <li><a href="transactron.evlog.html#transactron.evlog.schema.EventSiteSchema.from_json">(transactron.evlog.schema.EventSiteSchema class method)</a>
+</li>
+        <li><a href="transactron.evlog.html#transactron.evlog.schema.EvLogSchema.from_json">(transactron.evlog.schema.EvLogSchema class method)</a>
+</li>
+        <li><a href="transactron.evlog.html#transactron.evlog.schema.GeneratedEvLog.from_json">(transactron.evlog.schema.GeneratedEvLog class method)</a>
+</li>
+        <li><a href="transactron.lib.html#transactron.lib.metrics.MetricModel.from_json">(transactron.lib.metrics.MetricModel class method)</a>
+</li>
         <li><a href="transactron.lib.html#transactron.lib.metrics.MetricRegisterModel.from_json">(transactron.lib.metrics.MetricRegisterModel class method)</a>
 </li>
         <li><a href="transactron.html#transactron.profiler.Profile.from_json">(transactron.profiler.Profile class method)</a>
@@ -938,6 +1077,8 @@
 </li>
       </ul></li>
       <li><a href="transactron.utils.html#transactron.utils.transactron_helpers.from_method_layout">from_method_layout() (in module transactron.utils.transactron_helpers)</a>
+</li>
+      <li><a href="transactron.evlog.html#transactron.evlog.event.Event.from_raw">from_raw() (transactron.evlog.event.Event class method)</a>
 </li>
       <li><a href="transactron.core.html#transactron.core.tmodule.TModule.FSM">FSM() (transactron.core.tmodule.TModule method)</a>
 </li>
@@ -960,6 +1101,10 @@
       <li><a href="transactron.testing.html#transactron.testing.input_generation.generate_shrinkable_list">generate_shrinkable_list() (in module transactron.testing.input_generation)</a>
 </li>
       <li><a href="transactron.utils.html#transactron.utils.gen.generate_verilog">generate_verilog() (in module transactron.utils.gen)</a>
+</li>
+      <li><a href="transactron.evlog.html#transactron.evlog.schema.GeneratedEvLog">GeneratedEvLog (class in transactron.evlog.schema)</a>
+</li>
+      <li><a href="transactron.evlog.html#transactron.evlog.sampler.GeneratedEvLogSampler">GeneratedEvLogSampler (class in transactron.evlog.sampler)</a>
 </li>
       <li><a href="transactron.utils.html#transactron.utils.gen.GeneratedLog">GeneratedLog (class in transactron.utils.gen)</a>
 </li>
@@ -1017,6 +1162,10 @@
         <li><a href="transactron.testing.html#transactron.testing.testbenchio.TestbenchIO.get_done">(transactron.testing.testbenchio.TestbenchIO method)</a>
 </li>
       </ul></li>
+      <li><a href="transactron.evlog.html#transactron.evlog.emit.get_emitted_events">get_emitted_events() (in module transactron.evlog.emit)</a>
+</li>
+      <li><a href="transactron.evlog.html#transactron.evlog.event.get_event_class">get_event_class() (in module transactron.evlog.event)</a>
+</li>
       <li><a href="transactron.html#transactron.graph.OwnershipGraph.get_hier_name">get_hier_name() (transactron.graph.OwnershipGraph method)</a>
 </li>
       <li><a href="transactron.lib.html#transactron.lib.pipeline.PipelineBuilder.get_live_signals">get_live_signals() (transactron.lib.pipeline.PipelineBuilder method)</a>
@@ -1055,6 +1204,10 @@
 <h2 id="H">H</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="transactron.evlog.html#transactron.evlog.sampler.HandleResolver">HandleResolver (in module transactron.evlog.sampler)</a>
+</li>
+      <li><a href="transactron.evlog.html#transactron.evlog.consumer.handles">handles() (in module transactron.evlog.consumer)</a>
+</li>
       <li><a href="transactron.utils.html#transactron.utils.logging.HardwareLogger">HardwareLogger (class in transactron.utils.logging)</a>
 </li>
       <li><a href="transactron.lib.html#transactron.lib.metrics.HardwareMetricsManager">HardwareMetricsManager (class in transactron.lib.metrics)</a>
@@ -1066,6 +1219,8 @@
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="transactron.testing.html#transactron.testing.logging.HDLLogWrapperComponent">HDLLogWrapperComponent (class in transactron.testing.logging)</a>
+</li>
+      <li><a href="transactron.evlog.html#transactron.evlog.event.Event.hw">hw() (transactron.evlog.event.Event class method)</a>
 </li>
       <li><a href="transactron.lib.html#transactron.lib.metrics.HwCounter">HwCounter (class in transactron.lib.metrics)</a>
 </li>
@@ -1155,12 +1310,20 @@
         <li><a href="transactron.utils.html#transactron.utils.dependencies.ListKey">(class in transactron.utils.dependencies)</a>
 </li>
       </ul></li>
+      <li><a href="transactron.evlog.html#transactron.evlog.log.EventLog.load">load() (transactron.evlog.log.EventLog static method)</a>
+</li>
       <li><a href="transactron.utils.html#transactron.utils.transactron_helpers.local_src_loc">local_src_loc() (in module transactron.utils.transactron_helpers)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="transactron.utils.html#transactron.utils.logging.LogRecordInfo.location">location (transactron.utils.logging.LogRecordInfo attribute)</a>
+      <li><a href="transactron.evlog.html#transactron.evlog.emit.EmittedEvent.location">location (transactron.evlog.emit.EmittedEvent attribute)</a>
+
+      <ul>
+        <li><a href="transactron.evlog.html#transactron.evlog.schema.EventSiteSchema.location">(transactron.evlog.schema.EventSiteSchema attribute)</a>
 </li>
+        <li><a href="transactron.utils.html#transactron.utils.logging.LogRecordInfo.location">(transactron.utils.logging.LogRecordInfo attribute)</a>
+</li>
+      </ul></li>
       <li><a href="transactron.lib.html#transactron.lib.dependencies.DependencyKey.lock_on_get">lock_on_get (transactron.lib.dependencies.DependencyKey attribute)</a>
 
       <ul>
@@ -1191,8 +1354,12 @@
 <h2 id="M">M</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="transactron.cmd.html#transactron.cmd.tprof.main">main() (in module transactron.cmd.tprof)</a>
+      <li><a href="transactron.cmd.html#transactron.cmd.evlog.main">main() (in module transactron.cmd.evlog)</a>
+
+      <ul>
+        <li><a href="transactron.cmd.html#transactron.cmd.tprof.main">(in module transactron.cmd.tprof)</a>
 </li>
+      </ul></li>
       <li><a href="transactron.html#transactron.profiler.ProfileData.make">make() (transactron.profiler.ProfileData static method)</a>
 
       <ul>
@@ -1214,6 +1381,8 @@
       <li><a href="transactron.lib.html#transactron.lib.storage.MemoryBank">MemoryBank (class in transactron.lib.storage)</a>
 </li>
       <li><a href="transactron.html#transactron.graph.OwnershipGraph.mermaid_direction">mermaid_direction (transactron.graph.OwnershipGraph attribute)</a>
+</li>
+      <li><a href="transactron.evlog.html#transactron.evlog.schema.EvLogSchema.metadata">metadata (transactron.evlog.schema.EvLogSchema attribute)</a>
 </li>
       <li><a href="transactron.core.html#transactron.core.method.Method">Method (class in transactron.core.method)</a>
 </li>
@@ -1283,6 +1452,8 @@
 </li>
         <li><a href="transactron.cmd.html#module-transactron.cmd">transactron.cmd</a>
 </li>
+        <li><a href="transactron.cmd.html#module-transactron.cmd.evlog">transactron.cmd.evlog</a>
+</li>
         <li><a href="transactron.cmd.html#module-transactron.cmd.tprof">transactron.cmd.tprof</a>
 </li>
         <li><a href="transactron.core.html#module-transactron.core">transactron.core</a>
@@ -1306,6 +1477,20 @@
         <li><a href="transactron.core.html#module-transactron.core.transaction">transactron.core.transaction</a>
 </li>
         <li><a href="transactron.core.html#module-transactron.core.transaction_base">transactron.core.transaction_base</a>
+</li>
+        <li><a href="transactron.evlog.html#module-transactron.evlog">transactron.evlog</a>
+</li>
+        <li><a href="transactron.evlog.html#module-transactron.evlog.consumer">transactron.evlog.consumer</a>
+</li>
+        <li><a href="transactron.evlog.html#module-transactron.evlog.emit">transactron.evlog.emit</a>
+</li>
+        <li><a href="transactron.evlog.html#module-transactron.evlog.event">transactron.evlog.event</a>
+</li>
+        <li><a href="transactron.evlog.html#module-transactron.evlog.log">transactron.evlog.log</a>
+</li>
+        <li><a href="transactron.evlog.html#module-transactron.evlog.sampler">transactron.evlog.sampler</a>
+</li>
+        <li><a href="transactron.evlog.html#module-transactron.evlog.schema">transactron.evlog.schema</a>
 </li>
         <li><a href="transactron.html#module-transactron.graph">transactron.graph</a>
 </li>
@@ -1342,6 +1527,8 @@
         <li><a href="transactron.html#module-transactron.profiler">transactron.profiler</a>
 </li>
         <li><a href="transactron.testing.html#module-transactron.testing">transactron.testing</a>
+</li>
+        <li><a href="transactron.testing.html#module-transactron.testing.evlog">transactron.testing.evlog</a>
 </li>
         <li><a href="transactron.testing.html#module-transactron.testing.functions">transactron.testing.functions</a>
 </li>
@@ -1428,9 +1615,11 @@
 <h2 id="N">N</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="transactron.html#transactron.graph.Owned.name">name (transactron.graph.Owned attribute)</a>
+      <li><a href="transactron.evlog.html#transactron.evlog.schema.EventFieldSchema.name">name (transactron.evlog.schema.EventFieldSchema attribute)</a>
 
       <ul>
+        <li><a href="transactron.html#transactron.graph.Owned.name">(transactron.graph.Owned attribute)</a>
+</li>
         <li><a href="transactron.lib.html#transactron.lib.metrics.MetricRegisterModel.name">(transactron.lib.metrics.MetricRegisterModel attribute)</a>
 </li>
         <li><a href="transactron.html#transactron.profiler.ProfileInfo.name">(transactron.profiler.ProfileInfo attribute)</a>
@@ -1465,6 +1654,8 @@
       <li><a href="transactron.lib.html#transactron.lib.stream.StreamSource.o">o (transactron.lib.stream.StreamSource attribute)</a>
 </li>
       <li><a href="transactron.html#transactron.tracing.TracingFragmentTransformer.on_fragment">on_fragment() (transactron.tracing.TracingFragmentTransformer method)</a>
+</li>
+      <li><a href="transactron.evlog.html#transactron.evlog.consumer.EventConsumer.on_unhandled">on_unhandled() (transactron.evlog.consumer.EventConsumer method)</a>
 </li>
       <li><a href="transactron.utils.amaranth_ext.html#transactron.utils.amaranth_ext.functions.one_hot_mux">one_hot_mux() (in module transactron.utils.amaranth_ext.functions)</a>
 </li>
@@ -1516,6 +1707,8 @@
 <h2 id="P">P</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="transactron.cmd.html#transactron.cmd.evlog.parse_cycle_range">parse_cycle_range() (in module transactron.cmd.evlog)</a>
+</li>
       <li><a href="transactron.testing.html#transactron.testing.logging.parse_logging_level">parse_logging_level() (in module transactron.testing.logging)</a>
 </li>
       <li><a href="transactron.lib.html#transactron.lib.allocators.PriorityEncoderAllocator.peek">peek (transactron.lib.allocators.PriorityEncoderAllocator attribute)</a>
@@ -1544,16 +1737,20 @@
 </li>
       <li><a href="transactron.lib.html#transactron.lib.allocators.PreservedOrderAllocator">PreservedOrderAllocator (class in transactron.lib.allocators)</a>
 </li>
+      <li><a href="transactron.cmd.html#transactron.cmd.evlog.print_events">print_events() (in module transactron.cmd.evlog)</a>
+</li>
       <li><a href="transactron.core.html#transactron.core.manager.TransactionManager.print_info">print_info() (transactron.core.manager.TransactionManager method)</a>
+</li>
+      <li><a href="transactron.cmd.html#transactron.cmd.evlog.print_schema">print_schema() (in module transactron.cmd.evlog)</a>
 </li>
       <li><a href="transactron.core.html#transactron.core.transaction_base.Priority">Priority (class in transactron.core.transaction_base)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="transactron.utils.amaranth_ext.html#transactron.utils.amaranth_ext.coding.PriorityDecoder">PriorityDecoder (class in transactron.utils.amaranth_ext.coding)</a>
 </li>
       <li><a href="transactron.utils.amaranth_ext.html#transactron.utils.amaranth_ext.coding.PriorityEncoder">PriorityEncoder (class in transactron.utils.amaranth_ext.coding)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="transactron.lib.html#transactron.lib.allocators.PriorityEncoderAllocator">PriorityEncoderAllocator (class in transactron.lib.allocators)</a>
 </li>
       <li><a href="transactron.cmd.html#transactron.cmd.tprof.process_stat_tree">process_stat_tree() (in module transactron.cmd.tprof)</a>
@@ -1614,6 +1811,10 @@
         <li><a href="transactron.testing.html#transactron.testing.TestCaseWithSimulatorBase.random_wait_geom">(transactron.testing.TestCaseWithSimulatorBase static method)</a>
 </li>
       </ul></li>
+      <li><a href="transactron.evlog.html#transactron.evlog.log.RawEvent">RawEvent (in module transactron.evlog.log)</a>
+</li>
+      <li><a href="transactron.evlog.html#transactron.evlog.log.RawEventSink">RawEventSink (class in transactron.evlog.log)</a>
+</li>
       <li><a href="transactron.lib.html#transactron.lib.connectors.Connector.read">read (transactron.lib.connectors.Connector attribute)</a>
 
       <ul>
@@ -1642,10 +1843,10 @@
 </li>
       <li><a href="transactron.lib.html#transactron.lib.allocators.PriorityEncoderAllocator.replace">replace (transactron.lib.allocators.PriorityEncoderAllocator attribute)</a>
 </li>
-      <li><a href="transactron.core.html#transactron.core.method.MethodDir.REQUIRED">REQUIRED (transactron.core.method.MethodDir attribute)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="transactron.core.html#transactron.core.method.MethodDir.REQUIRED">REQUIRED (transactron.core.method.MethodDir attribute)</a>
+</li>
       <li><a href="transactron.utils.html#transactron.utils.assign.AssignType.RHS">RHS (transactron.utils.assign.AssignType attribute)</a>
 </li>
       <li><a href="transactron.core.html#transactron.core.transaction_base.Priority.RIGHT">RIGHT (transactron.core.transaction_base.Priority attribute)</a>
@@ -1672,9 +1873,11 @@
         <li><a href="transactron.html#transactron.profiler.TransactionSamples.run">(transactron.profiler.TransactionSamples attribute)</a>
 </li>
       </ul></li>
-      <li><a href="transactron.testing.html#transactron.testing.PysimSimulator.run">run() (transactron.testing.PysimSimulator method)</a>
+      <li><a href="transactron.evlog.html#transactron.evlog.consumer.EventConsumer.run">run() (transactron.evlog.consumer.EventConsumer method)</a>
 
       <ul>
+        <li><a href="transactron.testing.html#transactron.testing.PysimSimulator.run">(transactron.testing.PysimSimulator method)</a>
+</li>
         <li><a href="transactron.testing.html#transactron.testing.simulator.PysimSimulator.run">(transactron.testing.simulator.PysimSimulator method)</a>
 </li>
       </ul></li>
@@ -1696,9 +1899,11 @@
 <h2 id="S">S</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="transactron.testing.html#transactron.testing.CallTrigger.sample">sample() (transactron.testing.CallTrigger method)</a>
+      <li><a href="transactron.evlog.html#transactron.evlog.sampler.GeneratedEvLogSampler.sample">sample() (transactron.evlog.sampler.GeneratedEvLogSampler method)</a>
 
       <ul>
+        <li><a href="transactron.testing.html#transactron.testing.CallTrigger.sample">(transactron.testing.CallTrigger method)</a>
+</li>
         <li><a href="transactron.testing.html#transactron.testing.testbenchio.CallTrigger.sample">(transactron.testing.testbenchio.CallTrigger method)</a>
 </li>
       </ul></li>
@@ -1720,11 +1925,23 @@
         <li><a href="transactron.testing.html#transactron.testing.testbenchio.TestbenchIO.sample_outputs_until_done">(transactron.testing.testbenchio.TestbenchIO method)</a>
 </li>
       </ul></li>
+      <li><a href="transactron.evlog.html#transactron.evlog.log.EventLog.save">save() (transactron.evlog.log.EventLog method)</a>
+</li>
       <li><a href="transactron.core.html#transactron.core.transaction_base.TransactionBase.schedule_before">schedule_before() (transactron.core.transaction_base.TransactionBase method)</a>
 </li>
-      <li><a href="transactron.lib.html#transactron.lib.metrics.MetricModel.schema">schema() (transactron.lib.metrics.MetricModel class method)</a>
+      <li><a href="transactron.evlog.html#transactron.evlog.schema.EventFieldSchema.schema">schema() (transactron.evlog.schema.EventFieldSchema class method)</a>
 
       <ul>
+        <li><a href="transactron.evlog.html#transactron.evlog.schema.EventSiteLocation.schema">(transactron.evlog.schema.EventSiteLocation class method)</a>
+</li>
+        <li><a href="transactron.evlog.html#transactron.evlog.schema.EventSiteSchema.schema">(transactron.evlog.schema.EventSiteSchema class method)</a>
+</li>
+        <li><a href="transactron.evlog.html#transactron.evlog.schema.EvLogSchema.schema">(transactron.evlog.schema.EvLogSchema class method)</a>
+</li>
+        <li><a href="transactron.evlog.html#transactron.evlog.schema.GeneratedEvLog.schema">(transactron.evlog.schema.GeneratedEvLog class method)</a>
+</li>
+        <li><a href="transactron.lib.html#transactron.lib.metrics.MetricModel.schema">(transactron.lib.metrics.MetricModel class method)</a>
+</li>
         <li><a href="transactron.lib.html#transactron.lib.metrics.MetricRegisterModel.schema">(transactron.lib.metrics.MetricRegisterModel class method)</a>
 </li>
         <li><a href="transactron.html#transactron.profiler.Profile.schema">(transactron.profiler.Profile class method)</a>
@@ -1740,6 +1957,8 @@
         <li><a href="transactron.utils.html#transactron.utils.logging.LogRecordInfo.schema">(transactron.utils.logging.LogRecordInfo class method)</a>
 </li>
       </ul></li>
+      <li><a href="transactron.evlog.html#transactron.evlog.schema.schema_from_records">schema_from_records() (in module transactron.evlog.schema)</a>
+</li>
       <li><a href="transactron.utils.amaranth_ext.html#transactron.utils.amaranth_ext.elaboratables.OneHotMux.select">select (transactron.utils.amaranth_ext.elaboratables.OneHotMux attribute)</a>
 </li>
       <li><a href="transactron.lib.html#transactron.lib.fifo.Semaphore">Semaphore (class in transactron.lib.fifo)</a>
@@ -1778,6 +1997,10 @@
 </li>
       <li><a href="transactron.utils.amaranth_ext.html#transactron.utils.amaranth_ext.shifter.shift_vec_right">shift_vec_right() (in module transactron.utils.amaranth_ext.shifter)</a>
 </li>
+      <li><a href="transactron.evlog.html#transactron.evlog.schema.SignalHandle">SignalHandle (in module transactron.evlog.schema)</a>
+</li>
+      <li><a href="transactron.evlog.html#transactron.evlog.sampler.SignalReader">SignalReader (in module transactron.evlog.sampler)</a>
+</li>
       <li><a href="transactron.utils.amaranth_ext.html#transactron.utils.amaranth_ext.component_interface.AbstractComponentInterface.signature">signature (transactron.utils.amaranth_ext.component_interface.AbstractComponentInterface property)</a>
 
       <ul>
@@ -1788,6 +2011,8 @@
       </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="transactron.evlog.html#transactron.evlog.schema.EventFieldSchema.signed">signed (transactron.evlog.schema.EventFieldSchema attribute)</a>
+</li>
       <li><a href="transactron.utils.html#transactron.utils.data_repr.signed_to_int">signed_to_int() (in module transactron.utils.data_repr)</a>
 </li>
       <li><a href="transactron.utils.html#transactron.utils.transactron_helpers.silence_mustuse">silence_mustuse() (in module transactron.utils.transactron_helpers)</a>
@@ -1818,8 +2043,24 @@
         <li><a href="transactron.core.html#transactron.core.body.BodyParams.single_caller">(transactron.core.body.BodyParams attribute)</a>
 </li>
       </ul></li>
+      <li><a href="transactron.evlog.html#transactron.evlog.log.DecodedEvent.site">site (transactron.evlog.log.DecodedEvent attribute)</a>
+</li>
+      <li><a href="transactron.cmd.html#transactron.cmd.evlog.site_field_types">site_field_types() (in module transactron.cmd.evlog)</a>
+</li>
+      <li><a href="transactron.evlog.html#transactron.evlog.schema.GeneratedEvLog.site_locations">site_locations (transactron.evlog.schema.GeneratedEvLog attribute)</a>
+</li>
+      <li><a href="transactron.evlog.html#transactron.evlog.schema.EvLogSchema.sites">sites (transactron.evlog.schema.EvLogSchema attribute)</a>
+</li>
       <li><a href="transactron.cmd.html#transactron.cmd.tprof.sort_node">sort_node() (in module transactron.cmd.tprof)</a>
 </li>
+      <li><a href="transactron.evlog.html#transactron.evlog.emit.EmittedEvent.source_name">source_name (transactron.evlog.emit.EmittedEvent attribute)</a>
+
+      <ul>
+        <li><a href="transactron.evlog.html#transactron.evlog.log.DecodedEvent.source_name">(transactron.evlog.log.DecodedEvent property)</a>
+</li>
+        <li><a href="transactron.evlog.html#transactron.evlog.schema.EventSiteSchema.source_name">(transactron.evlog.schema.EventSiteSchema attribute)</a>
+</li>
+      </ul></li>
       <li><a href="transactron.core.html#transactron.core.transaction_base.TransactionBase.src_loc">src_loc (transactron.core.transaction_base.TransactionBase attribute)</a>
 
       <ul>
@@ -1854,6 +2095,12 @@
 </li>
       <li><a href="transactron.core.html#transactron.core.tmodule.TModule.State">State() (transactron.core.tmodule.TModule method)</a>
 </li>
+      <li><a href="transactron.evlog.html#transactron.evlog.emit.EmittedEvent.statics">statics (transactron.evlog.emit.EmittedEvent attribute)</a>
+
+      <ul>
+        <li><a href="transactron.evlog.html#transactron.evlog.schema.EventSiteSchema.statics">(transactron.evlog.schema.EventSiteSchema attribute)</a>
+</li>
+      </ul></li>
       <li><a href="transactron.lib.html#transactron.lib.metrics.FIFOLatencyMeasurer.stop">stop (transactron.lib.metrics.FIFOLatencyMeasurer attribute)</a>
 
       <ul>
@@ -1914,9 +2161,19 @@
 </li>
       <li><a href="transactron.core.html#transactron.core.tmodule.TModule">TModule (class in transactron.core.tmodule)</a>
 </li>
-      <li><a href="transactron.lib.html#transactron.lib.metrics.MetricModel.to_dict">to_dict() (transactron.lib.metrics.MetricModel method)</a>
+      <li><a href="transactron.evlog.html#transactron.evlog.schema.EventFieldSchema.to_dict">to_dict() (transactron.evlog.schema.EventFieldSchema method)</a>
 
       <ul>
+        <li><a href="transactron.evlog.html#transactron.evlog.schema.EventSiteLocation.to_dict">(transactron.evlog.schema.EventSiteLocation method)</a>
+</li>
+        <li><a href="transactron.evlog.html#transactron.evlog.schema.EventSiteSchema.to_dict">(transactron.evlog.schema.EventSiteSchema method)</a>
+</li>
+        <li><a href="transactron.evlog.html#transactron.evlog.schema.EvLogSchema.to_dict">(transactron.evlog.schema.EvLogSchema method)</a>
+</li>
+        <li><a href="transactron.evlog.html#transactron.evlog.schema.GeneratedEvLog.to_dict">(transactron.evlog.schema.GeneratedEvLog method)</a>
+</li>
+        <li><a href="transactron.lib.html#transactron.lib.metrics.MetricModel.to_dict">(transactron.lib.metrics.MetricModel method)</a>
+</li>
         <li><a href="transactron.lib.html#transactron.lib.metrics.MetricRegisterModel.to_dict">(transactron.lib.metrics.MetricRegisterModel method)</a>
 </li>
         <li><a href="transactron.html#transactron.profiler.Profile.to_dict">(transactron.profiler.Profile method)</a>
@@ -1932,9 +2189,19 @@
         <li><a href="transactron.utils.html#transactron.utils.logging.LogRecordInfo.to_dict">(transactron.utils.logging.LogRecordInfo method)</a>
 </li>
       </ul></li>
-      <li><a href="transactron.lib.html#transactron.lib.metrics.MetricModel.to_json">to_json() (transactron.lib.metrics.MetricModel method)</a>
+      <li><a href="transactron.evlog.html#transactron.evlog.schema.EventFieldSchema.to_json">to_json() (transactron.evlog.schema.EventFieldSchema method)</a>
 
       <ul>
+        <li><a href="transactron.evlog.html#transactron.evlog.schema.EventSiteLocation.to_json">(transactron.evlog.schema.EventSiteLocation method)</a>
+</li>
+        <li><a href="transactron.evlog.html#transactron.evlog.schema.EventSiteSchema.to_json">(transactron.evlog.schema.EventSiteSchema method)</a>
+</li>
+        <li><a href="transactron.evlog.html#transactron.evlog.schema.EvLogSchema.to_json">(transactron.evlog.schema.EvLogSchema method)</a>
+</li>
+        <li><a href="transactron.evlog.html#transactron.evlog.schema.GeneratedEvLog.to_json">(transactron.evlog.schema.GeneratedEvLog method)</a>
+</li>
+        <li><a href="transactron.lib.html#transactron.lib.metrics.MetricModel.to_json">(transactron.lib.metrics.MetricModel method)</a>
+</li>
         <li><a href="transactron.lib.html#transactron.lib.metrics.MetricRegisterModel.to_json">(transactron.lib.metrics.MetricRegisterModel method)</a>
 </li>
         <li><a href="transactron.html#transactron.profiler.Profile.to_json">(transactron.profiler.Profile method)</a>
@@ -1957,6 +2224,8 @@
 </li>
       </ul></li>
       <li><a href="transactron.utils.html#transactron.utils.logging.HardwareLogger.top_debug">top_debug() (transactron.utils.logging.HardwareLogger method)</a>
+</li>
+      <li><a href="transactron.evlog.html#transactron.evlog.emit.EventSource.top_emit">top_emit() (transactron.evlog.emit.EventSource method)</a>
 </li>
       <li><a href="transactron.utils.html#transactron.utils.logging.HardwareLogger.top_error">top_error() (transactron.utils.logging.HardwareLogger method)</a>
 </li>
@@ -2012,6 +2281,13 @@
 
       <ul>
         <li><a href="transactron.cmd.html#module-transactron.cmd">module</a>
+</li>
+      </ul></li>
+      <li>
+    transactron.cmd.evlog
+
+      <ul>
+        <li><a href="transactron.cmd.html#module-transactron.cmd.evlog">module</a>
 </li>
       </ul></li>
       <li>
@@ -2099,6 +2375,57 @@
 </li>
       </ul></li>
       <li>
+    transactron.evlog
+
+      <ul>
+        <li><a href="transactron.evlog.html#module-transactron.evlog">module</a>
+</li>
+      </ul></li>
+      <li>
+    transactron.evlog.consumer
+
+      <ul>
+        <li><a href="transactron.evlog.html#module-transactron.evlog.consumer">module</a>
+</li>
+      </ul></li>
+      <li>
+    transactron.evlog.emit
+
+      <ul>
+        <li><a href="transactron.evlog.html#module-transactron.evlog.emit">module</a>
+</li>
+      </ul></li>
+      <li>
+    transactron.evlog.event
+
+      <ul>
+        <li><a href="transactron.evlog.html#module-transactron.evlog.event">module</a>
+</li>
+      </ul></li>
+      <li>
+    transactron.evlog.log
+
+      <ul>
+        <li><a href="transactron.evlog.html#module-transactron.evlog.log">module</a>
+</li>
+      </ul></li>
+      <li>
+    transactron.evlog.sampler
+
+      <ul>
+        <li><a href="transactron.evlog.html#module-transactron.evlog.sampler">module</a>
+</li>
+      </ul></li>
+      <li>
+    transactron.evlog.schema
+
+      <ul>
+        <li><a href="transactron.evlog.html#module-transactron.evlog.schema">module</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li>
     transactron.graph
 
       <ul>
@@ -2140,8 +2467,6 @@
         <li><a href="transactron.lib.html#module-transactron.lib.connectors">module</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     transactron.lib.dependencies
 
@@ -2224,6 +2549,13 @@
 
       <ul>
         <li><a href="transactron.testing.html#module-transactron.testing">module</a>
+</li>
+      </ul></li>
+      <li>
+    transactron.testing.evlog
+
+      <ul>
+        <li><a href="transactron.testing.html#module-transactron.testing.evlog">module</a>
 </li>
       </ul></li>
       <li>
@@ -2449,9 +2781,17 @@
 </li>
       <li><a href="transactron.lib.html#transactron.lib.transformers.Transformer">Transformer (class in transactron.lib.transformers)</a>
 </li>
-      <li><a href="transactron.utils.html#transactron.utils.logging.LogRecord.trigger">trigger (transactron.utils.logging.LogRecord attribute)</a>
+      <li><a href="transactron.evlog.html#transactron.evlog.emit.EmittedEvent.trigger">trigger (transactron.evlog.emit.EmittedEvent attribute)</a>
+
+      <ul>
+        <li><a href="transactron.evlog.html#transactron.evlog.schema.EventSiteLocation.trigger">(transactron.evlog.schema.EventSiteLocation attribute)</a>
 </li>
+        <li><a href="transactron.utils.html#transactron.utils.logging.LogRecord.trigger">(transactron.utils.logging.LogRecord attribute)</a>
+</li>
+      </ul></li>
       <li><a href="transactron.utils.html#transactron.utils.gen.GeneratedLog.trigger_location">trigger_location (transactron.utils.gen.GeneratedLog attribute)</a>
+</li>
+      <li><a href="transactron.evlog.html#transactron.evlog.schema.GeneratedEvLog.triggers_location">triggers_location (transactron.evlog.schema.GeneratedEvLog attribute)</a>
 </li>
       <li><a href="transactron.core.html#transactron.core.schedulers.trivial_roundrobin_cc_scheduler">trivial_roundrobin_cc_scheduler() (in module transactron.core.schedulers)</a>
 </li>
@@ -2519,8 +2859,12 @@
 </li>
       <li><a href="transactron.lib.html#transactron.lib.metrics.WideFIFOLatencyMeasurer">WideFIFOLatencyMeasurer (class in transactron.lib.metrics)</a>
 </li>
-      <li><a href="transactron.lib.html#transactron.lib.metrics.MetricRegisterModel.width">width (transactron.lib.metrics.MetricRegisterModel attribute)</a>
+      <li><a href="transactron.evlog.html#transactron.evlog.schema.EventFieldSchema.width">width (transactron.evlog.schema.EventFieldSchema attribute)</a>
+
+      <ul>
+        <li><a href="transactron.lib.html#transactron.lib.metrics.MetricRegisterModel.width">(transactron.lib.metrics.MetricRegisterModel attribute)</a>
 </li>
+      </ul></li>
       <li><a href="transactron.lib.html#transactron.lib.metrics.HwMetric.wrap_method">wrap_method() (transactron.lib.metrics.HwMetric static method)</a>
 </li>
       <li><a href="transactron.testing.html#transactron.testing.test_case.TestCaseWithSimulatorBase.wrap_testing_env">wrap_testing_env() (transactron.testing.test_case.TestCaseWithSimulatorBase static method)</a>
@@ -2568,7 +2912,7 @@
 
   <div role="contentinfo">
     <p>&#169; Copyright Kuźnia Rdzeni, 2026.
-      <span class="lastupdated">Last updated on 14:33 2026-07-02.
+      <span class="lastupdated">Last updated on 09:54 2026-07-06.
       </span></p>
   </div>
 
