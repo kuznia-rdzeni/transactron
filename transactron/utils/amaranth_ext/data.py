@@ -5,7 +5,7 @@ from amaranth.lib import data
 from amaranth_types import ShapeLike
 
 
-__all__ = ["layout_keys", "transpose_layout_with_keys", "transpose_layout", "transpose"]
+__all__ = ["layout_keys", "transpose_layout", "transpose_layout_with_keys", "transpose"]
 
 
 @overload
@@ -21,17 +21,79 @@ def layout_keys(layout: data.Layout) -> Sequence[str | int]: ...
 
 
 def layout_keys(layout: data.Layout) -> Sequence[str | int]:
-    if isinstance(layout, data.ArrayLayout):
-        return list(range(layout.length))
-    elif isinstance(layout, (data.StructLayout, data.UnionLayout)):
-        return list(layout.members.keys())
-    elif isinstance(layout, data.FlexibleLayout):
-        return list(layout.fields.keys())
-    else:
-        raise ValueError("Argument is not a layout")
+    """Get the field keys of a layout, in order.
+
+    Parameters
+    ----------
+    layout : data.Layout
+        The layout to get the keys of. If it is an `ArrayLayout`, the keys are
+        the field indices (`int`); if it is a `StructLayout` or `UnionLayout`,
+        the keys are the field names (`str`).
+
+    Returns
+    -------
+    Sequence[str | int]
+        The keys of `layout`, in the order in which they are defined.
+    """
+    return [k for k, _ in layout]
 
 
-def transpose_layout_with_keys(layout: data.Layout):
+def transpose_layout(layout: data.Layout) -> data.Layout:
+    """Transpose a two-level layout.
+
+    `layout` is expected to be an `ArrayLayout` or `StructLayout` whose every field
+    is itself an `ArrayLayout` or `StructLayout`, with all of the fields sharing the
+    same set of inner keys. The transposition swaps the outer and inner levels, so
+    that a value which was addressed as ``value[o_key][i_key]`` in the original
+    layout is addressed as ``transposed[i_key][o_key]`` in the resulting layout.
+
+    Parameters
+    ----------
+    layout : data.Layout
+        The layout to transpose. Must be an `ArrayLayout` or `StructLayout` whose
+        fields are all `ArrayLayout`\\s or `StructLayout`\\s sharing identical keys.
+
+    Returns
+    -------
+    data.Layout
+        The transposed layout.
+
+    Raises
+    ------
+    ValueError
+        If `layout` is not an `ArrayLayout` or `StructLayout`; if it has no fields;
+        if its fields are not all `ArrayLayout`\\s or `StructLayout`\\s; if its
+        fields have no keys; or if its fields do not all share the same keys.
+    """
+    return transpose_layout_with_keys(layout)[0]
+
+
+def transpose_layout_with_keys(layout: data.Layout) -> tuple[data.Layout, Sequence[str | int], Sequence[str | int]]:
+    """Extended version of `transpose_layout` that also returns the keys of both levels.
+
+    Behaves exactly like `transpose_layout`, but additionally returns the outer and
+    inner keys of `layout` that were used to perform the transposition, so that
+    callers can address the original fields without recomputing them.
+
+    Parameters
+    ----------
+    layout : data.Layout
+        The layout to transpose. See `transpose_layout` for the requirements it
+        must satisfy.
+
+    Returns
+    -------
+    tuple[data.Layout, Sequence[str | int], Sequence[str | int]]
+        A tuple ``(ret_layout, o_keys, i_keys)``, where `ret_layout` is the layout
+        that would be returned by `transpose_layout`, `o_keys` are the outer
+        (top-level) keys of `layout`, and `i_keys` are the inner keys shared by
+        all of its fields.
+
+    Raises
+    ------
+    ValueError
+        See `transpose_layout`.
+    """
     if not isinstance(cast(object, layout), (data.ArrayLayout, data.StructLayout)):
         raise ValueError("Argument layout is not ArrayLayout nor StructLayout")
     o_keys = layout_keys(layout)
@@ -58,11 +120,30 @@ def transpose_layout_with_keys(layout: data.Layout):
     return ret_layout, o_keys, i_keys
 
 
-def transpose_layout(layout: data.Layout) -> data.Layout:
-    return transpose_layout_with_keys(layout)[0]
-
-
 def transpose(view: data.View) -> data.View:
+    """Transpose a view over a two-level layout.
+
+    Builds a new `View`, over the layout returned by `transpose_layout`, whose
+    contents are the same as `view` but with the outer and inner levels swapped,
+    so that ``transpose(view)[i_key][o_key]`` is equal to ``view[o_key][i_key]``
+    for every valid pair of keys.
+
+    Parameters
+    ----------
+    view : data.View
+        The view to transpose. Its shape must satisfy the requirements of
+        `transpose_layout`.
+
+    Returns
+    -------
+    data.View
+        A view of the same underlying value, over the transposed layout.
+
+    Raises
+    ------
+    ValueError
+        See `transpose_layout`.
+    """
     ret_layout, o_keys, i_keys = transpose_layout_with_keys(view.shape())
     ret_target = Cat(Value.cast(view[o_key][i_key]) for i_key in i_keys for o_key in o_keys)
     return data.View(ret_layout, ret_target)
