@@ -205,7 +205,7 @@ The `push` method will insert a new element to the stack, while `pop_set_top` wi
 These two methods take a single parameter `val` and return nothing.
 
 The methods are defined inside `elaborate` using the {py:class}`~transactron.lib.stack.Stack` component and two additional registers, `top` and `nonempty`.
-Methods are defined using {py:class}`~transactron.core.sugar.def_method` decorator syntax.
+Methods are defined using {py:deco}`~transactron.core.sugar.def_method` decorator syntax.
 The method definition is written using Python `def` function syntax.
 It works much like the `body` context manager used for defining transactions -- the Python code inside the definition is evaluated exactly once.
 Method inputs are passed as parameters, while the result is provided using `return` as a `dict`.
