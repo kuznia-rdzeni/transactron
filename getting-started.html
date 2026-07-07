@@ -8,16 +8,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Getting started &mdash; Transactron documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
-      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
       <script src="_static/documentation_options.js?v=5929fcd5"></script>
-      <script src="_static/doctools.js?v=9bcbadda"></script>
-      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
-      <script src="https://unpkg.com/mermaid@9.4.0/dist/mermaid.min.js"></script>
-      <script>mermaid.initialize({startOnLoad:true});</script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -436,7 +434,7 @@ They take no parameters and return a single value <code class="docutils literal 
 The <code class="docutils literal notranslate"><span class="pre">push</span></code> method will insert a new element to the stack, while <code class="docutils literal notranslate"><span class="pre">pop_set_top</span></code> will remove one element and change the value of the one below it.
 These two methods take a single parameter <code class="docutils literal notranslate"><span class="pre">val</span></code> and return nothing.</p>
 <p>The methods are defined inside <code class="docutils literal notranslate"><span class="pre">elaborate</span></code> using the <a class="reference internal" href="transactron.lib.html#transactron.lib.stack.Stack" title="transactron.lib.stack.Stack"><code class="xref py py-class docutils literal notranslate"><span class="pre">Stack</span></code></a> component and two additional registers, <code class="docutils literal notranslate"><span class="pre">top</span></code> and <code class="docutils literal notranslate"><span class="pre">nonempty</span></code>.
-Methods are defined using <a class="reference internal" href="transactron.core.html#transactron.core.sugar.def_method" title="transactron.core.sugar.def_method"><code class="xref py py-class docutils literal notranslate"><span class="pre">def_method</span></code></a> decorator syntax.
+Methods are defined using <a class="reference internal" href="transactron.core.html#transactron.core.sugar.def_method" title="transactron.core.sugar.def_method"><code class="xref py py-deco docutils literal notranslate"><span class="pre">&#64;def_method</span></code></a> decorator syntax.
 The method definition is written using Python <code class="docutils literal notranslate"><span class="pre">def</span></code> function syntax.
 It works much like the <code class="docutils literal notranslate"><span class="pre">body</span></code> context manager used for defining transactions – the Python code inside the definition is evaluated exactly once.
 Method inputs are passed as parameters, while the result is provided using <code class="docutils literal notranslate"><span class="pre">return</span></code> as a <code class="docutils literal notranslate"><span class="pre">dict</span></code>.</p>
@@ -545,7 +543,7 @@ This has the combined effect of removing the two operands from the stack and pus
 
   <div role="contentinfo">
     <p>&#169; Copyright Kuźnia Rdzeni, 2026.
-      <span class="lastupdated">Last updated on 16:51 2026-07-06.
+      <span class="lastupdated">Last updated on 14:37 2026-07-07.
       </span></p>
   </div>
 

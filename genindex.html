@@ -7,16 +7,450 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Index &mdash; Transactron documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
-      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
       <script src="_static/documentation_options.js?v=5929fcd5"></script>
-      <script src="_static/doctools.js?v=9bcbadda"></script>
-      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
-      <script src="https://unpkg.com/mermaid@9.4.0/dist/mermaid.min.js"></script>
-      <script>mermaid.initialize({startOnLoad:true});</script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
+      <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";
+
+
+
+
+
+const initStyles = () => {
+    const defaultStyle = document.createElement('style');
+    defaultStyle.textContent = `pre.mermaid {
+    /* Same as .mermaid-container > pre */
+    display: block;
+    width: 100%;
+}
+
+pre.mermaid > svg {
+    /* Same as .mermaid-container > pre > svg */
+    height: 500px;
+    width: 100%;
+    max-width: 100% !important;
+}`;
+    document.head.appendChild(defaultStyle);
+
+    const fullscreenStyle = document.createElement('style');
+    fullscreenStyle.textContent = `.mermaid-container {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+}
+
+.mermaid-container > pre {
+    display: block;
+    width: 100%;
+}
+
+.mermaid-container > pre > svg {
+    height: 500px;
+    width: 100%;
+    max-width: 100% !important;
+}
+
+.mermaid-fullscreen-btn {
+    width: 28px;
+    height: 28px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    font-size: 14px;
+    line-height: 1;
+    padding: 0;
+    color: #333;
+}
+
+.mermaid-fullscreen-btn:hover {
+    opacity: 100% !important;
+    background: rgba(255, 255, 255, 1);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+    transform: scale(1.1);
+}
+
+.mermaid-fullscreen-btn.dark-theme {
+    background: rgba(50, 50, 50, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #e0e0e0;
+}
+
+.mermaid-fullscreen-btn.dark-theme:hover {
+    background: rgba(60, 60, 60, 1);
+    box-shadow: 0 3px 10px rgba(255, 255, 255, 0.2);
+}
+
+.mermaid-fullscreen-modal {
+    display: none;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 95vw;
+    height: 100vh;
+    background: rgba(255, 255, 255, 0.98);
+    z-index: 9999;
+    padding: 20px;
+    overflow: auto;
+}
+
+.mermaid-fullscreen-modal.dark-theme {
+    background: rgba(0, 0, 0, 0.98);
+}
+
+.mermaid-fullscreen-modal.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen {
+    position: relative;
+    width: 95vw;
+    height: 90vh;
+    max-width: 95vw;
+    max-height: 90vh;
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    overflow: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen.dark-theme {
+    background: #1a1a1a;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+}
+
+.mermaid-container-fullscreen pre.mermaid {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mermaid-container-fullscreen .mermaid svg {
+    height: 100% !important;
+    width: 100% !important;
+    cursor: grab;
+}
+
+.mermaid-fullscreen-close {
+    position: fixed !important;
+    top: 20px !important;
+    right: 20px !important;
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transition: all 0.2s;
+    font-size: 24px;
+    line-height: 1;
+    color: #333;
+}
+
+.mermaid-fullscreen-close:hover {
+    background: white;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+    transform: scale(1.1);
+}
+
+.mermaid-fullscreen-close.dark-theme {
+    background: rgba(50, 50, 50, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #e0e0e0;
+}
+
+.mermaid-fullscreen-close.dark-theme:hover {
+    background: rgba(60, 60, 60, 1);
+    box-shadow: 0 6px 16px rgba(255, 255, 255, 0.2);
+}
+
+.mermaid-fullscreen-modal .mermaid-fullscreen-btn {
+    display: none !important;
+}`;
+    document.head.appendChild(fullscreenStyle);
+}
+
+// Detect if page has dark background
+const isDarkTheme = () => {
+    // We use a set of heuristics:
+    // 1. Check for common dark mode classes or attributes
+    // 2. Check computed background color brightness
+    if (document.documentElement.classList.contains('dark') ||
+        document.documentElement.getAttribute('data-theme') === 'dark' ||
+        document.body.classList.contains('dark') ||
+        document.body.getAttribute('data-theme') === 'dark') {
+        // console.log("Dark theme detected via class/attribute");
+        return true;
+    }
+    if (document.documentElement.classList.contains('light') ||
+        document.documentElement.getAttribute('data-theme') === 'light' ||
+        document.body.classList.contains('light') ||
+        document.body.getAttribute('data-theme') === 'light') {
+        // console.log("Light theme detected via class/attribute");
+        return false;
+    }
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        // console.log("Dark theme detected via prefers-color-scheme");
+        return true;
+    }
+    const bgColor = window.getComputedStyle(document.body).backgroundColor;
+    const match = bgColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)/);
+    if (match) {
+        const r = parseInt(match[1]);
+        const g = parseInt(match[2]);
+        const b = parseInt(match[3]);
+        const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+        // console.log("Background color brightness:", brightness);
+        return brightness < 128;
+    }
+    // console.log("No dark or light theme detected, defaulting to light theme");
+    return false;
+};
+
+let darkTheme = isDarkTheme();
+let modal = null;
+let modalContent = null;
+let previousScrollOffset = [window.scrollX, window.scrollY];
+
+const runMermaid = async (rerun) => {
+    console.log("Running mermaid diagrams, rerun =", rerun);
+    // clear all existing mermaid charts
+    let all_mermaids = document.querySelectorAll(".mermaid");
+
+    if (rerun) {
+        all_mermaids.forEach((el) => {
+            if(!el.hasAttribute("data-original-code")) {
+                // store original code
+                // console.log(`Storing original code for first run: `, el.innerHTML);
+                el.setAttribute('data-original-code', el.innerHTML);
+            }
+            if(el.getAttribute("data-processed") === "true") {
+                // remove and restore original
+                el.removeAttribute("data-processed");
+                // console.log(`Restoring original code for re-run: `, el.getAttribute('data-original-code'));
+                el.innerHTML = el.getAttribute('data-original-code');
+            } else {
+                // store original code
+                // console.log(`Storing original code for re-run: `, el.innerHTML);
+                el.setAttribute('data-original-code', el.innerHTML);
+            }
+        });
+        await mermaid.run();
+    }
+
+    all_mermaids = document.querySelectorAll(".mermaid");
+    const mermaids_processed = document.querySelectorAll(".mermaid[data-processed='true']");
+
+    if ("False" === "True") {
+        const mermaids_to_add_zoom = -1 === -1 ? all_mermaids.length : -1;
+        if(mermaids_to_add_zoom > 0) {
+            var svgs = d3.selectAll("");
+            if(all_mermaids.length !== mermaids_processed.length) {
+                setTimeout(() => runMermaid(false), 200);
+                return;
+            } else if(svgs.size() !== mermaids_to_add_zoom) {
+                setTimeout(() => runMermaid(false), 200);
+                return;
+            } else {
+                svgs.each(function() {
+                    var svg = d3.select(this);
+                    svg.html("<g class='wrapper'>" + svg.html() + "</g>");
+                    var inner = svg.select("g");
+                    var zoom = d3.zoom().on("zoom", function(event) {
+                        inner.attr("transform", event.transform);
+                    });
+                    svg.call(zoom);
+                });
+            }
+        }
+    } else if(all_mermaids.length !== mermaids_processed.length) {
+        // Wait for mermaid to process all diagrams
+        setTimeout(() => runMermaid(false), 200);
+        return;
+    }
+
+    // Stop here if not adding fullscreen capability
+    if ("True" !== "True") return;
+
+    if (modal !== null ) {
+        // Destroy existing modal
+        modal.remove();
+        modal = null;
+        modalContent = null;
+    }
+
+    modal = document.createElement('div');
+    modal.className = 'mermaid-fullscreen-modal' + (darkTheme ? ' dark-theme' : '');
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.setAttribute('aria-label', 'Fullscreen diagram viewer');
+    modal.innerHTML = `
+        <button class="mermaid-fullscreen-close${darkTheme ? ' dark-theme' : ''}" aria-label="Close fullscreen">✕</button>
+        <div class="mermaid-container-fullscreen${darkTheme ? ' dark-theme' : ''}"></div>
+    `;
+    document.body.appendChild(modal);
+
+    modalContent = modal.querySelector('.mermaid-container-fullscreen');
+    const closeBtn = modal.querySelector('.mermaid-fullscreen-close');
+
+    const closeModal = () => {
+        modal.classList.remove('active');
+        modalContent.innerHTML = '';
+        document.body.style.overflow = ''
+        window.scrollTo({left: previousScrollOffset[0], top: previousScrollOffset[1], behavior: 'instant'});
+    };
+
+    closeBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+    });
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.classList.contains('active')) {
+            closeModal();
+        }
+    });
+
+    document.querySelectorAll('.mermaid').forEach((mermaidDiv) => {
+        if (mermaidDiv.parentNode.classList.contains('mermaid-container') ||
+            mermaidDiv.closest('.mermaid-fullscreen-modal')) {
+            // Already processed, adjust button class if needed
+            const existingBtn = mermaidDiv.parentNode.querySelector('.mermaid-fullscreen-btn');
+            if (existingBtn) {
+                existingBtn.className = 'mermaid-fullscreen-btn' + (darkTheme ? ' dark-theme' : '');
+            }
+            return;
+        }
+
+        const container = document.createElement('div');
+        container.className = 'mermaid-container';
+        mermaidDiv.parentNode.insertBefore(container, mermaidDiv);
+        container.appendChild(mermaidDiv);
+
+        const fullscreenBtn = document.createElement('button');
+        fullscreenBtn.className = 'mermaid-fullscreen-btn' + (darkTheme ? ' dark-theme' : '');
+        fullscreenBtn.setAttribute('aria-label', 'View diagram in fullscreen');
+        fullscreenBtn.textContent = '⛶';
+        fullscreenBtn.style.opacity = '50%';
+
+        // Calculate dynamic position based on diagram's margin and padding
+        const diagramStyle = window.getComputedStyle(mermaidDiv);
+        const marginTop = parseFloat(diagramStyle.marginTop) || 0;
+        const marginRight = parseFloat(diagramStyle.marginRight) || 0;
+        const paddingTop = parseFloat(diagramStyle.paddingTop) || 0;
+        const paddingRight = parseFloat(diagramStyle.paddingRight) || 0;
+        fullscreenBtn.style.top = `${marginTop + paddingTop + 4}px`;
+        fullscreenBtn.style.right = `${marginRight + paddingRight + 4}px`;
+
+        fullscreenBtn.addEventListener('click', () => {
+            previousScrollOffset = [window.scroll, window.scrollY];
+            const clone = mermaidDiv.cloneNode(true);
+            modalContent.innerHTML = '';
+            modalContent.appendChild(clone);
+
+            const svg = clone.querySelector('svg');
+            if (svg) {
+                svg.removeAttribute('width');
+                svg.removeAttribute('height');
+                svg.style.width = '100%';
+                svg.style.height = 'auto';
+                svg.style.maxWidth = '100%';
+                svg.style.sdisplay = 'block';
+
+                if ("False" === "True") {
+                    setTimeout(() => {
+                        const g = svg.querySelector('g');
+                        if (g) {
+                            var svgD3 = d3.select(svg);
+                            svgD3.html("<g class='wrapper'>" + svgD3.html() + "</g>");
+                            var inner = svgD3.select("g");
+                            var zoom = d3.zoom().on("zoom", function(event) {
+                                inner.attr("transform", event.transform);
+                            });
+                            svgD3.call(zoom);
+                        }
+                    }, 100);
+                }
+            }
+
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        });
+        container.appendChild(fullscreenBtn);
+    });
+};
+
+const load = async () => {
+    initStyles();
+
+    await runMermaid(true);
+
+    const reRunIfThemeChanges = async () => {
+        const newDarkTheme = isDarkTheme();
+        if (newDarkTheme !== darkTheme) {
+            darkTheme = newDarkTheme;
+            console.log("Theme change detected, re-running mermaid with", darkTheme ? "dark" : "default", "theme");
+            await mermaid.initialize(
+                {...JSON.parse(
+                    `{"startOnLoad": false}`
+                ),
+                ...{ darkMode: darkTheme, theme: darkTheme ? 'dark' : 'default' },
+                }
+            );
+            await runMermaid(true);
+        }
+    };
+
+    // Update theme classes when theme changes
+    const themeObserver = new MutationObserver(reRunIfThemeChanges);
+    themeObserver.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['class', 'style', 'data-theme']
+    });
+    themeObserver.observe(document.body, {
+        attributes: true,
+        attributeFilter: ['class', 'style', 'data-theme']
+    });
+};
+
+
+
+
+
+console.log("Initializing mermaid with", darkTheme ? "dark" : "default", "theme");
+mermaid.initialize(
+    {...JSON.parse(
+        `{"startOnLoad": false}`
+    ),
+    ...{ darkMode: darkTheme, theme: darkTheme ? 'dark' : 'default' },
+    }
+);
+
+window.addEventListener("load", load);
+window.runMermaid = runMermaid;</script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="#" />
     <link rel="search" title="Search" href="search.html" /> 
@@ -476,6 +910,8 @@
       </ul></li>
       <li><a href="transactron.core.html#transactron.core.body.BodyParams">BodyParams (class in transactron.core.body)</a>
 </li>
+      <li><a href="transactron.lib.html#transactron.lib.metrics.HwExpHistogram.buckets">buckets (transactron.lib.metrics.HwExpHistogram attribute)</a>
+</li>
       <li><a href="transactron.utils.amaranth_ext.html#transactron.utils.amaranth_ext.elaboratables.MultiPriorityEncoder.build_tree">build_tree() (transactron.utils.amaranth_ext.elaboratables.MultiPriorityEncoder method)</a>
 </li>
   </ul></td>
@@ -487,9 +923,13 @@
       <li><a href="transactron.lib.html#transactron.lib.dependencies.DependencyKey.cache">cache (transactron.lib.dependencies.DependencyKey attribute)</a>
 
       <ul>
+        <li><a href="transactron.lib.html#transactron.lib.dependencies.DependencyManager.cache">(transactron.lib.dependencies.DependencyManager attribute)</a>
+</li>
         <li><a href="transactron.lib.html#transactron.lib.dependencies.UnifierKey.cache">(transactron.lib.dependencies.UnifierKey attribute)</a>
 </li>
         <li><a href="transactron.utils.html#transactron.utils.dependencies.DependencyKey.cache">(transactron.utils.dependencies.DependencyKey attribute)</a>
+</li>
+        <li><a href="transactron.utils.html#transactron.utils.dependencies.DependencyManager.cache">(transactron.utils.dependencies.DependencyManager attribute)</a>
 </li>
       </ul></li>
       <li><a href="transactron.testing.html#transactron.testing.CallTrigger.call">call() (transactron.testing.CallTrigger method)</a>
@@ -546,6 +986,8 @@
 </li>
       <li><a href="transactron.lib.html#transactron.lib.allocators.CircularAllocator">CircularAllocator (class in transactron.lib.allocators)</a>
 </li>
+      <li><a href="transactron.html#transactron.graph.OwnershipGraph.class_counters">class_counters (transactron.graph.OwnershipGraph attribute)</a>
+</li>
       <li><a href="transactron.lib.html#transactron.lib.allocators.CircularAllocator.clear">clear (transactron.lib.allocators.CircularAllocator attribute)</a>
 
       <ul>
@@ -584,14 +1026,16 @@
         <li><a href="transactron.utils.html#transactron.utils.dependencies.SimpleKey.combine">(transactron.utils.dependencies.SimpleKey method)</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="transactron.core.html#transactron.core.body.AdapterBodyParams.combiner">combiner (transactron.core.body.AdapterBodyParams attribute)</a>
 
       <ul>
+        <li><a href="transactron.core.html#transactron.core.body.Body.combiner">(transactron.core.body.Body attribute)</a>
+</li>
         <li><a href="transactron.core.html#transactron.core.body.BodyParams.combiner">(transactron.core.body.BodyParams attribute)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="transactron.utils.html#transactron.utils.assign.AssignType.COMMON">COMMON (transactron.utils.assign.AssignType attribute)</a>
 </li>
       <li><a href="transactron.utils.amaranth_ext.html#transactron.utils.amaranth_ext.component_interface.ComponentInterface">ComponentInterface (class in transactron.utils.amaranth_ext.component_interface)</a>
@@ -619,6 +1063,8 @@
       <li><a href="transactron.utils.amaranth_ext.html#transactron.utils.amaranth_ext.functions.count_leading_zeros">count_leading_zeros() (in module transactron.utils.amaranth_ext.functions)</a>
 </li>
       <li><a href="transactron.utils.amaranth_ext.html#transactron.utils.amaranth_ext.functions.count_trailing_zeros">count_trailing_zeros() (in module transactron.utils.amaranth_ext.functions)</a>
+</li>
+      <li><a href="transactron.lib.html#transactron.lib.metrics.TaggedCounter.counters">counters (transactron.lib.metrics.TaggedCounter attribute)</a>
 </li>
       <li><a href="transactron.utils.amaranth_ext.html#transactron.utils.amaranth_ext.component_interface.COut">COut (class in transactron.utils.amaranth_ext.component_interface)</a>
 </li>
@@ -698,16 +1144,24 @@
         <li><a href="transactron.testing.html#transactron.testing.functions.data_const_to_dict">(in module transactron.testing.functions)</a>
 </li>
       </ul></li>
-      <li><a href="transactron.lib.html#transactron.lib.adapters.AdapterBase.data_in">data_in (transactron.lib.adapters.AdapterBase attribute)</a>
+      <li><a href="transactron.core.html#transactron.core.body.Body.data_in">data_in (transactron.core.body.Body attribute)</a>
+
+      <ul>
+        <li><a href="transactron.lib.html#transactron.lib.adapters.AdapterBase.data_in">(transactron.lib.adapters.AdapterBase attribute)</a>
 </li>
+      </ul></li>
       <li><a href="transactron.testing.html#transactron.testing.data_layout">data_layout() (in module transactron.testing)</a>
 
       <ul>
         <li><a href="transactron.utils.html#transactron.utils.data_repr.data_layout">(in module transactron.utils.data_repr)</a>
 </li>
       </ul></li>
-      <li><a href="transactron.lib.html#transactron.lib.adapters.AdapterBase.data_out">data_out (transactron.lib.adapters.AdapterBase attribute)</a>
+      <li><a href="transactron.core.html#transactron.core.body.Body.data_out">data_out (transactron.core.body.Body attribute)</a>
+
+      <ul>
+        <li><a href="transactron.lib.html#transactron.lib.adapters.AdapterBase.data_out">(transactron.lib.adapters.AdapterBase attribute)</a>
 </li>
+      </ul></li>
       <li><a href="transactron.utils.html#transactron.utils.transactron_helpers.dataclass_asdict">dataclass_asdict() (in module transactron.utils.transactron_helpers)</a>
 </li>
       <li><a href="transactron.utils.html#transactron.utils.logging.HardwareLogger.debug">debug() (transactron.utils.logging.HardwareLogger method)</a>
@@ -782,6 +1236,12 @@
 </li>
       <li><a href="transactron.testing.html#transactron.testing.SimulatorContext.delay">delay() (transactron.testing.SimulatorContext method)</a>
 </li>
+      <li><a href="transactron.lib.html#transactron.lib.dependencies.DependencyManager.dependencies">dependencies (transactron.lib.dependencies.DependencyManager attribute)</a>
+
+      <ul>
+        <li><a href="transactron.utils.html#transactron.utils.dependencies.DependencyManager.dependencies">(transactron.utils.dependencies.DependencyManager attribute)</a>
+</li>
+      </ul></li>
       <li><a href="transactron.testing.html#transactron.testing.test_case.TestCaseWithSimulatorBase.dependency_manager">dependency_manager (transactron.testing.test_case.TestCaseWithSimulatorBase attribute)</a>
 
       <ul>
@@ -845,6 +1305,8 @@
       <li><a href="transactron.core.html#transactron.core.schedulers.eager_deterministic_cc_scheduler">eager_deterministic_cc_scheduler() (in module transactron.core.schedulers)</a>
 </li>
       <li><a href="transactron.testing.html#transactron.testing.SimulatorContext.edge">edge() (transactron.testing.SimulatorContext method)</a>
+</li>
+      <li><a href="transactron.html#transactron.graph.OwnershipGraph.edges">edges (transactron.graph.OwnershipGraph attribute)</a>
 </li>
       <li><a href="transactron.testing.html#transactron.testing.method_mock.MethodMock.effect">effect() (transactron.testing.method_mock.MethodMock static method)</a>
 
@@ -1140,14 +1602,14 @@
         <li><a href="transactron.utils.html#transactron.utils.dependencies.DependencyContext.get">(transactron.utils.dependencies.DependencyContext class method)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="transactron.testing.html#transactron.testing.TestbenchIO.get_call_result">get_call_result() (transactron.testing.TestbenchIO method)</a>
 
       <ul>
         <li><a href="transactron.testing.html#transactron.testing.testbenchio.TestbenchIO.get_call_result">(transactron.testing.testbenchio.TestbenchIO method)</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="transactron.utils.html#transactron.utils.transactron_helpers.get_caller_class_name">get_caller_class_name() (in module transactron.utils.transactron_helpers)</a>
 </li>
       <li><a href="transactron.lib.html#transactron.lib.dependencies.DependencyManager.get_dependency">get_dependency() (transactron.lib.dependencies.DependencyManager method)</a>
@@ -1194,6 +1656,12 @@
 </li>
       <li><a href="transactron.utils.html#transactron.utils.logging.get_trigger_bit">get_trigger_bit() (in module transactron.utils.logging)</a>
 </li>
+      <li><a href="transactron.utils.html#transactron.utils.typing.Graph">Graph (in module transactron.utils.typing)</a>
+</li>
+      <li><a href="transactron.html#transactron.graph.OwnershipGraph.graph">graph (transactron.graph.OwnershipGraph attribute)</a>
+</li>
+      <li><a href="transactron.utils.html#transactron.utils.typing.GraphCC">GraphCC (in module transactron.utils.typing)</a>
+</li>
       <li><a href="transactron.utils.amaranth_ext.html#transactron.utils.amaranth_ext.coding.GrayDecoder">GrayDecoder (class in transactron.utils.amaranth_ext.coding)</a>
 </li>
       <li><a href="transactron.utils.amaranth_ext.html#transactron.utils.amaranth_ext.coding.GrayEncoder">GrayEncoder (class in transactron.utils.amaranth_ext.coding)</a>
@@ -1219,6 +1687,8 @@
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="transactron.testing.html#transactron.testing.logging.HDLLogWrapperComponent">HDLLogWrapperComponent (class in transactron.testing.logging)</a>
+</li>
+      <li><a href="transactron.html#transactron.graph.OwnershipGraph.hier">hier (transactron.graph.OwnershipGraph attribute)</a>
 </li>
       <li><a href="transactron.evlog.html#transactron.evlog.event.Event.hw">hw() (transactron.evlog.event.Event class method)</a>
 </li>
@@ -1282,6 +1752,8 @@
 <h2 id="L">L</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="transactron.html#transactron.graph.OwnershipGraph.labels">labels (transactron.graph.OwnershipGraph attribute)</a>
+</li>
       <li><a href="transactron.core.html#transactron.core.method.Method.layout_in">layout_in (transactron.core.method.Method property)</a>
 
       <ul>
@@ -1297,6 +1769,12 @@
 </li>
       </ul></li>
       <li><a href="transactron.utils.html#transactron.utils.data_repr.layout_subset">layout_subset() (in module transactron.utils.data_repr)</a>
+</li>
+      <li><a href="transactron.utils.html#transactron.utils.typing.LayoutIterable">LayoutIterable (in module transactron.utils.typing)</a>
+</li>
+      <li><a href="transactron.utils.html#transactron.utils.typing.LayoutList">LayoutList (in module transactron.utils.typing)</a>
+</li>
+      <li><a href="transactron.utils.html#transactron.utils.typing.LayoutListField">LayoutListField (in module transactron.utils.typing)</a>
 </li>
       <li><a href="transactron.core.html#transactron.core.transaction_base.Priority.LEFT">LEFT (transactron.core.transaction_base.Priority attribute)</a>
 </li>
@@ -1314,10 +1792,10 @@
       </ul></li>
       <li><a href="transactron.evlog.html#transactron.evlog.log.EventLog.load">load() (transactron.evlog.log.EventLog static method)</a>
 </li>
-      <li><a href="transactron.utils.html#transactron.utils.transactron_helpers.local_src_loc">local_src_loc() (in module transactron.utils.transactron_helpers)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="transactron.utils.html#transactron.utils.transactron_helpers.local_src_loc">local_src_loc() (in module transactron.utils.transactron_helpers)</a>
+</li>
       <li><a href="transactron.evlog.html#transactron.evlog.emit.EmittedEvent.location">location (transactron.evlog.emit.EmittedEvent attribute)</a>
 
       <ul>
@@ -1334,6 +1812,12 @@
       </ul></li>
       <li><a href="transactron.html#transactron.profiler.RunStat.locked">locked (transactron.profiler.RunStat attribute)</a>
 </li>
+      <li><a href="transactron.lib.html#transactron.lib.dependencies.DependencyManager.locked_dependencies">locked_dependencies (transactron.lib.dependencies.DependencyManager attribute)</a>
+
+      <ul>
+        <li><a href="transactron.utils.html#transactron.utils.dependencies.DependencyManager.locked_dependencies">(transactron.utils.dependencies.DependencyManager attribute)</a>
+</li>
+      </ul></li>
       <li><a href="transactron.utils.html#transactron.utils.logging.HardwareLogger.log">log() (transactron.utils.logging.HardwareLogger method)</a>
 </li>
       <li><a href="transactron.utils.html#transactron.utils.logging.LogRecordInfo.logger_name">logger_name (transactron.utils.logging.LogRecordInfo attribute)</a>
@@ -1405,6 +1889,8 @@
       <li><a href="transactron.core.html#transactron.core.method.MethodDir">MethodDir (class in transactron.core.method)</a>
 </li>
       <li><a href="transactron.lib.html#transactron.lib.transformers.MethodFilter">MethodFilter (class in transactron.lib.transformers)</a>
+</li>
+      <li><a href="transactron.utils.html#transactron.utils.typing.MethodLayout">MethodLayout (in module transactron.utils.typing)</a>
 </li>
       <li><a href="transactron.lib.html#transactron.lib.transformers.MethodMap">MethodMap (class in transactron.lib.transformers)</a>
 </li>
@@ -1631,10 +2117,16 @@
         <li><a href="transactron.html#transactron.profiler.RunStat.name">(transactron.profiler.RunStat attribute)</a>
 </li>
       </ul></li>
-      <li><a href="transactron.utils.html#transactron.utils.data_repr.neg">neg() (in module transactron.utils.data_repr)</a>
+      <li><a href="transactron.utils.html#transactron.utils.typing.NameIntDict">NameIntDict (in module transactron.utils.typing)</a>
+</li>
+      <li><a href="transactron.html#transactron.graph.OwnershipGraph.names">names (transactron.graph.OwnershipGraph attribute)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="transactron.utils.html#transactron.utils.typing.NameValueDict">NameValueDict (in module transactron.utils.typing)</a>
+</li>
+      <li><a href="transactron.utils.html#transactron.utils.data_repr.neg">neg() (in module transactron.utils.data_repr)</a>
+</li>
       <li><a href="transactron.testing.html#transactron.testing.SimulatorContext.negedge">negedge() (transactron.testing.SimulatorContext method)</a>
 </li>
       <li><a href="transactron.core.html#transactron.core.tmodule.TModule.next">next (transactron.core.tmodule.TModule property)</a>
@@ -1677,10 +2169,10 @@
 </li>
       <li><a href="transactron.lib.html#transactron.lib.allocators.PreservedOrderAllocator.order">order (transactron.lib.allocators.PreservedOrderAllocator attribute)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="transactron.html#transactron.graph.Direction.OUT">OUT (transactron.graph.Direction attribute)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="transactron.utils.amaranth_ext.html#transactron.utils.amaranth_ext.elaboratables.OneHotMux.output">output (transactron.utils.amaranth_ext.elaboratables.OneHotMux attribute)</a>
 </li>
       <li><a href="transactron.testing.html#transactron.testing.method_mock.MethodMock.output_process">output_process() (transactron.testing.method_mock.MethodMock method)</a>
@@ -1699,7 +2191,13 @@
       </ul></li>
       <li><a href="transactron.html#transactron.graph.Owned">Owned (class in transactron.graph)</a>
 </li>
+      <li><a href="transactron.html#transactron.graph.OwnershipGraph.owned">owned (transactron.graph.OwnershipGraph attribute)</a>
+</li>
+      <li><a href="transactron.html#transactron.graph.OwnershipGraph.owned_counters">owned_counters (transactron.graph.OwnershipGraph attribute)</a>
+</li>
       <li><a href="transactron.html#transactron.graph.Owned.owned_name">owned_name (transactron.graph.Owned property)</a>
+</li>
+      <li><a href="transactron.html#transactron.graph.OwnershipGraph.owned_names">owned_names (transactron.graph.OwnershipGraph attribute)</a>
 </li>
       <li><a href="transactron.html#transactron.graph.Owned.owner">owner (transactron.graph.Owned attribute)</a>
 </li>
@@ -1815,6 +2313,8 @@
         <li><a href="transactron.testing.html#transactron.testing.TestCaseWithSimulatorBase.random_wait_geom">(transactron.testing.TestCaseWithSimulatorBase static method)</a>
 </li>
       </ul></li>
+      <li><a href="transactron.evlog.html#transactron.evlog.log.EventLog.raw">raw (transactron.evlog.log.EventLog attribute)</a>
+</li>
       <li><a href="transactron.evlog.html#transactron.evlog.log.RawEvent">RawEvent (in module transactron.evlog.log)</a>
 </li>
       <li><a href="transactron.evlog.html#transactron.evlog.log.RawEventSink">RawEventSink (class in transactron.evlog.log)</a>
@@ -1847,15 +2347,19 @@
 </li>
       <li><a href="transactron.lib.html#transactron.lib.allocators.PriorityEncoderAllocator.replace">replace (transactron.lib.allocators.PriorityEncoderAllocator attribute)</a>
 </li>
+      <li><a href="transactron.core.html#transactron.core.method.MethodDir.REQUIRED">REQUIRED (transactron.core.method.MethodDir attribute)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="transactron.core.html#transactron.core.method.MethodDir.REQUIRED">REQUIRED (transactron.core.method.MethodDir attribute)</a>
+      <li><a href="transactron.utils.html#transactron.utils.typing.ReturnDict">ReturnDict (in module transactron.utils.typing)</a>
 </li>
       <li><a href="transactron.utils.html#transactron.utils.assign.AssignType.RHS">RHS (transactron.utils.assign.AssignType attribute)</a>
 </li>
       <li><a href="transactron.core.html#transactron.core.transaction_base.Priority.RIGHT">RIGHT (transactron.core.transaction_base.Priority attribute)</a>
 </li>
       <li><a href="transactron.utils.amaranth_ext.html#transactron.utils.amaranth_ext.elaboratables.RingMultiPriorityEncoder">RingMultiPriorityEncoder (class in transactron.utils.amaranth_ext.elaboratables)</a>
+</li>
+      <li><a href="transactron.utils.html#transactron.utils.typing.ROGraph">ROGraph (in module transactron.utils.typing)</a>
 </li>
       <li><a href="transactron.utils.amaranth_ext.html#transactron.utils.amaranth_ext.shifter.rotate_left">rotate_left() (in module transactron.utils.amaranth_ext.shifter)</a>
 </li>
@@ -2005,6 +2509,8 @@
 </li>
       <li><a href="transactron.evlog.html#transactron.evlog.sampler.SignalReader">SignalReader (in module transactron.evlog.sampler)</a>
 </li>
+      <li><a href="transactron.lib.html#transactron.lib.metrics.HwMetric.signals">signals (transactron.lib.metrics.HwMetric attribute)</a>
+</li>
       <li><a href="transactron.utils.amaranth_ext.html#transactron.utils.amaranth_ext.component_interface.AbstractComponentInterface.signature">signature (transactron.utils.amaranth_ext.component_interface.AbstractComponentInterface property)</a>
 
       <ul>
@@ -2099,6 +2605,8 @@
 </li>
       <li><a href="transactron.core.html#transactron.core.tmodule.TModule.State">State() (transactron.core.tmodule.TModule method)</a>
 </li>
+      <li><a href="transactron.evlog.html#transactron.evlog.event.Static">Static (in module transactron.evlog.event)</a>
+</li>
       <li><a href="transactron.evlog.html#transactron.evlog.emit.EmittedEvent.statics">statics (transactron.evlog.emit.EmittedEvent attribute)</a>
 
       <ul>
@@ -2113,6 +2621,8 @@
         <li><a href="transactron.lib.html#transactron.lib.metrics.WideFIFOLatencyMeasurer.stop">(transactron.lib.metrics.WideFIFOLatencyMeasurer attribute)</a>
 </li>
       </ul></li>
+      <li><a href="transactron.html#transactron.graph.OwnershipGraph.stray">stray (transactron.graph.OwnershipGraph attribute)</a>
+</li>
       <li><a href="transactron.lib.html#transactron.lib.stream.StreamModuleWrapper">StreamModuleWrapper (class in transactron.lib.stream)</a>
 </li>
       <li><a href="transactron.lib.html#transactron.lib.stream.StreamSink">StreamSink (class in transactron.lib.stream)</a>
@@ -2850,8 +3360,12 @@
 <h2 id="V">V</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="transactron.core.html#transactron.core.body.BodyParams.validate_arguments">validate_arguments (transactron.core.body.BodyParams attribute)</a>
+      <li><a href="transactron.core.html#transactron.core.body.Body.validate_arguments">validate_arguments (transactron.core.body.Body attribute)</a>
+
+      <ul>
+        <li><a href="transactron.core.html#transactron.core.body.BodyParams.validate_arguments">(transactron.core.body.BodyParams attribute)</a>
 </li>
+      </ul></li>
       <li><a href="transactron.testing.html#transactron.testing.method_mock.MethodMock.validate_arguments_process">validate_arguments_process() (transactron.testing.method_mock.MethodMock method)</a>
 
       <ul>
@@ -2860,6 +3374,8 @@
       </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="transactron.utils.html#transactron.utils.typing.ValueBundle">ValueBundle (in module transactron.utils.typing)</a>
+</li>
       <li><a href="transactron.core.html#transactron.core.manager.TransactionManager.visual_graph">visual_graph() (transactron.core.manager.TransactionManager method)</a>
 </li>
   </ul></td>
@@ -2929,7 +3445,7 @@
 
   <div role="contentinfo">
     <p>&#169; Copyright Kuźnia Rdzeni, 2026.
-      <span class="lastupdated">Last updated on 16:51 2026-07-06.
+      <span class="lastupdated">Last updated on 14:37 2026-07-07.
       </span></p>
   </div>
 

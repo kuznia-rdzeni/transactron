@@ -8,16 +8,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Pipeline Builder &mdash; Transactron documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
-      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
       <script src="_static/documentation_options.js?v=5929fcd5"></script>
-      <script src="_static/doctools.js?v=9bcbadda"></script>
-      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
-      <script src="https://unpkg.com/mermaid@9.4.0/dist/mermaid.min.js"></script>
-      <script>mermaid.initialize({startOnLoad:true});</script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -100,7 +98,7 @@
              
   <section id="pipeline-builder">
 <h1>Pipeline Builder<a class="headerlink" href="#pipeline-builder" title="Link to this heading"></a></h1>
-<p>The Pipeline Builder is a helper for constructing transactional pipelines in Transactron.
+<p>The <a class="reference internal" href="transactron.lib.html#transactron.lib.pipeline.PipelineBuilder" title="transactron.lib.pipeline.PipelineBuilder"><code class="xref py py-class docutils literal notranslate"><span class="pre">Pipeline</span> <span class="pre">Builder</span></code></a> is a helper for constructing transactional pipelines in Transactron.
 It lets you combine external methods, function-based stages, and method calls into a single flow with automatic data forwarding.</p>
 <section id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Link to this heading"></a></h2>
@@ -123,16 +121,16 @@ It lets you combine external methods, function-based stages, and method calls in
 <h3>Node Types<a class="headerlink" href="#node-types" title="Link to this heading"></a></h3>
 <p>Pipelines can contain three node kinds:</p>
 <ol class="arabic simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">add_external(method,</span> <span class="pre">...)</span></code>: pipeline provides (defines) a method body.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">call_method(method,</span> <span class="pre">...)</span></code>: pipeline calls an existing method.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">&#64;stage(...)</span></code>: function-based stage converted to a transactional method.</p></li>
+<li><p><a class="reference internal" href="transactron.lib.html#transactron.lib.pipeline.PipelineBuilder.add_external" title="transactron.lib.pipeline.PipelineBuilder.add_external"><code class="xref py py-meth docutils literal notranslate"><span class="pre">add_external()</span></code></a>: pipeline provides (defines) a method body.</p></li>
+<li><p><a class="reference internal" href="transactron.lib.html#transactron.lib.pipeline.PipelineBuilder.call_method" title="transactron.lib.pipeline.PipelineBuilder.call_method"><code class="xref py py-meth docutils literal notranslate"><span class="pre">call_method()</span></code></a>: pipeline calls an existing method.</p></li>
+<li><p><a class="reference internal" href="transactron.lib.html#transactron.lib.pipeline.PipelineBuilder.stage" title="transactron.lib.pipeline.PipelineBuilder.stage"><code class="xref py py-deco docutils literal notranslate"><span class="pre">&#64;stage</span></code></a>: function-based stage converted to a transactional method.</p></li>
 </ol>
 </section>
 <section id="live-signals">
 <h3>Live Signals<a class="headerlink" href="#live-signals" title="Link to this heading"></a></h3>
 <p>At each position in the pipeline, a set of live signals is tracked.
 Stages can consume any currently live signals they declare as inputs and add/overwrite outputs.</p>
-<p><code class="docutils literal notranslate"><span class="pre">PipelineBuilder.get_live_signals()</span></code> can be used to inspect this state before elaboration.</p>
+<p><a class="reference internal" href="transactron.lib.html#transactron.lib.pipeline.PipelineBuilder.get_live_signals" title="transactron.lib.pipeline.PipelineBuilder.get_live_signals"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_live_signals()</span></code></a> can be used to inspect this state before elaboration.</p>
 </section>
 </section>
 <section id="happens-before-semantics">
@@ -228,7 +226,7 @@ Current implementation uses <code class="docutils literal notranslate"><span cla
 </section>
 <section id="example-pipelined-multiplier">
 <h2>Example: Pipelined Multiplier<a class="headerlink" href="#example-pipelined-multiplier" title="Link to this heading"></a></h2>
-<p>The following complete example demonstrates a multi-stage arithmetic pipeline using <code class="docutils literal notranslate"><span class="pre">PipelineBuilder</span></code>:</p>
+<p>The following complete example demonstrates a multi-stage arithmetic pipeline using <a class="reference internal" href="transactron.lib.html#transactron.lib.pipeline.PipelineBuilder" title="transactron.lib.pipeline.PipelineBuilder"><code class="xref py py-class docutils literal notranslate"><span class="pre">PipelineBuilder</span></code></a>:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">amaranth</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">transactron</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
 
@@ -310,7 +308,7 @@ Current implementation uses <code class="docutils literal notranslate"><span cla
 
   <div role="contentinfo">
     <p>&#169; Copyright Kuźnia Rdzeni, 2026.
-      <span class="lastupdated">Last updated on 16:51 2026-07-06.
+      <span class="lastupdated">Last updated on 14:37 2026-07-07.
       </span></p>
   </div>
 

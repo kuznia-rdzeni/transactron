@@ -8,16 +8,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Event log &mdash; Transactron documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
-      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
       <script src="_static/documentation_options.js?v=5929fcd5"></script>
-      <script src="_static/doctools.js?v=9bcbadda"></script>
-      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
-      <script src="https://unpkg.com/mermaid@9.4.0/dist/mermaid.min.js"></script>
-      <script>mermaid.initialize({startOnLoad:true});</script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -103,7 +101,7 @@
 <p>There are two kinds of fields:</p>
 <ul class="simple">
 <li><p><strong>dynamic</strong> fields are backed by hardware signals, sampled in every cycle in which the event fires. Annotate them with the <em>decoded</em> Python type: <code class="docutils literal notranslate"><span class="pre">int</span></code>, <code class="docutils literal notranslate"><span class="pre">bool</span></code> or an <code class="docutils literal notranslate"><span class="pre">enum.Enum</span></code> subclass (raw integers are converted back to the annotated type when a log is decoded). Signal widths are not declared - they are inferred from the actual Amaranth values at elaboration time and recorded in the schema, so parameterized designs need no special handling.</p></li>
-<li><p><strong>static</strong> fields (annotated with <code class="xref py py-obj docutils literal notranslate"><span class="pre">Static</span></code>) hold plain Python values fixed at elaboration time and cost no hardware. Use them for properties of the emission site, such as a lane index or a unit name.</p></li>
+<li><p><strong>static</strong> fields (annotated with <a class="reference internal" href="transactron.evlog.html#transactron.evlog.event.Static" title="transactron.evlog.event.Static"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Static</span></code></a>) hold plain Python values fixed at elaboration time and cost no hardware. Use them for properties of the emission site, such as a lane index or a unit name.</p></li>
 </ul>
 </section>
 <section id="emitting-events">
@@ -161,7 +159,7 @@
 </pre></div>
 </div>
 <p><code class="docutils literal notranslate"><span class="pre">--schema</span></code> prints a summary of the emission sites instead; <code class="docutils literal notranslate"><span class="pre">-x</span></code>/<code class="docutils literal notranslate"><span class="pre">-d</span></code> force hex/decimal field values.</p>
-<p>Consumers subclass <a class="reference internal" href="transactron.evlog.html#transactron.evlog.consumer.EventConsumer" title="transactron.evlog.consumer.EventConsumer"><code class="xref py py-class docutils literal notranslate"><span class="pre">EventConsumer</span></code></a> and declare one handler per event type with <a class="reference internal" href="transactron.evlog.html#transactron.evlog.consumer.handles" title="transactron.evlog.consumer.handles"><code class="xref py py-func docutils literal notranslate"><span class="pre">handles()</span></code></a>; dispatch is keyed by the registered event name:</p>
+<p>Consumers subclass <a class="reference internal" href="transactron.evlog.html#transactron.evlog.consumer.EventConsumer" title="transactron.evlog.consumer.EventConsumer"><code class="xref py py-class docutils literal notranslate"><span class="pre">EventConsumer</span></code></a> and declare one handler per event type with <a class="reference internal" href="transactron.evlog.html#transactron.evlog.consumer.handles" title="transactron.evlog.consumer.handles"><code class="xref py py-deco docutils literal notranslate"><span class="pre">&#64;handles</span></code></a>; dispatch is keyed by the registered event name:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">transactron.evlog</span><span class="w"> </span><span class="kn">import</span> <span class="n">DecodedEvent</span><span class="p">,</span> <span class="n">EventConsumer</span><span class="p">,</span> <span class="n">EventLogReader</span><span class="p">,</span> <span class="n">handles</span>
 
 <span class="k">class</span><span class="w"> </span><span class="nc">KonataConverter</span><span class="p">(</span><span class="n">EventConsumer</span><span class="p">):</span>
@@ -188,7 +186,7 @@
 
   <div role="contentinfo">
     <p>&#169; Copyright Kuźnia Rdzeni, 2026.
-      <span class="lastupdated">Last updated on 16:51 2026-07-06.
+      <span class="lastupdated">Last updated on 14:37 2026-07-07.
       </span></p>
   </div>
 
