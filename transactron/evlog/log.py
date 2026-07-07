@@ -18,7 +18,7 @@ __all__ = [
 ]
 
 
-RawEvent = tuple[int, int, list[int]]
+type RawEvent = tuple[int, int, list[int]]
 """A raw event record: (cycle, site index, dynamic field values in schema order)."""
 
 

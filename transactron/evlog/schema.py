@@ -1,6 +1,6 @@
 from collections.abc import Iterable
 from dataclasses import dataclass, field
-from typing import Any, Optional, TypeAlias
+from typing import Any, Optional
 
 from dataclasses_json import dataclass_json
 
@@ -20,7 +20,7 @@ __all__ = [
 ]
 
 
-SignalHandle: TypeAlias = list[str]
+type SignalHandle = list[str]
 """The location of a signal in generated Verilog code: a list of Verilog
 identifiers denoting a path of module names with the signal name at the end."""
 

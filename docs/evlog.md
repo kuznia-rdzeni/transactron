@@ -91,7 +91,7 @@ $ transactron-evlog -m coreblocks.telemetry -f "ftq" -c 8:10 events.jsonl
 
 `--schema` prints a summary of the emission sites instead; `-x`/`-d` force hex/decimal field values.
 
-Consumers subclass {py:class}`~transactron.evlog.consumer.EventConsumer` and declare one handler per event type with {py:func}`~transactron.evlog.consumer.handles`; dispatch is keyed by the registered event name:
+Consumers subclass {py:class}`~transactron.evlog.consumer.EventConsumer` and declare one handler per event type with {py:deco}`~transactron.evlog.consumer.handles`; dispatch is keyed by the registered event name:
 
 ```python
 from transactron.evlog import DecodedEvent, EventConsumer, EventLogReader, handles

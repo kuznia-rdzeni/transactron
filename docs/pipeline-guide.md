@@ -1,6 +1,6 @@
 # Pipeline Builder
 
-The Pipeline Builder is a helper for constructing transactional pipelines in Transactron.
+The {py:class}`Pipeline Builder <transactron.lib.pipeline.PipelineBuilder>` is a helper for constructing transactional pipelines in Transactron.
 It lets you combine external methods, function-based stages, and method calls into a single flow with automatic data forwarding.
 
 ## Overview
@@ -20,16 +20,16 @@ Main use cases:
 ### Node Types
 
 Pipelines can contain three node kinds:
-1. `add_external(method, ...)`: pipeline provides (defines) a method body.
-2. `call_method(method, ...)`: pipeline calls an existing method.
-3. `@stage(...)`: function-based stage converted to a transactional method.
+1. {py:meth}`~transactron.lib.pipeline.PipelineBuilder.add_external`: pipeline provides (defines) a method body.
+2. {py:meth}`~transactron.lib.pipeline.PipelineBuilder.call_method`: pipeline calls an existing method.
+3. {py:deco}`~transactron.lib.pipeline.PipelineBuilder.stage`: function-based stage converted to a transactional method.
 
 ### Live Signals
 
 At each position in the pipeline, a set of live signals is tracked.
 Stages can consume any currently live signals they declare as inputs and add/overwrite outputs.
 
-`PipelineBuilder.get_live_signals()` can be used to inspect this state before elaboration.
+{py:meth}`~transactron.lib.pipeline.PipelineBuilder.get_live_signals` can be used to inspect this state before elaboration.
 
 ## Happens-Before Semantics
 
@@ -122,7 +122,7 @@ Current implementation uses `BasicFifo` internally.
 
 ## Example: Pipelined Multiplier
 
-The following complete example demonstrates a multi-stage arithmetic pipeline using `PipelineBuilder`:
+The following complete example demonstrates a multi-stage arithmetic pipeline using {py:class}`~transactron.lib.pipeline.PipelineBuilder`:
 
 ```{literalinclude} _code/pipelined_mult.py
 ```
