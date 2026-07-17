@@ -135,7 +135,8 @@ class PreservedOrderAllocator(Elaboratable):
     def elaborate(self, platform) -> TModule:
         m = TModule()
 
-        order = Signal(ArrayLayout(range(self.entries), self.entries), init=list(range(self.entries)))
+        # TODO: was originally an ArrayLayout but this triggered a Yosys bug.
+        order = Array(Signal(range(self.entries), init=entry) for entry in range(self.entries))
         used = Signal(range(self.entries + 1))
         incr_used = Signal(range(self.entries + 1))
 
@@ -163,7 +164,7 @@ class PreservedOrderAllocator(Elaboratable):
 
         @def_method(m, self.order, nonexclusive=True)
         def _():
-            return {"used": used, "order": order}
+            return {"used": used, "order": [order[i] for i in range(self.entries)]}
 
         @def_method(m, self.clear, nonexclusive=True)
         def _():
