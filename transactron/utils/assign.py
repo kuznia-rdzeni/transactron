@@ -4,7 +4,7 @@ from collections.abc import Sequence, Iterable, Mapping
 from amaranth import *
 from amaranth.hdl import ShapeLike, ValueCastable
 from amaranth.hdl._ast import ArrayProxy, Slice
-from amaranth.lib import data
+from amaranth.lib import data, enum
 from amaranth_types import ValueLike
 
 if TYPE_CHECKING:
@@ -43,7 +43,7 @@ def arrayproxy_fields(proxy: ArrayProxy) -> Optional[set[str | int]]:
 def assign_arg_fields(val: AssignArg) -> Optional[set[str | int]]:
     if isinstance(val, ArrayProxy):
         return arrayproxy_fields(val)
-    elif isinstance(val, data.View):
+    elif isinstance(val, (data.View, data.Const)):
         layout = val.shape()
         if isinstance(layout, data.StructLayout):
             return set(k for k in layout.members)
@@ -56,8 +56,11 @@ def assign_arg_fields(val: AssignArg) -> Optional[set[str | int]]:
 
 
 def valuelike_shape(val: ValueLike) -> ShapeLike:
+    val_type = type(val)
     if isinstance(val, Value) or isinstance(val, ValueCastable):
         return val.shape()
+    elif isinstance(val_type, enum.EnumType):  # hack for enums
+        return val_type
     else:
         return Value.cast(val).shape()
 
@@ -136,8 +139,8 @@ def assign(
             lhs[name],  # type: ignore
             rhs[name],  # type: ignore
             fields=subfields,
-            lhs_strict=isinstance(lhs, ValueLike),
-            rhs_strict=isinstance(rhs, ValueLike),
+            lhs_strict=isinstance(lhs, ValueLike) and not isinstance(lhs[name], int),  # type: ignore
+            rhs_strict=isinstance(rhs, ValueLike) and not isinstance(rhs[name], int),  # type: ignore
         )
 
     if lhs_fields is not None and rhs_fields is not None:
@@ -147,12 +150,14 @@ def assign(
             or isinstance(lhs, Mapping)
             or isinstance(lhs, Sequence)
             or isinstance(lhs, data.View)
+            or isinstance(lhs, data.Const)
         )
         assert (
             isinstance(rhs, ArrayProxy)
             or isinstance(rhs, Mapping)
             or isinstance(rhs, Sequence)
             or isinstance(rhs, data.View)
+            or isinstance(rhs, data.Const)
         )
 
         if fields is AssignType.COMMON:
