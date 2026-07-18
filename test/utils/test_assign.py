@@ -1,16 +1,31 @@
+from collections.abc import Mapping, Sequence
+from amaranth import ValueCastable
 import pytest
+import random
+import enum as pyenum
 from typing import Callable
 from amaranth import *
 from amaranth.lib import data
-from amaranth.lib.enum import Enum
+from amaranth.lib import enum
 from amaranth.hdl._ast import ArrayProxy, SwitchValue, Slice
+from amaranth_types import ShapeLike
 
 from transactron.utils.typing import MethodLayout
 from transactron.utils import AssignType, assign
 from transactron.utils.assign import AssignArg, AssignFields
 
 
-class ExampleEnum(Enum, shape=1):
+class ExampleEnum(enum.Enum, shape=1):
+    ZERO = 0
+    ONE = 1
+
+
+class ExamplePyEnum(enum.Enum):
+    ZERO = 0
+    ONE = 1
+
+
+class ExampleIntEnum(enum.IntEnum, shape=1):
     ZERO = 0
     ONE = 1
 
@@ -24,6 +39,8 @@ layout_ab = [("a", 1), ("b", 2)]
 layout_ac = [("a", 1), ("c", 3)]
 layout_a_alt = [("a", 2)]
 layout_a_enum = [("a", ExampleEnum)]
+layout_a_pyenum = [("a", ExamplePyEnum)]
+layout_a_intenum = [("a", ExampleIntEnum)]
 
 # Defines functions build, wrap, extr used in TestAssign
 params_funs = {
@@ -59,6 +76,60 @@ def reclayout2datalayout(layout):
 
 def mkstruct(layout):
     return Signal(reclayout2datalayout(layout))
+
+
+type ConstType = int | pyenum.Enum | data.Const | Mapping[str, ConstType] | Sequence[ConstType]
+
+
+def const_from_shape(shape: ShapeLike) -> ConstType:
+    if isinstance(shape, int):
+        return random.randrange(2**shape)
+    elif isinstance(shape, Shape):
+        if shape.signed:
+            return random.randrange(-(2 ** (shape.width - 1)) - 1, 2 ** (shape.width - 1))
+        else:
+            return random.randrange(2**shape.width)
+    elif isinstance(shape, pyenum.EnumType):
+        if random.randrange(2) or issubclass(shape, enum.Enum):  # enums are strict
+            return random.choice(list(shape))
+        else:
+            return random.choice(list(shape)).value
+    elif isinstance(shape, data.StructLayout):
+        d = {k: const_from_shape(l) for k, l in shape.members.items()}
+        if random.randrange(2):
+            return shape.const(d)  # type: ignore # dict invariance
+        else:
+            return d
+    elif isinstance(shape, data.UnionLayout):
+        k = random.choice(list(shape.members.keys()))
+        d = {k: const_from_shape(shape.members[k])}
+        if random.randrange(2):
+            return shape.const(d)  # type: ignore # dict invariance
+        else:
+            return d
+    elif isinstance(shape, data.ArrayLayout):
+        s = tuple(const_from_shape(shape.elem_shape) for _ in range(shape.length))
+        if random.randrange(2):
+            return shape.const(s)
+        else:
+            return s
+    else:
+        raise ValueError("shape unsupported: %s" % shape)
+
+
+def const_from_assignarg(arg: AssignArg) -> AssignArg:
+    if isinstance(arg, Value) or isinstance(arg, ValueCastable):
+        return const_from_shape(arg.shape())
+    elif isinstance(arg, Sequence):
+        return tuple(const_from_assignarg(v) for v in arg)
+    elif isinstance(arg, Mapping):
+        return {k: const_from_assignarg(v) for k, v in arg.items()}  # type: ignore
+    elif isinstance(arg, (int, pyenum.Enum)):
+        raise ValueError("const in lhs")
+
+
+def mkconst(layout):
+    return const_from_assignarg(mkstruct(layout))
 
 
 params_mk = [
@@ -144,6 +215,25 @@ class TestAssign:
         assert len(alist) == 1
         self.assertIs_AP(alist[0].lhs, self.extrl(lhs).a)
         self.assertIs_AP(alist[0].rhs, self.extrr(rhs).a)
+
+    @pytest.mark.parametrize(
+        "name, layout",
+        [
+            ("a", layout_a),
+            ("ab", layout_ab),
+            ("a_enum", layout_a_enum),
+            ("a_pyenum", layout_a_pyenum),
+            ("a_intenum", layout_a_intenum),
+        ],
+    )
+    def test_assign_const(self, name, layout):
+        if self.mk.__wrapped__ == mkproxy:  # type: ignore # Arrays are troublesome
+            return
+        lhs = self.buildl(self.mk, layout)
+        for _ in range(100):
+            rhs = self.buildr(mkconst, layout)
+            alist = list(assign(lhs, rhs))
+            assert len(alist) == len(layout)
 
     def assertIs_AP(self, expr1, expr2):  # noqa: N802
         expr1 = Value.cast(expr1)
