@@ -1,6 +1,9 @@
 from collections.abc import Callable, Sequence
+from contextlib import contextmanager
+from typing import override
 import pytest
 import random
+import logging as pylog
 from amaranth import *
 from amaranth.sim import *
 from amaranth.lib.data import StructLayout
@@ -8,6 +11,7 @@ from amaranth.lib.data import StructLayout
 from transactron.testing import TestCaseWithSimulator, TestbenchIO, data_layout, SimpleTestCircuit
 
 from transactron import *
+from transactron.testing.logging import make_logging_process
 from transactron.utils import MethodStruct
 from transactron.lib import *
 
@@ -935,3 +939,77 @@ class TestNonexclusiveMultiple(TestCaseWithSimulator):
 
         with self.run_simulation(dut) as sim:
             sim.add_testbench(process)
+
+
+class AlwaysCallCicruit(Elaboratable):
+    def __init__(self):
+        self.ok = Signal()
+
+    def elaborate(self, platform):
+        m = TModule()
+
+        method = Method(o=[("data", 8)])
+
+        @def_method(m, method, nonexclusive=True)
+        def _():
+            return {"data": 42}
+
+        m.d.comb += self.ok.eq(
+            Cat(method.always_call(m).data == 42, method.always_call(m).data == 42, method.run).all()
+        )
+
+        return m
+
+
+class TestAlwaysCall(TestCaseWithSimulator):
+    def test_always_call(self):
+        m = AlwaysCallCicruit()
+        dut = SimpleTestCircuit(m)
+
+        async def process(sim):
+            for _ in range(10):
+                await sim.tick()
+                assert sim.get(m.ok)
+
+        with self.run_simulation(dut) as sim:
+            sim.add_testbench(process)
+
+
+class AlwaysCallFailCircuit(Elaboratable):
+    def elaborate(self, platform):
+        m = TModule()
+
+        method = Method(o=[("data", 8)])
+
+        @def_method(m, method)
+        def _():
+            return {"data": 42}
+
+        # one of those will not be satisfied
+        method.always_call(m)
+        method.always_call(m)
+
+        return m
+
+
+class TestAlwaysCallFail(TestCaseWithSimulator):
+    @override
+    @contextmanager
+    def _configure_logging(self):
+        def on_error():
+            assert False
+
+        self._transactron_sim_processes_to_add.append(lambda: make_logging_process(pylog.DEBUG, ".*", on_error))
+        yield
+
+    def test_always_call_fail(self):
+        with pytest.raises(AssertionError):
+            m = AlwaysCallFailCircuit()
+            dut = SimpleTestCircuit(m)
+
+            with self.run_simulation(dut) as sim:
+
+                async def process(sim):
+                    await sim.tick()
+
+                sim.add_testbench(process)
