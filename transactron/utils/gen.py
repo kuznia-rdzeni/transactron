@@ -5,6 +5,7 @@ from typing import Iterable, Optional, TypeAlias
 from amaranth import *
 from amaranth.back import verilog
 from amaranth.hdl import Fragment, ValueCastable
+from amaranth.build import Platform
 from amaranth_types import AbstractInterface
 
 from transactron.core import TransactionManager
@@ -304,6 +305,7 @@ def generate_verilog(
     elaboratable: Elaboratable,
     ports: Optional[list[Value]] = None,
     top_name: str = "top",
+    platform: Optional[Platform] = None,
     *,
     enable_hacks: Iterable[str] = {},
 ) -> tuple[str, GenerationInfo]:
@@ -317,7 +319,7 @@ def generate_verilog(
         raise TypeError("The `generate_verilog()` function requires a `ports=` argument")
 
     wrapped_elaboratable = VerilogDebugWrapper(elaboratable)
-    design = Fragment.get(wrapped_elaboratable, platform=None).prepare(ports=ports)
+    design = Fragment.get(wrapped_elaboratable, platform=platform).prepare(ports=ports)
 
     if "fixup_vivado_transparent_memories" in enable_hacks:
         fixup_vivado_transparent_memories(design)
