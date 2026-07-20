@@ -214,3 +214,25 @@ class TestLogWrapper(LogTestCaseWithSimulator):
             WARNING test_logger: Input is even! input=0, counter=1
             """
         )
+
+
+class TestLogFormatInvalid(TestCaseWithSimulator):
+    def test_bad_type(self):
+        with pytest.raises(ValueError):
+            a = Signal(2)
+            log.top_assertion(1, "bad format {:q}", a)
+
+    def test_too_few_args(self):
+        with pytest.raises(IndexError):
+            a = Signal(2)
+            log.top_assertion(1, "bad format {}, {}", a)
+
+    def test_too_many_args(self):
+        with pytest.raises(ValueError):
+            a = Signal(2)
+            log.top_assertion(1, "bad format {}", a, a)
+
+    def test_valid_amaranth_format_invalid_python_format(self):
+        with pytest.raises(ValueError):
+            a = Signal(8)
+            log.top_assertion(1, "bad format {:s}", a)
