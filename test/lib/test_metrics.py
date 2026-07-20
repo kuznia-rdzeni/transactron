@@ -515,6 +515,7 @@ class TestMetricsManager(TestCaseWithSimulator):
     def test_metrics_metadata(self):
         # We need to initialize the circuit to make sure that metrics are registered
         # in the dependency manager.
+        DependencyContext.get().add_dependency(HwMetricsEnabledKey(), True)
         m = MetricManagerTestCircuit()
         metrics_manager = HardwareMetricsManager()
 

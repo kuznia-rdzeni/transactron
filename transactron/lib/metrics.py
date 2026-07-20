@@ -165,11 +165,12 @@ class HwMetric(ABC, MetricModel):
 
         self.signals: dict[str, Signal] = {}
 
-        # add the metric to the global list of all metrics
-        DependencyContext.get().add_dependency(HwMetricsListKey(), self)
-
-        # So Amaranth doesn't report that the module is unused when metrics are disabled
-        self._MustUse__silence = True  # type: ignore
+        if HwMetric.metrics_enabled():
+            # add the metric to the global list of all metrics
+            DependencyContext.get().add_dependency(HwMetricsListKey(), self)
+        else:
+            # So Amaranth doesn't report that the module is unused when metrics are disabled
+            self._MustUse__silence = True  # type: ignore
 
     def add_registers(self, regs: list[HwMetricRegister]):
         """
