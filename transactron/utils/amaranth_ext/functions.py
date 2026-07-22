@@ -1,4 +1,4 @@
-from typing import Any, Optional, cast
+from typing import Any, Optional, cast, overload
 from amaranth import *
 from amaranth.hdl import ShapeCastable, ValueCastable
 from amaranth.hdl._ast import SwitchValue
@@ -7,7 +7,7 @@ from amaranth.lib import data
 from collections.abc import Callable, Iterable, Mapping, Sequence
 import operator
 
-from amaranth_types import SrcLoc, SwitchKey
+from amaranth_types import FlatValueLike, SrcLoc, SwitchKey
 from amaranth_types.types import ValueLike, ShapeLike
 from transactron.utils.transactron_helpers import get_src_loc
 from transactron.utils.typing import ValueBundle
@@ -201,7 +201,38 @@ def max_value(*values: ValueBundle) -> Value:
     return generic_min_value(*values, operator=operator.gt)
 
 
-def switch_value(test: ValueLike, cases: Iterable[tuple[SwitchKey | tuple[SwitchKey, ...] | None, ValueLike]], *, src_loc: int | SrcLoc = 0) -> ValueLike:
+@overload
+def switch_value(
+    test: ValueLike,
+    cases: Iterable[tuple[SwitchKey | tuple[SwitchKey, ...] | None, FlatValueLike]],
+    *,
+    src_loc: int | SrcLoc = 0,
+) -> Value: ...
+
+
+@overload
+def switch_value[
+    T: ValueCastable
+](
+    test: ValueLike, cases: Iterable[tuple[SwitchKey | tuple[SwitchKey, ...] | None, T]], *, src_loc: int | SrcLoc = 0
+) -> T: ...
+
+
+@overload
+def switch_value(
+    test: ValueLike,
+    cases: Iterable[tuple[SwitchKey | tuple[SwitchKey, ...] | None, ValueLike]],
+    *,
+    src_loc: int | SrcLoc = 0,
+) -> ValueLike: ...
+
+
+def switch_value(
+    test: ValueLike,
+    cases: Iterable[tuple[SwitchKey | tuple[SwitchKey, ...] | None, ValueLike]],
+    *,
+    src_loc: int | SrcLoc = 0,
+) -> ValueLike:
     src_loc = get_src_loc(src_loc)
     cases = list(cases)
     case_shapes = [shape_of(val) for _, val in cases]
@@ -214,7 +245,19 @@ def switch_value(test: ValueLike, cases: Iterable[tuple[SwitchKey | tuple[Switch
         return SwitchValue(test, cases, src_loc=src_loc)
 
 
-def mux(sel: ValueLike, val1: ValueLike, val0: ValueLike):
+@overload
+def mux(sel: ValueLike, val1: FlatValueLike, val0: FlatValueLike) -> Value: ...
+
+
+@overload
+def mux[T: ValueCastable](sel: ValueLike, val1: T, val0: T) -> T: ...
+
+
+@overload
+def mux(sel: ValueLike, val1: ValueLike, val0: ValueLike) -> ValueLike: ...
+
+
+def mux(sel: ValueLike, val1: ValueLike, val0: ValueLike) -> ValueLike:
     return switch_value(sel, [(0, val0), (None, val1)], src_loc=1)
 
 
