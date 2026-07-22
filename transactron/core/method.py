@@ -6,20 +6,18 @@ from transactron.utils import *
 from amaranth import *
 from amaranth import tracer
 from amaranth_types import ValueLike
-from typing import TYPE_CHECKING, Annotated, Optional, Iterator, TypeAlias, TypeVar, Unpack, overload
+from typing import Annotated, Optional, Iterator, TypeAlias, TypeVar, Unpack, overload
 from .transaction_base import *
 from contextlib import contextmanager
 from transactron.utils.assign import AssignArg
 from transactron.utils.typing import type_self_add_1pos_kwargs_as
+from transactron.utils import assertion, get_src_loc
 
 from .body import Body, BodyParams, MBody
 from .keys import DefinedMethodsKey, ProvidedMethodsKey
 from .tmodule import TModule
 from .transaction_base import TransactionBase
-
-
-if TYPE_CHECKING:
-    from .transaction import Transaction  # noqa: F401
+from .transaction import Transaction
 
 
 __all__ = ["MethodDir", "Provided", "Required", "Method", "Methods"]
@@ -332,6 +330,35 @@ class Method(TransactionBase["Transaction | Method"]):
     def debug_signals(self) -> ValueBundle:
         return [self.ready, self.run, self.data_in, self.data_out]
 
+    def always_call(
+        self, m: TModule, arg: Optional[AssignArg] = None, /, enable_call: ValueLike = C(1), **kwargs: AssignArg
+    ) -> MethodStruct:
+        """Call a method, such as it is always called in control flow.
+
+        Sugar for:
+        .. highlight:: python
+        .. code-block:: python
+
+            with Transaction().body(m) as t:
+                ret = method(m, *args, **kwargs)
+            assertion(m, t.run, ...)
+
+        Useful for methods which are known to be always ready from external context and
+        when it is needed for logic outside of transactions.
+
+        Parameters and return values are the same as `__call__`.
+        """
+
+        with Transaction().body(m) as t:
+            ret = self(m, arg, enable_call=enable_call, **kwargs)
+        assertion(
+            m,
+            t.run,
+            f"Method {self.name} {self.src_loc} was not ready or is not non-exclusive but used somewhere else",
+            src_loc=1,
+        )
+        return ret
+
 
 class Methods(Sequence[Method]):
     @type_self_add_1pos_kwargs_as(Method.__init__)
@@ -379,6 +406,13 @@ class Methods(Sequence[Method]):
         if len(self._methods) != 1:
             raise RuntimeError("calling Methods only allowed when count=1")
         return self._methods[0](m, arg, enable_call, **kwargs)
+
+    def always_call(
+        self, m: TModule, arg: Optional[AssignArg] = None, /, enable_call: ValueLike = C(1), **kwargs: AssignArg
+    ) -> MethodStruct:
+        if len(self._methods) != 1:
+            raise RuntimeError("calling Methods only allowed when count=1")
+        return self._methods[0].always_call(m, arg, enable_call, **kwargs)
 
     @overload
     def __getitem__(self, key: int) -> Method: ...
