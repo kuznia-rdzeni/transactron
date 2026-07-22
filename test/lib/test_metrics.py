@@ -3,11 +3,11 @@ import json
 import random
 import pytest
 from typing import Type, Optional
-from enum import IntFlag, IntEnum, auto, Enum
 from collections import deque
 
 from amaranth import *
 from amaranth.lib.data import ArrayLayout
+from amaranth.lib.enum import IntFlag, IntEnum, auto, Enum, Flag
 
 from transactron.lib.metrics import *
 from transactron import *
@@ -133,13 +133,25 @@ class TestHwCounter(TestCaseWithSimulator):
             sim.add_testbench(test_process)
 
 
-class OneHotEnum(IntFlag):
+class OneHotIntEnum(IntFlag):
     ADD = auto()
     XOR = auto()
     OR = auto()
 
 
 class PlainIntEnum(IntEnum):
+    TEST_1 = auto()
+    TEST_2 = auto()
+    TEST_3 = auto()
+
+
+class OneHotEnum(Flag, shape=3):
+    ADD = auto()
+    XOR = auto()
+    OR = auto()
+
+
+class PlainEnum(Enum, shape=2):
     TEST_1 = auto()
     TEST_2 = auto()
     TEST_3 = auto()
@@ -159,7 +171,7 @@ class TaggedCounterCircuit(Elaboratable):
 
         with Transaction().body(m):
             for k in range(len(self.cond)):
-                self.counter.incr[k](m, self.tag[k], enable_call=self.cond[k])
+                self.counter.incr[k](m, tag=self.tag[k], enable_call=self.cond[k])
 
         return m
 
@@ -169,7 +181,7 @@ class TestTaggedCounter(TestCaseWithSimulator):
     def setup_method(self) -> None:
         random.seed(42)
 
-    def do_test_enum(self, tags: range | Type[Enum] | list[int], tag_values: list[int], ways: int):
+    def do_test_enum(self, tags: range | type[Enum] | list[int], tag_values: list[int], ways: int):
         DependencyContext.get().add_dependency(HwMetricsEnabledKey(), True)
         m = TaggedCounterCircuit(tags, ways)
 
@@ -196,11 +208,17 @@ class TestTaggedCounter(TestCaseWithSimulator):
         with self.run_simulation(m) as sim:
             sim.add_testbench(test_process)
 
-    def test_one_hot_enum(self, ways: int):
-        self.do_test_enum(OneHotEnum, [e.value for e in OneHotEnum], ways)
+    def test_one_hot_int_enum(self, ways: int):
+        self.do_test_enum(OneHotIntEnum, [e.value for e in OneHotIntEnum], ways)
 
     def test_plain_int_enum(self, ways: int):
         self.do_test_enum(PlainIntEnum, [e.value for e in PlainIntEnum], ways)
+
+    def test_one_hot_enum(self, ways: int):
+        self.do_test_enum(OneHotEnum, [e.value for e in OneHotIntEnum], ways)
+
+    def test_plain_enum(self, ways: int):
+        self.do_test_enum(PlainEnum, [e.value for e in PlainIntEnum], ways)
 
     def test_negative_range(self, ways: int):
         r = range(-10, 15, 3)
