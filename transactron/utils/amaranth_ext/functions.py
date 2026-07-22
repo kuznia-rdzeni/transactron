@@ -1,4 +1,4 @@
-from typing import Any, Optional
+from typing import Any, Optional, cast
 from amaranth import *
 from amaranth.hdl import ShapeCastable, ValueCastable
 from amaranth.hdl._ast import SwitchValue
@@ -7,7 +7,9 @@ from amaranth.lib import data
 from collections.abc import Callable, Iterable, Mapping, Sequence
 import operator
 
+from amaranth_types import SrcLoc, SwitchKey
 from amaranth_types.types import ValueLike, ShapeLike
+from transactron.utils.transactron_helpers import get_src_loc
 from transactron.utils.typing import ValueBundle
 from transactron.utils.logging import top_assertion
 
@@ -28,6 +30,8 @@ __all__ = [
     "generic_min_value",
     "min_value",
     "max_value",
+    "switch_value",
+    "mux",
     "one_hot_mux",
 ]
 
@@ -195,6 +199,23 @@ def min_value(*values: ValueBundle) -> Value:
 
 def max_value(*values: ValueBundle) -> Value:
     return generic_min_value(*values, operator=operator.gt)
+
+
+def switch_value(test: ValueLike, cases: Iterable[tuple[SwitchKey | tuple[SwitchKey, ...] | None, ValueLike]], *, src_loc: int | SrcLoc = 0) -> ValueLike:
+    src_loc = get_src_loc(src_loc)
+    cases = list(cases)
+    case_shapes = [shape_of(val) for _, val in cases]
+    if all(isinstance(shape, ShapeCastable) for shape in case_shapes):
+        shape = cast(ShapeCastable, case_shapes[0])
+        if any(case_shape != shape for case_shape in case_shapes):
+            raise ValueError("Different ShapeCastables for different shapes")
+        return shape(SwitchValue(test, [(key, Value.cast(val)) for key, val in cases], src_loc=src_loc))
+    else:
+        return SwitchValue(test, cases, src_loc=src_loc)
+
+
+def mux(sel: ValueLike, val1: ValueLike, val0: ValueLike):
+    return switch_value(sel, [(0, val0), (None, val1)], src_loc=1)
 
 
 def one_hot_mux(
