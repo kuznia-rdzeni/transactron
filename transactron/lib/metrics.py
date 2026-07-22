@@ -316,22 +316,25 @@ class TaggedCounter(Elaboratable, HwMetric):
         else:
             counters_meta = [(i.value, i.name) for i in tags]
 
+        if isinstance(tags, list):
+            tags_shape = range(min(tags), max(tags) + 1)
+        else:
+            tags_shape = tags
+
         values = [value for value, _ in counters_meta]
         self.tag_width = max(bits_for(max(values)), bits_for(min(values)))
 
         self.one_hot = True
-        negative_values = False
         for value in values:
             if value < 0:
                 self.one_hot = False
-                negative_values = True
                 break
 
             log = ceil_log2(value)
             if 2**log != value:
                 self.one_hot = False
 
-        self.incr = self.wrap_method(Methods(ways, i=[("tag", Shape(self.tag_width, signed=negative_values))]))
+        self.incr = self.wrap_method(Methods(ways, i=[("tag", tags_shape)]))
 
         self.counters: dict[int, HwMetricRegister] = {}
         for tag_value, name in counters_meta:
