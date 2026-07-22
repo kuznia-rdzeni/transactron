@@ -3,7 +3,7 @@ from amaranth import *
 from amaranth.hdl import ShapeCastable, ValueCastable
 from amaranth.hdl._ast import SwitchValue
 from amaranth.utils import bits_for, ceil_log2
-from amaranth.lib import data
+from amaranth.lib import data, enum
 from collections.abc import Callable, Iterable, Mapping, Sequence
 import operator
 
@@ -147,10 +147,13 @@ def flatten_signals(signals: ValueBundle) -> Iterable[Value]:
 
 
 def shape_of(value: ValueLike) -> Shape | ShapeCastable:
+    value_type = type(value)
     if isinstance(value, ValueCastable):
         shape = value.shape()
         assert isinstance(shape, (Shape, ShapeCastable))
         return shape
+    elif isinstance(value_type, enum.EnumType):  # hack for enums
+        return value_type
     else:
         return Value.cast(value).shape()
 

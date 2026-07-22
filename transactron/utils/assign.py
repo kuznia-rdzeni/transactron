@@ -2,10 +2,11 @@ from enum import Enum
 from typing import Optional, TypeAlias, cast, TYPE_CHECKING
 from collections.abc import Sequence, Iterable, Mapping
 from amaranth import *
-from amaranth.hdl import ShapeLike, ValueCastable
+from amaranth.hdl import ValueCastable
 from amaranth.hdl._ast import ArrayProxy, Slice
-from amaranth.lib import data, enum
+from amaranth.lib import data
 from amaranth_types import ValueLike
+from transactron.utils.amaranth_ext.functions import shape_of
 
 if TYPE_CHECKING:
     from amaranth.hdl._ast import Assign
@@ -53,16 +54,6 @@ def assign_arg_fields(val: AssignArg) -> Optional[set[str | int]]:
         return set(val.keys())
     elif isinstance(val, list):
         return set(range(len(val)))
-
-
-def valuelike_shape(val: ValueLike) -> ShapeLike:
-    val_type = type(val)
-    if isinstance(val, Value) or isinstance(val, ValueCastable):
-        return val.shape()
-    elif isinstance(val_type, enum.EnumType):  # hack for enums
-        return val_type
-    else:
-        return Value.cast(val).shape()
 
 
 def is_union(val: AssignArg):
@@ -219,10 +210,10 @@ def assign(
             or (lhs_strict or has_explicit_shape(lhs))
             and (rhs_strict or has_explicit_shape(rhs))
         ):
-            if valuelike_shape(lhs) != valuelike_shape(rhs):
+            if shape_of(lhs) != shape_of(rhs):
                 raise ValueError(
                     "Shapes not matching: lhs: {} {} rhs: {} {}".format(
-                        valuelike_shape(lhs), repr(lhs), valuelike_shape(rhs), repr(rhs)
+                        shape_of(lhs), repr(lhs), shape_of(rhs), repr(rhs)
                     )
                 )
 
