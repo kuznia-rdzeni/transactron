@@ -343,32 +343,21 @@ class Method(TransactionBase["Transaction | Method"]):
                 ret = method(m, *args, **kwargs)
             assertion(m, t.run, ...)
 
-        if not in a transaction body, and for
-        .. highlight:: python
-        .. code-block:: python
-
-            method(m, *args, **kwargs)
-
-        if in a transaction body.
-
         Useful for methods which are known to be always ready from external context and
         when it is needed for logic outside of transactions.
 
         Parameters and return values are the same as `__call__`.
         """
 
-        if Body.peek() is None:
-            with Transaction().body(m) as t:
-                ret = self(m, arg, enable_call=enable_call, **kwargs)
-            assertion(
-                m,
-                t.run,
-                f"Method {self.name} {self.src_loc} was not ready or is not non-exclusive but used somewhere else",
-                src_loc=1,
-            )
-            return ret
-        else:
-            return self(m, arg, enable_call=enable_call, **kwargs)
+        with Transaction().body(m) as t:
+            ret = self(m, arg, enable_call=enable_call, **kwargs)
+        assertion(
+            m,
+            t.run,
+            f"Method {self.name} {self.src_loc} was not ready or is not non-exclusive but used somewhere else",
+            src_loc=1,
+        )
+        return ret
 
 
 class Methods(Sequence[Method]):
