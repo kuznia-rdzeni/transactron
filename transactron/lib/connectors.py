@@ -196,7 +196,6 @@ class Pipe(Elaboratable):
         self.peek = Method(o=layout, src_loc=src_loc)
         self.write = Method(i=layout, src_loc=src_loc)
         self.clear = Method()
-        self.head = Signal.like(self.read.data_out)
 
     def elaborate(self, platform):
         m = TModule()
