@@ -53,8 +53,11 @@ class Transaction(TransactionBase["Transaction | Method"]):
     ready: Signal, in
         Signals that the transaction wants to run. If omitted, the transaction
         is always ready. Defined in the constructor.
+    allocatable: Signal, out
+        Signals that the transaction and all used methods are ready.
     runnable: Signal, out
-        Signals that all used methods are ready.
+        Signals that the transaction is allocatable and all would-be called methods
+        have arguments valid and are runnable.
     run: Signal, out
         Signals that the transaction is run by the `TransactionManager`.
     """
@@ -78,7 +81,9 @@ class Transaction(TransactionBase["Transaction | Method"]):
         self.owner, owner_name = get_caller_class_name(default="$transaction")
         self.name = name or tracer.get_var_name(depth=2, default=owner_name)
         DependencyContext.get().add_dependency(TransactionsKey(), self)
+
         self.ready = Signal(name=self.owned_name + "_ready")
+        self.allocatable = Signal(name=self.owned_name + "_allocatable")
         self.runnable = Signal(name=self.owned_name + "_runnable")
         self.run = Signal(name=self.owned_name + "_run")
 
@@ -95,6 +100,7 @@ class Transaction(TransactionBase["Transaction | Method"]):
             raise ValueError(f"Transaction body {value.name} {value.src_loc} has invalid interface")
         self._body_ptr = value
         m.d.top_comb += self.ready.eq(value.ready)
+        m.d.top_comb += self.allocatable.eq(value.allocatable)
         m.d.top_comb += self.runnable.eq(value.runnable)
         m.d.top_comb += self.run.eq(value.run)
 
@@ -136,4 +142,4 @@ class Transaction(TransactionBase["Transaction | Method"]):
         return "(transaction {})".format(self.name)
 
     def debug_signals(self) -> ValueBundle:
-        return [self.ready, self.runnable, self.run]
+        return [self.ready, self.allocatable, self.runnable, self.run]

@@ -62,6 +62,11 @@ class Method(TransactionBase["Transaction | Method"]):
     ready: Signal, in
         Signals that the method is ready to run in the current cycle.
         Typically defined by calling `body`.
+    allocatable: Signal, out
+        Signals that the method and all used methods are ready.
+    runnable: Signal, out
+        Signals that the transaction is allocatable and all would-be called methods
+        have arguments valid and are runnable.
     run: Signal, out
         Signals that the method is called in the current cycle by some
         `Transaction`. Defined by the `TransactionManager`.
@@ -97,6 +102,8 @@ class Method(TransactionBase["Transaction | Method"]):
         self.owner, owner_name = get_caller_class_name(default="$method")
         self.name = name or tracer.get_var_name(depth=2, default=owner_name)
         self.ready = Signal(name=self.owned_name + "_ready")
+        self.allocatable = Signal(name=self.owned_name + "_allocatable")
+        self.runnable = Signal(name=self.owned_name + "_runnable")
         self.run = Signal(name=self.owned_name + "_run")
         self.data_in: MethodStruct = Signal(from_method_layout(i), name=self.owned_name + "_data_in")
         self.data_out: MethodStruct = Signal(from_method_layout(o), name=self.owned_name + "_data_out")
@@ -250,6 +257,8 @@ class Method(TransactionBase["Transaction | Method"]):
         # - The waveforms will be available in the module which defined the method.
         # - This simulates faster in pysim.
         m.d.top_comb += self.ready.eq(body.ready)
+        m.d.top_comb += self.allocatable.eq(body.allocatable)
+        m.d.top_comb += self.runnable.eq(body.runnable)
         m.d.top_comb += self.run.eq(body.run)
         m.d.top_comb += self.data_in.eq(body.data_in)
         m.d.top_comb += self.data_out.eq(body.data_out)
@@ -330,7 +339,7 @@ class Method(TransactionBase["Transaction | Method"]):
         return "(method {})".format(self.name)
 
     def debug_signals(self) -> ValueBundle:
-        return [self.ready, self.run, self.data_in, self.data_out]
+        return [self.ready, self.allocatable, self.runnable, self.run, self.data_in, self.data_out]
 
 
 class Methods(Sequence[Method]):

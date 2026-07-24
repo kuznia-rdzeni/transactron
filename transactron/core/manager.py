@@ -504,33 +504,35 @@ class TransactionManager(Elaboratable):
         # Signals assigned here because `method.provide` sometimes needs to be used without a TModule.
         # Unfortunately, assignments across modules seem to cause a performance hit in pysim.
         provided_methods = DependencyContext.get().get_dependency(ProvidedMethodsKey())
-        for method in chain(provided_methods):
+        for method in provided_methods:
             m.d.comb += method.ready.eq(method._body.ready)
+            m.d.comb += method.allocatable.eq(method._body.allocatable)
+            m.d.comb += method.runnable.eq(method._body.runnable)
             m.d.comb += method.run.eq(method._body.run)
             m.d.comb += method.data_in.eq(method._body.data_in)
             m.d.comb += method.data_out.eq(method._body.data_out)
 
-        for transaction in method_map.transactions:
-
-            def validate_args_for_method(method: MBody):
-                calls = method_map.info_by_call[(transaction, method)]
-                combined = OneHotMux.create(m, [(call.enable, call.arg) for call in calls])
-                return method._validate_arguments(Cat(call.enable for call in calls).any(), combined)
-
-            runnable_terms = [
-                validate_args_for_method(method) for method in method_map.methods_by_transaction[transaction]
-            ]
-            runnable_terms.extend(
-                dep.run for body in method_map.ready_for_transaction(transaction) for dep in ready_dependencies[body]
+        for body in method_map.methods_and_transactions:
+            # body is allocatable iif it is ready, all its ready dependencies are running
+            # and all its called methods are allocatable
+            m.d.comb += body.allocatable.eq(
+                body.ready
+                & Cat(dep.run for dep in ready_dependencies[body]).all()
+                & Cat(method.allocatable for method in body.method_calls.keys()).all()
             )
-            m.d.comb += transaction.runnable.eq(Cat(runnable_terms).all())
 
-        for method, transactions in method_map.transactions_by_method.items():
-            granted = Cat(
-                transaction.run & Cat(call.enable for call in method_map.info_by_call[(transaction, method)]).any()
-                for transaction in transactions
-            )
-            m.d.comb += method.run.eq(granted.any())
+            # body is runnable iif it is allocatable and all would-be called methods
+            # have arguments valid and are runnable.
+            args_valid = []
+            for method, calls in body.method_calls.items():
+                called = Cat(enable for _, _, enable in calls).any()
+
+                def get_arg():
+                    return OneHotMux.create(m, [(enable, arg) for _, arg, enable in calls])
+
+                args_valid.append(~called | (method.runnable & method._body._validate_arguments(get_arg)))
+
+            m.d.comb += body.runnable.eq(body.allocatable & Cat(args_valid).all())
 
         ccs = _graph_ccs(cgr)
         (method_args, method_runs) = self._method_calls(m, method_map)
@@ -539,6 +541,7 @@ class TransactionManager(Elaboratable):
             if method.single_caller and len(method_args[method]) > 1:
                 raise RuntimeError(f"Single-caller method '{method.name}' {method.src_loc} called more than once")
             runs = Cat(method_runs[method])
+            m.d.comb += method.run.eq(runs.any())
             m.d.comb += assign(method.data_in, method.combiner(m, method_args[method], runs), fields=AssignType.ALL)
 
         m.submodules._transactron_schedulers = ModuleConnector(

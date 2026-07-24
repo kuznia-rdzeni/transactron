@@ -57,6 +57,7 @@ class Body(TransactionBase["Body"]):
         self.name = name
         self.owner = owner
         self.ready = Signal(name=self.owned_name + "_ready")
+        self.allocatable = Signal(name=self.owned_name + "_allocatable")
         self.runnable = Signal(name=self.owned_name + "_runnable")
         self.run = Signal(name=self.owned_name + "_run")
         self.data_in: MethodStruct = Signal(from_method_layout(i), name=self.owned_name + "_data_in")
@@ -82,10 +83,10 @@ class Body(TransactionBase["Body"]):
             if any(len(ctrl_path.path) > len(self.ctrl_path.path) + 1 for ctrl_path, _, _ in calls)
         }
 
-    def _validate_arguments(self, en: Value, arg_rec: MethodStruct) -> ValueLike:
+    def _validate_arguments(self, arg_rec: Callable[[], MethodStruct]) -> ValueLike:
         if self.validate_arguments is not None:
-            return self.ready & (~en | method_def_helper(self, self.validate_arguments, arg_rec))
-        return self.ready
+            return method_def_helper(self, self.validate_arguments, arg_rec())
+        return C(1)
 
     @contextmanager
     def context(self, m: TModule) -> Iterator["Body"]:
