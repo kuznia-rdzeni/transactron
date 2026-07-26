@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Optional, Iterator
 from transactron.utils.typing import ValueBundle
 from transactron.utils.dependencies import DependencyContext
 from transactron.utils.transactron_helpers import get_caller_class_name, get_src_loc
-from transactron.utils.logging import HardwareLogger, assertion
+from transactron.utils.logging import HardwareLogger
 from .keys import *
 from contextlib import contextmanager
 from .body import Body, TBody
@@ -91,13 +91,9 @@ class Transaction(TransactionBase["Transaction | Method"]):
 
     def _set_impl(self, m: TModule, value: Body):
         if self._body_ptr is not None:
-            raise RuntimeError(
-                f"Transaction '{self.name}' {self.src_loc} already defined"
-            )
+            raise RuntimeError(f"Transaction '{self.name}' {self.src_loc} already defined")
         if value.data_in.shape().size != 0 or value.data_out.shape().size != 0:
-            raise ValueError(
-                f"Transaction body {value.name} {value.src_loc} has invalid interface"
-            )
+            raise ValueError(f"Transaction body {value.name} {value.src_loc} has invalid interface")
         self._body_ptr = value
         m.d.top_comb += self.ready.eq(value.ready)
         m.d.top_comb += self.runnable.eq(value.runnable)
@@ -148,9 +144,7 @@ class Transaction(TransactionBase["Transaction | Method"]):
         with self.body(m) as t:
             yield t
 
-        log.assertion(
-            m, self.run, f"Transaction '{self.name}' was not run", src_loc=self.src_loc
-        )
+        log.assertion(m, self.run, f"Transaction '{self.name}' was not run", src_loc=self.src_loc)
 
     def __repr__(self) -> str:
         return "(transaction {})".format(self.name)
