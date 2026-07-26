@@ -512,6 +512,25 @@ class TransactionManager(Elaboratable):
             m.d.comb += method.data_in.eq(method._body.data_in)
             m.d.comb += method.data_out.eq(method._body.data_out)
 
+        trivial_args_valid = set()
+
+        to_check = {method for method in method_map.methods if method.validate_arguments is None}
+        while to_check:
+            method = to_check.pop()
+            if method in trivial_args_valid:
+                continue
+
+            if all(callee in trivial_args_valid for callee in method.method_calls.keys()):
+                trivial_args_valid.add(method)
+
+                for caller in method_map.method_parents[method]:
+                    if (
+                        caller.validate_arguments is not None
+                        and caller not in trivial_args_valid
+                        and caller in method_map.methods
+                    ):
+                        to_check.add(MBody(caller))
+
         for body in method_map.methods_and_transactions:
             # body is allocatable iif it is ready, all its ready dependencies are running
             # and all its called methods are allocatable
@@ -525,6 +544,9 @@ class TransactionManager(Elaboratable):
             # have arguments valid and are runnable.
             args_valid = []
             for method, calls in body.method_calls.items():
+                if method in trivial_args_valid:
+                    continue
+
                 called = Cat(enable for _, _, enable in calls).any()
 
                 def get_arg():
