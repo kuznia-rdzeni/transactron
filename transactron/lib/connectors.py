@@ -126,7 +126,7 @@ class Forwarder(Elaboratable):
     def elaborate(self, platform):
         m = TModule()
 
-        reg = Signal.like(self.read.data_out)
+        reg = Signal.like(self.read.data_out, reset_less=True)
         reg_valid = Signal()
         read_value = Signal.like(self.read.data_out)
 
@@ -196,12 +196,11 @@ class Pipe(Elaboratable):
         self.peek = Method(o=layout, src_loc=src_loc)
         self.write = Method(i=layout, src_loc=src_loc)
         self.clear = Method()
-        self.head = Signal.like(self.read.data_out)
 
     def elaborate(self, platform):
         m = TModule()
 
-        reg = Signal.like(self.read.data_out)
+        reg = Signal.like(self.read.data_out, reset_less=True)
         reg_valid = Signal()
 
         self.read.schedule_before(self.write)  # to avoid combinational loops

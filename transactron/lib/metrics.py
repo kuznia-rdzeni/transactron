@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from amaranth.lib.data import ArrayLayout, StructLayout
 from dataclasses_json import dataclass_json
-from typing import Optional, Type, TypeVar
+from typing import Optional, TypeVar
 from abc import ABC
 from enum import Enum
 
@@ -165,11 +165,12 @@ class HwMetric(ABC, MetricModel):
 
         self.signals: dict[str, Signal] = {}
 
-        # add the metric to the global list of all metrics
-        DependencyContext.get().add_dependency(HwMetricsListKey(), self)
-
-        # So Amaranth doesn't report that the module is unused when metrics are disabled
-        self._MustUse__silence = True  # type: ignore
+        if HwMetric.metrics_enabled():
+            # add the metric to the global list of all metrics
+            DependencyContext.get().add_dependency(HwMetricsListKey(), self)
+        else:
+            # So Amaranth doesn't report that the module is unused when metrics are disabled
+            self._MustUse__silence = True  # type: ignore
 
     def add_registers(self, regs: list[HwMetricRegister]):
         """
@@ -276,8 +277,8 @@ class TaggedCounter(Elaboratable, HwMetric):
 
     Attributes
     ----------
-    tag_width: int
-        The length of the signal holding a tag value.
+    tag_shape: ShapeLike
+        The shape of the tags.
     one_hot: bool
         Whether tag values can be one-hot encoded.
     counters: dict[int, HwMetricRegisters]
@@ -289,7 +290,7 @@ class TaggedCounter(Elaboratable, HwMetric):
         fully_qualified_name: str,
         description: str = "",
         *,
-        tags: range | Type[Enum] | list[int],
+        tags: range | type[Enum] | list[int],
         registers_width: int = 32,
         ways: int = 1,
     ):
@@ -300,7 +301,7 @@ class TaggedCounter(Elaboratable, HwMetric):
             The fully qualified name of the metric.
         description: str
             A human-readable description of the metric's functionality.
-        tags: range | Type[Enum] | list[int]
+        tags: range | type[Enum] | list[int]
             Tag values.
         registers_width: int
             Width of the underlying registers. Defaults to 32 bits.
@@ -315,22 +316,24 @@ class TaggedCounter(Elaboratable, HwMetric):
         else:
             counters_meta = [(i.value, i.name) for i in tags]
 
+        if isinstance(tags, list):
+            self.tag_shape = range(min(tags), max(tags) + 1)
+        else:
+            self.tag_shape = tags
+
         values = [value for value, _ in counters_meta]
-        self.tag_width = max(bits_for(max(values)), bits_for(min(values)))
 
         self.one_hot = True
-        negative_values = False
         for value in values:
             if value < 0:
                 self.one_hot = False
-                negative_values = True
                 break
 
             log = ceil_log2(value)
             if 2**log != value:
                 self.one_hot = False
 
-        self.incr = self.wrap_method(Methods(ways, i=[("tag", Shape(self.tag_width, signed=negative_values))]))
+        self.incr = self.wrap_method(Methods(ways, i=[("tag", self.tag_shape)]))
 
         self.counters: dict[int, HwMetricRegister] = {}
         for tag_value, name in counters_meta:
@@ -357,11 +360,11 @@ class TaggedCounter(Elaboratable, HwMetric):
         def _(k: int, tag):
             if self.one_hot:
                 sorted_tags = sorted(list(self.counters.keys()))
-                for i in OneHotSwitchDynamic(m, tag):
+                for i in OneHotSwitchDynamic(m, Value.cast(tag)):
                     m.d.comb += runs[sorted_tags[i]][k].eq(1)
             else:
                 for tag_value in self.counters.keys():
-                    with m.If(tag == tag_value):
+                    with m.If(Value.cast(tag) == tag_value):
                         m.d.comb += runs[tag_value][k].eq(1)
 
         for tag_value, counter in self.counters.items():

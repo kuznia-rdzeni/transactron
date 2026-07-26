@@ -138,6 +138,10 @@ class HardwareLogger:
             logger_name=self.name, level=level, format_str=format, location=src_loc, trigger=trigger, fields=args
         )
 
+        # check if the format is appropriate to args, both with amaranth's Format and python's format
+        record.format(*[0 for arg in args])
+        Format(format, *args)
+
         dependencies = DependencyContext.get()
         dependencies.add_dependency(LogKey(), record)
 

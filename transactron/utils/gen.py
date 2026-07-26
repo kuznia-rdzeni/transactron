@@ -5,6 +5,8 @@ from typing import Iterable, Optional, TypeAlias
 from amaranth import *
 from amaranth.back import verilog
 from amaranth.hdl import Fragment, ValueCastable
+from amaranth.hdl._ast import SignalSet
+from amaranth.build import Platform
 from amaranth_types import AbstractInterface
 
 from transactron.core import TransactionManager
@@ -239,9 +241,23 @@ class VerilogDebugWrapper(Elaboratable):
         elaboratable = Fragment.get(self.elaboratable, platform)
         m.submodules.elaboratable = elaboratable
 
+        # find all driven sigs in order to identify undriven ones
+        # undriven signals don't appear in synthesized files
+        driven_sigs = SignalSet()
+
+        def collect_driven_sigs(frag: Fragment):
+            for subfrag in frag.subfragments:  # type: ignore
+                collect_driven_sigs(subfrag[0])
+            for stmt in frag.statements.values():  # type: ignore
+                driven_sigs.update(stmt._lhs_signals())  # type: ignore
+
+        collect_driven_sigs(elaboratable)
+
         def to_signal(val: Value | ValueCastable) -> Signal:
             val = Value.cast(val)
             if isinstance(val, Signal):
+                if val not in driven_sigs:
+                    m.d.comb += val.eq(val.init)
                 return val
             else:
                 sig = Signal.like(val)
@@ -304,6 +320,7 @@ def generate_verilog(
     elaboratable: Elaboratable,
     ports: Optional[list[Value]] = None,
     top_name: str = "top",
+    platform: Optional[Platform] = None,
     *,
     enable_hacks: Iterable[str] = {},
 ) -> tuple[str, GenerationInfo]:
@@ -317,7 +334,7 @@ def generate_verilog(
         raise TypeError("The `generate_verilog()` function requires a `ports=` argument")
 
     wrapped_elaboratable = VerilogDebugWrapper(elaboratable)
-    design = Fragment.get(wrapped_elaboratable, platform=None).prepare(ports=ports)
+    design = Fragment.get(wrapped_elaboratable, platform=platform).prepare(ports=ports)
 
     if "fixup_vivado_transparent_memories" in enable_hacks:
         fixup_vivado_transparent_memories(design)
