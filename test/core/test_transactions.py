@@ -650,3 +650,51 @@ class TestTransactionOutsideElaborate(TestCaseWithSimulator):
 
         with self.run_simulation(m):
             pass
+
+
+class AlwaysCicruit(Elaboratable):
+    def __init__(self):
+        self.ready = Signal()
+        self.ok = Signal()
+
+    def elaborate(self, platform):
+        m = TModule()
+
+        method = Method()
+
+        @def_method(m, method, ready=self.ready)
+        def _():
+            pass
+
+        with Transaction().always_body(m):
+            method(m)
+            m.d.comb += self.ok.eq(1)
+
+        return m
+
+
+class TestAlways(TestCaseWithSimulator):
+    def test_always_call_ok(self):
+        m = AlwaysCicruit()
+        dut = SimpleTestCircuit(m)
+
+        async def process(sim):
+            sim.set(m.ready, 1)
+
+            await sim.tick()
+            assert sim.get(m.ok)
+
+        with self.run_simulation(dut) as sim:
+            sim.add_testbench(process)
+
+    def test_always_call_fail(self):
+        m = AlwaysCicruit()
+        dut = SimpleTestCircuit(m)
+
+        async def process(sim):
+            sim.set(m.ready, 0)
+            await sim.tick()
+
+        with pytest.raises(AssertionError):
+            with self.run_simulation(dut) as sim:
+                sim.add_testbench(process)
