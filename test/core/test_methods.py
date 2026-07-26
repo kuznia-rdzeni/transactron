@@ -1,9 +1,6 @@
 from collections.abc import Callable, Sequence
-from contextlib import contextmanager
-from typing import override
 import pytest
 import random
-import logging as pylog
 from amaranth import *
 from amaranth.sim import *
 from amaranth.lib.data import StructLayout
@@ -11,7 +8,6 @@ from amaranth.lib.data import StructLayout
 from transactron.testing import TestCaseWithSimulator, TestbenchIO, data_layout, SimpleTestCircuit
 
 from transactron import *
-from transactron.testing.logging import make_logging_process
 from transactron.utils import MethodStruct
 from transactron.lib import *
 
