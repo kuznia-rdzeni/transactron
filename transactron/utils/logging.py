@@ -13,6 +13,7 @@ from transactron.utils.dependencies import DependencyContext, ListKey
 
 __all__ = [
     "LogLevel",
+    "LogChunkInfo",
     "LogRecordInfo",
     "LogRecord",
     "LogKey",
@@ -29,6 +30,16 @@ LogLevel: TypeAlias = int
 
 @dataclass_json
 @dataclass
+class LogChunkInfo:
+    is_fmt: bool
+    """True if this chunk is a format specifier, False if it is a raw string."""
+
+    fmt_or_str: str
+    """The format specifier or the raw string."""
+
+
+@dataclass_json
+@dataclass
 class LogRecordInfo:
     """
     Simulator-backend-agnostic information about a log record that can
@@ -41,8 +52,8 @@ class LogRecordInfo:
     level: LogLevel
     """The severity level of the log."""
 
-    format_spec: list[tuple[str, bool]]
-    """The chunks of the string. Each chunk is either a raw string (False) or a format specifier for a field (True)."""
+    format_spec: list[LogChunkInfo]
+    """List of chunks that make up the formatted message."""
 
     location: SrcLoc
     """Source location of the log."""
@@ -52,11 +63,11 @@ class LogRecordInfo:
 
         chunks = []
         fields_iter = iter(args)
-        for fmt, is_fmt in self.format_spec:
-            if is_fmt:
+        for chunk in self.format_spec:
+            if chunk.is_fmt:
                 val = next(fields_iter)
 
-                if fmt.endswith("s"):
+                if chunk.fmt_or_str.endswith("s"):
                     msg = bytearray()
                     while val:
                         byte = val & 0xFF
@@ -65,13 +76,14 @@ class LogRecordInfo:
                             msg.append(byte)
 
                     fmt_val = msg.decode()
-                    fmt = fmt[:-1]
+                    fmt = chunk.fmt_or_str[:-1]
                 else:
                     fmt_val = val
+                    fmt = chunk.fmt_or_str
 
                 chunks.append(format(fmt_val, fmt))
             else:
-                chunks.append(fmt)
+                chunks.append(chunk.fmt_or_str)
 
         return "".join(chunks)
 
@@ -89,11 +101,11 @@ class LogRecord(LogRecordInfo):
     def to_amaranth_format(self) -> Format:
         chunks = []
         fields_iter = iter(self.fields)
-        for fmt, is_fmt in self.format_spec:
-            if is_fmt:
-                chunks.append((next(fields_iter), fmt))
+        for chunk in self.format_spec:
+            if chunk.is_fmt:
+                chunks.append((next(fields_iter), chunk.fmt_or_str))
             else:
-                chunks.append(fmt)
+                chunks.append(chunk.fmt_or_str)
         return Format._from_chunks(chunks)  # type: ignore
 
 
@@ -158,14 +170,14 @@ class HardwareLogger:
         src_loc = local_src_loc(get_src_loc(src_loc))
         trigger = Value.cast(trigger).any()
 
-        format_spec: list[tuple[str, bool]] = []
+        format_spec: list[LogChunkInfo] = []
         values: list[Value] = []
         for chunk in Format(format, *args, **kwargs)._chunks:  # type: ignore
             if isinstance(chunk, str):
-                format_spec.append((chunk, False))
+                format_spec.append(LogChunkInfo(False, chunk))
             else:
                 val, fmt = chunk
-                format_spec.append((fmt, True))
+                format_spec.append(LogChunkInfo(True, fmt))
                 values.append(val)
 
         record = LogRecord(

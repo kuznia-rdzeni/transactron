@@ -8,7 +8,7 @@ from contextlib import contextmanager, redirect_stdout
 from textwrap import dedent
 from amaranth import *
 from amaranth.lib.enum import Enum, EnumView
-from amaranth.lib.data import StructLayout
+from amaranth.lib.data import StructLayout, ArrayLayout
 
 from transactron import *
 from transactron.testing import TestCaseWithSimulator, TestbenchContext
@@ -21,10 +21,11 @@ log = logging.HardwareLogger(LOGGER_NAME)
 
 
 class LogTest(Elaboratable):
-    def __init__(self, log_func):
+    def __init__(self, log_func, additional_logs=None):
         self.input = Signal(range(100))
         self.counter = Signal(range(200))
         self.log_func = log_func
+        self.additional_logs = additional_logs or (lambda m: None)
 
     def elaborate(self, platform):
         m = TModule()
@@ -32,7 +33,9 @@ class LogTest(Elaboratable):
         with m.If(self.input == 42):
             self.log_func(m, True, "Log triggered under Amaranth If value+3=0x{:x}", self.input + 3)
 
-        self.log_func(m, self.input[0] == 0, "Input is even! input={}, counter={}", self.input, self.counter)
+        self.log_func(m, self.input[0] == 0, "Input is even! input={input}, counter={counter}", counter=self.counter, input=self.input)
+
+        self.additional_logs(m)
 
         m.d.sync += self.counter.eq(self.counter + 1)
 
@@ -232,7 +235,13 @@ class TestLog(LogTestCaseWithSimulator):
 
 class TestLogWrapper(LogTestCaseWithSimulator):
     def test_log_wrapper(self):
-        m = HDLLogWrapper(LogTest(log.warning))
+        def additional_logs(m):
+            v = Signal(ArrayLayout(1, 2), init=[0, 1])
+            m.d.sync += v[0].eq(~v[0])
+            m.d.sync += v[1].eq(~v[1])
+            log.warning(m, True, "Array value is {}", v)
+
+        m = HDLLogWrapper(LogTest(log.warning, additional_logs=additional_logs))
 
         async def proc(sim: TestbenchContext):
             await sim.tick()
@@ -247,8 +256,10 @@ class TestLogWrapper(LogTestCaseWithSimulator):
             """\
             --- CYCLE 0 ---
             WARNING test_logger: Input is even! input=0, counter=0
+            WARNING test_logger: Array value is [0, 1]
             --- CYCLE 1 ---
             WARNING test_logger: Input is even! input=0, counter=1
+            WARNING test_logger: Array value is [1, 0]
             """
         )
 
