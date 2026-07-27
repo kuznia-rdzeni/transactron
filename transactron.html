@@ -1202,6 +1202,17 @@
 <li class="toctree-l4"><a class="reference internal" href="transactron.utils.html#transactron.utils.logging.HardwareLogger.warning"><code class="docutils literal notranslate"><span class="pre">HardwareLogger.warning()</span></code></a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="transactron.utils.html#transactron.utils.logging.LogChunkInfo"><code class="docutils literal notranslate"><span class="pre">LogChunkInfo</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="transactron.utils.html#transactron.utils.logging.LogChunkInfo.__init__"><code class="docutils literal notranslate"><span class="pre">LogChunkInfo.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.utils.html#transactron.utils.logging.LogChunkInfo.fmt_or_str"><code class="docutils literal notranslate"><span class="pre">LogChunkInfo.fmt_or_str</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.utils.html#transactron.utils.logging.LogChunkInfo.from_dict"><code class="docutils literal notranslate"><span class="pre">LogChunkInfo.from_dict()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.utils.html#transactron.utils.logging.LogChunkInfo.from_json"><code class="docutils literal notranslate"><span class="pre">LogChunkInfo.from_json()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.utils.html#transactron.utils.logging.LogChunkInfo.is_fmt"><code class="docutils literal notranslate"><span class="pre">LogChunkInfo.is_fmt</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.utils.html#transactron.utils.logging.LogChunkInfo.schema"><code class="docutils literal notranslate"><span class="pre">LogChunkInfo.schema()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.utils.html#transactron.utils.logging.LogChunkInfo.to_dict"><code class="docutils literal notranslate"><span class="pre">LogChunkInfo.to_dict()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.utils.html#transactron.utils.logging.LogChunkInfo.to_json"><code class="docutils literal notranslate"><span class="pre">LogChunkInfo.to_json()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="transactron.utils.html#transactron.utils.logging.LogKey"><code class="docutils literal notranslate"><span class="pre">LogKey</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="transactron.utils.html#transactron.utils.logging.LogKey.__init__"><code class="docutils literal notranslate"><span class="pre">LogKey.__init__()</span></code></a></li>
 </ul>
@@ -1210,13 +1221,14 @@
 <li class="toctree-l3"><a class="reference internal" href="transactron.utils.html#transactron.utils.logging.LogRecord"><code class="docutils literal notranslate"><span class="pre">LogRecord</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="transactron.utils.html#transactron.utils.logging.LogRecord.__init__"><code class="docutils literal notranslate"><span class="pre">LogRecord.__init__()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="transactron.utils.html#transactron.utils.logging.LogRecord.fields"><code class="docutils literal notranslate"><span class="pre">LogRecord.fields</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.utils.html#transactron.utils.logging.LogRecord.to_amaranth_format"><code class="docutils literal notranslate"><span class="pre">LogRecord.to_amaranth_format()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="transactron.utils.html#transactron.utils.logging.LogRecord.trigger"><code class="docutils literal notranslate"><span class="pre">LogRecord.trigger</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="transactron.utils.html#transactron.utils.logging.LogRecordInfo"><code class="docutils literal notranslate"><span class="pre">LogRecordInfo</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="transactron.utils.html#transactron.utils.logging.LogRecordInfo.__init__"><code class="docutils literal notranslate"><span class="pre">LogRecordInfo.__init__()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="transactron.utils.html#transactron.utils.logging.LogRecordInfo.format"><code class="docutils literal notranslate"><span class="pre">LogRecordInfo.format()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="transactron.utils.html#transactron.utils.logging.LogRecordInfo.format_str"><code class="docutils literal notranslate"><span class="pre">LogRecordInfo.format_str</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.utils.html#transactron.utils.logging.LogRecordInfo.format_spec"><code class="docutils literal notranslate"><span class="pre">LogRecordInfo.format_spec</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="transactron.utils.html#transactron.utils.logging.LogRecordInfo.from_dict"><code class="docutils literal notranslate"><span class="pre">LogRecordInfo.from_dict()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="transactron.utils.html#transactron.utils.logging.LogRecordInfo.from_json"><code class="docutils literal notranslate"><span class="pre">LogRecordInfo.from_json()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="transactron.utils.html#transactron.utils.logging.LogRecordInfo.level"><code class="docutils literal notranslate"><span class="pre">LogRecordInfo.level</span></code></a></li>
@@ -1928,7 +1940,7 @@ It was too difficult to hook into, so this has to be a near-exact copy.</p>
 
   <div role="contentinfo">
     <p>&#169; Copyright Kuźnia Rdzeni, 2026.
-      <span class="lastupdated">Last updated on 12:59 2026-07-27.
+      <span class="lastupdated">Last updated on 18:46 2026-07-27.
       </span></p>
   </div>
 
