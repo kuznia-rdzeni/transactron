@@ -8,6 +8,7 @@ from contextlib import contextmanager, redirect_stdout
 from textwrap import dedent
 from amaranth import *
 from amaranth.lib.enum import Enum, EnumView
+from amaranth.lib.data import StructLayout
 
 from transactron import *
 from transactron.testing import TestCaseWithSimulator, TestbenchContext
@@ -45,12 +46,24 @@ class FooEnum(Enum, shape=1):
 
 class ValueCastableLogTest(Elaboratable):
     def __init__(self):
-        self.input: EnumView = Signal(FooEnum)  # type: ignore
+        self.enum: EnumView = Signal(FooEnum)  # type: ignore
+        self.struct = Signal(
+            StructLayout(
+                {
+                    "a": 1,
+                    "b": 2,
+                    "c": FooEnum,
+                }
+            )
+        )
+        self.str = Signal(32)
 
     def elaborate(self, platform):
         m = TModule()
 
-        log.warning(m, True, "Input value is {}", self.input)
+        log.warning(m, True, "Enum value is {}", self.enum)
+        log.warning(m, True, "Struct value is {}", self.struct)
+        log.warning(m, True, "String value is {:s}", self.str)
 
         return m
 
@@ -149,19 +162,43 @@ class TestLog(LogTestCaseWithSimulator):
         m = ValueCastableLogTest()
 
         async def proc(sim: TestbenchContext):
-            sim.set(m.input, FooEnum.FOO)
+            sim.set(m.enum, FooEnum.FOO)
+            sim.set(
+                m.struct,
+                {
+                    "a": 1,
+                    "b": 0,
+                    "c": FooEnum.FOO,
+                },
+            )
+            sim.set(m.str, int.from_bytes(b"AWAW", byteorder="little"))
             await sim.tick()
-            sim.set(m.input, FooEnum.BAR)
+            sim.set(m.enum, FooEnum.BAR)
+            sim.set(
+                m.struct,
+                {
+                    "a": 0,
+                    "b": 2,
+                    "c": FooEnum.BAR,
+                },
+            )
+            sim.set(m.str, int.from_bytes(b"WWAC", byteorder="little"))
             await sim.tick()
 
         with self.run_simulation(m) as sim:
             sim.add_testbench(proc)
 
+        prelude = r"WARNING  test_logger:logging\.py:\d+ \[test/testing/test_log\.py:\d+\] "
         for e in FooEnum:
             assert re.search(
-                r"WARNING  test_logger:logging\.py:\d+ \[test/testing/test_log\.py:\d+\] " + f"Input value is {e}",
+                prelude + f"Enum value is {e.name}",
                 caplog.text,
             )
+
+        assert re.search(prelude + "Struct value is {a=1, b=0, c=FOO}", caplog.text)
+        assert re.search(prelude + "Struct value is {a=0, b=2, c=BAR}", caplog.text)
+        assert re.search(prelude + "String value is AWAW", caplog.text)
+        assert re.search(prelude + "String value is WWAC", caplog.text)
 
     @pytest.mark.parametrize(
         "log_func, is_assertion",
@@ -231,8 +268,3 @@ class TestLogFormatInvalid(TestCaseWithSimulator):
         with pytest.raises(ValueError):
             a = Signal(2)
             log.top_assertion(1, "bad format {}", a, a)
-
-    def test_valid_amaranth_format_invalid_python_format(self):
-        with pytest.raises(ValueError):
-            a = Signal(8)
-            log.top_assertion(1, "bad format {:s}", a)

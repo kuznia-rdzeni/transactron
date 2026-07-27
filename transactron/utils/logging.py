@@ -1,9 +1,6 @@
 import re
-import operator
 import logging
-from functools import reduce
 from dataclasses import dataclass
-from amaranth.hdl import ValueCastable
 from dataclasses_json import dataclass_json
 from typing import TypeAlias
 
@@ -44,16 +41,39 @@ class LogRecordInfo:
     level: LogLevel
     """The severity level of the log."""
 
-    format_str: str
-    """The template of the message. Should follow PEP 3101 standard."""
+    format_spec: list[tuple[str, bool]]
+    """The chunks of the string. Each chunk is either a raw string (False) or a format specifier for a field (True)."""
 
     location: SrcLoc
     """Source location of the log."""
 
-    def format(self, *args) -> str:
+    def format(self, *args: int) -> str:
         """Format the log message with a set of concrete arguments."""
 
-        return self.format_str.format(*args)
+        chunks = []
+        fields_iter = iter(args)
+        for fmt, is_fmt in self.format_spec:
+            if is_fmt:
+                val = next(fields_iter)
+
+                if fmt.endswith("s"):
+                    msg = bytearray()
+                    while val:
+                        byte = val & 0xFF
+                        val >>= 8
+                        if byte:
+                            msg.append(byte)
+
+                    fmt_val = msg.decode()
+                    fmt = fmt[:-1]
+                else:
+                    fmt_val = val
+
+                chunks.append(format(fmt_val, fmt))
+            else:
+                chunks.append(fmt)
+
+        return "".join(chunks)
 
 
 @dataclass
@@ -63,8 +83,18 @@ class LogRecord(LogRecordInfo):
     trigger: Value
     """Single bit Amaranth signal triggering the log."""
 
-    fields: tuple[Value | ValueCastable, ...] = tuple()
+    fields: tuple[Value, ...] = tuple()
     """Amaranth signals that will be used to format the message."""
+
+    def to_amaranth_format(self) -> Format:
+        chunks = []
+        fields_iter = iter(self.fields)
+        for fmt, is_fmt in self.format_spec:
+            if is_fmt:
+                chunks.append((next(fields_iter), fmt))
+            else:
+                chunks.append(fmt)
+        return Format._from_chunks(chunks)  # type: ignore
 
 
 @dataclass(frozen=True)
@@ -116,6 +146,7 @@ class HardwareLogger:
         format: str,
         *args: ValueLike,
         src_loc: int | SrcLoc = 0,
+        **kwargs: ValueLike,
     ):
         """Registers a hardware log record with the given severity.
 
@@ -127,53 +158,67 @@ class HardwareLogger:
         src_loc = local_src_loc(get_src_loc(src_loc))
         trigger = Value.cast(trigger).any()
 
-        def convert(arg: ValueLike):
-            if isinstance(arg, (Value, ValueCastable)):
-                return arg
-            return Value.cast(arg)
-
-        args = tuple(convert(arg) for arg in args)
+        format_spec: list[tuple[str, bool]] = []
+        values: list[Value] = []
+        for chunk in Format(format, *args, **kwargs)._chunks:  # type: ignore
+            if isinstance(chunk, str):
+                format_spec.append((chunk, False))
+            else:
+                val, fmt = chunk
+                format_spec.append((fmt, True))
+                values.append(val)
 
         record = LogRecord(
-            logger_name=self.name, level=level, format_str=format, location=src_loc, trigger=trigger, fields=args
+            logger_name=self.name,
+            level=level,
+            format_spec=format_spec,
+            location=src_loc,
+            trigger=trigger,
+            fields=tuple(values),
         )
-
-        # check if the format is appropriate to args, both with amaranth's Format and python's format
-        record.format(*[0 for arg in args])
-        Format(format, *args)
 
         dependencies = DependencyContext.get()
         dependencies.add_dependency(LogKey(), record)
 
-    def top_debug(self, trigger: ValueLike, format: str, *args: ValueLike, src_loc: int | SrcLoc = 0):
+    def top_debug(
+        self, trigger: ValueLike, format: str, *args: ValueLike, src_loc: int | SrcLoc = 0, **kwargs: ValueLike
+    ):
         """Log a message with severity 'DEBUG'.
 
         See `HardwareLogger.top_log` function for more details.
         """
-        self.top_log(logging.DEBUG, trigger, format, *args, src_loc=get_src_loc(src_loc))
+        self.top_log(logging.DEBUG, trigger, format, *args, src_loc=get_src_loc(src_loc), **kwargs)
 
-    def top_info(self, trigger: ValueLike, format: str, *args: ValueLike, src_loc: int | SrcLoc = 0):
+    def top_info(
+        self, trigger: ValueLike, format: str, *args: ValueLike, src_loc: int | SrcLoc = 0, **kwargs: ValueLike
+    ):
         """Log a message with severity 'INFO'.
 
         See `HardwareLogger.top_log` function for more details.
         """
-        self.top_log(logging.INFO, trigger, format, *args, src_loc=get_src_loc(src_loc))
+        self.top_log(logging.INFO, trigger, format, *args, src_loc=get_src_loc(src_loc), **kwargs)
 
-    def top_warning(self, trigger: ValueLike, format: str, *args: ValueLike, src_loc: int | SrcLoc = 0):
+    def top_warning(
+        self, trigger: ValueLike, format: str, *args: ValueLike, src_loc: int | SrcLoc = 0, **kwargs: ValueLike
+    ):
         """Log a message with severity 'WARNING'.
 
         See `HardwareLogger.top_log` function for more details.
         """
-        self.top_log(logging.WARNING, trigger, format, *args, src_loc=get_src_loc(src_loc))
+        self.top_log(logging.WARNING, trigger, format, *args, src_loc=get_src_loc(src_loc), **kwargs)
 
-    def top_error(self, trigger: ValueLike, format: str, *args: ValueLike, src_loc: int | SrcLoc = 0):
+    def top_error(
+        self, trigger: ValueLike, format: str, *args: ValueLike, src_loc: int | SrcLoc = 0, **kwargs: ValueLike
+    ):
         """Log a message with severity 'ERROR'.
 
         See `HardwareLogger.top_log` function for more details.
         """
-        self.top_log(logging.ERROR, trigger, format, *args, src_loc=get_src_loc(src_loc))
+        self.top_log(logging.ERROR, trigger, format, *args, src_loc=get_src_loc(src_loc), **kwargs)
 
-    def top_assertion(self, value: ValueLike, format: str, *args: ValueLike, src_loc: int | SrcLoc = 0):
+    def top_assertion(
+        self, value: ValueLike, format: str, *args: ValueLike, src_loc: int | SrcLoc = 0, **kwargs: ValueLike
+    ):
         """Define an assertion.
 
         Unlike `HardwareLogger.assertion`, this function can be used in
@@ -181,7 +226,7 @@ class HardwareLogger:
 
         See `HardwareLogger.assertion` function for more details.
         """
-        self.top_error(~Value.cast(value).any(), format, *args, src_loc=get_src_loc(src_loc))
+        self.top_error(~Value.cast(value).any(), format, *args, src_loc=get_src_loc(src_loc), **kwargs)
 
     def log(
         self,
@@ -191,6 +236,7 @@ class HardwareLogger:
         format: str,
         *args: ValueLike,
         src_loc: int | SrcLoc = 0,
+        **kwargs: ValueLike,
     ):
         """Registers a hardware log record with the given severity.
 
@@ -211,30 +257,62 @@ class HardwareLogger:
         """
         trigger_signal = Signal()
         m.d.comb += trigger_signal.eq(Value.cast(trigger).any())
-        self.top_log(level, trigger_signal, format, *args, src_loc=get_src_loc(src_loc))
+        self.top_log(level, trigger_signal, format, *args, src_loc=get_src_loc(src_loc), **kwargs)
 
-    def debug(self, m: ModuleLike, trigger: ValueLike, format: str, *args: ValueLike, src_loc: int | SrcLoc = 0):
+    def debug(
+        self,
+        m: ModuleLike,
+        trigger: ValueLike,
+        format: str,
+        *args: ValueLike,
+        src_loc: int | SrcLoc = 0,
+        **kwargs: ValueLike,
+    ):
         """Log a message with severity 'DEBUG'.
 
         See `HardwareLogger.log` function for more details.
         """
-        self.log(m, logging.DEBUG, trigger, format, *args, src_loc=get_src_loc(src_loc))
+        self.log(m, logging.DEBUG, trigger, format, *args, src_loc=get_src_loc(src_loc), **kwargs)
 
-    def info(self, m: ModuleLike, trigger: ValueLike, format: str, *args: ValueLike, src_loc: int | SrcLoc = 0):
+    def info(
+        self,
+        m: ModuleLike,
+        trigger: ValueLike,
+        format: str,
+        *args: ValueLike,
+        src_loc: int | SrcLoc = 0,
+        **kwargs: ValueLike,
+    ):
         """Log a message with severity 'INFO'.
 
         See `HardwareLogger.log` function for more details.
         """
-        self.log(m, logging.INFO, trigger, format, *args, src_loc=get_src_loc(src_loc))
+        self.log(m, logging.INFO, trigger, format, *args, src_loc=get_src_loc(src_loc), **kwargs)
 
-    def warning(self, m: ModuleLike, trigger: ValueLike, format: str, *args: ValueLike, src_loc: int | SrcLoc = 0):
+    def warning(
+        self,
+        m: ModuleLike,
+        trigger: ValueLike,
+        format: str,
+        *args: ValueLike,
+        src_loc: int | SrcLoc = 0,
+        **kwargs: ValueLike,
+    ):
         """Log a message with severity 'WARNING'.
 
         See `HardwareLogger.log` function for more details.
         """
-        self.log(m, logging.WARNING, trigger, format, *args, src_loc=get_src_loc(src_loc))
+        self.log(m, logging.WARNING, trigger, format, *args, src_loc=get_src_loc(src_loc), **kwargs)
 
-    def error(self, m: ModuleLike, trigger: ValueLike, format: str, *args: ValueLike, src_loc: int | SrcLoc = 0):
+    def error(
+        self,
+        m: ModuleLike,
+        trigger: ValueLike,
+        format: str,
+        *args: ValueLike,
+        src_loc: int | SrcLoc = 0,
+        **kwargs: ValueLike,
+    ):
         """Log a message with severity 'ERROR'.
 
         This severity level has special semantics. If a log with this serverity
@@ -242,9 +320,17 @@ class HardwareLogger:
 
         See `HardwareLogger.log` function for more details.
         """
-        self.log(m, logging.ERROR, trigger, format, *args, src_loc=get_src_loc(src_loc))
+        self.log(m, logging.ERROR, trigger, format, *args, src_loc=get_src_loc(src_loc), **kwargs)
 
-    def assertion(self, m: ModuleLike, value: ValueLike, format: str = "", *args: ValueLike, src_loc: int | SrcLoc = 0):
+    def assertion(
+        self,
+        m: ModuleLike,
+        value: ValueLike,
+        format: str = "",
+        *args: ValueLike,
+        src_loc: int | SrcLoc = 0,
+        **kwargs: ValueLike,
+    ):
         """Define an assertion.
 
         This function might help find some hardware bugs which might otherwise be
@@ -255,27 +341,40 @@ class HardwareLogger:
 
         See `HardwareLogger.log` function for more details.
         """
-        self.error(m, ~Value.cast(value).any(), format, *args, src_loc=get_src_loc(src_loc))
+        self.error(m, ~Value.cast(value).any(), format, *args, src_loc=get_src_loc(src_loc), **kwargs)
 
 
-def top_assertion(value: ValueLike, format: str, *args: ValueLike, name: str = "global", src_loc: int | SrcLoc = 0):
+def top_assertion(
+    value: ValueLike,
+    format: str,
+    *args: ValueLike,
+    name: str = "global",
+    src_loc: int | SrcLoc = 0,
+    **kwargs: ValueLike,
+):
     """Define an assertion.
 
     This is a short form, for use in generic code. For general use,
     see `HardwareLogger.top_assertion`.
     """
-    HardwareLogger(name).top_assertion(value, format, *args, src_loc=get_src_loc(src_loc))
+    HardwareLogger(name).top_assertion(value, format, *args, src_loc=get_src_loc(src_loc), **kwargs)
 
 
 def assertion(
-    m: ModuleLike, value: ValueLike, format: str, *args: ValueLike, name: str = "global", src_loc: int | SrcLoc = 0
+    m: ModuleLike,
+    value: ValueLike,
+    format: str,
+    *args: ValueLike,
+    name: str = "global",
+    src_loc: int | SrcLoc = 0,
+    **kwargs: ValueLike,
 ):
     """Define an assertion.
 
     This is a short form, for use in generic code. For general use,
     see `HardwareLogger.assertion`.
     """
-    HardwareLogger(name).assertion(m, value, format, *args, src_loc=get_src_loc(src_loc))
+    HardwareLogger(name).assertion(m, value, format, *args, src_loc=get_src_loc(src_loc), **kwargs)
 
 
 def get_log_records(level: LogLevel, namespace_regexp: str = ".*") -> list[LogRecord]:
@@ -316,4 +415,4 @@ def get_trigger_bit(level: LogLevel, namespace_regexp: str = ".*") -> Value:
         will be processed.
     """
 
-    return reduce(operator.or_, [rec.trigger for rec in get_log_records(level, namespace_regexp)], C(0))
+    return Cat(rec.trigger for rec in get_log_records(level, namespace_regexp)).any()

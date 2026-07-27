@@ -292,7 +292,7 @@ class VerilogDebugWrapper(Elaboratable):
             log = GeneratedLog(
                 logger_name=record.logger_name,
                 level=record.level,
-                format_str=record.format_str,
+                format_spec=record.format_spec,
                 location=record.location,
                 trigger_location=trigger_loc,
                 fields_location=fields_loc,

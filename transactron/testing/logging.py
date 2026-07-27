@@ -155,15 +155,14 @@ class HDLLogWrapper(Elaboratable):
         for record in tlog.get_log_records(self.level, self.namespace_regexp):
             with m.If(record.trigger):
                 m.d.comb += any_trigger.eq(1)
-                format_str = (
-                    ("[{}] " if not self.print_cycle_separator else "")
-                    + f"{logging.getLevelName(record.level)} "
-                    + (f"{record.location} " if self.print_src_loc else "")
-                    + f"{record.logger_name}: "
-                    + record.format_str
+                m.d.sync += Print(
+                    Format("[{}] ", cycle) if not self.print_cycle_separator else "",
+                    f"{logging.getLevelName(record.level)} ",
+                    f"{record.location} " if self.print_src_loc else "",
+                    f"{record.logger_name}: ",
+                    record.to_amaranth_format(),
+                    sep="",
                 )
-                args = ((cycle,) if not self.print_cycle_separator else tuple()) + record.fields
-                m.d.sync += Print(Format(format_str, *args))
 
         return m
 
