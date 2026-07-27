@@ -10,7 +10,7 @@ from transactron.core.transaction_base import TransactionBase
 
 from amaranth import *
 from amaranth_types import ShapeLike, ValueLike, SrcLoc
-from typing import TYPE_CHECKING, ClassVar, NewType, NotRequired, Optional, Callable, TypedDict, Unpack, final
+from typing import TYPE_CHECKING, ClassVar, NewType, NotRequired, Optional, Callable, TypedDict, final
 from transactron.utils.amaranth_ext.functions import one_hot_mux
 from transactron.utils.assign import AssignArg
 from transactron.utils.transactron_helpers import from_method_layout, method_def_helper
@@ -49,7 +49,10 @@ class Body(TransactionBase["Body"]):
         i: StructLayout,
         o: StructLayout,
         src_loc: SrcLoc,
-        **kwargs: Unpack[BodyParams],
+        nonexclusive: bool = False,
+        single_caller: bool = False,
+        combiner: Optional[Callable[[Module, Sequence[MethodStruct], Value], AssignArg]] = None,
+        validate_arguments: Optional[Callable[..., ValueLike]] = None,
     ):
         super().__init__(src_loc=src_loc)
 
@@ -62,17 +65,17 @@ class Body(TransactionBase["Body"]):
         self.data_in: MethodStruct = Signal(from_method_layout(i), name=self.owned_name + "_data_in")
         self.data_out: MethodStruct = Signal(from_method_layout(o), name=self.owned_name + "_data_out")
         self.combiner: Callable[[Module, Sequence[MethodStruct], Value], AssignArg] = (
-            kwargs["combiner"] if "combiner" in kwargs else Body._default_combiner(from_method_layout(i))
+            combiner if combiner is not None else Body._default_combiner(from_method_layout(i))
         )
-        self.nonexclusive = kwargs["nonexclusive"] if "nonexclusive" in kwargs else False
-        self.single_caller = kwargs["single_caller"] if "single_caller" in kwargs else False
+        self.nonexclusive = nonexclusive
+        self.single_caller = single_caller
         self.validate_arguments: Optional[Callable[..., ValueLike]] = (
-            kwargs["validate_arguments"] if "validate_arguments" in kwargs else None
+            validate_arguments if validate_arguments is not None else None
         )
         self.method_calls = defaultdict(list)
 
         if self.nonexclusive:
-            assert len(self.data_in.as_value()) == 0 or "combiner" in kwargs
+            assert len(self.data_in.as_value()) == 0 or combiner is not None
 
     @cached_property
     def conditional_calls(self) -> set["Method"]:
