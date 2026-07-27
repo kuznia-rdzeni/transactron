@@ -33,7 +33,13 @@ class LogTest(Elaboratable):
         with m.If(self.input == 42):
             self.log_func(m, True, "Log triggered under Amaranth If value+3=0x{:x}", self.input + 3)
 
-        self.log_func(m, self.input[0] == 0, "Input is even! input={input}, counter={counter}", counter=self.counter, input=self.input)
+        self.log_func(
+            m,
+            self.input[0] == 0,
+            "Input is even! input={input}, counter={counter}",
+            counter=self.counter,
+            input=self.input,
+        )
 
         self.additional_logs(m)
 
