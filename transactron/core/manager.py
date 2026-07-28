@@ -8,8 +8,6 @@ from amaranth import *
 from itertools import chain, filterfalse, product
 import networkx
 
-from amaranth_types import ValueLike
-
 from transactron.utils import *
 from transactron.utils.transactron_helpers import _graph_ccs
 from transactron.graph import OwnershipGraph, Direction
@@ -43,7 +41,7 @@ class CallInfo:
     ancestors: tuple[MBody, ...]
     call_path: tuple[CtrlPath, ...]
     arg: MethodStruct
-    enable: ValueLike
+    enable: Value
 
 
 class MethodMap:
@@ -105,7 +103,7 @@ class MethodMap:
             source: Body,
             ancestors: tuple[MBody, ...],
             call_path: tuple[CtrlPath, ...],
-            call_enable: ValueLike,
+            call_enable: Value,
         ):
             for method_obj, calls in source.method_calls.items():
                 method = MBody(method_obj._body)
@@ -514,14 +512,20 @@ class TransactionManager(Elaboratable):
 
             def validate_args_for_method(method: MBody):
                 calls = method_map.info_by_call[(transaction, method)]
+                if method.nonexclusive:
+                    return Cat(method._validate_arguments(call.enable, call.arg) for call in calls).all()
+
                 combined = OneHotMux.create(m, [(call.enable, call.arg) for call in calls])
                 return method._validate_arguments(Cat(call.enable for call in calls).any(), combined)
 
             runnable_terms = [
-                validate_args_for_method(method) for method in method_map.methods_by_transaction[transaction]
+                body.ready & Cat(dep.run for dep in ready_dependencies[body]).all()
+                for body in method_map.ready_for_transaction(transaction)
             ]
             runnable_terms.extend(
-                dep.run for body in method_map.ready_for_transaction(transaction) for dep in ready_dependencies[body]
+                validate_args_for_method(method)
+                for method in method_map.methods_by_transaction[transaction]
+                if method.validate_arguments is not None
             )
             m.d.comb += transaction.runnable.eq(Cat(runnable_terms).all())
 
