@@ -138,13 +138,15 @@ class Transaction(TransactionBase["Transaction | Method"]):
         self,
         m: TModule,
         log: HardwareLogger | None = None,
+        *,
+        ready: ValueLike = C(1),
     ) -> Iterator["Transaction"]:
         log = log or HardwareLogger("global")
 
-        with self.body(m) as t:
+        with self.body(m, ready=ready) as t:
             yield t
 
-        log.assertion(m, self.run, f"Transaction '{self.name}' was not run", src_loc=self.src_loc)
+        log.assertion(m, ~ready | self.run, f"Transaction '{self.name}' was not run", src_loc=self.src_loc)
 
     def __repr__(self) -> str:
         return "(transaction {})".format(self.name)
