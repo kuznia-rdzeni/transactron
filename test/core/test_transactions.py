@@ -654,6 +654,7 @@ class TestTransactionOutsideElaborate(TestCaseWithSimulator):
 
 class AlwaysCicruit(Elaboratable):
     def __init__(self):
+        self.trans_ready = Signal()
         self.ready = Signal()
         self.ok = Signal()
 
@@ -666,7 +667,7 @@ class AlwaysCicruit(Elaboratable):
         def _():
             pass
 
-        with Transaction().always_body(m):
+        with Transaction().always_body(m, ready=self.trans_ready):
             method(m)
             m.d.comb += self.ok.eq(1)
 
@@ -679,10 +680,12 @@ class TestAlways(TestCaseWithSimulator):
         dut = SimpleTestCircuit(m)
 
         async def process(sim):
-            sim.set(m.ready, 1)
+            for ready, t_ready in [(1, 1), (1, 0), (0, 0)]:
+                sim.set(m.ready, ready)
+                sim.set(m.trans_ready, t_ready)
 
-            await sim.tick()
-            assert sim.get(m.ok)
+                await sim.tick()
+                assert bool(sim.get(m.ok)) == (ready and t_ready)
 
         with self.run_simulation(dut) as sim:
             sim.add_testbench(process)
@@ -693,6 +696,7 @@ class TestAlways(TestCaseWithSimulator):
 
         async def process(sim):
             sim.set(m.ready, 0)
+            sim.set(m.trans_ready, 1)
             await sim.tick()
 
         with pytest.raises(AssertionError):
