@@ -17,7 +17,7 @@ from transactron.testing import (
 )
 
 
-@pytest.mark.parametrize("port_count", [2, 3])
+@pytest.mark.parametrize("port_count", [1, 2, 3])
 class TestSerializer(TestCaseWithSimulator):
     @pytest.fixture(scope="function", autouse=True)
     def setup_method(self, port_count: int):
