@@ -29,6 +29,20 @@ class MethodDir(enum.Enum):
     PROVIDED = enum.auto()
     REQUIRED = enum.auto()
 
+    def opposite(self) -> "MethodDir":
+        match self:
+            case MethodDir.PROVIDED:
+                return MethodDir.REQUIRED
+            case MethodDir.REQUIRED:
+                return MethodDir.PROVIDED
+
+    def under(self, other: "MethodDir") -> "MethodDir":
+        match self:
+            case MethodDir.PROVIDED:
+                return other
+            case MethodDir.REQUIRED:
+                return other.opposite()
+
 
 _T = TypeVar("_T")
 Provided: TypeAlias = Annotated[_T, MethodDir.PROVIDED]
