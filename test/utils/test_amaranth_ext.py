@@ -69,7 +69,6 @@ class OneHotMuxDUT(Elaboratable):
                     list(zip(self.select, self.inputs)),
                     self.default,
                     priority=self.is_priority,
-                    assert_one_hot=False,
                 )
             )
         else:

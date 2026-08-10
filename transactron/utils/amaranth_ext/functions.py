@@ -337,7 +337,7 @@ def one_hot_mux(
     inputs: Sequence[tuple[ValueLike, ValueLike]],
     default: Optional[ValueLike] = None,
     priority: bool = False,
-    assert_one_hot: bool = True,
+    assert_one_hot: bool = False,
 ) -> Value | ValueCastable:
     """
     One-hot multiplexer.
@@ -353,7 +353,7 @@ def one_hot_mux(
     priority : bool, default False
         If True, the output corresponds to the lowest entry with set select signal.
         If False, the output is undefined if multiple select signals are set.
-    assert_one_hot : bool, default True
+    assert_one_hot : bool, default False
         If True, an assertion is added that checks if undefined output is produced.
     """
     inputs = list(inputs)
