@@ -116,6 +116,7 @@ class TestOneHotMux(TestCaseWithSimulator):
                 got = sim.get(dut.output)
 
                 if is_valuecastable:
+                    assert got.shape() == shape  # type: ignore
                     got = Const.cast(got).value
 
                 expected = one_hot_mux_reference(

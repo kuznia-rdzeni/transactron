@@ -1,4 +1,4 @@
-from typing import Any, Optional, cast, overload
+from typing import Any, Optional, overload
 from amaranth import *
 from amaranth.hdl import ShapeCastable, ValueCastable
 from amaranth.hdl._ast import SwitchValue
@@ -165,6 +165,46 @@ def const_of(value: int, shape: ShapeLike) -> Any:
         return C(value, Shape.cast(shape))
 
 
+@overload
+def _uniformize_values(
+    values: Iterable[FlatValueLike],
+) -> tuple[Shape, list[Value]]: ...
+
+
+@overload
+def _uniformize_values[
+    T: ValueCastable
+](values: Iterable[T],) -> tuple[ShapeCastable, list[Value]]: ...
+
+
+@overload
+def _uniformize_values(
+    values: Iterable[ValueLike],
+) -> tuple[ShapeCastable | Shape, list[Value]]: ...
+
+
+def _uniformize_values(
+    values: Iterable[ValueLike],
+) -> tuple[ShapeCastable | Shape, list[Value]]:
+    values = list(values)
+    shapes = [shape_of(v) for v in values]
+    shapecastable_shapes = [shape for shape in shapes if isinstance(shape, ShapeCastable)]
+    if not shapecastable_shapes:
+        shapes = [shape for shape in shapes if isinstance(shape, Shape)]
+        shape_width = max([shape.width for shape in shapes], default=0)
+        shape_signed = any(shape.signed for shape in shapes)
+        return Shape(shape_width, shape_signed), [Value.cast(v) for v in values]
+
+    shape = shapecastable_shapes[0]
+    if any(case_shape != shape for case_shape in shapecastable_shapes):
+        raise ValueError("Different ShapeCastables for different shapes")
+
+    def unify(v):
+        return Value.cast(v) if isinstance(v, (Value, ValueCastable)) else Value.cast(shape.const(v))
+
+    return shape, [unify(v) for v in values]
+
+
 def binary_tree_reduce(*values: ValueBundle, neutral: Value, operator: Callable[[Value, Value], Value]) -> Value:
     min_layers = list(flatten_signals(values))
     if not min_layers:
@@ -238,19 +278,12 @@ def switch_value(
 ) -> ValueLike:
     src_loc = get_src_loc(src_loc)
     cases = list(cases)
-    case_shapes = [shape_of(val) for _, val in cases]
-    shapecastable_shapes = [shape for shape in case_shapes if isinstance(shape, ShapeCastable)]
-    if shapecastable_shapes:
-        shape = cast(ShapeCastable, shapecastable_shapes[0])
-        if any(case_shape != shape for case_shape in shapecastable_shapes):
-            raise ValueError("Different ShapeCastables for different shapes")
+    shape, values = _uniformize_values(val for _, val in cases)
+    if Shape.cast(shape).width == 0:
+        return shape.from_bits(0) if isinstance(shape, ShapeCastable) else C(0)
 
-        def unify(v):
-            return Value.cast(v) if isinstance(v, (Value, ValueCastable)) else Value.cast(shape.const(v))
-
-        return shape(SwitchValue(test, [(key, unify(val)) for key, val in cases], src_loc=src_loc))
-    else:
-        return SwitchValue(test, cases, src_loc=src_loc)
+    ret_val = SwitchValue(test, [(key, val) for (key, _), val in zip(cases, values)], src_loc=src_loc)
+    return shape(ret_val) if isinstance(shape, ShapeCastable) else ret_val
 
 
 @overload
@@ -277,13 +310,45 @@ def mux(sel: ValueLike, val1: ValueLike, val0: ValueLike) -> ValueLike:
     return switch_value(sel, [(0, val0), (None, val1)], src_loc=1)
 
 
+@overload
+def one_hot_mux[
+    T: ValueCastable
+](
+    select: ValueLike,
+    inputs: Sequence[T],
+    default: Optional[T] = None,
+    priority: bool = False,
+    assert_one_hot: bool = True,
+) -> T: ...
+
+
+@overload
+def one_hot_mux(
+    select: ValueLike,
+    inputs: Sequence[FlatValueLike],
+    default: Optional[FlatValueLike] = None,
+    priority: bool = False,
+    assert_one_hot: bool = True,
+) -> Value: ...
+
+
+@overload
 def one_hot_mux(
     select: ValueLike,
     inputs: Sequence[ValueLike],
     default: Optional[ValueLike] = None,
     priority: bool = False,
     assert_one_hot: bool = True,
-) -> Value:
+) -> Value | ValueCastable: ...
+
+
+def one_hot_mux(
+    select: ValueLike,
+    inputs: Sequence[ValueLike],
+    default: Optional[ValueLike] = None,
+    priority: bool = False,
+    assert_one_hot: bool = True,
+) -> Value | ValueCastable:
     """
     One-hot multiplexer.
     Takes n input values and a one-hot select signal of n bits and outputs the value corresponding
@@ -296,11 +361,10 @@ def one_hot_mux(
     otherwise select must have at least one bit set.
     """
     inputs = list(inputs)
+    select = Value.cast(select)
 
-    if len(inputs) == 0:
-        return Value.cast(default) if default is not None else C(0)
-
-    select = Value.cast(select).as_unsigned()
+    if not inputs and default is None:
+        raise ValueError("No inputs provided to one_hot_mux")
 
     if default is None and assert_one_hot:
         top_assertion(
@@ -309,10 +373,7 @@ def one_hot_mux(
             src_loc=1,
         )
 
-    if default is None and len(inputs) == 1:
-        return Value.cast(inputs[0])
-
-    select_first = select & (~select + 1)
+    select_first = (select & (~select + 1))[: len(inputs)]
     select_one_hot = select_first if priority else select
 
     if not priority and assert_one_hot:
@@ -323,9 +384,21 @@ def one_hot_mux(
             src_loc=1,
         )
 
-    value_combined = or_value([Mux(select_one_hot[i], Value.cast(inputs[i]), 0) for i in range(len(inputs))])
+    all_inputs = inputs if default is None else inputs + [default]
+    shape, all_inputs = _uniformize_values(all_inputs)
 
-    if default is None:
-        return value_combined
+    if len(all_inputs) == 1:
+        return all_inputs[0]
 
-    return Mux(select.any(), value_combined, Value.cast(default))
+    if Shape.cast(shape).width == 0:
+        # Mux of 0-wide value is 1-wide - just return a shape-casted 0
+        return shape.from_bits(0) if isinstance(shape, ShapeCastable) else C(0)
+
+    all_select = select_one_hot if default is None else Cat(select_one_hot, ~select.any())
+    value_combined = or_value([Mux(all_select[i], all_inputs[i], 0) for i in range(len(all_inputs))])
+
+    if isinstance(shape, ShapeCastable):
+        value_combined = value_combined[: Shape.cast(shape).width]
+        return shape(value_combined)
+
+    return value_combined
