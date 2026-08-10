@@ -388,9 +388,4 @@ def one_hot_mux(
         return shape(all_data[0]) if isinstance(shape, ShapeCastable) else all_data[0]
 
     value_combined = or_value([Mux(all_sel[i], all_data[i], C(0, 0)) for i in range(len(all_data))])
-
-    if isinstance(shape, ShapeCastable):
-        value_combined = value_combined[: Shape.cast(shape).width]
-        return shape(value_combined)
-
-    return value_combined
+    return shape(value_combined) if isinstance(shape, ShapeCastable) else value_combined
