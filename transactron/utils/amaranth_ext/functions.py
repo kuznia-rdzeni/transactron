@@ -1,4 +1,4 @@
-from typing import Any, Optional, overload
+from typing import Any, Optional, cast, overload
 from amaranth import *
 from amaranth.hdl import ShapeCastable, ValueCastable
 from amaranth.hdl._ast import SwitchValue
@@ -190,7 +190,7 @@ def _uniformize_values(
     shapes = [shape_of(v) for v in values]
     shapecastable_shapes = [shape for shape in shapes if isinstance(shape, ShapeCastable)]
     if not shapecastable_shapes:
-        shapes = [shape for shape in shapes if isinstance(shape, Shape)]
+        shapes = cast(list[Shape], shapes)
         shape_width = max([shape.width for shape in shapes], default=0)
         shape_signed = any(shape.signed for shape in shapes)
         return Shape(shape_width, shape_signed), [Value.cast(v) for v in values]
