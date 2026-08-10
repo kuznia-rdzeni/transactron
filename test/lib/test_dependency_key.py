@@ -141,7 +141,6 @@ class TestDependencyKey(TestCaseWithSimulator):
             pass
 
     def test_key_cache(self):
-        global combine_calls
         dm = DependencyContext.get()
         dm.add_dependency(KeyCache(), None)
         dm.add_dependency(KeyNoCache(), None)
