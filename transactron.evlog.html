@@ -124,7 +124,7 @@ matters for consumers of formats requiring monotonic timestamps.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="transactron.evlog.consumer.handles">
-<span class="sig-prename descclassname"><span class="pre">transactron.evlog.consumer.</span></span><span class="sig-name descname"><span class="pre">handles</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.14)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#transactron.evlog.event.Event" title="transactron.evlog.event.Event"><span class="pre">Event</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.evlog.consumer.handles" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">transactron.evlog.consumer.</span></span><span class="sig-name descname"><span class="pre">handles</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.14)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><span class="pre">E</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Callable" title="(in Python v3.14)"><span class="pre">Callable</span></a><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">HandlerMethod</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">HandlerMethod</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#transactron.evlog.consumer.handles" title="Link to this definition"></a></dt>
 <dd><p>Marks an <cite>EventConsumer</cite> method as the handler for an event type.</p>
 <p>The decorated method is called with a single <cite>DecodedEvent</cite> argument for
 every log record of the given event type.</p>
@@ -424,7 +424,7 @@ as event types register themselves at class definition time.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="transactron.evlog.log.DecodedEvent">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">transactron.evlog.log.</span></span><span class="sig-name descname"><span class="pre">DecodedEvent</span></span><a class="headerlink" href="#transactron.evlog.log.DecodedEvent" title="Link to this definition"></a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Generic" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Generic</span></code></a></p>
 <p>A single decoded event from an event log.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Attributes<span class="colon">:</span></dt>
@@ -440,7 +440,7 @@ as event types register themselves at class definition time.</p>
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="transactron.evlog.log.DecodedEvent.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cycle</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">site</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#transactron.evlog.schema.EventSiteSchema" title="transactron.evlog.schema.EventSiteSchema"><span class="pre">EventSiteSchema</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">event</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#transactron.evlog.event.Event" title="transactron.evlog.event.Event"><span class="pre">Event</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#transactron.evlog.log.DecodedEvent.__init__" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cycle</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">site</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#transactron.evlog.schema.EventSiteSchema" title="transactron.evlog.schema.EventSiteSchema"><span class="pre">EventSiteSchema</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">event</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">E</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#transactron.evlog.log.DecodedEvent.__init__" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
@@ -450,7 +450,7 @@ as event types register themselves at class definition time.</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="transactron.evlog.log.DecodedEvent.event">
-<span class="sig-name descname"><span class="pre">event</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#transactron.evlog.event.Event" title="transactron.evlog.event.Event"><span class="pre">Event</span></a></span><a class="headerlink" href="#transactron.evlog.log.DecodedEvent.event" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">event</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">E</span></span><a class="headerlink" href="#transactron.evlog.log.DecodedEvent.event" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
@@ -1018,7 +1018,7 @@ elaboration (see <cite>get_emitted_events</cite>).</p>
 
   <div role="contentinfo">
     <p>&#169; Copyright Kuźnia Rdzeni, 2026.
-      <span class="lastupdated">Last updated on 21:36 2026-08-05.
+      <span class="lastupdated">Last updated on 17:53 2026-08-10.
       </span></p>
   </div>
 
