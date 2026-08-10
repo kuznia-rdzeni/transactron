@@ -314,8 +314,7 @@ def mux(sel: ValueLike, val1: ValueLike, val0: ValueLike) -> ValueLike:
 def one_hot_mux[
     T: ValueCastable
 ](
-    select: ValueLike,
-    inputs: Sequence[T],
+    inputs: Sequence[tuple[ValueLike, T]],
     default: Optional[T] = None,
     priority: bool = False,
     assert_one_hot: bool = True,
@@ -324,8 +323,7 @@ def one_hot_mux[
 
 @overload
 def one_hot_mux(
-    select: ValueLike,
-    inputs: Sequence[FlatValueLike],
+    inputs: Sequence[tuple[ValueLike, FlatValueLike]],
     default: Optional[FlatValueLike] = None,
     priority: bool = False,
     assert_one_hot: bool = True,
@@ -334,8 +332,7 @@ def one_hot_mux(
 
 @overload
 def one_hot_mux(
-    select: ValueLike,
-    inputs: Sequence[ValueLike],
+    inputs: Sequence[tuple[ValueLike, ValueLike]],
     default: Optional[ValueLike] = None,
     priority: bool = False,
     assert_one_hot: bool = True,
@@ -343,25 +340,31 @@ def one_hot_mux(
 
 
 def one_hot_mux(
-    select: ValueLike,
-    inputs: Sequence[ValueLike],
+    inputs: Sequence[tuple[ValueLike, ValueLike]],
     default: Optional[ValueLike] = None,
     priority: bool = False,
     assert_one_hot: bool = True,
 ) -> Value | ValueCastable:
     """
     One-hot multiplexer.
-    Takes n input values and a one-hot select signal of n bits and outputs the value corresponding
-    to the bit set in the select signal.
-    If priority is False and multiple bits are set, the output is undefined.
-    If priority is True and multiple bits are set, the output corresponds to the lowest set bit in the select signal.
-    If assert_one_hot is True and priority is False, an assertion is added that checks
-    that the select signal is one-hot.
-    If default is provided and select signal is 0, the output is default,
-    otherwise select must have at least one bit set.
+    Takes n input values and n one-hot select signals and outputs the value corresponding to the set select signal.
+
+    Parameters
+    ----------
+    inputs : Sequence[tuple[ValueLike, ValueLike]]
+        Sequence of tuples, where each tuple contains a select signal and a corresponding value.
+    default: ValueLike, optional
+        Default value to output if no select signal is set. If not provided, when no select signal is set, the output
+        is undefined.
+    priority : bool, default False
+        If True, the output corresponds to the lowest entry with set select signal.
+        If False, the output is undefined if multiple select signals are set.
+    assert_one_hot : bool, default True
+        If True, an assertion is added that checks if undefined output is produced.
     """
     inputs = list(inputs)
-    select = Value.cast(select)
+    select = Cat(Value.cast(sel).bool() for sel, _ in inputs)
+    data = [val for _, val in inputs]
 
     if not inputs and default is None:
         raise ValueError("No inputs provided to one_hot_mux")
@@ -384,18 +387,17 @@ def one_hot_mux(
             src_loc=1,
         )
 
-    all_inputs = inputs if default is None else inputs + [default]
-    shape, all_inputs = _uniformize_values(all_inputs)
-
-    if len(all_inputs) == 1:
-        return all_inputs[0]
+    all_sel = select_one_hot if default is None else Cat(select_one_hot, ~select.any())
+    shape, all_data = _uniformize_values(data if default is None else data + [default])
 
     if Shape.cast(shape).width == 0:
         # Mux of 0-wide value is 1-wide - just return a shape-casted 0
         return shape.from_bits(0) if isinstance(shape, ShapeCastable) else C(0)
 
-    all_select = select_one_hot if default is None else Cat(select_one_hot, ~select.any())
-    value_combined = or_value([Mux(all_select[i], all_inputs[i], 0) for i in range(len(all_inputs))])
+    if len(all_data) == 1:
+        return shape(all_data[0]) if isinstance(shape, ShapeCastable) else all_data[0]
+
+    value_combined = or_value([Mux(all_sel[i], all_data[i], 0) for i in range(len(all_data))])
 
     if isinstance(shape, ShapeCastable):
         value_combined = value_combined[: Shape.cast(shape).width]
