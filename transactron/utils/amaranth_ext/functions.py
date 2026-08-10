@@ -218,11 +218,11 @@ def binary_tree_reduce(*values: ValueBundle, neutral: Value, operator: Callable[
 
 
 def sum_value(*values: ValueBundle):
-    return binary_tree_reduce(*values, neutral=C(0,0), operator=operator.add)
+    return binary_tree_reduce(*values, neutral=C(0, 0), operator=operator.add)
 
 
 def or_value(*values: ValueBundle):
-    return binary_tree_reduce(*values, neutral=C(0,0), operator=operator.or_)
+    return binary_tree_reduce(*values, neutral=C(0, 0), operator=operator.or_)
 
 
 def and_value(*values: ValueBundle):
@@ -390,7 +390,7 @@ def one_hot_mux(
     if len(all_data) == 1:
         return shape(all_data[0]) if isinstance(shape, ShapeCastable) else all_data[0]
 
-    value_combined = or_value([Mux(all_sel[i], all_data[i], C(0,0)) for i in range(len(all_data))])
+    value_combined = or_value([Mux(all_sel[i], all_data[i], C(0, 0)) for i in range(len(all_data))])
 
     if isinstance(shape, ShapeCastable):
         value_combined = value_combined[: Shape.cast(shape).width]
