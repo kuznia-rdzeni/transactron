@@ -3,8 +3,7 @@ import random
 import pytest
 from amaranth import *
 from amaranth.lib.data import ArrayLayout
-from transactron.utils.amaranth_ext import MultiPriorityEncoder, OneHotMux, RingMultiPriorityEncoder
-from transactron.utils.amaranth_ext.functions import one_hot_mux
+from transactron.utils.amaranth_ext import MultiPriorityEncoder, OneHotMux, one_hot_mux, RingMultiPriorityEncoder
 
 
 def get_expected_multi(input_width, output_count, input, *args):
