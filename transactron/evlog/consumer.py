@@ -8,15 +8,18 @@ from .log import DecodedEvent
 __all__ = ["handles", "EventConsumer"]
 
 
-def handles(event_type: type[Event]):
+type HandlerMethod[E: Event] = Callable[[Any, DecodedEvent[E]], None]
+
+
+def handles[E: Event](event_type: type[E]) -> Callable[[HandlerMethod[E]], HandlerMethod[E]]:
     """Marks an `EventConsumer` method as the handler for an event type.
 
     The decorated method is called with a single `DecodedEvent` argument for
     every log record of the given event type.
     """
 
-    def wrap(fn):
-        fn._evlog_handles = event_type
+    def wrap(fn: HandlerMethod[E]) -> HandlerMethod[E]:
+        fn._evlog_handles = event_type  # type: ignore
         return fn
 
     return wrap
