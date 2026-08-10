@@ -1,4 +1,4 @@
-from typing import Any, Optional, cast, overload
+from typing import Any, Optional, overload
 from amaranth import *
 from amaranth.hdl import ShapeCastable, ValueCastable
 from amaranth.hdl._ast import SwitchValue
@@ -168,7 +168,7 @@ def const_of(value: int, shape: ShapeLike) -> Any:
 @overload
 def _uniformize_values(
     values: Iterable[FlatValueLike],
-) -> tuple[Shape, list[Value]]: ...
+) -> tuple[None, list[Value]]: ...
 
 
 @overload
@@ -180,20 +180,17 @@ def _uniformize_values[
 @overload
 def _uniformize_values(
     values: Iterable[ValueLike],
-) -> tuple[ShapeCastable | Shape, list[Value]]: ...
+) -> tuple[ShapeCastable | None, list[Value]]: ...
 
 
 def _uniformize_values(
     values: Iterable[ValueLike],
-) -> tuple[ShapeCastable | Shape, list[Value]]:
+) -> tuple[ShapeCastable | None, list[Value]]:
     values = list(values)
     shapes = [shape_of(v) for v in values]
     shapecastable_shapes = [shape for shape in shapes if isinstance(shape, ShapeCastable)]
     if not shapecastable_shapes:
-        shapes = cast(list[Shape], shapes)
-        shape_width = max([shape.width for shape in shapes], default=0)
-        shape_signed = any(shape.signed for shape in shapes)
-        return Shape(shape_width, shape_signed), [Value.cast(v) for v in values]
+        return None, [Value.cast(v) for v in values]
 
     shape = shapecastable_shapes[0]
     if any(case_shape != shape for case_shape in shapecastable_shapes):
