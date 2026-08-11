@@ -168,29 +168,29 @@ def const_of(value: int, shape: ShapeLike) -> Any:
 @overload
 def _uniformize_values(
     values: Iterable[FlatValueLike],
-) -> tuple[None, list[Value]]: ...
+) -> tuple[Callable[[Value], Value], list[Value]]: ...
 
 
 @overload
 def _uniformize_values[
     T: ValueCastable
-](values: Iterable[T],) -> tuple[ShapeCastable, list[Value]]: ...
+](values: Iterable[T],) -> tuple[Callable[[Value], T], list[Value]]: ...
 
 
 @overload
 def _uniformize_values(
     values: Iterable[ValueLike],
-) -> tuple[ShapeCastable | None, list[Value]]: ...
+) -> tuple[Callable[[Value], Value | ValueCastable], list[Value]]: ...
 
 
 def _uniformize_values(
     values: Iterable[ValueLike],
-) -> tuple[ShapeCastable | None, list[Value]]:
+) -> tuple[Callable[[Value], Value | ValueCastable], list[Value]]:
     values = list(values)
     shapes = [shape_of(v) for v in values]
     shapecastable_shapes = [shape for shape in shapes if isinstance(shape, ShapeCastable)]
     if not shapecastable_shapes:
-        return None, [Value.cast(v) for v in values]
+        return (lambda v: v), [Value.cast(v) for v in values]
 
     shape = shapecastable_shapes[0]
     if any(case_shape != shape for case_shape in shapecastable_shapes):
@@ -199,7 +199,7 @@ def _uniformize_values(
     def unify(v):
         return Value.cast(v) if isinstance(v, (Value, ValueCastable)) else Value.cast(shape.const(v))
 
-    return shape, [unify(v) for v in values]
+    return (lambda v: shape(v)), [unify(v) for v in values]
 
 
 def binary_tree_reduce(*values: ValueBundle, neutral: Value, operator: Callable[[Value, Value], Value]) -> Value:
@@ -275,9 +275,9 @@ def switch_value(
 ) -> ValueLike:
     src_loc = get_src_loc(src_loc)
     cases = list(cases)
-    shape, values = _uniformize_values(val for _, val in cases)
+    shape_cast, values = _uniformize_values(val for _, val in cases)
     ret_val = SwitchValue(test, [(key, val) for (key, _), val in zip(cases, values)], src_loc=src_loc)
-    return shape(ret_val) if isinstance(shape, ShapeCastable) else ret_val
+    return shape_cast(ret_val)
 
 
 @overload
@@ -382,11 +382,9 @@ def one_hot_mux(
         )
 
     all_sel = select_one_hot if default is None else Cat(select_one_hot, ~select.any())
-    shape, all_data = _uniformize_values(data if default is None else data + [default])
+    shape_cast, all_data = _uniformize_values(data if default is None else data + [default])
 
     if len(all_data) == 1:
-        value_combined = all_data[0]
-    else:
-        value_combined = or_value([Mux(all_sel[i], all_data[i], C(0, 0)) for i in range(len(all_data))])
+        return shape_cast(all_data[0])
 
-    return shape(value_combined) if isinstance(shape, ShapeCastable) else value_combined
+    return shape_cast(or_value([Mux(all_sel[i], all_data[i], C(0, 0)) for i in range(len(all_data))]))
