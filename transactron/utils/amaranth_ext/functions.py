@@ -385,7 +385,8 @@ def one_hot_mux(
     shape, all_data = _uniformize_values(data if default is None else data + [default])
 
     if len(all_data) == 1:
-        return shape(all_data[0]) if isinstance(shape, ShapeCastable) else all_data[0]
+        value_combined = all_data[0]
+    else:
+        value_combined = or_value([Mux(all_sel[i], all_data[i], C(0, 0)) for i in range(len(all_data))])
 
-    value_combined = or_value([Mux(all_sel[i], all_data[i], C(0, 0)) for i in range(len(all_data))])
     return shape(value_combined) if isinstance(shape, ShapeCastable) else value_combined
