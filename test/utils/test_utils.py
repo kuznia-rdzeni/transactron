@@ -282,7 +282,7 @@ def reference_mask_until_first_set_bit(n, width):
     if n == 0:
         return (1 << width) - 1
     ctz = bin(n)[::-1].find("1")
-    return (1 << (ctz+1)) - 1
+    return (1 << (ctz + 1)) - 1
 
 
 def reference_mask_before_first_set_bit(n, width):
@@ -322,4 +322,3 @@ class TestBitManipulationFunctions(TestCaseWithSimulator):
 
     def test_mask_before_first_set_bit(self):
         self.do_test(mask_before_first_set_bit, reference_mask_before_first_set_bit)
-
