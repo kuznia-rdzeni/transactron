@@ -377,7 +377,7 @@ def one_hot_mux(
             src_loc=1,
         )
 
-    select_first = (select & (~select + 1))[: len(inputs)]
+    select_first = extract_lowest_set_bit(select)
     select_one_hot = select_first if priority else select
 
     if not priority and assert_one_hot:
