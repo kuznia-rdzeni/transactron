@@ -34,7 +34,6 @@ __all__ = [
     "mux",
     "one_hot_mux",
     "extract_lowest_set_bit",
-    "extract_highest_set_bit",
     "clear_lowest_set_bit",
     "mask_from_first_set_bit",
     "mask_after_first_set_bit",
@@ -407,20 +406,12 @@ def extract_lowest_set_bit(value: Value) -> Value:
     return (value & -value)[: len(value)]
 
 
-def extract_highest_set_bit(value: Value) -> Value:
-    """
-    Extracts the highest set bit from the input value.
-    If no bits are set, returns 0.
-    For example 0b010100 -> 0b010000.
-    """
-    return extract_lowest_set_bit(value[::-1])[::-1]
-
-
 def clear_lowest_set_bit(value: Value) -> Value:
     """
     Clears the lowest set bit from the input value.
     If no bits are set, returns 0.
     For example 0b110100 -> 0b110000.
+    Same as: value & ~extract_lowest_set_bit(value)
     """
     return (value & (value - 1))[: len(value)]
 
