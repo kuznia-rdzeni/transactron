@@ -19,7 +19,7 @@ from transactron.lib import Adapter, AdapterTrans
 
 from transactron.core import Priority
 from transactron.core.schedulers import trivial_roundrobin_cc_scheduler, eager_deterministic_cc_scheduler
-from transactron.core.manager import TransactionScheduler
+from transactron.core.manager import TransactionScheduler, TransactionManager
 from transactron.testing.test_circuit import SimpleTestCircuit
 from transactron.utils.dependencies import DependencyContext, DependencyManager
 
