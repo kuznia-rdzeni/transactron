@@ -165,11 +165,42 @@ be overridden for selected fields.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="transactron.testing.input_generation.draw_wait_geom">
+<span class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">transactron.testing.input_generation.</span></span><span class="sig-name descname"><span class="pre">draw_wait_geom</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ctx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#transactron.testing.SimulatorContext" title="amaranth.sim._async.SimulatorContext"><span class="pre">SimulatorContext</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataObject</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prob</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_cycle_cnt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">32</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.testing.input_generation.draw_wait_geom" title="Link to this definition"></a></dt>
+<dd><p>Awaits a random, geometrically distributed number of cycles.</p>
+<p>This is a Hypothesis compatible equivalent of <code class="docutils literal notranslate"><span class="pre">random_wait_geom</span></code>.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="transactron.testing.input_generation.exponential">
+<span class="sig-prename descclassname"><span class="pre">transactron.testing.input_generation.</span></span><span class="sig-name descname"><span class="pre">exponential</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rate</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">inf</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">SearchStrategy</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#transactron.testing.input_generation.exponential" title="Link to this definition"></a></dt>
+<dd><p>Returns a strategy which generates exponentially distributed floats.</p>
+<p>The distribution is not perfect, but the values shrink to 0.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>rate</strong><span class="classifier">float</span></dt><dd><p>Rate parameter.</p>
+</dd>
+<dt><strong>max_value</strong><span class="classifier">float, optional</span></dt><dd><p>Maximum generated value. If omitted, no upper bound.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>SearchStrategy[float]</dt><dd><p>The constructed strategy.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="transactron.testing.input_generation.generate_input">
-<span class="sig-prename descclassname"><span class="pre">transactron.testing.input_generation.</span></span><span class="sig-name descname"><span class="pre">generate_input</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">count</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_nones</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">strategy</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">SearchStrategy</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">SearchStrategy</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><span class="pre">T</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#transactron.testing.input_generation.generate_input" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">transactron.testing.input_generation.</span></span><span class="sig-name descname"><span class="pre">generate_input</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">count</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">strategy</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">SearchStrategy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prob</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_nones</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">32</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">SearchStrategy</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><span class="pre">T</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#transactron.testing.input_generation.generate_input" title="Link to this definition"></a></dt>
 <dd><p>Useful shorthand for generating inputs for testing processes.</p>
-<p>Optionally, inputs can be interspersed by <code class="docutils literal notranslate"><span class="pre">None</span></code>, which means no input for
-a given cycle.</p>
+<p>Inputs are interspersed by <code class="docutils literal notranslate"><span class="pre">None</span></code>, which means no input for a given cycle.
+The delays are geometrically distributed. For some test runs, <code class="docutils literal notranslate"><span class="pre">None</span></code> will
+not be included.</p>
 <p>The inputs are generated as shrinkable lists so that short counterexamples
 can be automatically constructed.</p>
 <dl class="field-list simple">
@@ -177,15 +208,39 @@ can be automatically constructed.</p>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>count</strong><span class="classifier">int</span></dt><dd><p>Number of test inputs to generate.</p>
 </dd>
-<dt><strong>max_nones</strong><span class="classifier">int</span></dt><dd><p>Maximum number of empty inputs in a row. If not given, defaults to 0.</p>
-</dd>
 <dt><strong>strategy</strong><span class="classifier">SearchStrategy</span></dt><dd><p>Strategy for inputs.</p>
+</dd>
+<dt><strong>max_nones</strong><span class="classifier">int</span></dt><dd><p>Maximum number of empty inputs in a row. If not given, defaults to
+some preset default.</p>
 </dd>
 </dl>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
 <dt>SearchStrategy</dt><dd><p>The constructed strategy.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="transactron.testing.input_generation.geometric">
+<span class="sig-prename descclassname"><span class="pre">transactron.testing.input_generation.</span></span><span class="sig-name descname"><span class="pre">geometric</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prob</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">SearchStrategy</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#transactron.testing.input_generation.geometric" title="Link to this definition"></a></dt>
+<dd><p>Returns a strategy which generates geometrically distributed integers.</p>
+<p>The distribution is not perfect, but the values shrink to 0.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>prob</strong><span class="classifier">float</span></dt><dd><p>Success probability.</p>
+</dd>
+<dt><strong>max_value</strong><span class="classifier">int, optional</span></dt><dd><p>Maximum generated value. If omitted, no upper bound.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>SearchStrategy[int]</dt><dd><p>The constructed strategy.</p>
 </dd>
 </dl>
 </dd>
@@ -266,6 +321,28 @@ defaults to unbounded.</p>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
 <dt>SearchStrategy[list[T | U]]</dt><dd><p>The constructed strategy.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="transactron.testing.input_generation.shrinkable_constants">
+<span class="sig-prename descclassname"><span class="pre">transactron.testing.input_generation.</span></span><span class="sig-name descname"><span class="pre">shrinkable_constants</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">SearchStrategy</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#transactron.testing.input_generation.shrinkable_constants" title="Link to this definition"></a></dt>
+<dd><p>Returns a strategy which generates an almost constant integer, but shrinkable to 0.</p>
+<p>This allows to write tests which usually do someting a constant amount of times,
+which can be reduced when searching for a counterexample.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>n</strong><span class="classifier">int</span></dt><dd><p>The value of the constant.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>SearchStrategy[int]</dt><dd><p>The constructed strategy.</p>
 </dd>
 </dl>
 </dd>
@@ -1481,7 +1558,7 @@ between different mocks and testbench processes.</p>
 
   <div role="contentinfo">
     <p>&#169; Copyright Kuźnia Rdzeni, 2026.
-      <span class="lastupdated">Last updated on 16:24 2026-08-14.
+      <span class="lastupdated">Last updated on 08:25 2026-08-16.
       </span></p>
   </div>
 
