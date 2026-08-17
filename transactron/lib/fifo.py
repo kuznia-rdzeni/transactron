@@ -8,6 +8,7 @@ from transactron.lib.allocators import CircularAllocator
 from transactron.utils.typing import MethodLayout, MethodStruct
 from transactron.utils.amaranth_ext import mod_incr, rotate_vec_right, rotate_vec_left
 from transactron.utils.amaranth_ext.functions import const_of
+from transactron.utils.logging import assertion
 from transactron.utils.amaranth_ext.shifter import rotate_left
 from transactron.utils.transactron_helpers import from_method_layout, get_src_loc
 
@@ -168,6 +169,8 @@ class WideFifo(Elaboratable):
         is not empty. The method is nonexclusive.
     write: Method
         Writes to the FIFO. Ready only if the FIFO has enough free slots to accept the write.
+        If `write_max_count` is set, the layout has an additional `max_count` field, which must
+        be an upper bound on `count`, and readiness is decided by `max_count` rather than `count`.
     clear: Method
         Clears the FIFO entries. Has priority over `read` and `write` methods.
     """
@@ -188,6 +191,7 @@ class WideFifo(Elaboratable):
         read_width: int,
         write_width: Optional[int] = None,
         *,
+        write_max_count: bool = False,
         src_loc: int | SrcLoc = 0,
     ) -> None:
         """
@@ -202,6 +206,13 @@ class WideFifo(Elaboratable):
         write_width: int, optional
             Number of elements which can be simultaneously written to the queue.
             If omitted, it is assumed to be equal to `read_width`.
+        write_max_count: bool
+            Adds a `max_count` field to the `write` method's layout, which must be an upper
+            bound on `count`. When set, the readiness of `write` is decided by `max_count`
+            instead of `count`. This is useful when a bound on the write size is known earlier
+            than the exact size: the argument deciding readiness is then off the critical path,
+            at the cost of `write` being ready less often. Violating `count <= max_count`
+            overflows the queue, so it is checked by an assertion.
         src_loc: int | SrcLoc
             How many stack frames deep the source location is taken from.
             Alternatively, the source location to use instead of the default.
@@ -211,6 +222,7 @@ class WideFifo(Elaboratable):
 
         self.read_width = read_width
         self.write_width = write_width
+        self.write_max_count = write_max_count
         self.col_count = max(read_width, write_width)
         self.depth = depth
 
@@ -223,6 +235,7 @@ class WideFifo(Elaboratable):
         )
         self.write_layout = data.StructLayout(
             {"count": range(write_width + 1), "data": data.ArrayLayout(shape, write_width)}
+            | ({"max_count": range(write_width + 1)} if write_max_count else {})
         )
         self.idx_layout = data.StructLayout(
             {"col": range(self.col_count), "row": range(self.row_count)}  # col less significant for monotonicity
@@ -308,8 +321,19 @@ class WideFifo(Elaboratable):
                 m.d.comb += chg_idx.col.eq(idx.col + count)
             return chg_idx
 
-        @def_method(m, self.write, remaining != 0, validate_arguments=lambda count, data: count <= remaining)
-        def _(count, data):
+        if self.write_max_count:
+            validate_write = lambda count, max_count, data: max_count <= remaining  # noqa: E731
+        else:
+            validate_write = lambda count, data: count <= remaining  # noqa: E731
+
+        @def_method(m, self.write, remaining != 0, validate_arguments=validate_write)
+        def _(arg):
+            count = arg.count
+            data = arg.data
+
+            if self.write_max_count:
+                assertion(m, count <= arg.max_count, "WideFifo: write count exceeds the declared max_count")
+
             ext_data = list(data) + [const_of(0, self.shape)] * (col_count - self.write_width)
             shifted_data = rotate_vec_left(ext_data, write_idx.col)
             ens = Signal(col_count)

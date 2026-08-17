@@ -77,7 +77,8 @@ class TestWideFifo(TestCaseWithSimulator):
             await self.random_wait_geom(sim, 0.5)
             count = random.randint(1, self.write_width)
             data = [const_of(random.randrange(2**self.bits), self.shape) for _ in range(self.write_width)]
-            await self.circ.write.call(sim, count=count, data=data)
+            extra = {"max_count": random.randint(count, self.write_width)} if self.write_max_count else {}
+            await self.circ.write.call(sim, count=count, data=data, **extra)
             await sim.delay(2e-9)  # Ensures following code runs after peek_verifier and target
             self.expq.extend(data[:count])
             self.write_idx += count
@@ -116,15 +117,19 @@ class TestWideFifo(TestCaseWithSimulator):
     @pytest.mark.parametrize("shape", [4, data.ArrayLayout(2, 2)])
     @pytest.mark.parametrize("depth", [2, 5])
     @pytest.mark.parametrize("read_width, write_width", [(1, 1), (2, 2), (1, 3), (3, 1)])
-    def test_randomized(self, shape: ShapeLike, depth: int, read_width: int, write_width: int):
+    @pytest.mark.parametrize("write_max_count", [False, True])
+    def test_randomized(self, shape: ShapeLike, depth: int, read_width: int, write_width: int, write_max_count: bool):
         random.seed(42)
 
         self.shape = shape
         self.bits = Shape.cast(shape).width
         max_width = max(read_width, write_width)
-        self.circ = SimpleTestCircuit(WideFifo(shape, depth * max_width, read_width, write_width))
+        self.circ = SimpleTestCircuit(
+            WideFifo(shape, depth * max_width, read_width, write_width, write_max_count=write_max_count)
+        )
         self.read_width = read_width
         self.write_width = write_width
+        self.write_max_count = write_max_count
         self.read_idx = 0
         self.write_idx = 0
 
