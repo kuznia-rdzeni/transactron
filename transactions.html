@@ -236,7 +236,7 @@ Such a transaction is included in the library – it’s named <code class="docu
 <h3>Method argument passing conventions<a class="headerlink" href="#method-argument-passing-conventions" title="Link to this heading"></a></h3>
 <p>Even though method arguments are Amaranth structures, their use can be avoided in many cases, which results in cleaner code.
 Suppose we have the following layout, which is an input layout for a method called <code class="docutils literal notranslate"><span class="pre">method</span></code>:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">layout</span> <span class="o">=</span> <span class="p">[(</span><span class="s2">&quot;foo&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;bar&quot;</span><span class="p">,</span> <span class="mi">32</span><span class="p">)]</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">layout</span> <span class="o">=</span> <span class="p">[(</span><span class="s2">"foo"</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="s2">"bar"</span><span class="p">,</span> <span class="mi">32</span><span class="p">)]</span>
 <span class="n">method</span> <span class="o">=</span> <span class="n">Method</span><span class="p">(</span><span class="n">i</span><span class="o">=</span><span class="n">layout</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -246,7 +246,7 @@ The cleanest and recommended way is to pass each field using a keyword argument:
 </pre></div>
 </div>
 <p>Another way is to pass the arguments using a <code class="docutils literal notranslate"><span class="pre">dict</span></code>:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">method</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;foo&#39;</span><span class="p">:</span> <span class="n">foo_expr</span><span class="p">,</span> <span class="s1">&#39;bar&#39;</span><span class="p">:</span> <span class="n">bar_expr</span><span class="p">})</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">method</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="p">{</span><span class="s1">'foo'</span><span class="p">:</span> <span class="n">foo_expr</span><span class="p">,</span> <span class="s1">'bar'</span><span class="p">:</span> <span class="n">bar_expr</span><span class="p">})</span>
 </pre></div>
 </div>
 <p>Finally, one can directly pass an Amaranth structure:</p>
@@ -258,16 +258,16 @@ The cleanest and recommended way is to pass each field using a keyword argument:
 </div>
 <p>The <code class="docutils literal notranslate"><span class="pre">dict</span></code> convention can be used recursively when layouts are nested.
 Take the following definitions:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">layout2</span> <span class="o">=</span> <span class="p">[(</span><span class="s2">&quot;foobar&quot;</span><span class="p">,</span> <span class="n">layout</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;baz&quot;</span><span class="p">,</span> <span class="mi">42</span><span class="p">)]</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">layout2</span> <span class="o">=</span> <span class="p">[(</span><span class="s2">"foobar"</span><span class="p">,</span> <span class="n">layout</span><span class="p">),</span> <span class="p">(</span><span class="s2">"baz"</span><span class="p">,</span> <span class="mi">42</span><span class="p">)]</span>
 <span class="n">method2</span> <span class="o">=</span> <span class="n">Method</span><span class="p">(</span><span class="n">i</span><span class="o">=</span><span class="n">layout2</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>One can then pass the arguments using <code class="docutils literal notranslate"><span class="pre">dict</span></code>s in following ways:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># the preferred way</span>
-<span class="n">method2</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">foobar</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;foo&#39;</span><span class="p">:</span> <span class="n">foo_expr</span><span class="p">,</span> <span class="s1">&#39;bar&#39;</span><span class="p">:</span> <span class="n">bar_expr</span><span class="p">},</span> <span class="n">baz</span><span class="o">=</span><span class="n">baz_expr</span><span class="p">)</span>
+<span class="n">method2</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">foobar</span><span class="o">=</span><span class="p">{</span><span class="s1">'foo'</span><span class="p">:</span> <span class="n">foo_expr</span><span class="p">,</span> <span class="s1">'bar'</span><span class="p">:</span> <span class="n">bar_expr</span><span class="p">},</span> <span class="n">baz</span><span class="o">=</span><span class="n">baz_expr</span><span class="p">)</span>
 
 <span class="c1"># the alternative way</span>
-<span class="n">method2</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;foobar&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;foo&#39;</span><span class="p">:</span> <span class="n">foo_expr</span><span class="p">,</span> <span class="s1">&#39;bar&#39;</span><span class="p">:</span> <span class="n">bar_expr</span><span class="p">},</span> <span class="s1">&#39;baz&#39;</span><span class="p">:</span> <span class="n">baz_expr</span><span class="p">})</span>
+<span class="n">method2</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="p">{</span><span class="s1">'foobar'</span><span class="p">:</span> <span class="p">{</span><span class="s1">'foo'</span><span class="p">:</span> <span class="n">foo_expr</span><span class="p">,</span> <span class="s1">'bar'</span><span class="p">:</span> <span class="n">bar_expr</span><span class="p">},</span> <span class="s1">'baz'</span><span class="p">:</span> <span class="n">baz_expr</span><span class="p">})</span>
 </pre></div>
 </div>
 </section>
@@ -297,7 +297,7 @@ Take the following method declaration:</p>
 <p>One can then define this method as follows:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@def_method</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">method3</span><span class="p">)</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">_</span><span class="p">(</span><span class="n">foo</span><span class="p">:</span> <span class="n">Value</span><span class="p">,</span> <span class="n">bar</span><span class="p">:</span> <span class="n">Value</span><span class="p">):</span>
-    <span class="k">return</span> <span class="p">{{</span><span class="s1">&#39;foo&#39;</span><span class="p">:</span> <span class="n">foo</span><span class="p">,</span> <span class="s1">&#39;bar&#39;</span><span class="p">:</span> <span class="n">foo</span> <span class="o">+</span> <span class="n">bar</span><span class="p">},</span> <span class="s1">&#39;baz&#39;</span><span class="p">:</span> <span class="n">foo</span> <span class="o">-</span> <span class="n">bar</span><span class="p">}</span>
+    <span class="k">return</span> <span class="p">{{</span><span class="s1">'foo'</span><span class="p">:</span> <span class="n">foo</span><span class="p">,</span> <span class="s1">'bar'</span><span class="p">:</span> <span class="n">foo</span> <span class="o">+</span> <span class="n">bar</span><span class="p">},</span> <span class="s1">'baz'</span><span class="p">:</span> <span class="n">foo</span> <span class="o">-</span> <span class="n">bar</span><span class="p">}</span>
 </pre></div>
 </div>
 </section>
@@ -415,7 +415,7 @@ Nesting implies scheduling order: the nested transaction or method is considered
 
   <div role="contentinfo">
     <p>&#169; Copyright Kuźnia Rdzeni, 2026.
-      <span class="lastupdated">Last updated on 08:25 2026-08-16.
+      <span class="lastupdated">Last updated on 15:38 2026-08-18.
       </span></p>
   </div>
 

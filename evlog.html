@@ -91,7 +91,7 @@
 <p>Events are dataclasses declared with the <a class="reference internal" href="transactron.evlog.html#transactron.evlog.event.event" title="transactron.evlog.event.event"><code class="xref py py-func docutils literal notranslate"><span class="pre">event()</span></code></a> decorator. The event name must be globally unique:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">transactron.evlog</span><span class="w"> </span><span class="kn">import</span> <span class="n">Event</span><span class="p">,</span> <span class="n">Static</span><span class="p">,</span> <span class="n">event</span>
 
-<span class="nd">@event</span><span class="p">(</span><span class="s2">&quot;exec.unit_start&quot;</span><span class="p">)</span>
+<span class="nd">@event</span><span class="p">(</span><span class="s2">"exec.unit_start"</span><span class="p">)</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">ExecUnitStart</span><span class="p">(</span><span class="n">Event</span><span class="p">):</span>
     <span class="n">insn_tag</span><span class="p">:</span> <span class="nb">int</span>
     <span class="n">kind</span><span class="p">:</span> <span class="n">UnitKind</span>          <span class="c1"># an enum.Enum subclass</span>
@@ -109,7 +109,7 @@
 <p><a class="reference internal" href="transactron.evlog.html#transactron.evlog.emit.EventSource" title="transactron.evlog.emit.EventSource"><code class="xref py py-class docutils literal notranslate"><span class="pre">EventSource</span></code></a> mirrors the <a class="reference internal" href="transactron.utils.html#transactron.utils.logging.HardwareLogger" title="transactron.utils.logging.HardwareLogger"><code class="xref py py-class docutils literal notranslate"><span class="pre">HardwareLogger</span></code></a> API. Since during elaboration the dynamic fields hold Amaranth values rather than their declared types, instances are constructed with the <a class="reference internal" href="transactron.evlog.html#transactron.evlog.event.Event.hw" title="transactron.evlog.event.Event.hw"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Event.hw</span></code></a> classmethod:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">transactron.evlog</span><span class="w"> </span><span class="kn">import</span> <span class="n">EventSource</span>
 
-<span class="bp">self</span><span class="o">.</span><span class="n">evlog</span> <span class="o">=</span> <span class="n">EventSource</span><span class="p">(</span><span class="s2">&quot;exec.alu&quot;</span><span class="p">)</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">evlog</span> <span class="o">=</span> <span class="n">EventSource</span><span class="p">(</span><span class="s2">"exec.alu"</span><span class="p">)</span>
 <span class="o">...</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">elaborate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">platform</span><span class="p">):</span>
     <span class="o">...</span>
@@ -129,11 +129,11 @@
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">transactron.testing.evlog</span><span class="w"> </span><span class="kn">import</span> <span class="n">capture_evlog</span>
 
 <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">run_simulation</span><span class="p">(</span><span class="n">m</span><span class="p">)</span> <span class="k">as</span> <span class="n">sim</span><span class="p">:</span>
-    <span class="n">log</span><span class="p">,</span> <span class="n">process</span> <span class="o">=</span> <span class="n">capture_evlog</span><span class="p">(</span><span class="n">metadata</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;config&quot;</span><span class="p">:</span> <span class="s2">&quot;full&quot;</span><span class="p">})</span>
+    <span class="n">log</span><span class="p">,</span> <span class="n">process</span> <span class="o">=</span> <span class="n">capture_evlog</span><span class="p">(</span><span class="n">metadata</span><span class="o">=</span><span class="p">{</span><span class="s2">"config"</span><span class="p">:</span> <span class="s2">"full"</span><span class="p">})</span>
     <span class="n">sim</span><span class="o">.</span><span class="n">add_process</span><span class="p">(</span><span class="n">process</span><span class="p">)</span>
     <span class="n">sim</span><span class="o">.</span><span class="n">add_testbench</span><span class="p">(</span><span class="n">testbench</span><span class="p">)</span>
 
-<span class="n">events</span> <span class="o">=</span> <span class="n">log</span><span class="o">.</span><span class="n">decoded</span><span class="p">()</span>      <span class="c1"># or log.save(&quot;events.jsonl&quot;)</span>
+<span class="n">events</span> <span class="o">=</span> <span class="n">log</span><span class="o">.</span><span class="n">decoded</span><span class="p">()</span>      <span class="c1"># or log.save("events.jsonl")</span>
 </pre></div>
 </div>
 <p>Tests based on <code class="xref py py-class docutils literal notranslate"><span class="pre">TestCaseWithSimulator</span></code> capture event logs automatically when pytest is invoked with <code class="docutils literal notranslate"><span class="pre">__TRANSACTRON_EVLOG=1</span></code> in the environment: every test which registered any emission sites (i.e. tests which enabled the event log themselves) saves its captured events to <code class="docutils literal notranslate"><span class="pre">test/__evlogs__/&lt;test</span> <span class="pre">name&gt;.jsonl</span></code>. The flag only controls capturing - enabling the event log stays a separate concern.</p>
@@ -141,7 +141,7 @@
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">transactron.evlog</span><span class="w"> </span><span class="kn">import</span> <span class="n">EventLogWriter</span><span class="p">,</span> <span class="n">GeneratedEvLogSampler</span>
 
 <span class="n">sampler</span> <span class="o">=</span> <span class="n">GeneratedEvLogSampler</span><span class="p">(</span><span class="n">gen_info</span><span class="o">.</span><span class="n">evlog</span><span class="p">,</span> <span class="n">resolve_handle</span><span class="p">)</span>
-<span class="k">with</span> <span class="n">EventLogWriter</span><span class="p">(</span><span class="s2">&quot;events.jsonl&quot;</span><span class="p">,</span> <span class="n">gen_info</span><span class="o">.</span><span class="n">evlog</span><span class="o">.</span><span class="n">schema</span><span class="p">)</span> <span class="k">as</span> <span class="n">writer</span><span class="p">:</span>
+<span class="k">with</span> <span class="n">EventLogWriter</span><span class="p">(</span><span class="s2">"events.jsonl"</span><span class="p">,</span> <span class="n">gen_info</span><span class="o">.</span><span class="n">evlog</span><span class="o">.</span><span class="n">schema</span><span class="p">)</span> <span class="k">as</span> <span class="n">writer</span><span class="p">:</span>
     <span class="c1"># once per clock cycle, when signals are stable (e.g. falling edge):</span>
     <span class="n">sampler</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">cycle</span><span class="p">,</span> <span class="n">writer</span><span class="p">)</span>
 </pre></div>
@@ -151,7 +151,7 @@
 <h2>Event log files and consumers<a class="headerlink" href="#event-log-files-and-consumers" title="Link to this heading"></a></h2>
 <p>Event logs are stored as JSON lines: a header with the schema and free-form metadata, followed by one record per fired event. <a class="reference internal" href="transactron.evlog.html#transactron.evlog.log.EventLog.load" title="transactron.evlog.log.EventLog.load"><code class="xref py py-meth docutils literal notranslate"><span class="pre">EventLog.load</span></code></a> reads a log into memory; <a class="reference internal" href="transactron.evlog.html#transactron.evlog.log.EventLogReader" title="transactron.evlog.log.EventLogReader"><code class="xref py py-class docutils literal notranslate"><span class="pre">EventLogReader</span></code></a> decodes it lazily for logs too large to hold in memory.</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">transactron-evlog</span></code> command pretty-prints event log files. It works from the schema alone; passing <code class="docutils literal notranslate"><span class="pre">-m</span> <span class="pre">&lt;module&gt;</span></code> imports the event definitions so that enum fields are printed as member names:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ transactron-evlog -m coreblocks.telemetry -f &quot;ftq&quot; -c 8:10 events.jsonl
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ transactron-evlog -m coreblocks.telemetry -f "ftq" -c 8:10 events.jsonl
  8 frontend.ftq frontend.ftq_alloc      ftq_ptr=4 pc=0x00000110
  8 frontend.ftq frontend.ftq_commit     ftq_ptr=0
  9 frontend.ftq frontend.ftq_rollback   ftq_ptr=2 cause=ifu_writeback
@@ -167,7 +167,7 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">on_unit_start</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rec</span><span class="p">:</span> <span class="n">DecodedEvent</span><span class="p">):</span>
         <span class="o">...</span>  <span class="c1"># rec.cycle, rec.source_name, rec.event (typed ExecUnitStart)</span>
 
-<span class="n">KonataConverter</span><span class="p">()</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">EventLogReader</span><span class="p">(</span><span class="s2">&quot;events.jsonl&quot;</span><span class="p">))</span>
+<span class="n">KonataConverter</span><span class="p">()</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">EventLogReader</span><span class="p">(</span><span class="s2">"events.jsonl"</span><span class="p">))</span>
 </pre></div>
 </div>
 <p><a class="reference internal" href="transactron.evlog.html#transactron.evlog.consumer.EventConsumer.run" title="transactron.evlog.consumer.EventConsumer.run"><code class="xref py py-meth docutils literal notranslate"><span class="pre">EventConsumer.run</span></code></a> sorts records by cycle, so capture order does not matter - which is convenient for output formats requiring monotonic timestamps. Events without a handler go to <a class="reference internal" href="transactron.evlog.html#transactron.evlog.consumer.EventConsumer.on_unhandled" title="transactron.evlog.consumer.EventConsumer.on_unhandled"><code class="xref py py-meth docutils literal notranslate"><span class="pre">on_unhandled()</span></code></a>; override it to detect drift between the schema and the consumer.</p>
@@ -186,7 +186,7 @@
 
   <div role="contentinfo">
     <p>&#169; Copyright Kuźnia Rdzeni, 2026.
-      <span class="lastupdated">Last updated on 08:25 2026-08-16.
+      <span class="lastupdated">Last updated on 15:38 2026-08-18.
       </span></p>
   </div>
 
