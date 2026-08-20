@@ -1,4 +1,4 @@
-from typing import Any, Optional, cast, overload
+from typing import Any, Optional, overload
 from amaranth import *
 from amaranth.hdl import ShapeCastable, ValueCastable
 from amaranth.hdl._ast import SwitchValue
@@ -33,6 +33,12 @@ __all__ = [
     "switch_value",
     "mux",
     "one_hot_mux",
+    "extract_lowest_set_bit",
+    "clear_lowest_set_bit",
+    "mask_from_first_set_bit",
+    "mask_after_first_set_bit",
+    "mask_until_first_set_bit",
+    "mask_before_first_set_bit",
 ]
 
 
@@ -165,6 +171,43 @@ def const_of(value: int, shape: ShapeLike) -> Any:
         return C(value, Shape.cast(shape))
 
 
+@overload
+def _uniformize_values(
+    values: Iterable[FlatValueLike],
+) -> tuple[Callable[[Value], Value], list[Value]]: ...
+
+
+@overload
+def _uniformize_values[
+    T: ValueCastable
+](values: Iterable[T],) -> tuple[Callable[[Value], T], list[Value]]: ...
+
+
+@overload
+def _uniformize_values(
+    values: Iterable[ValueLike],
+) -> tuple[Callable[[Value], Value | ValueCastable], list[Value]]: ...
+
+
+def _uniformize_values(
+    values: Iterable[ValueLike],
+) -> tuple[Callable[[Value], Value | ValueCastable], list[Value]]:
+    values = list(values)
+    shapes = [shape_of(v) for v in values]
+    shapecastable_shapes = [shape for shape in shapes if isinstance(shape, ShapeCastable)]
+    if not shapecastable_shapes:
+        return (lambda v: v), [Value.cast(v) for v in values]
+
+    shape = shapecastable_shapes[0]
+    if any(case_shape != shape for case_shape in shapecastable_shapes):
+        raise ValueError("Different ShapeCastables for different shapes")
+
+    def unify(v):
+        return Value.cast(v) if isinstance(v, (Value, ValueCastable)) else Value.cast(shape.const(v))
+
+    return (lambda v: shape(v)), [unify(v) for v in values]
+
+
 def binary_tree_reduce(*values: ValueBundle, neutral: Value, operator: Callable[[Value, Value], Value]) -> Value:
     min_layers = list(flatten_signals(values))
     if not min_layers:
@@ -178,11 +221,11 @@ def binary_tree_reduce(*values: ValueBundle, neutral: Value, operator: Callable[
 
 
 def sum_value(*values: ValueBundle):
-    return binary_tree_reduce(*values, neutral=C(0), operator=operator.add)
+    return binary_tree_reduce(*values, neutral=C(0, 0), operator=operator.add)
 
 
 def or_value(*values: ValueBundle):
-    return binary_tree_reduce(*values, neutral=C(0), operator=operator.or_)
+    return binary_tree_reduce(*values, neutral=C(0, 0), operator=operator.or_)
 
 
 def and_value(*values: ValueBundle):
@@ -238,19 +281,9 @@ def switch_value(
 ) -> ValueLike:
     src_loc = get_src_loc(src_loc)
     cases = list(cases)
-    case_shapes = [shape_of(val) for _, val in cases]
-    shapecastable_shapes = [shape for shape in case_shapes if isinstance(shape, ShapeCastable)]
-    if shapecastable_shapes:
-        shape = cast(ShapeCastable, shapecastable_shapes[0])
-        if any(case_shape != shape for case_shape in shapecastable_shapes):
-            raise ValueError("Different ShapeCastables for different shapes")
-
-        def unify(v):
-            return Value.cast(v) if isinstance(v, (Value, ValueCastable)) else Value.cast(shape.const(v))
-
-        return shape(SwitchValue(test, [(key, unify(val)) for key, val in cases], src_loc=src_loc))
-    else:
-        return SwitchValue(test, cases, src_loc=src_loc)
+    shape_cast, values = _uniformize_values(val for _, val in cases)
+    ret_val = SwitchValue(test, [(key, val) for (key, _), val in zip(cases, values)], src_loc=src_loc)
+    return shape_cast(ret_val)
 
 
 @overload
@@ -277,30 +310,64 @@ def mux(sel: ValueLike, val1: ValueLike, val0: ValueLike) -> ValueLike:
     return switch_value(sel, [(0, val0), (None, val1)], src_loc=1)
 
 
+@overload
+def one_hot_mux[
+    T: ValueCastable
+](
+    inputs: Sequence[tuple[ValueLike, T]],
+    default: Optional[T] = None,
+    priority: bool = False,
+    assert_one_hot: bool = True,
+) -> T: ...
+
+
+@overload
 def one_hot_mux(
-    select: ValueLike,
-    inputs: Sequence[ValueLike],
+    inputs: Sequence[tuple[ValueLike, FlatValueLike]],
+    default: Optional[FlatValueLike] = None,
+    priority: bool = False,
+    assert_one_hot: bool = True,
+) -> Value: ...
+
+
+@overload
+def one_hot_mux(
+    inputs: Sequence[tuple[ValueLike, ValueLike]],
     default: Optional[ValueLike] = None,
     priority: bool = False,
     assert_one_hot: bool = True,
-) -> Value:
+) -> Value | ValueCastable: ...
+
+
+def one_hot_mux(
+    inputs: Sequence[tuple[ValueLike, ValueLike]],
+    default: Optional[ValueLike] = None,
+    priority: bool = False,
+    assert_one_hot: bool = False,
+) -> Value | ValueCastable:
     """
     One-hot multiplexer.
-    Takes n input values and a one-hot select signal of n bits and outputs the value corresponding
-    to the bit set in the select signal.
-    If priority is False and multiple bits are set, the output is undefined.
-    If priority is True and multiple bits are set, the output corresponds to the lowest set bit in the select signal.
-    If assert_one_hot is True and priority is False, an assertion is added that checks
-    that the select signal is one-hot.
-    If default is provided and select signal is 0, the output is default,
-    otherwise select must have at least one bit set.
+    Takes n input values and n one-hot select signals and outputs the value corresponding to the set select signal.
+
+    Parameters
+    ----------
+    inputs : Sequence[tuple[ValueLike, ValueLike]]
+        Sequence of tuples, where each tuple contains a select signal and a corresponding value.
+    default: ValueLike, optional
+        Default value to output if no select signal is set. If not provided, when no select signal is set, the output
+        is undefined.
+    priority : bool, default False
+        If True, the output corresponds to the lowest entry with set select signal.
+        If False, the output is undefined if multiple select signals are set.
+    assert_one_hot : bool, default False
+        If True, an assertion is added that checks if undefined output is produced.
     """
     inputs = list(inputs)
+    select = Cat(Value.cast(sel).bool() for sel, _ in inputs)
+    data = [val for _, val in inputs]
 
-    if len(inputs) == 0:
-        return Value.cast(default) if default is not None else C(0)
-
-    select = Value.cast(select).as_unsigned()
+    if not inputs and default is None:
+        raise ValueError("No inputs provided to one_hot_mux")
 
     if default is None and assert_one_hot:
         top_assertion(
@@ -309,10 +376,7 @@ def one_hot_mux(
             src_loc=1,
         )
 
-    if default is None and len(inputs) == 1:
-        return Value.cast(inputs[0])
-
-    select_first = select & (~select + 1)
+    select_first = extract_lowest_set_bit(select)
     select_one_hot = select_first if priority else select
 
     if not priority and assert_one_hot:
@@ -323,9 +387,64 @@ def one_hot_mux(
             src_loc=1,
         )
 
-    value_combined = or_value([Mux(select_one_hot[i], Value.cast(inputs[i]), 0) for i in range(len(inputs))])
+    all_sel = select_one_hot if default is None else Cat(select_one_hot, ~select.any())
+    shape_cast, all_data = _uniformize_values(data if default is None else data + [default])
 
-    if default is None:
-        return value_combined
+    if len(all_data) == 1:
+        return shape_cast(all_data[0])
 
-    return Mux(select.any(), value_combined, Value.cast(default))
+    return shape_cast(or_value([Mux(all_sel[i], all_data[i], C(0, 0)) for i in range(len(all_data))]))
+
+
+def extract_lowest_set_bit(value: Value) -> Value:
+    """
+    Extracts the least significant set bit from the input value.
+    If no bits are set, returns ``0``.
+    For example ``0b010100`` -> ``0b000100``.
+    Same as: ``(1 << count_trailing_zeros(value))[: len(value)]``.
+    """
+    return (value & -value)[: len(value)]
+
+
+def clear_lowest_set_bit(value: Value) -> Value:
+    """
+    Clears the least significant set bit from the input value.
+    If no bits are set, returns ``0``.
+    For example ``0b110100`` -> ``0b110000``.
+    Same as: ``value & ~extract_lowest_set_bit(value)``
+    """
+    return (value & (value - 1))[: len(value)]
+
+
+def mask_from_first_set_bit(value: Value) -> Value:
+    """
+    Generates a mask from the least significant set bit (inclusive) in the input value upto its length.
+    For example ``0b010100`` -> ``0b111100``.
+    Same as: ``(-1 << count_trailing_zeros(value))[: len(value)]``.
+    """
+    return (value | -value)[: len(value)]
+
+
+def mask_after_first_set_bit(value: Value) -> Value:
+    """
+    Generates a mask from the least significant set bit (exclusive) in the input value upto its length.
+    For example ``0b010100`` -> ``0b111000``.
+    """
+    return (mask_from_first_set_bit(value) << 1)[: len(value)]
+
+
+def mask_until_first_set_bit(value: Value) -> Value:
+    """
+    Generates a mask from the 0-th bit upto the least significant set bit in the input (inclusive).
+    For example ``0b010100`` -> ``0b000111``.
+    """
+    return ~mask_after_first_set_bit(value)
+
+
+def mask_before_first_set_bit(value: Value) -> Value:
+    """
+    Generates a mask from the 0-th bit upto the least significant set bit in the input (exclusive).
+    For example ``0b010100`` -> ``0b000011``.
+    Same as: ``extract_lowest_set_bit(value) - 1``.
+    """
+    return ~mask_from_first_set_bit(value)

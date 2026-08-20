@@ -3,7 +3,7 @@ import random
 import pytest
 from amaranth import *
 from amaranth.lib.data import ArrayLayout
-from transactron.utils.amaranth_ext import MultiPriorityEncoder, OneHotMux, RingMultiPriorityEncoder
+from transactron.utils.amaranth_ext import MultiPriorityEncoder, OneHotMux, one_hot_mux, RingMultiPriorityEncoder
 
 
 def get_expected_multi(input_width, output_count, input, *args):
@@ -52,37 +52,56 @@ def one_hot_mux_reference(select_values, input_values, default_value, is_priorit
 
 
 class OneHotMuxDUT(Elaboratable):
-    def __init__(self, shape, input_count, is_priority, has_default):
+    def __init__(self, shape, input_count, is_priority, has_default, use_function):
         self.select = [Signal() for _ in range(input_count)]
         self.inputs = [Signal(shape) for _ in range(input_count)]  # type: ignore
         self.output = Signal(shape)  # type: ignore
         self.default = Signal(shape) if has_default else None  # type: ignore
         self.is_priority = is_priority
+        self.use_function = use_function
 
     def elaborate(self, platform):
         m = Module()
-        m.d.comb += Value.cast(self.output).eq(
-            OneHotMux.create(
-                m,
-                list(zip(self.select, self.inputs)),
-                self.default,
-                priority=self.is_priority,
+        if self.use_function:
+            m.d.comb += self.output.eq(
+                one_hot_mux(
+                    list(zip(self.select, self.inputs)),
+                    self.default,
+                    priority=self.is_priority,
+                )
             )
-        )
+        else:
+            m.d.comb += self.output.eq(
+                OneHotMux.create(
+                    m,
+                    list(zip(self.select, self.inputs)),
+                    self.default,
+                    priority=self.is_priority,
+                )
+            )
         return m
 
 
 class TestOneHotMux(TestCaseWithSimulator):
     @pytest.mark.parametrize("is_valuecastable", [False, True])
     @pytest.mark.parametrize("has_default", [False, True])
+    @pytest.mark.parametrize("use_function", [False, True])
     @pytest.mark.parametrize("is_priority", [False, True])
     @pytest.mark.parametrize("input_count", [1, 3, 7])
-    @pytest.mark.parametrize("width", [1, 6, 15])
-    def test_randomized(self, is_valuecastable, has_default, is_priority, input_count, width):
-        random.seed(f"{int(is_valuecastable)}-{int(has_default)}-{int(is_priority)}-{input_count}-{width}")
+    @pytest.mark.parametrize("width", [0, 1, 6, 15])
+    def test_randomized(self, is_valuecastable, has_default, is_priority, input_count, width, use_function):
+        random.seed(
+            f"{int(is_valuecastable)}-{int(has_default)}-{int(is_priority)}-{int(use_function)}-{input_count}-{width}"
+        )
 
         shape = ArrayLayout(1, width) if is_valuecastable else width
-        dut = OneHotMuxDUT(shape=shape, input_count=input_count, is_priority=is_priority, has_default=has_default)
+        dut = OneHotMuxDUT(
+            shape=shape,
+            input_count=input_count,
+            is_priority=is_priority,
+            has_default=has_default,
+            use_function=use_function,
+        )
 
         def from_repr(x):
             return shape.from_bits(x) if is_valuecastable else x
@@ -116,6 +135,7 @@ class TestOneHotMux(TestCaseWithSimulator):
                 got = sim.get(dut.output)
 
                 if is_valuecastable:
+                    assert got.shape() == shape  # type: ignore
                     got = Const.cast(got).value
 
                 expected = one_hot_mux_reference(

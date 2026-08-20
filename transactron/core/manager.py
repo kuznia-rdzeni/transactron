@@ -515,7 +515,7 @@ class TransactionManager(Elaboratable):
                 if method.nonexclusive:
                     return Cat(method._validate_arguments(call.enable, call.arg) for call in calls).all()
 
-                combined = OneHotMux.create(m, [(call.enable, call.arg) for call in calls])
+                combined = one_hot_mux([(call.enable, call.arg) for call in calls])
                 return method._validate_arguments(Cat(call.enable for call in calls).any(), combined)
 
             runnable_terms = [

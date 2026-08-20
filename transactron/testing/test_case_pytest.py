@@ -6,6 +6,12 @@ __all__ = ["TestCaseWithSimulator"]
 
 
 class TestCaseWithSimulator(TestCaseWithSimulatorBase):
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        for attr in list(vars(cls).values()):
+            if hasattr(attr, "hypothesis"):
+                attr.hypothesis.inner_test = TestCaseWithSimulator.wrap_testing_env_next(attr.hypothesis.inner_test)
+
     @pytest.fixture(autouse=True)
     def fixture_initialize_testing_env(self, request):
         # Hypothesis creates a single instance of a test class, which is later reused multiple times.

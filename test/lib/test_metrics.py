@@ -302,8 +302,6 @@ class TestHwHistogram(TestCaseWithSimulator):
                 await sim.delay(1e-12)  # so verify_process reads correct values
 
         async def verify_process(sim: TestbenchContext):
-            nonlocal min, max, sum, count
-
             for _ in range(iterations):
                 await sim.tick()
 

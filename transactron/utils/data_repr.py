@@ -1,5 +1,4 @@
 from collections.abc import Iterable, Mapping
-from .typing import MethodLayout
 from amaranth_types import ShapeLike
 from typing import Any, Hashable, Sized
 from statistics import fmean
@@ -83,8 +82,8 @@ def bits_from_int(num: int, lower: int, length: int):
     return (num >> lower) & ((1 << (length)) - 1)
 
 
-def data_layout(val: ShapeLike) -> MethodLayout:
-    return [("data", val)]
+def data_layout(val: ShapeLike) -> StructLayout:
+    return StructLayout({"data": val})
 
 
 def neg(x: int, xlen: int) -> int:

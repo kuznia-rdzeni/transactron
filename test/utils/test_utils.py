@@ -11,6 +11,12 @@ from transactron.utils import (
     count_leading_zeros,
     count_trailing_zeros,
     cyclic_mask,
+    extract_lowest_set_bit,
+    clear_lowest_set_bit,
+    mask_after_first_set_bit,
+    mask_from_first_set_bit,
+    mask_until_first_set_bit,
+    mask_before_first_set_bit,
 )
 from amaranth.utils import ceil_log2
 
@@ -245,3 +251,74 @@ class TestGenCyclicMask(TestCaseWithSimulator):
     def test_count_trailing_zeros(self, size):
         with self.run_simulation(self.m) as sim:
             sim.add_testbench(self.process)
+
+
+def reference_extract_lowest_set_bit(n, width):
+    if n == 0:
+        return 0
+    ctz = bin(n)[::-1].find("1")
+    return 1 << ctz
+
+
+def reference_clear_lowest_set_bit(n, width):
+    return n & ~reference_extract_lowest_set_bit(n, width)
+
+
+def reference_mask_after_first_set_bit(n, width):
+    if n == 0:
+        return 0
+    ctz = bin(n)[::-1].find("1")
+    return (-1 << (ctz + 1)) & ((1 << width) - 1)
+
+
+def reference_mask_from_first_set_bit(n, width):
+    if n == 0:
+        return 0
+    ctz = bin(n)[::-1].find("1")
+    return (-1 << ctz) & ((1 << width) - 1)
+
+
+def reference_mask_until_first_set_bit(n, width):
+    if n == 0:
+        return (1 << width) - 1
+    ctz = bin(n)[::-1].find("1")
+    return (1 << (ctz + 1)) - 1
+
+
+def reference_mask_before_first_set_bit(n, width):
+    if n == 0:
+        return (1 << width) - 1
+    ctz = bin(n)[::-1].find("1")
+    return (1 << ctz) - 1
+
+
+class TestBitManipulationFunctions(TestCaseWithSimulator):
+    def do_test(self, function, ref_function):
+        async def process(sim: TestbenchContext):
+            for _ in range(40):
+                width = random.randint(0, 32)
+                value = random.randint(0, (1 << width) - 1)
+                result = sim.get(function(Const(value, width)))
+                expected = ref_function(value, width)
+                assert result == expected, f"Failed for value {value} with width {width}"
+
+        with self.run_simulation(Module()) as sim:
+            sim.add_testbench(process)
+
+    def test_extract_lowest_set_bit(self):
+        self.do_test(extract_lowest_set_bit, reference_extract_lowest_set_bit)
+
+    def test_clear_lowest_set_bit(self):
+        self.do_test(clear_lowest_set_bit, reference_clear_lowest_set_bit)
+
+    def test_mask_after_first_set_bit(self):
+        self.do_test(mask_after_first_set_bit, reference_mask_after_first_set_bit)
+
+    def test_mask_from_first_set_bit(self):
+        self.do_test(mask_from_first_set_bit, reference_mask_from_first_set_bit)
+
+    def test_mask_until_first_set_bit(self):
+        self.do_test(mask_until_first_set_bit, reference_mask_until_first_set_bit)
+
+    def test_mask_before_first_set_bit(self):
+        self.do_test(mask_before_first_set_bit, reference_mask_before_first_set_bit)

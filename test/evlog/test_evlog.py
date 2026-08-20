@@ -212,7 +212,7 @@ class TestEventConsumer:
                 self.unhandled: list[DecodedEvent] = []
 
             @handles(InsnStart)
-            def on_start(self, rec: DecodedEvent):
+            def on_start(self, rec: DecodedEvent[InsnStart]):
                 self.seen.append((rec.cycle, rec.event))
 
             def on_unhandled(self, rec: DecodedEvent):
@@ -227,12 +227,12 @@ class TestEventConsumer:
     def test_handler_inheritance(self):
         class Base(EventConsumer):
             @handles(InsnStart)
-            def on_start(self, rec: DecodedEvent):
+            def on_start(self, rec: DecodedEvent[InsnStart]):
                 pass
 
         class Derived(Base):
             @handles(InsnDone)
-            def on_done(self, rec: DecodedEvent):
+            def on_done(self, rec: DecodedEvent[InsnDone]):
                 pass
 
         assert Base._handlers == {"test.insn_start": "on_start"}

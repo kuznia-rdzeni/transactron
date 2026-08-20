@@ -1,5 +1,14 @@
 import os
 import pytest
+import hypothesis
+
+
+hypothesis.settings.register_profile(
+    "ci",
+    derandomize=True,  # reproducible runs in CI
+    max_examples=100,  # don't do too much tests
+    deadline=None,  # avoid flakiness due to runner variability
+)
 
 
 def pytest_addoption(parser: pytest.Parser) -> None:

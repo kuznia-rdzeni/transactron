@@ -120,5 +120,5 @@ async def random_wait_geom(ctx: SimulatorContext, prob: float = 0.5, max_cycle_c
     if prob == 1:
         cycle_cnt = 0
     else:
-        cycle_cnt = min(max_cycle_cnt, math.floor(math.log(1 - random.random()) / math.log(1 - prob)))
+        cycle_cnt = min(max_cycle_cnt, math.floor(math.log1p(-random.random()) / math.log1p(-prob)))
     await tick(ctx, cycle_cnt)

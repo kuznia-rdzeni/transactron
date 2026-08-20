@@ -23,7 +23,7 @@ type RawEvent = tuple[int, int, list[int]]
 
 
 @dataclass
-class DecodedEvent:
+class DecodedEvent[E: Event = Event]:
     """A single decoded event from an event log.
 
     Attributes
@@ -38,7 +38,7 @@ class DecodedEvent:
 
     cycle: int
     site: EventSiteSchema
-    event: Event
+    event: E
 
     @property
     def source_name(self) -> str:
