@@ -7,7 +7,7 @@ from amaranth import ValueCastable
 from amaranth.lib.data import ArrayLayout, View
 from amaranth_types import FlatValueLike, HasElaborate, ShapeLike, ModuleLike, ValueLike
 
-from transactron.utils.amaranth_ext.functions import one_hot_mux, shape_of
+from transactron.utils.amaranth_ext.functions import one_hot_mux, shape_of, top_module
 
 __all__ = [
     "OneHotSwitchDynamic",
@@ -281,7 +281,7 @@ class MultiPriorityEncoder(Elaboratable):
 
     @staticmethod
     def create(
-        m: Module, input_width: int, input: ValueLike, outputs_count: int = 1, name: Optional[str] = None
+        m: ModuleLike, input_width: int, input: ValueLike, outputs_count: int = 1, name: Optional[str] = None
     ) -> list[tuple[Value, Value]]:
         """Syntax sugar for creating MultiPriorityEncoder
 
@@ -330,11 +330,14 @@ class MultiPriorityEncoder(Elaboratable):
                 raise ValueError(f"Name: {name} is already in use, so MultiPriorityEncoder can not be added with it.")
             except AttributeError:
                 setattr(m.submodules, name, prio_encoder)
-        m.d.comb += prio_encoder.input.eq(input)
+        top_m = top_module(m)
+        top_m.d.comb += prio_encoder.input.eq(input)
         return [(prio_encoder.outputs[i], prio_encoder.valids[i]) for i in range(outputs_count)]
 
     @staticmethod
-    def create_simple(m: Module, input_width: int, input: ValueLike, name: Optional[str] = None) -> tuple[Value, Value]:
+    def create_simple(
+        m: ModuleLike, input_width: int, input: ValueLike, name: Optional[str] = None
+    ) -> tuple[Value, Value]:
         """Syntax sugar for creating MultiPriorityEncoder
 
         This is the same as `create` function, but with `outputs_count` hardcoded to 1.
@@ -342,7 +345,7 @@ class MultiPriorityEncoder(Elaboratable):
         lst = MultiPriorityEncoder.create(m, input_width, input, outputs_count=1, name=name)
         return lst[0]
 
-    def build_tree(self, m: Module, in_sig: Signal, start_idx: int):
+    def _build_tree(self, m: Module, in_sig: Signal, start_idx: int):
         assert len(in_sig) > 0
         level_outputs = [
             Signal(range(self.input_width), name=f"_lvl_out_idx{start_idx}_{i}") for i in range(self.outputs_count)
@@ -358,8 +361,8 @@ class MultiPriorityEncoder(Elaboratable):
             l_in = Signal(len(in_sig) - middle, name=f"_l_in_idx{start_idx}")
             m.d.comb += r_in.eq(in_sig[0:middle])
             m.d.comb += l_in.eq(in_sig[middle:])
-            r_out, r_val = self.build_tree(m, r_in, start_idx)
-            l_out, l_val = self.build_tree(m, l_in, start_idx + middle)
+            r_out, r_val = self._build_tree(m, r_in, start_idx)
+            l_out, l_val = self._build_tree(m, l_in, start_idx + middle)
 
             with m.Switch(Cat(r_val)):
                 for i in range(self.outputs_count + 1):
@@ -375,7 +378,7 @@ class MultiPriorityEncoder(Elaboratable):
     def elaborate(self, platform):
         m = Module()
 
-        level_outputs, level_valids = self.build_tree(m, self.input, 0)
+        level_outputs, level_valids = self._build_tree(m, self.input, 0)
 
         for k in range(self.outputs_count):
             m.d.comb += self.outputs[k].eq(level_outputs[k])
@@ -429,7 +432,7 @@ class RingMultiPriorityEncoder(Elaboratable):
 
     @staticmethod
     def create(
-        m: Module,
+        m: ModuleLike,
         input_width: int,
         input: ValueLike,
         first: ValueLike,
@@ -492,14 +495,15 @@ class RingMultiPriorityEncoder(Elaboratable):
                 )
             except AttributeError:
                 setattr(m.submodules, name, prio_encoder)
-        m.d.comb += prio_encoder.input.eq(input)
-        m.d.comb += prio_encoder.first.eq(first)
-        m.d.comb += prio_encoder.last.eq(last)
+        top_m = top_module(m)
+        top_m.d.comb += prio_encoder.input.eq(input)
+        top_m.d.comb += prio_encoder.first.eq(first)
+        top_m.d.comb += prio_encoder.last.eq(last)
         return [(prio_encoder.outputs[i], prio_encoder.valids[i]) for i in range(outputs_count)]
 
     @staticmethod
     def create_simple(
-        m: Module, input_width: int, input: ValueLike, first: ValueLike, last: ValueLike, name: Optional[str] = None
+        m: ModuleLike, input_width: int, input: ValueLike, first: ValueLike, last: ValueLike, name: Optional[str] = None
     ) -> tuple[Value, Value]:
         """Syntax sugar for creating RingMultiPriorityEncoder
 
@@ -714,11 +718,12 @@ class OneHotMux(Elaboratable):
 
         fw_net = OneHotMux(input_shape, len(inputs), priority=priority, has_default=default_input is not None)
         m.submodules += fw_net
+        top_m = top_module(m)
         if default_input is not None:
-            m.d.comb += Value.cast(fw_net.default_input).eq(default_input)
+            top_m.d.comb += Value.cast(fw_net.default_input).eq(default_input)
         for i, (sel_bit, input) in enumerate(inputs):
-            m.d.comb += fw_net.select[i].eq(Value.cast(sel_bit).any())
-            m.d.comb += Value.cast(fw_net.inputs[i]).eq(input)
+            top_m.d.comb += fw_net.select[i].eq(Value.cast(sel_bit).any())
+            top_m.d.comb += Value.cast(fw_net.inputs[i]).eq(input)
         return fw_net.output
 
     def elaborate(self, platform):

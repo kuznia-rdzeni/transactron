@@ -5,6 +5,7 @@ from amaranth_types import StatementLike, ModuleLike, ValueLike, SwitchKey
 from typing import Optional, Self, NoReturn
 from contextlib import contextmanager
 from amaranth.hdl._dsl import FSM, _guardedcontextmanager
+from transactron.utils.amaranth_ext import top_module
 
 __all__ = ["TModule"]
 
@@ -33,7 +34,7 @@ class _AvoidingModuleBuilderDomains:
         if name == "av_comb":
             return _AvoidingModuleBuilderDomain(self._m.avoiding_module.d["comb"])
         elif name == "top_comb":
-            return _AvoidingModuleBuilderDomain(self._m.top_module.d["comb"])
+            return _AvoidingModuleBuilderDomain(top_module(self._m).d["comb"])
         else:
             return _AvoidingModuleBuilderDomain(self._m.main_module.d[name])
 
@@ -215,6 +216,8 @@ class TModule(ModuleLike, Elaboratable):
         self.fsm: Optional[FSM] = None
         self.uid = TModule.__next_uid
         self.path_builder = CtrlPathBuilder(self.uid)
+        self.main_module.submodules._avoiding_module = self.avoiding_module
+        self.main_module.submodules._top_module = self.top_module
         TModule.__next_uid += 1
 
     @_guardedcontextmanager("AvoidedIf")
@@ -305,6 +308,4 @@ class TModule(ModuleLike, Elaboratable):
         self.top_module._MustUse__silence = value  # type: ignore
 
     def elaborate(self, platform):
-        self.main_module.submodules._avoiding_module = self.avoiding_module
-        self.main_module.submodules._top_module = self.top_module
         return self.main_module

@@ -7,7 +7,7 @@ from amaranth.lib import data, enum
 from collections.abc import Callable, Iterable, Mapping, Sequence
 import operator
 
-from amaranth_types import FlatValueLike, SrcLoc, SwitchKey
+from amaranth_types import FlatValueLike, ModuleLike, SrcLoc, SwitchKey
 from amaranth_types.types import ValueLike, ShapeLike
 from transactron.utils.transactron_helpers import get_src_loc
 from transactron.utils.typing import ValueBundle
@@ -39,6 +39,8 @@ __all__ = [
     "mask_after_first_set_bit",
     "mask_until_first_set_bit",
     "mask_before_first_set_bit",
+    "top_module",
+    "to_signal",
 ]
 
 
@@ -435,3 +437,54 @@ def mask_before_first_set_bit(value: Value) -> Value:
     Same as: ``extract_lowest_set_bit(value) - 1``.
     """
     return ~mask_from_first_set_bit(value)
+
+
+def top_module(m: ModuleLike) -> Module:
+    """Returns a top-level module, unaffected by condition contexts.
+
+    Intended use: efficient combinational assignments which work with both
+    ``TModule`` and plain ``Module``.
+    """
+    # This hack allows this function to work with both Module and TModule
+    try:
+        return m.submodules._top_module
+    except AttributeError:
+        m.submodules._top_module = Module()
+        return m.submodules._top_module
+
+
+@overload
+def to_signal[T: ValueCastable](m: ModuleLike, value: T) -> T: ...
+
+
+@overload
+def to_signal(m: ModuleLike, value: FlatValueLike) -> Signal: ...
+
+
+def to_signal(m: ModuleLike, value: ValueLike) -> Signal | ValueCastable:
+    """Creates a Signal and immediately assigns it a value.
+
+    Use to avoid expression duplication without a large increase in code size.
+
+    Parameters
+    ----------
+    m : ModuleLike
+        The module where the signal assignment will be performed.
+    value : ValueLike
+        The value to be assigned to a ``Signal``.
+
+    Returns
+    -------
+    ValueLike
+        The created signal. If ``value`` is a ``ValueCastable``, a
+        ``ValueCastable`` of the same type will be returned. Otherwise,
+        a bare ``Signal`` is returned.
+
+    Notes
+    -----
+    Uses ``top_module`` internally.
+    """
+    sig = Signal.like(value)
+    top_m = top_module(m)
+    top_m.d.comb += Value.cast(sig).eq(Value.cast(value))
+    return sig
