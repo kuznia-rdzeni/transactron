@@ -1,19 +1,19 @@
 from collections.abc import Iterator
 from contextlib import contextmanager
-from amaranth import Const, Format, Shape, ShapeCastable, Value, ValueCastable
+from amaranth import Cat, Const, Format, Shape, ShapeCastable, Value, ValueCastable
 from amaranth.hdl._ast import Assign
 from amaranth_types import ModuleLike, ShapeLike, ValueLike
 from amaranth.lib import data
 
 
 class OptionView[T: ShapeLike = ShapeLike](ValueCastable):
-    def __init__(self, elem_shape: T, target: ValueLike):
+    def __init__(self, data_shape: T, target: ValueLike):
         try:
             cast_target = Value.cast(target)
         except TypeError as e:
             raise TypeError(f"Target of an option view must be a value-castable object, not {target}") from e
 
-        self._shape = Option(elem_shape)
+        self._shape = Option(data_shape)
 
         if len(cast_target) != Shape.cast(self._shape).width:
             raise ValueError(
@@ -62,17 +62,37 @@ class OptionView[T: ShapeLike = ShapeLike](ValueCastable):
 
 
 class Option[T: ShapeLike = ShapeLike](ShapeCastable[OptionView[T]]):
-    def __init__(self, elem_shape: T):
+    def __init__(self, data_shape: T):
         try:
-            Shape.cast(elem_shape)
+            Shape.cast(data_shape)
         except TypeError as e:
-            raise TypeError(f"Option element shape must be a shape-castable object, not {elem_shape}") from e
-        self._elem_shape = elem_shape
-        self._internal_shape = data.StructLayout({"valid": 1, "data": elem_shape})
+            raise TypeError(f"Option data shape must be a shape-castable object, not {data_shape}") from e
+        self._data_shape = data_shape
+        self._internal_shape = data.StructLayout({"valid": 1, "data": data_shape})
 
     @property
-    def elem_shape(self) -> T:
-        return self._elem_shape
+    def data_shape(self) -> T:
+        return self._data_shape
+
+    @property
+    def empty(self):
+        return self(Const(0, Shape.cast(self).width))
+
+    def wrap(self, data: ValueLike):
+        if isinstance(self._data_shape, ShapeCastable):
+            val = Value.cast(self._data_shape(data))
+        else:
+            shape = Shape.cast(self._data_shape)
+            val = (Value.cast(data) | Const(0, shape.width))[:shape.width]
+        return self(Cat(Const(1, 1), val))
+
+    def __eq__(self, other) -> bool:
+        while isinstance(other, ShapeCastable) and not isinstance(other, Option):
+            new_other = other.as_shape()
+            if new_other == other:
+                break
+            other = new_other
+        return isinstance(other, Option) and self.data_shape == other.data_shape
 
     def as_shape(self) -> data.StructLayout:
         return self._internal_shape
@@ -84,13 +104,13 @@ class Option[T: ShapeLike = ShapeLike](ShapeCastable[OptionView[T]]):
             return self._internal_shape.const({"valid": 1, "data": init})
 
     def __call__(self, target: ValueLike) -> OptionView[T]:
-        return OptionView[T](self.elem_shape, target)
+        return OptionView[T](self.data_shape, target)
 
     def from_bits(self, raw: int):
         if raw & 1:
-            if isinstance(self._elem_shape, ShapeCastable):
-                return self._elem_shape.from_bits(raw)
-            return Const(raw, self._elem_shape).value
+            if isinstance(self._data_shape, ShapeCastable):
+                return self._data_shape.from_bits(raw)
+            return Const(raw, self._data_shape).value
         else:
             return None
 
