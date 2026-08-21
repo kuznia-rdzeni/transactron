@@ -67,21 +67,18 @@ def mod_add(sig: ValueLike, mod: int, incr: ValueLike, max_incr: int):
 
 
 def popcount(s: Value):
-    sum_layers = [s[i] for i in range(len(s))]
-
-    while len(sum_layers) > 1:
-        if len(sum_layers) % 2:
-            sum_layers.append(C(0))
-        sum_layers = [a + b for a, b in zip(sum_layers[::2], sum_layers[1::2])]
-
-    return sum_layers[0][0 : bits_for(len(s))]
+    return binary_tree_reduce(
+        *[s[i] for i in range(len(s))],
+        neutral=C(0, 0),
+        operator=operator.add,
+    )[: bits_for(len(s))]
 
 
 def count_leading_zeros(s: Value) -> Value:
     def iter(s: Value, step: int) -> Value:
         # if no bits left - return empty value
         if step == 0:
-            return C(0)
+            return C(0, 0)
 
         # boudaries of upper and lower halfs of the value
         partition = 2 ** (step - 1)

@@ -74,7 +74,7 @@ class PopcountTestCircuit(Elaboratable):
         return m
 
 
-@pytest.mark.parametrize("size", [2, 3, 4, 5, 6, 8, 10, 16, 21, 32, 33, 64, 1025])
+@pytest.mark.parametrize("size", [0, 2, 3, 4, 5, 6, 8, 10, 16, 21, 32, 33, 64, 1025])
 class TestPopcount(TestCaseWithSimulator):
     @pytest.fixture(scope="function", autouse=True)
     def setup_fixture(self, size):
