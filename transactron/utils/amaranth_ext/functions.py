@@ -74,7 +74,7 @@ def popcount(s: Value):
     )[: bits_for(len(s))]
 
 
-def count_leading_zeros(s: Value) -> Value:
+def count_trailing_zeros(s: Value) -> Value:
     if len(s) == 0:
         return C(0, 0)
 
@@ -91,27 +91,21 @@ def count_leading_zeros(s: Value) -> Value:
         upper_value = iter(s[partition:], step - 1)
         lower_value = iter(s[:partition], step - 1)
 
-        # if there are lit bits in upperhalf - take result directly from recursive value
-        # otherwise add 1 << (step - 1) to lower value and return
-        result = Mux(s[partition:].any(), upper_value, lower_value | current_bit)
-
-        return result
+        # if there are lit bits in lowerhalf - take result directly from recursive value
+        # otherwise add 1 << (step - 1) to upper value and return
+        return Mux(s[:partition].any(), lower_value, upper_value | current_bit)
 
     slen = len(s)
-    slen_log = ceil_log2(slen)
-    closest_pow_2_of_s = 2**slen_log
-    zeros_prepend_count = closest_pow_2_of_s - slen
-    value = iter(Cat(C(0, shape=zeros_prepend_count), s), slen_log)
+    value = iter(s.as_unsigned(), ceil_log2(slen))
 
     # 0 number edge case
     # if s == 0 then iter() returns value off by 1
     # this switch negates this effect
-    result = Mux(s.any(), value, slen)
-    return result
+    return Mux(s.any(), value, slen)
 
 
-def count_trailing_zeros(s: Value) -> Value:
-    return count_leading_zeros(s[::-1])
+def count_leading_zeros(s: Value) -> Value:
+    return count_trailing_zeros(s[::-1])
 
 
 def cyclic_mask(bits: int, start: Value, end: Value):
