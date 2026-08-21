@@ -85,7 +85,9 @@ def count_trailing_zeros(s: Value) -> Value:
 
         # boudaries of upper and lower halfs of the value
         partition = 2 ** (step - 1)
-        current_bit = 1 << (step - 1)
+
+        if len(s) < partition:
+            return Cat(iter(s, step - 1), 0)
 
         # recursive call
         upper_value = iter(s[partition:], step - 1)
@@ -93,15 +95,9 @@ def count_trailing_zeros(s: Value) -> Value:
 
         # if there are lit bits in lowerhalf - take result directly from recursive value
         # otherwise add 1 << (step - 1) to upper value and return
-        return Mux(s[:partition].any(), lower_value, upper_value | current_bit)
+        return Mux(s[:partition].any(), Cat(lower_value, 0), Cat(upper_value, 1))
 
-    slen = len(s)
-    value = iter(s.as_unsigned(), ceil_log2(slen))
-
-    # 0 number edge case
-    # if s == 0 then iter() returns value off by 1
-    # this switch negates this effect
-    return Mux(s.any(), value, slen)
+    return iter(s.as_unsigned(), ceil_log2(len(s) + 1))
 
 
 def count_leading_zeros(s: Value) -> Value:
