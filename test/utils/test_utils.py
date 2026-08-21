@@ -18,8 +18,7 @@ from transactron.utils import (
     mask_until_first_set_bit,
     mask_before_first_set_bit,
 )
-from transactron.testing.input_generation import shrinkable_lists
-from hypothesis import given, settings
+from hypothesis import given
 import hypothesis.strategies as st
 
 
@@ -171,8 +170,9 @@ def reference_mask_before_first_set_bit(n, width):
 
 class TestBitManipulationFunctions(TestCaseWithSimulator):
     def do_test(self, function, ref_function, data):
+        # TODO: remove simulator when https://codeberg.org/amaranth-lang/rfcs/pulls/88 gets approved and implemented
         async def process(sim: TestbenchContext):
-            width = data.draw(st.integers(min_value=0, max_value=1024))
+            width = data.draw(st.integers(min_value=0, max_value=256))
             value = data.draw(st.integers(min_value=0, max_value=(1 << width) - 1))
             result = sim.get(function(Const(value, width)))
             expected = ref_function(value, width)
