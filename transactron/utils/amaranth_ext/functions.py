@@ -75,9 +75,6 @@ def popcount(s: Value):
 
 
 def count_trailing_zeros(s: Value) -> Value:
-    if len(s) == 0:
-        return C(0, 0)
-
     def iter(s: Value, step: int) -> Value:
         # if no bits left - return empty value
         if step == 0:
