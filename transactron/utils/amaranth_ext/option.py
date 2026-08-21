@@ -6,6 +6,9 @@ from amaranth_types import ModuleLike, ShapeLike, ValueLike
 from amaranth.lib import data
 
 
+__all__ = ["OptionView", "Option"]
+
+
 class OptionView[T: ShapeLike = ShapeLike](ValueCastable):
     def __init__(self, data_shape: T, target: ValueLike):
         try:
