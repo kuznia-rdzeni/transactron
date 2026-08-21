@@ -17,7 +17,7 @@ class OptionView[T: ShapeLike = ShapeLike](ValueCastable):
 
         if len(cast_target) != Shape.cast(self._shape).width:
             raise ValueError(
-                f"Target of an option view is {len(self._target)} wide, should be {Shape.cast(self._shape).width}"
+                f"Target of an option view is {len(cast_target)} wide, should be {Shape.cast(self._shape).width}"
             )
 
         self._target = data.View(self._shape.as_shape(), cast_target)
@@ -50,8 +50,8 @@ class OptionView[T: ShapeLike = ShapeLike](ValueCastable):
         return self.as_value().eq(other)
 
     def __eq__(self, other) -> Value:  # type: ignore
-        if isinstance(OptionView, other) and self._shape == other._shape:
-            return ~(self.valid | other.valid) | (self._target.data == other._target.data)
+        if isinstance(other, OptionView) and self._shape == other._shape:
+            return ~(self.valid | other.valid) | (self.valid & other.valid & (self._target.data == other._target.data))
         else:
             raise TypeError(
                 f"Option view with layout {self._shape} can only be compared to another option view with same layout"
@@ -94,6 +94,9 @@ class Option[T: ShapeLike = ShapeLike](ShapeCastable[OptionView[T]]):
             other = new_other
         return isinstance(other, Option) and self.data_shape == other.data_shape
 
+    def __hash__(self) -> int:
+        return hash(self._data_shape)
+
     def as_shape(self) -> data.StructLayout:
         return self._internal_shape
 
@@ -108,6 +111,7 @@ class Option[T: ShapeLike = ShapeLike](ShapeCastable[OptionView[T]]):
 
     def from_bits(self, raw: int):
         if raw & 1:
+            raw >>= 1
             if isinstance(self._data_shape, ShapeCastable):
                 return self._data_shape.from_bits(raw)
             return Const(raw, self._data_shape).value
