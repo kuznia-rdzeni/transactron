@@ -83,7 +83,7 @@ class Option[T: ShapeLike = ShapeLike](ShapeCastable[OptionView[T]]):
             val = Value.cast(self._data_shape(data))
         else:
             shape = Shape.cast(self._data_shape)
-            val = (Value.cast(data) | Const(0, shape.width))[:shape.width]
+            val = (Value.cast(data) | Const(0, shape.width))[: shape.width]
         return self(Cat(Const(1, 1), val))
 
     def __eq__(self, other) -> bool:
