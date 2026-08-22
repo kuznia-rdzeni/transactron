@@ -241,6 +241,7 @@ class VerilogDebugWrapper(Elaboratable):
         m.submodules.elaboratable = elaboratable
 
         v = Signal(0)
+
         def to_signal(val: Value | ValueCastable) -> Signal:
             val = Value.cast(val)
             if isinstance(val, Signal):
