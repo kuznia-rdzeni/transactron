@@ -240,11 +240,16 @@ class VerilogDebugWrapper(Elaboratable):
         elaboratable = Fragment.get(self.elaboratable, platform)
         m.submodules.elaboratable = elaboratable
 
+        v = Signal(0)
         def to_signal(val: Value | ValueCastable) -> Signal:
             val = Value.cast(val)
-            sig = Signal.like(val)
-            m.d.comb += sig.eq(val)
-            return sig
+            if isinstance(val, Signal):
+                m.d.comb += v.eq(val[:0])  # force generation of `val` in verilog
+                return val
+            else:
+                sig = Signal.like(val)
+                m.d.comb += sig.eq(val)
+                return sig
 
         for record in logging.get_log_records(0):
             record_dict = asdict(record)
