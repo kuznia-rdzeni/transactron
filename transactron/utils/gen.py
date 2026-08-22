@@ -5,7 +5,6 @@ from typing import Iterable, Optional, TypeAlias
 from amaranth import *
 from amaranth.back import verilog
 from amaranth.hdl import Fragment, ValueCastable
-from amaranth.hdl._ast import SignalSet
 from amaranth.build import Platform
 from amaranth_types import AbstractInterface
 
@@ -241,28 +240,11 @@ class VerilogDebugWrapper(Elaboratable):
         elaboratable = Fragment.get(self.elaboratable, platform)
         m.submodules.elaboratable = elaboratable
 
-        # find all driven sigs in order to identify undriven ones
-        # undriven signals don't appear in synthesized files
-        driven_sigs = SignalSet()
-
-        def collect_driven_sigs(frag: Fragment):
-            for subfrag in frag.subfragments:  # type: ignore
-                collect_driven_sigs(subfrag[0])
-            for stmt in frag.statements.values():  # type: ignore
-                driven_sigs.update(stmt._lhs_signals())  # type: ignore
-
-        collect_driven_sigs(elaboratable)
-
         def to_signal(val: Value | ValueCastable) -> Signal:
             val = Value.cast(val)
-            if isinstance(val, Signal):
-                if val not in driven_sigs:
-                    m.d.comb += val.eq(val.init)
-                return val
-            else:
-                sig = Signal.like(val)
-                m.d.comb += sig.eq(val)
-                return sig
+            sig = Signal.like(val)
+            m.d.comb += sig.eq(val)
+            return sig
 
         for record in logging.get_log_records(0):
             record_dict = asdict(record)
