@@ -129,13 +129,11 @@ class TestDefMethod(TestCaseWithSimulator):
 class TestDefMethods(TestCaseWithSimulator):
     class CircuitTestModule(Elaboratable):
         def __init__(self, method_definition):
-            self.methods = [
-                Method(
-                    i=[("foo", 3)],
-                    o=[("foo", 3)],
-                )
-                for _ in range(4)
-            ]
+            self.methods = Methods(
+                4,
+                i=[("foo", 3)],
+                o=[("foo", 3)],
+            )
 
             self.method_definition = method_definition
 
