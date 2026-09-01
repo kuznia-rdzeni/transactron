@@ -116,6 +116,7 @@ class MyThing(Elaboratable):
 
     ...
 
+
 class LargerThing(Elaboratable):
     def elaborate(self, platform):
         m = TModule()
@@ -164,7 +165,7 @@ method(m, foo=foo_expr, bar=bar_expr)
 Another way is to pass the arguments using a `dict`:
 
 ```python
-method(m, {'foo': foo_expr, 'bar': bar_expr})
+method(m, {"foo": foo_expr, "bar": bar_expr})
 ```
 
 Finally, one can directly pass an Amaranth structure:
@@ -188,10 +189,10 @@ One can then pass the arguments using `dict`s in following ways:
 
 ```python
 # the preferred way
-method2(m, foobar={'foo': foo_expr, 'bar': bar_expr}, baz=baz_expr)
+method2(m, foobar={"foo": foo_expr, "bar": bar_expr}, baz=baz_expr)
 
 # the alternative way
-method2(m, {'foobar': {'foo': foo_expr, 'bar': bar_expr}, 'baz': baz_expr})
+method2(m, {"foobar": {"foo": foo_expr, "bar": bar_expr}, "baz": baz_expr})
 ```
 
 ### Method definition conventions
@@ -201,16 +202,14 @@ The cleanest and recommended way is to create an argument for each field:
 
 ```python
 @def_method(m, method)
-def _(foo: Value, bar: Value):
-    ...
+def _(foo: Value, bar: Value): ...
 ```
 
 The other is to receive the argument structure directly. The `arg` name is required:
 
 ```python
 @def_method(m, method)
-def _(arg: data.View):
-    ...
+def _(arg: data.View): ...
 ```
 
 ### Method return value conventions
@@ -243,9 +242,8 @@ When the `request` parameter is not passed, the transaction is always requesting
 Methods have a similar mechanism, which uses the `ready` parameter on `def_method`:
 
 ```python
-        @def_method(m, self.my_method, ready=expr)
-        def _(arg):
-            ...
+@def_method(m, self.my_method, ready=expr)
+def _(arg): ...
 ```
 
 The `ready` signal typically should only depend on the internal state of an `Elaboratable`.
@@ -323,7 +321,7 @@ Possible values are `Priority.LEFT`, `Priority.RIGHT` and `Priority.UNDEFINED` (
 For example, the following code adds a conflict with a scheduling order, where `first_m` is scheduled before `other_m`:
 
 ```python
-first_m.add_conflict(other_m, priority = Priority.LEFT)
+first_m.add_conflict(other_m, priority=Priority.LEFT)
 ```
 
 Scheduling conflicts come with a possible cost.
