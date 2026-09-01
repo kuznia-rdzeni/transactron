@@ -1094,7 +1094,7 @@ data layout <cite>layout</cite> passed to <cite>__init__</cite>. Returns an empt
 <span class="sig-name descname"><span class="pre">clear</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="transactron.core.html#transactron.core.method.Method" title="transactron.core.method.Method"><span class="pre">Method</span></a></span><a class="headerlink" href="#transactron.lib.connectors.ClearableConnector.clear" title="Link to this definition"></a></dt>
 <dd><p>Clears the connector.</p>
 <p>The connector must be empty the cycle after the clear regardless of <cite>write</cite> being run or not.
-Connector being empty means that all perviously written values should be considered consumed.</p>
+Connector being empty means that all previously written values should be considered consumed.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
@@ -1368,7 +1368,7 @@ but only if both readiness conditions are fulfilled.</p>
 </dd>
 <dt><strong>depth: int</strong></dt><dd><p>Size of the FIFO.</p>
 </dd>
-<dt><strong>fifoType: Elaboratable</strong></dt><dd><p>FIFO module conforming to Amaranth library FIFO interface. Defaults
+<dt><strong>fifo_type: Elaboratable</strong></dt><dd><p>FIFO module conforming to Amaranth library FIFO interface. Defaults
 to SyncFIFO.</p>
 </dd>
 <dt><strong>src_loc: int | SrcLoc</strong></dt><dd><p>How many stack frames deep the source location is taken from.
@@ -1534,7 +1534,7 @@ for different kinds of keys.</p>
 <span class="sig-name descname"><span class="pre">add_dependency</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="transactron.utils.html#transactron.utils.dependencies.DependencyKey" title="transactron.utils.dependencies.DependencyKey"><span class="pre">DependencyKey</span></a><span class="p"><span class="pre">[</span></span><span class="pre">T</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dependency</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">T</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#transactron.lib.dependencies.DependencyManager.add_dependency" title="Link to this definition"></a></dt>
 <dd><p>Adds a new dependency to a key.</p>
 <p>Depending on the key type, a key can have a single dependency or
-multple dependencies added to it.</p>
+multiple dependencies added to it.</p>
 </dd></dl>
 
 <dl class="py attribute">
@@ -1575,7 +1575,7 @@ multple dependencies added to it.</p>
 <dd><p>Bases: <a class="reference internal" href="transactron.utils.html#transactron.utils.dependencies.DependencyKey" title="transactron.utils.dependencies.DependencyKey"><code class="xref py py-class docutils literal notranslate"><span class="pre">DependencyKey</span></code></a>[<code class="xref py py-obj docutils literal notranslate"><span class="pre">T</span></code>, <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<code class="xref py py-obj docutils literal notranslate"><span class="pre">T</span></code>]], <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Generic" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Generic</span></code></a></p>
 <p>Base class for list key.</p>
 <p>List keys are used when there is an one-to-many relation between keys
-and dependecies. Provides list of dependencies.</p>
+and dependencies. Provides list of dependencies.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="transactron.lib.dependencies.ListKey.combine">
 <span class="sig-name descname"><span class="pre">combine</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><span class="pre">T</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><span class="pre">T</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#transactron.lib.dependencies.ListKey.combine" title="Link to this definition"></a></dt>
@@ -2240,7 +2240,7 @@ building block that holds a singular value.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Attributes<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>name: str</strong></dt><dd><p>The unique identifier for the register (among remaning
+<dt><strong>name: str</strong></dt><dd><p>The unique identifier for the register (among remaining
 registers of a specific metric).</p>
 </dd>
 <dt><strong>description: str</strong></dt><dd><p>A brief description of the metric’s purpose.</p>
@@ -3431,7 +3431,7 @@ false, <cite>default</cite> is returned.</p>
 <dt><strong>default: Value or dict, optional</strong></dt><dd><p>The default value returned from the filtered method when the condition
 is false. If omitted, zero is returned.</p>
 </dd>
-<dt><strong>use_condition</strong><span class="classifier">bool</span></dt><dd><p>Instead of <cite>m.If</cite> use simultaneus <cite>condition</cite> which allow to execute
+<dt><strong>use_condition</strong><span class="classifier">bool</span></dt><dd><p>Instead of <cite>m.If</cite> use simultaneous <cite>condition</cite> which allow to execute
 this filter if the condition is False and target is not ready.
 When <cite>use_condition</cite> is true, <cite>condition</cite> must not be a <cite>Method</cite>.</p>
 </dd>
@@ -3734,7 +3734,7 @@ Alternatively, the source location to use instead of the default.</p>
 
   <div role="contentinfo">
     <p>&#169; Copyright Kuźnia Rdzeni, 2026.
-      <span class="lastupdated">Last updated on 11:48 2026-08-27.
+      <span class="lastupdated">Last updated on 14:44 2026-09-01.
       </span></p>
   </div>
 
