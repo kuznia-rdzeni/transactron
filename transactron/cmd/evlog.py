@@ -5,7 +5,7 @@ import json
 import re
 import signal
 import sys
-from typing import Any, Optional
+from typing import Any
 
 from transactron.evlog.event import get_event_class
 from transactron.evlog.log import EventLog
@@ -69,7 +69,7 @@ def print_schema(log: EventLog, out):
         print(f"{idx:>4} {site.source_name} {site.event_name} ({fields}){statics}  [{location}]", file=out)
 
 
-def print_events(log: EventLog, out, *, mode: str, name_filter: Optional[str], cycles: Optional[str]):
+def print_events(log: EventLog, out, *, mode: str, name_filter: str | None, cycles: str | None):
     sites = log.schema.sites
 
     selected = set(range(len(sites)))
@@ -104,7 +104,7 @@ def print_events(log: EventLog, out, *, mode: str, name_filter: Optional[str], c
         )
 
 
-def main(argv: Optional[list[str]] = None):
+def main(argv: list[str] | None = None):
     # Die silently when the output is piped to e.g. `head`.
     if hasattr(signal, "SIGPIPE"):
         signal.signal(signal.SIGPIPE, signal.SIG_DFL)

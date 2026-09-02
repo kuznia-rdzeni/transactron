@@ -1,6 +1,6 @@
 import itertools
 from contextlib import contextmanager
-from typing import Literal, Optional, overload
+from typing import Literal, overload
 from collections.abc import Iterable
 from amaranth import *
 from amaranth import ValueCastable
@@ -10,15 +10,15 @@ from amaranth_types import FlatValueLike, HasElaborate, ShapeLike, ModuleLike, V
 from transactron.utils.amaranth_ext.functions import one_hot_mux, shape_of, top_module
 
 __all__ = [
-    "OneHotSwitchDynamic",
-    "OneHotSwitch",
     "ModuleConnector",
-    "OneHotRoundRobin",
-    "RoundRobin",
     "MultiPriorityEncoder",
-    "RingMultiPriorityEncoder",
-    "StableSelectingNetwork",
     "OneHotMux",
+    "OneHotRoundRobin",
+    "OneHotSwitch",
+    "OneHotSwitchDynamic",
+    "RingMultiPriorityEncoder",
+    "RoundRobin",
+    "StableSelectingNetwork",
 ]
 
 
@@ -50,7 +50,7 @@ def OneHotSwitch(m: ModuleLike, test: Value):
     """
 
     @contextmanager
-    def case(n: Optional[int] = None):
+    def case(n: int | None = None):
         if n is None:
             with m.Default():
                 yield
@@ -58,7 +58,7 @@ def OneHotSwitch(m: ModuleLike, test: Value):
             # find the index of the least significant bit set
             i = (n & -n).bit_length() - 1
             if n - (1 << i) != 0:
-                raise ValueError("%d not in one-hot representation" % n)
+                raise ValueError(f"{n} not in one-hot representation")
             with m.Case(n):
                 yield
 
@@ -67,14 +67,14 @@ def OneHotSwitch(m: ModuleLike, test: Value):
 
 
 @overload
-def OneHotSwitchDynamic(m: ModuleLike, test: Value, *, default: Literal[True]) -> Iterable[Optional[int]]: ...
+def OneHotSwitchDynamic(m: ModuleLike, test: Value, *, default: Literal[True]) -> Iterable[int | None]: ...
 
 
 @overload
 def OneHotSwitchDynamic(m: ModuleLike, test: Value, *, default: Literal[False] = False) -> Iterable[int]: ...
 
 
-def OneHotSwitchDynamic(m: ModuleLike, test: Value, *, default: bool = False) -> Iterable[Optional[int]]:
+def OneHotSwitchDynamic(m: ModuleLike, test: Value, *, default: bool = False) -> Iterable[int | None]:
     """Dynamic one-hot switch.
 
     This function allows simple one-hot matching on signals which can have
@@ -164,7 +164,7 @@ class OneHotRoundRobin(Elaboratable):
             Number of agents between which the scheduler should arbitrate.
         """
         if not isinstance(count, int) or count < 0:
-            raise ValueError("Count must be a non-negative integer, not {!r}".format(count))
+            raise ValueError(f"Count must be a non-negative integer, not {count!r}")
         self.count = count
 
         self.requests = Signal(count)
@@ -222,7 +222,7 @@ class RoundRobin(Elaboratable):
 
     def __init__(self, *, count):
         if not isinstance(count, int) or count < 0:
-            raise ValueError("Count must be a non-negative integer, not {!r}".format(count))
+            raise ValueError(f"Count must be a non-negative integer, not {count!r}")
         self.count = count
 
         self.requests = Signal(count)
@@ -281,7 +281,7 @@ class MultiPriorityEncoder(Elaboratable):
 
     @staticmethod
     def create(
-        m: ModuleLike, input_width: int, input: ValueLike, outputs_count: int = 1, name: Optional[str] = None
+        m: ModuleLike, input_width: int, input: ValueLike, outputs_count: int = 1, name: str | None = None
     ) -> list[tuple[Value, Value]]:
         """Syntax sugar for creating MultiPriorityEncoder
 
@@ -336,7 +336,7 @@ class MultiPriorityEncoder(Elaboratable):
 
     @staticmethod
     def create_simple(
-        m: ModuleLike, input_width: int, input: ValueLike, name: Optional[str] = None
+        m: ModuleLike, input_width: int, input: ValueLike, name: str | None = None
     ) -> tuple[Value, Value]:
         """Syntax sugar for creating MultiPriorityEncoder
 
@@ -438,7 +438,7 @@ class RingMultiPriorityEncoder(Elaboratable):
         first: ValueLike,
         last: ValueLike,
         outputs_count: int = 1,
-        name: Optional[str] = None,
+        name: str | None = None,
     ) -> list[tuple[Value, Value]]:
         """Syntax sugar for creating RingMultiPriorityEncoder
 
@@ -503,7 +503,7 @@ class RingMultiPriorityEncoder(Elaboratable):
 
     @staticmethod
     def create_simple(
-        m: ModuleLike, input_width: int, input: ValueLike, first: ValueLike, last: ValueLike, name: Optional[str] = None
+        m: ModuleLike, input_width: int, input: ValueLike, first: ValueLike, last: ValueLike, name: str | None = None
     ) -> tuple[Value, Value]:
         """Syntax sugar for creating RingMultiPriorityEncoder
 
@@ -670,7 +670,7 @@ class OneHotMux(Elaboratable):
     @overload
     @staticmethod
     def create[T: ValueCastable](
-        m: ModuleLike, inputs: Iterable[tuple[ValueLike, T]], default_input: Optional[T] = None, priority: bool = False
+        m: ModuleLike, inputs: Iterable[tuple[ValueLike, T]], default_input: T | None = None, priority: bool = False
     ) -> T: ...
 
     @overload
@@ -678,7 +678,7 @@ class OneHotMux(Elaboratable):
     def create(
         m: ModuleLike,
         inputs: Iterable[tuple[ValueLike, FlatValueLike]],
-        default_input: Optional[FlatValueLike] = None,
+        default_input: FlatValueLike | None = None,
         priority: bool = False,
     ) -> Value: ...
 
@@ -686,7 +686,7 @@ class OneHotMux(Elaboratable):
     def create(
         m: ModuleLike,
         inputs: Iterable[tuple[ValueLike, ValueLike]],
-        default_input: Optional[ValueLike] = None,
+        default_input: ValueLike | None = None,
         priority: bool = False,
     ) -> ValueLike:
         """Syntax sugar for creating a `OneHotMux`.

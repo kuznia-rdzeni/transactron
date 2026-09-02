@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from amaranth.lib.data import ArrayLayout, StructLayout
 from dataclasses_json import dataclass_json
-from typing import Optional, TypeVar
+from typing import TypeVar
 from abc import ABC
 from enum import Enum
 
@@ -15,17 +15,17 @@ from transactron.utils.amaranth_ext.functions import and_value, max_value, min_v
 from transactron.utils.dependencies import ListKey, DependencyContext, SimpleKey
 
 __all__ = [
-    "MetricRegisterModel",
-    "MetricModel",
-    "HwMetric",
-    "HwCounter",
-    "TaggedCounter",
-    "HwExpHistogram",
-    "WideFIFOLatencyMeasurer",
     "FIFOLatencyMeasurer",
-    "TaggedLatencyMeasurer",
     "HardwareMetricsManager",
+    "HwCounter",
+    "HwExpHistogram",
+    "HwMetric",
     "HwMetricsEnabledKey",
+    "MetricModel",
+    "MetricRegisterModel",
+    "TaggedCounter",
+    "TaggedLatencyMeasurer",
+    "WideFIFOLatencyMeasurer",
 ]
 
 
@@ -483,7 +483,7 @@ class HwExpHistogram(Elaboratable, HwMetric):
         def sample_or_default(method: Method, default: Value) -> Value:
             return Mux(method.run, method.data_in.sample, default)
 
-        method_min_samples = [sample_or_default(m, C((1 << self.sample_width)) - 1) for m in self.add]
+        method_min_samples = [sample_or_default(m, C(1 << self.sample_width) - 1) for m in self.add]
         method_max_samples = [sample_or_default(m, C(0)) for m in self.add]
 
         min_sample = min_value(self.min.value, method_min_samples)
@@ -533,7 +533,7 @@ class WideFIFOLatencyMeasurer(Elaboratable):
         slots_number: int,
         max_latency: int,
         max_start_count: int = 1,
-        max_stop_count: Optional[int] = None,
+        max_stop_count: int | None = None,
         ways: int = 1,
     ):
         """
@@ -879,7 +879,7 @@ class HardwareMetricsManager:
     """
 
     def __init__(self):
-        self._metrics: Optional[dict[str, HwMetric]] = None
+        self._metrics: dict[str, HwMetric] | None = None
 
     def _collect_metrics(self) -> dict[str, HwMetric]:
         # We lazily collect all metrics so that the metrics manager can be

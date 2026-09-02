@@ -5,7 +5,7 @@ from .transformers import Unifier
 from ..utils.dependencies import *
 
 
-__all__ = ["DependencyManager", "DependencyKey", "SimpleKey", "ListKey", "UnifierKey"]
+__all__ = ["DependencyKey", "DependencyManager", "ListKey", "SimpleKey", "UnifierKey"]
 
 
 class UnifierKey(DependencyKey["Method", tuple["Method", Iterable["Unifier"]]]):

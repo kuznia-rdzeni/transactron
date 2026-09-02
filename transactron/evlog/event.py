@@ -4,7 +4,7 @@ from dataclasses import dataclass, fields
 from typing import Annotated, Any, ClassVar, Self, TypeVar, dataclass_transform, get_args, get_origin, get_type_hints
 
 
-__all__ = ["Static", "Event", "event", "get_event_class"]
+__all__ = ["Event", "Static", "event", "get_event_class"]
 
 
 class _StaticMarker:

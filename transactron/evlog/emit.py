@@ -11,7 +11,7 @@ from transactron.utils.dependencies import DependencyContext, ListKey, SimpleKey
 from .event import Event, static_to_raw
 
 
-__all__ = ["EmittedEvent", "EvLogKey", "EvLogEnabledKey", "EventSource", "evlog_enabled", "get_emitted_events"]
+__all__ = ["EmittedEvent", "EvLogEnabledKey", "EvLogKey", "EventSource", "evlog_enabled", "get_emitted_events"]
 
 
 @dataclass

@@ -7,7 +7,7 @@ from amaranth.lib.data import ArrayLayout
 from transactron.utils.amaranth_ext.functions import mod_add
 
 
-__all__ = ["PriorityEncoderAllocator", "PreservedOrderAllocator", "CircularAllocator"]
+__all__ = ["CircularAllocator", "PreservedOrderAllocator", "PriorityEncoderAllocator"]
 
 
 class PriorityEncoderAllocator(Elaboratable):

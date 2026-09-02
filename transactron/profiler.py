@@ -1,6 +1,5 @@
 import os
 from collections import defaultdict
-from typing import Optional
 from dataclasses import dataclass, field
 from dataclasses_json import dataclass_json
 from transactron.utils import SrcLoc, IdGenerator
@@ -9,14 +8,14 @@ from transactron.core.manager import MethodMap
 
 
 __all__ = [
-    "ProfileInfo",
+    "MethodSamples",
+    "Profile",
     "ProfileData",
+    "ProfileInfo",
+    "ProfileSamples",
     "RunStat",
     "RunStatNode",
-    "Profile",
     "TransactionSamples",
-    "MethodSamples",
-    "ProfileSamples",
 ]
 
 
@@ -220,7 +219,7 @@ class CycleProfile:
     """
 
     locked: dict[int, int] = field(default_factory=dict)
-    running: dict[int, Optional[int]] = field(default_factory=dict)
+    running: dict[int, int | None] = field(default_factory=dict)
 
     @staticmethod
     def make(samples: ProfileSamples, data: ProfileData):
@@ -287,7 +286,7 @@ class Profile:
 
     @staticmethod
     def decode(file_name: str) -> "Profile":
-        with open(file_name, "r") as fp:
+        with open(file_name) as fp:
             return Profile.from_json(fp.read())  # type: ignore
 
     def analyze_transactions(self, recursive=False) -> list[RunStatNode]:

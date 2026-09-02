@@ -1,20 +1,20 @@
 import json
 from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
-from typing import Optional, Protocol, TextIO, runtime_checkable
+from typing import Protocol, TextIO, runtime_checkable
 
 from .event import Event, get_event_class
 from .schema import EvLogSchema, EventSiteSchema
 
 
 __all__ = [
-    "RawEvent",
     "DecodedEvent",
-    "RawEventSink",
     "EventDecoder",
     "EventLog",
-    "EventLogWriter",
     "EventLogReader",
+    "EventLogWriter",
+    "RawEvent",
+    "RawEventSink",
 ]
 
 
@@ -119,7 +119,7 @@ class EventLog:
     @staticmethod
     def load(filename: str) -> "EventLog":
         """Loads an event log from a JSON-lines file."""
-        with open(filename, "r") as fp:
+        with open(filename) as fp:
             log = EventLog(_read_header(fp))
             for line in fp:
                 line = line.strip()
@@ -139,7 +139,7 @@ class EventLogWriter:
 
     def __init__(self, filename: str, schema: EvLogSchema):
         self.schema = schema
-        self._fp: Optional[TextIO] = open(filename, "w")
+        self._fp: TextIO | None = open(filename, "w")
         _write_header(self._fp, schema)
 
     def emit_raw(self, cycle: int, site: int, values: Sequence[int]) -> None:
@@ -172,12 +172,12 @@ class EventLogReader:
 
     def __init__(self, filename: str):
         self._filename = filename
-        with open(filename, "r") as fp:
+        with open(filename) as fp:
             self.schema = _read_header(fp)
 
     def __iter__(self) -> Iterator[DecodedEvent]:
         decoder = EventDecoder(self.schema)
-        with open(self._filename, "r") as fp:
+        with open(self._filename) as fp:
             fp.readline()  # skip the header
             for line in fp:
                 line = line.strip()

@@ -10,9 +10,9 @@ from ..utils import SrcLoc, get_src_loc
 from ..utils.data_repr import data_layout
 
 __all__ = [
+    "StreamModuleWrapper",
     "StreamSink",
     "StreamSource",
-    "StreamModuleWrapper",
 ]
 
 

@@ -4,7 +4,7 @@ from .log import RawEventSink
 from .schema import GeneratedEvLog, SignalHandle
 
 
-__all__ = ["SignalReader", "HandleResolver", "GeneratedEvLogSampler"]
+__all__ = ["GeneratedEvLogSampler", "HandleResolver", "SignalReader"]
 
 
 SignalReader = Callable[[], int]

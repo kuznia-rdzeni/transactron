@@ -1,4 +1,3 @@
-from typing import Optional
 import pytest
 from itertools import product
 
@@ -56,7 +55,7 @@ class TestCondition(TestCaseWithSimulator):
         )
         m = ModuleConnector(test_circuit=circ, target=target)
 
-        selection: Optional[int]
+        selection: int | None
 
         @def_method_mock(lambda: target)
         def target_process(cond):

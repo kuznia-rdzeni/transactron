@@ -1,5 +1,5 @@
 from collections.abc import Callable, Iterable
-from typing import Any
+from typing import Any, ClassVar
 import logging
 import itertools
 
@@ -13,10 +13,10 @@ from .tick_count import TicksKey
 
 
 __all__ = [
-    "make_logging_process",
-    "parse_logging_level",
     "HDLLogWrapper",
     "HDLLogWrapperComponent",
+    "make_logging_process",
+    "parse_logging_level",
 ]
 
 
@@ -58,7 +58,7 @@ class _LogFormatter(logging.Formatter):
     red = "\033[0;31m"
     reset = "\033[0m"
 
-    loglevel2colour = {
+    loglevel2colour: ClassVar[dict[int, str]] = {
         logging.DEBUG: grey + "{}" + reset,
         logging.INFO: magenta + "{}" + reset,
         logging.WARNING: yellow + "{}" + reset,

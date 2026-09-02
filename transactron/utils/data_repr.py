@@ -1,21 +1,22 @@
 from collections.abc import Iterable, Mapping
 from amaranth_types import ShapeLike
-from typing import Any, Hashable, Sized
+from typing import Any
+from collections.abc import Hashable, Sized
 from statistics import fmean
 from amaranth.lib.data import StructLayout
 
 
 __all__ = [
-    "make_hashable",
-    "align_to_power_of_two",
     "align_down_to_power_of_two",
-    "bits_from_int",
-    "layout_subset",
-    "data_layout",
-    "signed_to_int",
-    "int_to_signed",
-    "neg",
+    "align_to_power_of_two",
     "average_dict_of_lists",
+    "bits_from_int",
+    "data_layout",
+    "int_to_signed",
+    "layout_subset",
+    "make_hashable",
+    "neg",
+    "signed_to_int",
 ]
 
 
@@ -144,4 +145,4 @@ def signed_to_int(x: int, xlen: int) -> int:
 
 
 def average_dict_of_lists(d: Mapping[Any, Sized]) -> float:
-    return fmean((len(xs) for xs in d.values()))
+    return fmean(len(xs) for xs in d.values())

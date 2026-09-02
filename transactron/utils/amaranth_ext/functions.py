@@ -1,4 +1,4 @@
-from typing import Any, Optional, overload
+from typing import Any, overload
 from amaranth import *
 from amaranth.hdl import ShapeCastable, ValueCastable
 from amaranth.hdl._ast import SwitchValue
@@ -14,33 +14,33 @@ from transactron.utils.typing import ValueBundle
 from transactron.utils.logging import top_assertion
 
 __all__ = [
-    "mod_incr",
-    "mod_add",
-    "popcount",
+    "and_value",
+    "binary_tree_reduce",
+    "clear_lowest_set_bit",
+    "const_of",
     "count_leading_zeros",
     "count_trailing_zeros",
     "cyclic_mask",
+    "extract_lowest_set_bit",
     "flatten_signals",
-    "shape_of",
-    "const_of",
-    "binary_tree_reduce",
-    "sum_value",
-    "or_value",
-    "and_value",
     "generic_min_value",
-    "min_value",
+    "mask_after_first_set_bit",
+    "mask_before_first_set_bit",
+    "mask_from_first_set_bit",
+    "mask_until_first_set_bit",
     "max_value",
-    "switch_value",
+    "min_value",
+    "mod_add",
+    "mod_incr",
     "mux",
     "one_hot_mux",
-    "extract_lowest_set_bit",
-    "clear_lowest_set_bit",
-    "mask_from_first_set_bit",
-    "mask_after_first_set_bit",
-    "mask_until_first_set_bit",
-    "mask_before_first_set_bit",
-    "top_module",
+    "or_value",
+    "popcount",
+    "shape_of",
+    "sum_value",
+    "switch_value",
     "to_signal",
+    "top_module",
 ]
 
 
@@ -300,7 +300,7 @@ def mux(sel: ValueLike, val1: ValueLike, val0: ValueLike) -> ValueLike:
 @overload
 def one_hot_mux[T: ValueCastable](
     inputs: Sequence[tuple[ValueLike, T]],
-    default: Optional[T] = None,
+    default: T | None = None,
     priority: bool = False,
     assert_one_hot: bool = True,
 ) -> T: ...
@@ -309,7 +309,7 @@ def one_hot_mux[T: ValueCastable](
 @overload
 def one_hot_mux(
     inputs: Sequence[tuple[ValueLike, FlatValueLike]],
-    default: Optional[FlatValueLike] = None,
+    default: FlatValueLike | None = None,
     priority: bool = False,
     assert_one_hot: bool = True,
 ) -> Value: ...
@@ -318,7 +318,7 @@ def one_hot_mux(
 @overload
 def one_hot_mux(
     inputs: Sequence[tuple[ValueLike, ValueLike]],
-    default: Optional[ValueLike] = None,
+    default: ValueLike | None = None,
     priority: bool = False,
     assert_one_hot: bool = True,
 ) -> Value | ValueCastable: ...
@@ -326,7 +326,7 @@ def one_hot_mux(
 
 def one_hot_mux(
     inputs: Sequence[tuple[ValueLike, ValueLike]],
-    default: Optional[ValueLike] = None,
+    default: ValueLike | None = None,
     priority: bool = False,
     assert_one_hot: bool = False,
 ) -> Value | ValueCastable:

@@ -1,6 +1,5 @@
 import pytest
 from itertools import product
-from typing import Optional
 from amaranth import *
 from amaranth.sim import *
 from transactron.testing.method_mock import MethodMock, def_method_mock
@@ -209,7 +208,7 @@ class TestTransitivity(TestCaseWithSimulator):
         circ = SimpleTestCircuit(TransitivityTestCircuit(target.adapter.iface, req1, req2))
         m = ModuleConnector(test_circuit=circ, target=target)
 
-        result: Optional[int]
+        result: int | None
 
         @def_method_mock(lambda: target)
         def target_process(data: int):

@@ -2,7 +2,7 @@ from enum import Enum, auto
 from dataclasses import dataclass, replace
 from amaranth import *
 from amaranth_types import StatementLike, ModuleLike, ValueLike, SwitchKey
-from typing import Optional, Self, NoReturn
+from typing import Self, NoReturn
 from contextlib import contextmanager
 from amaranth.hdl._dsl import FSM, _guardedcontextmanager
 from transactron.utils.amaranth_ext import top_module
@@ -156,7 +156,7 @@ class CtrlPathBuilder:
         """
         self.module = module
         self.ctrl_path: list[PathEdge] = []
-        self.previous: Optional[PathEdge] = None
+        self.previous: PathEdge | None = None
 
     @contextmanager
     def enter(self, enter_type=EnterType.PUSH):
@@ -213,7 +213,7 @@ class TModule(ModuleLike, Elaboratable):
         self.d = _AvoidingModuleBuilderDomains(self)
         self.submodules = self.main_module.submodules
         self.domains = self.main_module.domains
-        self.fsm: Optional[FSM] = None
+        self.fsm: FSM | None = None
         self.uid = TModule.__next_uid
         self.path_builder = CtrlPathBuilder(self.uid)
         self.main_module.submodules._avoiding_module = self.avoiding_module
@@ -269,7 +269,7 @@ class TModule(ModuleLike, Elaboratable):
                     yield
 
     @_guardedcontextmanager("FSM")
-    def FSM(self, init: Optional[str] = None, domain: str = "sync", name: str = "fsm"):  # noqa: N802
+    def FSM(self, init: str | None = None, domain: str = "sync", name: str = "fsm"):  # noqa: N802
         old_fsm = self.fsm
         with self.main_module.FSM(init, domain, name) as fsm:
             self.fsm = fsm

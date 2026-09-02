@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Optional, TypeAlias, cast, TYPE_CHECKING
+from typing import TypeAlias, cast, TYPE_CHECKING
 from collections.abc import Sequence, Iterable, Mapping
 from amaranth import *
 from amaranth.hdl import ValueCastable
@@ -28,7 +28,7 @@ AssignFields: TypeAlias = AssignType | Iterable[str | int] | Mapping[str | int, 
 AssignArg: TypeAlias = ValueLike | Mapping[str, "AssignArg"] | Mapping[int, "AssignArg"] | Sequence["AssignArg"]
 
 
-def arrayproxy_fields(proxy: ArrayProxy) -> Optional[set[str | int]]:
+def arrayproxy_fields(proxy: ArrayProxy) -> set[str | int] | None:
     def flatten_elems(proxy: ArrayProxy):
         for elem in proxy.elems:
             if isinstance(elem, ArrayProxy):
@@ -41,7 +41,7 @@ def arrayproxy_fields(proxy: ArrayProxy) -> Optional[set[str | int]]:
         return set.intersection(*[set(cast(data.View, el).shape().members.keys()) for el in elems])
 
 
-def assign_arg_fields(val: AssignArg) -> Optional[set[str | int]]:
+def assign_arg_fields(val: AssignArg) -> set[str | int] | None:
     if isinstance(val, ArrayProxy):
         return arrayproxy_fields(val)
     elif isinstance(val, (data.View, data.Const)):
@@ -163,13 +163,13 @@ def assign(
             names = set(fields)
 
         if not names and (lhs_fields or rhs_fields):
-            raise ValueError("There are no common fields in assigment lhs: {} rhs: {}".format(lhs_fields, rhs_fields))
+            raise ValueError(f"There are no common fields in assigment lhs: {lhs_fields} rhs: {rhs_fields}")
 
         for name in names:
             if name not in lhs_fields:
-                raise KeyError("Field {} not present in lhs".format(name))
+                raise KeyError(f"Field {name} not present in lhs")
             if name not in rhs_fields:
-                raise KeyError("Field {} not present in rhs".format(name))
+                raise KeyError(f"Field {name} not present in rhs")
 
             yield from rec_call(name)
     elif is_union(lhs) and isinstance(rhs, Mapping) or isinstance(lhs, Mapping) and is_union(rhs):
@@ -189,9 +189,9 @@ def assign(
         yield from rec_call(name)
     else:
         if not isinstance(fields, AssignType):
-            raise ValueError("Fields on assigning non-structures lhs: {} rhs: {}".format(lhs, rhs))
+            raise ValueError(f"Fields on assigning non-structures lhs: {lhs} rhs: {rhs}")
         if not isinstance(lhs, ValueLike) or not isinstance(rhs, ValueLike):
-            raise TypeError("Unsupported assignment lhs: {} rhs: {}".format(lhs, rhs))
+            raise TypeError(f"Unsupported assignment lhs: {lhs} rhs: {rhs}")
 
         # If a single-value structure, assign its only field
         while lhs_fields is not None and len(lhs_fields) == 1:
@@ -212,9 +212,7 @@ def assign(
         ):
             if shape_of(lhs) != shape_of(rhs):
                 raise ValueError(
-                    "Shapes not matching: lhs: {} {} rhs: {} {}".format(
-                        shape_of(lhs), repr(lhs), shape_of(rhs), repr(rhs)
-                    )
+                    f"Shapes not matching: lhs: {shape_of(lhs)} {lhs!r} rhs: {shape_of(rhs)} {rhs!r}"
                 )
 
         lhs_val = Value.cast(lhs)

@@ -4,7 +4,7 @@ import os
 import functools
 from contextlib import contextmanager
 from collections.abc import Callable
-from typing import Concatenate, Optional
+from typing import Concatenate
 from amaranth import *
 from amaranth.sim import *
 from amaranth_types import HasElaborate
@@ -83,7 +83,7 @@ class TestCaseWithSimulatorBase:
 
     @contextmanager
     def _configure_evlog(self):
-        log: Optional[EventLog] = None
+        log: EventLog | None = None
         if "__TRANSACTRON_EVLOG" in os.environ:
 
             def f():
@@ -128,7 +128,7 @@ class TestCaseWithSimulatorBase:
         self._transactron_current_output_file_name = (
             self._transactron_base_output_file_name + "_" + str(self._transactron_hypothesis_iter_counter)
         )
-        self._transactron_sim_processes_to_add: list[Callable[[], Optional[Callable]]] = []
+        self._transactron_sim_processes_to_add: list[Callable[[], Callable | None]] = []
         with self._configure_dependency_context():
             self._configure_traces()
             with self._configure_profiles():

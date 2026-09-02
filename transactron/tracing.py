@@ -120,17 +120,17 @@ class TracingFragment(Fragment):
                     new_obj = obj.elaborate(platform)
                 elif hasattr(obj, "elaborate"):
                     warnings.warn(
-                        message="Class {!r} is an elaboratable that does not explicitly inherit from "
-                        "Elaboratable; doing so would improve diagnostics".format(type(obj)),
+                        message=f"Class {type(obj)!r} is an elaboratable that does not explicitly inherit from "
+                        "Elaboratable; doing so would improve diagnostics",
                         category=RuntimeWarning,
                         stacklevel=2,
                     )
                     code = obj.elaborate.__code__
                     new_obj = obj.elaborate(platform)
                 else:
-                    raise AttributeError("Object {!r} cannot be elaborated".format(obj))
+                    raise AttributeError(f"Object {obj!r} cannot be elaborated")
                 if new_obj is obj:
-                    raise RecursionError("Object {!r} elaborates to itself".format(obj))
+                    raise RecursionError(f"Object {obj!r} elaborates to itself")
                 if new_obj is None and code is not None:
                     warnings.warn_explicit(
                         message=".elaborate() returned None; missing return statement?",

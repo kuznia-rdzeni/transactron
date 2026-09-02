@@ -11,13 +11,13 @@ from ..utils import SrcLoc, get_src_loc, MethodLayout
 
 __all__ = [
     "FIFO",
-    "Forwarder",
+    "ClearableConnector",
     "Connect",
     "ConnectTrans",
-    "CrossbarConnectTrans",
-    "Pipe",
     "Connector",
-    "ClearableConnector",
+    "CrossbarConnectTrans",
+    "Forwarder",
+    "Pipe",
 ]
 
 

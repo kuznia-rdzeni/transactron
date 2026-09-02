@@ -5,7 +5,7 @@ from amaranth.lib import data
 from amaranth_types import ShapeLike
 
 
-__all__ = ["layout_keys", "transpose_layout", "transpose_layout_with_keys", "transpose"]
+__all__ = ["layout_keys", "transpose", "transpose_layout", "transpose_layout_with_keys"]
 
 
 @overload

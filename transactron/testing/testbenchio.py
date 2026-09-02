@@ -3,7 +3,7 @@ from amaranth import *
 from amaranth.lib.data import View, StructLayout
 from amaranth.sim._async import SimulatorContext, TestbenchContext
 from amaranth_types import ValueLike
-from typing import Any, Optional
+from typing import Any
 
 from transactron.lib import AdapterBase
 from .functions import MethodData
@@ -25,7 +25,7 @@ class CallTrigger:
     def __init__(
         self,
         sim: SimulatorContext,
-        _calls: Iterable[ValueLike | tuple["TestbenchIO", Optional[dict[str, Any]]]] = (),
+        _calls: Iterable[ValueLike | tuple["TestbenchIO", dict[str, Any] | None]] = (),
     ):
         """
         Parameters
@@ -34,7 +34,7 @@ class CallTrigger:
             Amaranth simulator context.
         """
         self.sim = sim
-        self.calls_and_values: list[ValueLike | tuple[TestbenchIO, Optional[dict[str, Any]]]] = list(_calls)
+        self.calls_and_values: list[ValueLike | tuple[TestbenchIO, dict[str, Any] | None]] = list(_calls)
 
     def sample(self, *values: "ValueLike | TestbenchIO"):
         """Sample a signal or a method result on a clock edge.
@@ -189,12 +189,12 @@ class TestbenchIO(Elaboratable):
         self.enable(sim)
         self.set_inputs(sim, data)
 
-    def get_call_result(self, sim: TestbenchContext) -> Optional[MethodData]:
+    def get_call_result(self, sim: TestbenchContext) -> MethodData | None:
         if self.get_done(sim):
             return self.get_outputs(sim)
         return None
 
-    async def call_result(self, sim: SimulatorContext) -> Optional[MethodData]:
+    async def call_result(self, sim: SimulatorContext) -> MethodData | None:
         *_, data, done = await self.sample_outputs_done(sim)
         if done:
             return data
@@ -205,7 +205,7 @@ class TestbenchIO(Elaboratable):
         self.disable(sim)
         return outputs
 
-    async def call_try(self, sim: SimulatorContext, data={}, /, **kwdata) -> Optional[MethodData]:
+    async def call_try(self, sim: SimulatorContext, data={}, /, **kwdata) -> MethodData | None:
         return (await CallTrigger(sim).call(self, data, **kwdata))[0]
 
     async def call(self, sim: SimulatorContext, data={}, /, **kwdata) -> MethodData:

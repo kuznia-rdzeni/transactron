@@ -1,7 +1,7 @@
 import os
 import sys
 from contextlib import contextmanager
-from typing import Optional, Any, Concatenate, TypeGuard
+from typing import Any, Concatenate, TypeGuard
 from collections.abc import Callable, Mapping, Sequence
 from .typing import ROGraph, GraphCC, MethodLayout, MethodStruct, LayoutList, LayoutListField
 from amaranth_types import SrcLoc, ShapeLike
@@ -15,20 +15,20 @@ import dataclasses
 
 
 __all__ = [
-    "longest_common_prefix",
-    "silence_mustuse",
-    "get_caller_class_name",
-    "def_helper",
-    "method_def_helper",
-    "mock_def_helper",
-    "async_mock_def_helper",
     "SrcLoc",
+    "async_mock_def_helper",
+    "dataclass_asdict",
+    "def_helper",
+    "extend_layout",
+    "from_method_layout",
+    "get_caller_class_name",
     "get_src_loc",
     "local_src_loc",
-    "from_method_layout",
+    "longest_common_prefix",
     "make_layout",
-    "extend_layout",
-    "dataclass_asdict",
+    "method_def_helper",
+    "mock_def_helper",
+    "silence_mustuse",
 ]
 
 
@@ -122,7 +122,7 @@ def method_def_helper[T](method, func: Callable[..., T], arg: MethodStruct) -> T
     return def_helper(f"method definition for {method}", func, MethodStruct, arg, **kwargs)  # type: ignore
 
 
-def get_caller_class_name(default: Optional[str] = None) -> tuple[Optional[Elaboratable], str]:
+def get_caller_class_name(default: str | None = None) -> tuple[Elaboratable | None, str]:
     try:
         for d in count(2):
             caller_frame = sys._getframe(d)

@@ -1,6 +1,6 @@
 from collections.abc import Iterable
 from dataclasses import dataclass, field
-from typing import Any, Optional
+from typing import Any
 
 from dataclasses_json import dataclass_json
 
@@ -10,12 +10,12 @@ from .emit import EmittedEvent
 
 
 __all__ = [
-    "SignalHandle",
-    "EventFieldSchema",
-    "EventSiteSchema",
     "EvLogSchema",
+    "EventFieldSchema",
     "EventSiteLocation",
+    "EventSiteSchema",
     "GeneratedEvLog",
+    "SignalHandle",
     "schema_from_records",
 ]
 
@@ -130,10 +130,10 @@ class GeneratedEvLog:
 
     schema: EvLogSchema
     site_locations: list[EventSiteLocation]
-    triggers_location: Optional[SignalHandle] = None
+    triggers_location: SignalHandle | None = None
 
 
-def schema_from_records(records: Iterable[EmittedEvent], metadata: Optional[dict[str, Any]] = None) -> EvLogSchema:
+def schema_from_records(records: Iterable[EmittedEvent], metadata: dict[str, Any] | None = None) -> EvLogSchema:
     """Builds an event log schema from the emission sites registered during
     elaboration (see `get_emitted_events`)."""
     sites: list[EventSiteSchema] = []

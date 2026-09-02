@@ -39,7 +39,7 @@ master_doc = "index"
 project = "Transactron documentation"
 output_filename = "transactron-docs"
 authors = "Kuźnia Rdzeni"
-copyright = authors + ", {}".format(datetime.datetime.now().year)
+copyright = authors + f", {datetime.datetime.now().year}"
 
 # Specify time format. Used in 'Last Updated On:'.
 today_fmt = "%H:%M %Y-%m-%d"

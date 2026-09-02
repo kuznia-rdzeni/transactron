@@ -3,7 +3,7 @@ from amaranth import ValueCastable
 import pytest
 import random
 import enum as pyenum
-from typing import Callable
+from collections.abc import Callable
 from amaranth import *
 from amaranth.lib import data
 from amaranth.lib import enum
@@ -114,7 +114,7 @@ def const_from_shape(shape: ShapeLike) -> ConstType:
         else:
             return s
     else:
-        raise ValueError("shape unsupported: %s" % shape)
+        raise ValueError(f"shape unsupported: {shape}")
 
 
 def const_from_assignarg(arg: AssignArg) -> AssignArg:
