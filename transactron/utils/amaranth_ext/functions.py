@@ -44,39 +44,87 @@ __all__ = [
 ]
 
 
-def mod_incr(sig: ValueLike, mod: int) -> Value:
-    """
-    Perform `(sig+1) % mod` operation.
+def mod_incr(value: ValueLike, mod: int) -> Value:
+    """Increment a signal modulo a constant.
+
+    Performs ``(value + 1) % mod`` operation. If ``mod`` is a power of two,
+    overflow arithmetic is used for performance.
+
+    Parameters
+    ----------
+    sig : ValueLike
+        The signal to increment. Assumed to be unsigned and less or equal than
+        ``mod``.
+    mod : int
+        The modulus. Must be positive.
     """
     assert mod > 0
-    sig = Value.cast(sig)
+    value = Value.cast(value)
     if not (mod & (mod - 1)):
-        return (sig + 1) & (mod - 1)
-    return Mux(sig == mod - 1, 0, sig + 1)
+        return (value + 1) & (mod - 1)
+    return Mux(value == mod - 1, 0, value + 1)
 
 
-def mod_add(sig: ValueLike, mod: int, incr: ValueLike, max_incr: int):
-    """
-    Perform `(sig+incr) % mod` operation, for `0 < incr <= max_incr`.
+def mod_add(value: ValueLike, mod: int, incr: ValueLike, max_incr: int) -> Value:
+    """Add a signal to another small signal modulo a constant.
+
+    Performs ``(sig + incr) % mod`` operation, for `0 <= incr <= max_incr`.
+    If ``mod`` is a power of two, overflow arithmetic is used for performance.
+    For other values of ``mod``, the circuit size is linear in size with
+    respect to ``max_incr``.
+
+    Parameters
+    ----------
+    sig : ValueLike
+        The signal to add to. Assumed to be unsigned and less or equal than
+        ``mod``.
+    mod : int
+        The modulus. Must be positive.
+    incr : ValueLike
+        The signal to be added. Assumed to be unsigned and less or equal than
+        ``max_incr``.
+    max_incr : int
+        The maximum value of ``incr``. Must be less or equal than ``mod``.
     """
     assert mod > 0
     assert max_incr >= 0
-    sig = Value.cast(sig)
+    value = Value.cast(value)
     incr = Value.cast(incr)
     if not (mod & (mod - 1)):
-        return (sig + incr) & (mod - 1)
-    return SwitchValue(sig + incr, [(mod + i, i) for i in range(max_incr)] + [(None, sig + incr)])
+        return (value + incr) & (mod - 1)
+    res = value + incr
+    return SwitchValue(res, [(mod + i, i) for i in range(max_incr)] + [(None, res)])
 
 
-def popcount(s: Value):
+def popcount(value: ValueLike) -> Value:
+    """Computes the number of set bits in a signal.
+
+    Parameters
+    ----------
+    value : ValueLike
+        The input signal.
+    """
+    value = Value.cast(value)
     return binary_tree_reduce(
-        *[s[i] for i in range(len(s))],
+        *[value[i] for i in range(len(value))],
         neutral=C(0, 0),
         operator=operator.add,
-    )[: bits_for(len(s))]
+    )[: bits_for(len(value))]
 
 
-def count_trailing_zeros(s: Value) -> Value:
+def count_trailing_zeros(value: ValueLike) -> Value:
+    """Computes the number of trailing zeros in a signal.
+
+    Trailing zeros are the zeros after the last non-zero digit. In other
+    words, the computed value is the position of the least significant
+    set bit, or the signal width if the input is 0.
+
+    Parameters
+    ----------
+    value : ValueLike
+        The input signal.
+    """
+
     def iter(s: Value, step: int) -> Value:
         # if no bits left - return empty value
         if step == 0:
@@ -96,20 +144,32 @@ def count_trailing_zeros(s: Value) -> Value:
         # otherwise add 1 << (step - 1) to upper value and return
         return Mux(s[:partition].any(), Cat(lower_value, 0), Cat(upper_value, 1))
 
-    return iter(s.as_unsigned(), ceil_log2(len(s) + 1))
+    value = Value.cast(value)
+    return iter(value.as_unsigned(), ceil_log2(len(value) + 1))
 
 
-def count_leading_zeros(s: Value) -> Value:
-    return count_trailing_zeros(s[::-1])
+def count_leading_zeros(value: ValueLike) -> Value:
+    """Computes the number of leading zeros in a signal.
 
+    Leading zeros are the zeroz before the first non-zero digit.
 
-def cyclic_mask(bits: int, start: Value, end: Value):
+    Parameters
+    ----------
+    value : ValueLike
+        The input signal.
     """
-    Generate `bits` bit-wide mask with ones from `start` to `end` position, including both ends.
-    If `end` value is < than `start` the mask wraps around.
+    value = Value.cast(value)
+    return count_trailing_zeros(value[::-1])
+
+
+def cyclic_mask(bits: int, start: ValueLike, end: ValueLike):
     """
-    start = start.as_unsigned()
-    end = end.as_unsigned()
+    Generate ``bits`` bit-wide mask with ones from ``start`` to ``end``
+    position, including both ends. If ``end`` value is less than ``start``,
+    the mask wraps around.
+    """
+    start = Value.cast(start).as_unsigned()
+    end = Value.cast(end).as_unsigned()
 
     # start <= end
     length = (end - start + 1).as_unsigned()
@@ -142,6 +202,17 @@ def flatten_signals(signals: ValueBundle) -> Iterable[Value]:
 
 
 def shape_of(value: ValueLike) -> Shape | ShapeCastable:
+    """Computes the shape of a ``ValueLike``.
+
+    * For ``Value`` and ``ValueCastable``, returns ``value.shape()``.
+    * For ``Enum``, returns ``type(value)``.
+    * Otherwise, returns `Value.cast(value).shape()`.
+
+    Parameters
+    ----------
+    value : ValueLike
+        The input.
+    """
     value_type = type(value)
     if isinstance(value, ValueCastable):
         shape = value.shape()
@@ -330,8 +401,8 @@ def one_hot_mux(
     priority: bool = False,
     assert_one_hot: bool = False,
 ) -> Value | ValueCastable:
-    """
-    One-hot multiplexer.
+    """One-hot multiplexer.
+
     Takes n input values and n one-hot select signals and outputs the value corresponding to the set select signal.
 
     Parameters
