@@ -1,6 +1,6 @@
 from collections.abc import Generator
 from contextlib import contextmanager
-from typing import overload
+from typing import TYPE_CHECKING, Generic, TypeVar, overload
 from amaranth import Cat, Const, Format, Shape, ShapeCastable, Value, ValueCastable
 from amaranth.hdl._ast import Assign
 from amaranth_types import FlatShapeLike, ModuleLike, ShapeLike, ValueLike
@@ -12,7 +12,7 @@ __all__ = ["OptionView", "Option"]
 
 class OptionView[T: ShapeLike](ValueCastable):
     """A view into a value of ``Option`` shape.
- 
+
     Provides convenient accessors for the ``valid`` and ``data`` fields of an
     underlying value that has the layout produced by ``Option``, as well as
     helper methods for working with such a value in module context.
@@ -72,18 +72,15 @@ class OptionView[T: ShapeLike](ValueCastable):
 
     @overload
     @contextmanager
-    def with_data(self: "OptionView[FlatShapeLike]", m: ModuleLike) -> Generator[Value]:
-        ...
+    def with_data(self: "OptionView[FlatShapeLike]", m: ModuleLike) -> Generator[Value]: ...
 
     @overload
     @contextmanager
-    def with_data[U](self: "OptionView[ShapeCastable[U]]", m: ModuleLike) -> Generator[U]:
-        ...
+    def with_data[U](self: "OptionView[ShapeCastable[U]]", m: ModuleLike) -> Generator[U]: ...
 
     @overload
     @contextmanager
-    def with_data(self, m: ModuleLike) -> Generator[Value | ValueCastable]:
-        ...
+    def with_data(self, m: ModuleLike) -> Generator[Value | ValueCastable]: ...
 
     @contextmanager
     def with_data(self, m: ModuleLike) -> Generator[T]:
@@ -120,7 +117,9 @@ class OptionView[T: ShapeLike](ValueCastable):
 
     def __eq__(self, other) -> Value:  # type: ignore
         if isinstance(other, OptionView) and self._shape == other._shape:
-            return ~(self.valid() | other.valid()) | (self.valid() & other.valid() & (self._target.data == other._target.data))
+            return ~(self.valid() | other.valid()) | (
+                self.valid() & other.valid() & (self._target.data == other._target.data)
+            )
         else:
             raise TypeError(
                 f"Option view with layout {self._shape} can only be compared to another option view with same layout"
@@ -130,7 +129,15 @@ class OptionView[T: ShapeLike](ValueCastable):
         return ~(self == other)
 
 
-class Option[T: ShapeLike](ShapeCastable[OptionView[T]]):
+# Typing hack
+_T_ShapeLike = TypeVar("_T_ShapeLike", bound=ShapeLike)
+if TYPE_CHECKING:
+    _Base = ShapeCastable[OptionView[_T_ShapeLike]]
+else:
+    _Base = ShapeCastable
+
+
+class Option(_Base, Generic[_T_ShapeLike]):
     """A shape representing an optional ("maybe") value.
 
     An ``Option`` describes a value that either carries data of the given
@@ -139,7 +146,8 @@ class Option[T: ShapeLike](ShapeCastable[OptionView[T]]):
     ``data`` field of shape `data_shape`; ``data`` is meaningless whenever
     ``valid`` is deasserted.
     """
-    def __init__(self, data_shape: T):
+
+    def __init__(self, data_shape: _T_ShapeLike):
         """
         Parameters
         ----------
@@ -155,16 +163,16 @@ class Option[T: ShapeLike](ShapeCastable[OptionView[T]]):
         self._internal_shape = data.StructLayout({"valid": 1, "data": data_shape})
 
     @property
-    def data_shape(self) -> T:
+    def data_shape(self) -> _T_ShapeLike:
         """The shape of the data carried when the option is valid."""
         return self._data_shape
 
     @property
-    def empty(self) -> OptionView[T]:
+    def empty(self) -> OptionView[_T_ShapeLike]:
         """A view of an invalid ("empty") constant of this shape."""
         return self(Const(0, Shape.cast(self).width))
 
-    def wrap(self, data: ValueLike) -> OptionView[T]:
+    def wrap(self, data: ValueLike) -> OptionView[_T_ShapeLike]:
         """Wrap a value as a valid option.
 
         Parameters
@@ -202,8 +210,8 @@ class Option[T: ShapeLike](ShapeCastable[OptionView[T]]):
         else:
             return self._internal_shape.const({"valid": 1, "data": init})
 
-    def __call__(self, target: ValueLike) -> OptionView[T]:
-        return OptionView[T](self.data_shape, target)
+    def __call__(self, target: ValueLike) -> OptionView[_T_ShapeLike]:
+        return OptionView[_T_ShapeLike](self.data_shape, target)
 
     def from_bits(self, raw: int):
         if raw & 1:
