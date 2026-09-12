@@ -92,7 +92,7 @@ class OptionView[T: ShapeLike](ValueCastable):
             The module to add the `m.If(self.valid)` conditional to.
         """
         with m.If(self.valid()):
-            yield self.data  # type: ignore
+            yield self.data()  # type: ignore
 
     def eq(self, other: ValueLike) -> Assign:
         """Create an assignment of `other` to this option.
