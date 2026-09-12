@@ -5,7 +5,6 @@ from typing import Iterable, Optional, TypeAlias
 from amaranth import *
 from amaranth.back import verilog
 from amaranth.hdl import Fragment, ValueCastable
-from amaranth.hdl._ast import SignalSet
 from amaranth.build import Platform
 from amaranth_types import AbstractInterface
 
@@ -220,7 +219,7 @@ class SignalLogRecord(logging.LogRecordInfo):
     trigger: Signal
     """Amaranth signal triggering the log."""
 
-    fields: tuple[Signal, ...] = tuple()
+    fields: tuple[Signal, ...] = ()
     """Amaranth signals that will be used to format the message."""
 
 
@@ -241,23 +240,12 @@ class VerilogDebugWrapper(Elaboratable):
         elaboratable = Fragment.get(self.elaboratable, platform)
         m.submodules.elaboratable = elaboratable
 
-        # find all driven sigs in order to identify undriven ones
-        # undriven signals don't appear in synthesized files
-        driven_sigs = SignalSet()
-
-        def collect_driven_sigs(frag: Fragment):
-            for subfrag in frag.subfragments:  # type: ignore
-                collect_driven_sigs(subfrag[0])
-            for stmt in frag.statements.values():  # type: ignore
-                driven_sigs.update(stmt._lhs_signals())  # type: ignore
-
-        collect_driven_sigs(elaboratable)
+        v = Signal(0)
 
         def to_signal(val: Value | ValueCastable) -> Signal:
             val = Value.cast(val)
             if isinstance(val, Signal):
-                if val not in driven_sigs:
-                    m.d.comb += val.eq(val.init)
+                m.d.comb += v.eq(val[:0])  # force generation of `val` in Verilog
                 return val
             else:
                 sig = Signal.like(val)
@@ -343,7 +331,8 @@ def generate_verilog(
 
     transaction_manager = DependencyContext.get().get_dependency(TransactionManagerKey())
     transaction_signals, method_signals = collect_transaction_method_signals(
-        transaction_manager, name_map  # type: ignore
+        transaction_manager,
+        name_map,  # type: ignore
     )
     profile_data, _ = ProfileData.make(transaction_manager)
     gen_info = GenerationInfo(

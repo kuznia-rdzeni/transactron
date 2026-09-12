@@ -371,9 +371,9 @@ class TransactionManager(Elaboratable):
             all_sims = frozenset(elem.simultaneous_list)
             elem.relations = list(
                 filterfalse(
-                    lambda relation: not relation.conflict
-                    and relation.priority != Priority.UNDEFINED
-                    and relation.end in all_sims,
+                    lambda relation: (
+                        not relation.conflict and relation.priority != Priority.UNDEFINED and relation.end in all_sims
+                    ),
                     elem.relations,
                 )
             )

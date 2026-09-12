@@ -29,7 +29,7 @@ class AdapterBase(Component):
 
     @abstractmethod
     def elaborate(self, platform) -> TModule:
-        raise NotImplementedError()
+        raise NotImplementedError
 
 
 class AdapterTrans(AdapterBase):

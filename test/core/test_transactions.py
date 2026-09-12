@@ -136,7 +136,7 @@ class TestTransactionConflict(TestCaseWithSimulator):
         ],
     )
     def test_calls(self, name, scheduler: TransactionScheduler, prob1, prob2, probout):
-        self.in1_stream = range(0, 100)
+        self.in1_stream = range(100)
         self.in2_stream = range(100, 200)
         self.out_stream = range(200, 400)
         self.in_expected = deque()

@@ -255,9 +255,9 @@ def intersperse[T, U](draw: DrawFn, seq: SearchStrategy[Iterable[T]], sep: Searc
 
 
 @st.composite
-def intersperse_many[
-    T, U
-](draw: DrawFn, seq: SearchStrategy[Iterable[T]], sep: SearchStrategy[U], count: SearchStrategy[int]) -> list[T | U]:
+def intersperse_many[T, U](
+    draw: DrawFn, seq: SearchStrategy[Iterable[T]], sep: SearchStrategy[U], count: SearchStrategy[int]
+) -> list[T | U]:
     """Returns a strategy which generates lists with separators between elements.
 
     Separators consist of multiple elements drawn from a separate strategy. The
@@ -280,9 +280,7 @@ def intersperse_many[
     return draw(intersperse(seq, sized_lists(count, sep)))
 
 
-def intersperse_range[
-    T, U
-](
+def intersperse_range[T, U](
     seq: SearchStrategy[Iterable[T]], sep: SearchStrategy[U], *, min_count: int = 0, max_count: int | None = None
 ) -> SearchStrategy[list[T | U]]:
     """Returns a strategy which generates lists with separators between elements.
@@ -312,9 +310,9 @@ def intersperse_range[
 
 
 @st.composite
-def generate_input[
-    T
-](draw: DrawFn, count: int, strategy: SearchStrategy[T], prob: float = 0.5, max_nones: int = 32) -> list[T | None]:
+def generate_input[T](
+    draw: DrawFn, count: int, strategy: SearchStrategy[T], prob: float = 0.5, max_nones: int = 32
+) -> list[T | None]:
     """Useful shorthand for generating inputs for testing processes.
 
     Inputs are interspersed by ``None``, which means no input for a given cycle.

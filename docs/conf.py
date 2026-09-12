@@ -9,7 +9,7 @@ general_theme = "sphinx_rtd_theme"
 # Minimal Sphinx version.
 needs_sphinx = "5.1.0"
 
-# Add any extenstions here. These could be both Sphinx or custom ones.
+# Add any extensions here. These could be both Sphinx or custom ones.
 extensions = [
     "myst_parser",
     "sphinx.ext.intersphinx",
@@ -54,7 +54,7 @@ pygments_style = "sphinx"
 html_theme = general_theme
 
 # The title to be shown at all html documents.
-# Deafult is "<project> v<release> documentation".
+# Default is "<project> v<release> documentation".
 html_title = project
 
 # A shorter title to appear at the navigation bar. Default is html_title.
@@ -91,7 +91,7 @@ def setup(app):
 
 
 # If set to False it doesn't generate summary of class Methods if not
-# explicitly described in docsting. This prevents many mostly empty Method
+# explicitly described in docstring. This prevents many mostly empty Method
 # sections in most classes since 'elaborate' methods are not documented.
 numpydoc_show_class_members = False
 

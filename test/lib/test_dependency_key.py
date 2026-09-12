@@ -79,7 +79,6 @@ class UnifierKeyTestModule(Elaboratable):
 
 
 class TestDependencyKey(TestCaseWithSimulator):
-
     def test_unifier_key(self):
         m = SimpleTestCircuit(UnifierKeyTestModule())
 

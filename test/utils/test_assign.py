@@ -95,7 +95,7 @@ def const_from_shape(shape: ShapeLike) -> ConstType:
         else:
             return random.choice(list(shape)).value
     elif isinstance(shape, data.StructLayout):
-        d = {k: const_from_shape(l) for k, l in shape.members.items()}
+        d = {k: const_from_shape(sh) for k, sh in shape.members.items()}
         if random.randrange(2):
             return shape.const(d)  # type: ignore # dict invariance
         else:

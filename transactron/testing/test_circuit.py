@@ -23,7 +23,7 @@ def guard_nested_collection[T](cont: Any, *t: type[T]) -> TypeGuard[_T_nested_co
     if isinstance(cont, (list, dict)):
         if isinstance(cont, dict):
             cont = cont.values()
-        return all([guard_nested_collection(elem, *t) for elem in cont])
+        return all(guard_nested_collection(elem, *t) for elem in cont)
     elif isinstance(cont, t):
         return True
     else:

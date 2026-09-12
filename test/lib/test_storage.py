@@ -24,7 +24,7 @@ class TestContentAddressableMemory(TestCaseWithSimulator):
     addr_layout = data_layout(addr_width)
     content_layout = data_layout(content_width)
 
-    def setUp(self):
+    def set_up(self):
         self.entries_count = 8
 
         self.circ = SimpleTestCircuit(
@@ -66,7 +66,7 @@ class TestContentAddressableMemory(TestCaseWithSimulator):
 
     def push_process(self, in_push):
         def verify_in(elem):
-            return not (frozenset(elem["addr"].items()) in self.memory)
+            return frozenset(elem["addr"].items()) not in self.memory
 
         def modify_state(elem, response):
             self.memory[frozenset(elem["addr"].items())] = elem["data"]
@@ -149,7 +149,7 @@ class TestContentAddressableMemory(TestCaseWithSimulator):
         generate_input(test_number, amaranth_structs({"addr": addr_layout}), max_nones=max_nop),
     )
     def test_random(self, in_push, in_write, in_read, in_remove):
-        self.setUp()
+        self.set_up()
         with self.run_simulation(self.circ, max_cycles=500) as sim:
             sim.add_testbench(self.push_process(in_push))
             sim.add_testbench(self.read_process(in_read))
@@ -310,7 +310,7 @@ class TestAsyncMemoryBank(TestCaseWithSimulator):
             ),
         )
 
-        data: list[int] = list(0 for i in range(max_addr))
+        data: list[int] = [0 for i in range(max_addr)]
 
         random.seed(seed)
 

@@ -7,7 +7,7 @@ from amaranth.lib import data, enum
 from collections.abc import Callable, Iterable, Mapping, Sequence
 import operator
 
-from amaranth_types import FlatValueLike, SrcLoc, SwitchKey
+from amaranth_types import FlatValueLike, ModuleLike, SrcLoc, SwitchKey
 from amaranth_types.types import ValueLike, ShapeLike
 from transactron.utils.transactron_helpers import get_src_loc
 from transactron.utils.typing import ValueBundle
@@ -39,6 +39,8 @@ __all__ = [
     "mask_after_first_set_bit",
     "mask_until_first_set_bit",
     "mask_before_first_set_bit",
+    "top_module",
+    "to_signal",
 ]
 
 
@@ -63,55 +65,42 @@ def mod_add(sig: ValueLike, mod: int, incr: ValueLike, max_incr: int):
     incr = Value.cast(incr)
     if not (mod & (mod - 1)):
         return (sig + incr) & (mod - 1)
-    return SwitchValue(sig + incr, [(mod + i, i) for i in range(0, max_incr)] + [(None, sig + incr)])
+    return SwitchValue(sig + incr, [(mod + i, i) for i in range(max_incr)] + [(None, sig + incr)])
 
 
 def popcount(s: Value):
-    sum_layers = [s[i] for i in range(len(s))]
-
-    while len(sum_layers) > 1:
-        if len(sum_layers) % 2:
-            sum_layers.append(C(0))
-        sum_layers = [a + b for a, b in zip(sum_layers[::2], sum_layers[1::2])]
-
-    return sum_layers[0][0 : bits_for(len(s))]
+    return binary_tree_reduce(
+        *[s[i] for i in range(len(s))],
+        neutral=C(0, 0),
+        operator=operator.add,
+    )[: bits_for(len(s))]
 
 
-def count_leading_zeros(s: Value) -> Value:
+def count_trailing_zeros(s: Value) -> Value:
     def iter(s: Value, step: int) -> Value:
         # if no bits left - return empty value
         if step == 0:
-            return C(0)
+            return C(0, 0)
 
         # boudaries of upper and lower halfs of the value
         partition = 2 ** (step - 1)
-        current_bit = 1 << (step - 1)
+
+        if len(s) < partition:
+            return Cat(iter(s, step - 1), 0)
 
         # recursive call
         upper_value = iter(s[partition:], step - 1)
         lower_value = iter(s[:partition], step - 1)
 
-        # if there are lit bits in upperhalf - take result directly from recursive value
-        # otherwise add 1 << (step - 1) to lower value and return
-        result = Mux(s[partition:].any(), upper_value, lower_value | current_bit)
+        # if there are lit bits in lowerhalf - take result directly from recursive value
+        # otherwise add 1 << (step - 1) to upper value and return
+        return Mux(s[:partition].any(), Cat(lower_value, 0), Cat(upper_value, 1))
 
-        return result
-
-    slen = len(s)
-    slen_log = ceil_log2(slen)
-    closest_pow_2_of_s = 2**slen_log
-    zeros_prepend_count = closest_pow_2_of_s - slen
-    value = iter(Cat(C(0, shape=zeros_prepend_count), s), slen_log)
-
-    # 0 number edge case
-    # if s == 0 then iter() returns value off by 1
-    # this switch negates this effect
-    result = Mux(s.any(), value, slen)
-    return result
+    return iter(s.as_unsigned(), ceil_log2(len(s) + 1))
 
 
-def count_trailing_zeros(s: Value) -> Value:
-    return count_leading_zeros(s[::-1])
+def count_leading_zeros(s: Value) -> Value:
+    return count_trailing_zeros(s[::-1])
 
 
 def cyclic_mask(bits: int, start: Value, end: Value):
@@ -178,9 +167,9 @@ def _uniformize_values(
 
 
 @overload
-def _uniformize_values[
-    T: ValueCastable
-](values: Iterable[T],) -> tuple[Callable[[Value], T], list[Value]]: ...
+def _uniformize_values[T: ValueCastable](
+    values: Iterable[T],
+) -> tuple[Callable[[Value], T], list[Value]]: ...
 
 
 @overload
@@ -257,9 +246,7 @@ def switch_value(
 
 
 @overload
-def switch_value[
-    T: ValueCastable
-](
+def switch_value[T: ValueCastable](
     test: ValueLike, cases: Iterable[tuple[SwitchKey | tuple[SwitchKey, ...] | None, T]], *, src_loc: int | SrcLoc = 0
 ) -> T: ...
 
@@ -311,9 +298,7 @@ def mux(sel: ValueLike, val1: ValueLike, val0: ValueLike) -> ValueLike:
 
 
 @overload
-def one_hot_mux[
-    T: ValueCastable
-](
+def one_hot_mux[T: ValueCastable](
     inputs: Sequence[tuple[ValueLike, T]],
     default: Optional[T] = None,
     priority: bool = False,
@@ -448,3 +433,54 @@ def mask_before_first_set_bit(value: Value) -> Value:
     Same as: ``extract_lowest_set_bit(value) - 1``.
     """
     return ~mask_from_first_set_bit(value)
+
+
+def top_module(m: ModuleLike) -> Module:
+    """Returns a top-level module, unaffected by condition contexts.
+
+    Intended use: efficient combinational assignments which work with both
+    ``TModule`` and plain ``Module``.
+    """
+    # This hack allows this function to work with both Module and TModule
+    try:
+        return m.submodules._top_module
+    except AttributeError:
+        m.submodules._top_module = Module()
+        return m.submodules._top_module
+
+
+@overload
+def to_signal[T: ValueCastable](m: ModuleLike, value: T) -> T: ...
+
+
+@overload
+def to_signal(m: ModuleLike, value: FlatValueLike) -> Signal: ...
+
+
+def to_signal(m: ModuleLike, value: ValueLike) -> Signal | ValueCastable:
+    """Creates a Signal and immediately assigns it a value.
+
+    Use to avoid expression duplication without a large increase in code size.
+
+    Parameters
+    ----------
+    m : ModuleLike
+        The module where the signal assignment will be performed.
+    value : ValueLike
+        The value to be assigned to a ``Signal``.
+
+    Returns
+    -------
+    ValueLike
+        The created signal. If ``value`` is a ``ValueCastable``, a
+        ``ValueCastable`` of the same type will be returned. Otherwise,
+        a bare ``Signal`` is returned.
+
+    Notes
+    -----
+    Uses ``top_module`` internally.
+    """
+    sig = Signal.like(value)
+    top_m = top_module(m)
+    top_m.d.comb += Value.cast(sig).eq(Value.cast(value))
+    return sig

@@ -189,7 +189,7 @@ class MethodFilter(Elaboratable, TransformerOneTarget):
             The default value returned from the filtered method when the condition
             is false. If omitted, zero is returned.
         use_condition : bool
-            Instead of `m.If` use simultaneus `condition` which allow to execute
+            Instead of `m.If` use simultaneous `condition` which allow to execute
             this filter if the condition is False and target is not ready.
             When `use_condition` is true, `condition` must not be a `Method`.
         src_loc: int | SrcLoc

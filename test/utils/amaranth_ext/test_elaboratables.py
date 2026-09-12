@@ -61,7 +61,6 @@ class TestScheduler(TestCaseWithSimulator):
 
 
 class TestStableSelectingNetwork(TestCaseWithSimulator):
-
     @pytest.mark.parametrize("n", [2, 3, 7, 8])
     def test(self, n: int):
         m = StableSelectingNetwork(n, 8)

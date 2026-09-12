@@ -127,7 +127,7 @@ class PipelineBuilder(Elaboratable):
         self._nodes: list[PipelineBuilder._NodeInfo] = []
         self.allow_unused: bool = allow_unused
         self.allow_empty: bool = allow_empty
-        self._live_signal_shapes: dict[str, ShapeLike] = dict()
+        self._live_signal_shapes: dict[str, ShapeLike] = {}
         self._next_forwarder = None
         self._clear_methods = []
 
@@ -289,7 +289,7 @@ class PipelineBuilder(Elaboratable):
 
         def decorator(func: Callable[..., Optional[AssignArg]]) -> None:
             params = signature(func).parameters
-            i_layout_from_pipeline: dict[str, ShapeLike] = dict()
+            i_layout_from_pipeline: dict[str, ShapeLike] = {}
             va_args_type = None
             for p in params.values():
                 if p.name == "arg":
@@ -419,7 +419,7 @@ class PipelineBuilder(Elaboratable):
             A list of live variable dicts, one per node.  Each dict maps field names to their types.
         """
 
-        live: dict[str, ShapeLike] = dict()
+        live: dict[str, ShapeLike] = {}
         live_per_node: list[dict[str, ShapeLike]] = []
 
         for i in reversed(range(len(self._nodes))):
@@ -486,7 +486,7 @@ class PipelineBuilder(Elaboratable):
 
             @def_method(m, stage_method, ready=node.ready)
             def _(arg):
-                in_data = read_method(m) if read_method is not None else dict()
+                in_data = read_method(m) if read_method is not None else {}
                 out_data = Signal(out_layout)
                 if out_layout.members:
                     m.d.top_comb += assign(out_data, in_data, fields=AssignType.LHS)

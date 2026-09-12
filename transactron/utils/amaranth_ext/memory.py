@@ -18,12 +18,11 @@ __all__ = ["MultiReadMemory", "MultiportXORMemory", "MultiportXORILVTMemory", "M
 
 
 @final
-class IncorrectWritePortNumber(Exception):
+class IncorrectWritePortNumberError(Exception):
     """Exception raised when an incorrect number of write ports has been requested."""
 
 
 class ReadPort:
-
     def __init__(
         self,
         memory: "BaseMultiportMemory",
@@ -40,7 +39,6 @@ class ReadPort:
 
 
 class WritePort:
-
     def __init__(
         self,
         memory: "BaseMultiportMemory",
@@ -53,7 +51,7 @@ class WritePort:
         if granularity is None:
             en_width = 1
         elif not isinstance(granularity, int) or granularity <= 0:
-            raise TypeError(f"Granularity must be a positive integer or None, " f"not {granularity!r}")
+            raise TypeError(f"Granularity must be a positive integer or None, not {granularity!r}")
         elif shape.signed:
             raise ValueError("Granularity cannot be specified for a memory with a signed shape")
         elif shape.width % granularity != 0:
@@ -136,7 +134,7 @@ class MultiReadMemory(BaseMultiportMemory):
 
     def write_port(self, *, domain: str = "sync", granularity: Optional[int] = None, src_loc_at: int = 0):
         if self.write_ports:
-            raise IncorrectWritePortNumber("Cannot add multiple write ports to a single write memory")
+            raise IncorrectWritePortNumberError("Cannot add multiple write ports to a single write memory")
         return super().write_port(domain=domain, granularity=granularity, src_loc_at=src_loc_at)
 
     def elaborate(self, platform):
@@ -325,7 +323,7 @@ class OneHotCodedILVT(BaseMultiportMemory):
         self._frozen = True
 
         if Shape(len(self.write_ports)) != self.shape:
-            raise IncorrectWritePortNumber("Number of write ports not equal to ILVT's shape.")
+            raise IncorrectWritePortNumberError("Number of write ports not equal to ILVT's shape.")
 
         write_addr_sync = [Signal(port.addr.shape(), reset_less=True) for port in self.write_ports]
         write_en_sync = [Signal() for _ in self.write_ports]
@@ -399,7 +397,7 @@ class OneHotCodedILVT(BaseMultiportMemory):
                 (
                     ~(m.submodules[f"bank_{i}"].read_ports[idx - 1].data[index - 1])
                     if i < index
-                    else m.submodules[f"bank_{i+1}"].read_ports[idx].data[index]
+                    else m.submodules[f"bank_{i + 1}"].read_ports[idx].data[index]
                 )
                 for i in range(len(self.write_ports) - 1)
             ]
@@ -410,7 +408,6 @@ class OneHotCodedILVT(BaseMultiportMemory):
             m.d.sync += write_data_bypass[index].eq(write_data_sync[index])
 
         for index, read_port in enumerate(self.read_ports):
-
             for i in range(len(self.write_ports)):
                 m.d.comb += bypassed_data[index][i].eq(
                     Mux(

@@ -77,9 +77,9 @@ def longest_common_prefix[T](*seqs: Sequence[T]) -> Sequence[T]:
     return min(seqs, key=lambda s: len(s))
 
 
-def has_first_param[
-    T, U
-](func: Callable[..., T], name: str, tp: type[U]) -> TypeGuard[Callable[Concatenate[U, ...], T]]:
+def has_first_param[T, U](
+    func: Callable[..., T], name: str, tp: type[U]
+) -> TypeGuard[Callable[Concatenate[U, ...], T]]:
     parameters = signature(func).parameters
     return (
         len(parameters) >= 1
@@ -95,9 +95,9 @@ def def_helper[T, U](description, func: Callable[..., T], tp: type[U], arg: U, /
     except ValueError:
         raise TypeError(f"Invalid python method signature for {func} (missing `self` for class-level mock?)")
 
-    kw_parameters = set(
+    kw_parameters = {
         n for n, p in parameters.items() if p.kind in {Parameter.POSITIONAL_OR_KEYWORD, Parameter.KEYWORD_ONLY}
-    )
+    }
     if len(parameters) == 1 and has_first_param(func, "arg", tp):
         return func(arg)
     elif kw_parameters <= kwargs.keys():

@@ -47,7 +47,7 @@ def assign_arg_fields(val: AssignArg) -> Optional[set[str | int]]:
     elif isinstance(val, (data.View, data.Const)):
         layout = val.shape()
         if isinstance(layout, data.StructLayout):
-            return set(k for k in layout.members)
+            return set(layout.members)
         if isinstance(layout, data.ArrayLayout):
             return set(range(layout.length))
     elif isinstance(val, dict):

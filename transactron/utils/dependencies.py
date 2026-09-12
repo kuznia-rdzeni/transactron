@@ -36,7 +36,7 @@ class DependencyKey[T, U](ABC):
         Different implementations of `combine` give different combining behavior
         for different kinds of keys.
         """
-        raise NotImplementedError()
+        raise NotImplementedError
 
     @abstractmethod
     def __hash__(self) -> int:
@@ -44,7 +44,7 @@ class DependencyKey[T, U](ABC):
         can be instanced. It is automatically overridden in frozen data
         classes.
         """
-        raise NotImplementedError()
+        raise NotImplementedError
 
     lock_on_get: bool = True
     cache: bool = True
@@ -79,7 +79,7 @@ class ListKey[T](DependencyKey[T, list[T]]):
     """Base class for list key.
 
     List keys are used when there is an one-to-many relation between keys
-    and dependecies. Provides list of dependencies.
+    and dependencies. Provides list of dependencies.
     """
 
     empty_valid = True
@@ -103,7 +103,7 @@ class DependencyManager:
         """Adds a new dependency to a key.
 
         Depending on the key type, a key can have a single dependency or
-        multple dependencies added to it.
+        multiple dependencies added to it.
         """
 
         if key in self.locked_dependencies:

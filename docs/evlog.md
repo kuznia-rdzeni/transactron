@@ -11,10 +11,11 @@ Events are dataclasses declared with the {py:func}`~transactron.evlog.event.even
 ```python
 from transactron.evlog import Event, Static, event
 
+
 @event("exec.unit_start")
 class ExecUnitStart(Event):
     insn_tag: int
-    kind: UnitKind          # an enum.Enum subclass
+    kind: UnitKind  # an enum.Enum subclass
     lane: Static[int]
 ```
 
@@ -32,6 +33,8 @@ from transactron.evlog import EventSource
 
 self.evlog = EventSource("exec.alu")
 ...
+
+
 def elaborate(self, platform):
     ...
     self.evlog.emit(m, ExecUnitStart.hw(insn_tag=tag, kind=kind, lane=0), when=start)
@@ -59,7 +62,7 @@ with self.run_simulation(m) as sim:
     sim.add_process(process)
     sim.add_testbench(testbench)
 
-events = log.decoded()      # or log.save("events.jsonl")
+events = log.decoded()  # or log.save("events.jsonl")
 ```
 
 Tests based on {py:class}`~transactron.testing.test_case.TestCaseWithSimulator` capture event logs automatically when pytest is invoked with `__TRANSACTRON_EVLOG=1` in the environment: every test which registered any emission sites (i.e. tests which enabled the event log themselves) saves its captured events to `test/__evlogs__/<test name>.jsonl`. The flag only controls capturing - enabling the event log stays a separate concern.
@@ -96,10 +99,11 @@ Consumers subclass {py:class}`~transactron.evlog.consumer.EventConsumer` and dec
 ```python
 from transactron.evlog import DecodedEvent, EventConsumer, EventLogReader, handles
 
+
 class KonataConverter(EventConsumer):
     @handles(ExecUnitStart)
-    def on_unit_start(self, rec: DecodedEvent):
-        ...  # rec.cycle, rec.source_name, rec.event (typed ExecUnitStart)
+    def on_unit_start(self, rec: DecodedEvent): ...  # rec.cycle, rec.source_name, rec.event (typed ExecUnitStart)
+
 
 KonataConverter().run(EventLogReader("events.jsonl"))
 ```

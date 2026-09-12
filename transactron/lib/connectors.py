@@ -48,7 +48,7 @@ class FIFO(Elaboratable):
             The format of structures stored in the FIFO.
         depth: int
             Size of the FIFO.
-        fifoType: Elaboratable
+        fifo_type: Elaboratable
             FIFO module conforming to Amaranth library FIFO interface. Defaults
             to SyncFIFO.
         src_loc: int | SrcLoc
@@ -489,7 +489,7 @@ class ClearableConnector(Connector, Protocol):
     """Clears the connector.
 
     The connector must be empty the cycle after the clear regardless of `write` being run or not.
-    Connector being empty means that all perviously written values should be considered consumed.
+    Connector being empty means that all previously written values should be considered consumed.
 
     Parameters
     ----------

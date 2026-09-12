@@ -446,8 +446,8 @@ class TestTaggedLatencyMeasurer(TestLatencyMeasurerBase):
 
         latencies: list[int] = []
 
-        events = list(0 for _ in range(slots_number))
-        free_slots = list(k for k in range(slots_number))
+        events = [0 for _ in range(slots_number)]
+        free_slots = list(range(slots_number))
         used_slots: list[int] = []
 
         finish = [False for _ in range(ways)]

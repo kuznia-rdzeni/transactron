@@ -37,9 +37,7 @@ testing = [
 [dependency-groups]
 lint = [
     "pyright == 1.1.393",
-    "flake8 == 7.3.0",
-    "black == 24.4.2",
-    "pep8-naming == 0.13.3",
+    "ruff == 0.16.5",
     "pre-commit == 2.16.0",
 ]
 test = [
@@ -72,6 +70,38 @@ include = ["transactron", "test", "scripts"]
 reportMissingImports = true
 reportMissingTypeStubs = false
 reportWildcardImportFromLibrary = false
+
+[tool.ruff]
+line-length = 120
+
+[tool.ruff.lint]
+select = [
+    "E",    # pycodestyle error
+    "W",    # pycodestyle warning
+    "F",    # pyflakes
+    "N",    # pep8-naming
+    "YTT",  # flake8-2020 (sys.version)
+    "C4",   # flake8-comprehensions
+    "INP",  # flake8-no-pep420 (all packages must have __init__.py)
+    "PIE",  # flake8-pie (various code redundancy tests)
+    "T20",  # flake8-print (don't use print)
+    "Q",    # flake8-quotes
+    "RSE",  # flake8-raise
+    "FLY",  # flynt (don't use old style formatting)
+    "PLE"   # pylint error
+]
+ignore = [
+    "F403", # star imports
+    "F405"  # use of name from star imports
+]
+
+[tool.ruff.lint.pep8-naming]
+ignore-names = ["OneHotCase", "OneHotSwitch", "OneHotSwitchDynamic"]
+
+[tool.ruff.lint.per-file-ignores]
+"docs/**" = ["INP"]
+"transactron/cmd/**" = ["T20"]
+"transactron/core/manager.py" = ["T20"]
 
 [tool.pytest.ini_options]
 minversion = "7.2.2"

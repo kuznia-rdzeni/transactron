@@ -37,7 +37,7 @@ class TestShifter(TestCaseWithSimulator):
         "shift_fun, shift_kwargs, test_fun",
         [
             (shift_left, [], lambda val, offset, width: (val << offset) % 2**width),
-            (shift_right, [], lambda val, offset, width: (val >> offset)),
+            (shift_right, [], lambda val, offset, width: val >> offset),
             (
                 shift_left,
                 [("placeholder", 1)],

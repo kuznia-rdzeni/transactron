@@ -149,7 +149,7 @@ class TestLog(LogTestCaseWithSimulator):
                 assert re.search(
                     f"{log_level:<7}"
                     + r"  test_logger:logging\.py:\d+ \[test/testing/test_log\.py:\d+\] "
-                    + f"Log triggered under Amaranth If value\\+3=0x{i+3:x}",
+                    + f"Log triggered under Amaranth If value\\+3=0x{i + 3:x}",
                     caplog.text,
                 )
         else:

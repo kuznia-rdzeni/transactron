@@ -144,4 +144,4 @@ def signed_to_int(x: int, xlen: int) -> int:
 
 
 def average_dict_of_lists(d: Mapping[Any, Sized]) -> float:
-    return fmean(map(lambda xs: len(xs), d.values()))
+    return fmean((len(xs) for xs in d.values()))

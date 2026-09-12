@@ -185,9 +185,9 @@ def rotate_left(value: ValueLike, offset: ValueLike) -> Value:
 
 
 @overload
-def generic_shift_vec_right[
-    T: ValueCastable
-](data1: Sequence[T], data2: Sequence[T], offset: ValueLike) -> Sequence[T]: ...
+def generic_shift_vec_right[T: ValueCastable](
+    data1: Sequence[T], data2: Sequence[T], offset: ValueLike
+) -> Sequence[T]: ...
 
 
 @overload
@@ -247,9 +247,9 @@ def generic_shift_vec_right(
 
 
 @overload
-def generic_shift_vec_left[
-    T: ValueCastable
-](data1: Sequence[T], data2: Sequence[T], offset: ValueLike) -> Sequence[T]: ...
+def generic_shift_vec_left[T: ValueCastable](
+    data1: Sequence[T], data2: Sequence[T], offset: ValueLike
+) -> Sequence[T]: ...
 
 
 @overload
@@ -288,9 +288,9 @@ def generic_shift_vec_left(
 
 
 @overload
-def shift_vec_right[
-    T: ValueCastable
-](data: Sequence[T], offset: ValueLike, placeholder: Optional[T]) -> Sequence[T]: ...
+def shift_vec_right[T: ValueCastable](
+    data: Sequence[T], offset: ValueLike, placeholder: Optional[T]
+) -> Sequence[T]: ...
 
 
 @overload

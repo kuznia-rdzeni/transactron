@@ -142,7 +142,7 @@ class BarEnum(py_enum.Enum):
 @pytest.mark.parametrize(
     "shape",
     [0, 1, 8, 32]
-    + [range(0, 1), range(0, 2), range(0, 8), range(-12, 35), range(-1234, 56)]
+    + [range(1), range(2), range(8), range(-12, 35), range(-1234, 56)]
     + [FooEnum, BarEnum]
     + [data.StructLayout({}), data.StructLayout({"a": 5, "b": FooEnum})]
     + [data.ArrayLayout(5, 0), data.ArrayLayout(BarEnum, 5)]

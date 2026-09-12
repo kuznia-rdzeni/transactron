@@ -29,6 +29,7 @@ class TestStack(TestCaseWithSimulator):
                 await sim.delay(2e-9)
                 stk.append(v)
 
+            await sim.tick()  # removes unawaited async warnings
             self.done = True
 
         async def target(sim: TestbenchContext):

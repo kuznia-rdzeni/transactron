@@ -22,8 +22,8 @@ class _ShapeTypingMeta(ABCMeta):
     HACK: When type-checking it specifies return type, as targeted `Signal(shape)` type, which is not correct.
     Implementation forwards all calls unaltered, so the object is really an `_ComponentSignal` storing required
     information.
-    At the stage of `Component` creation all fields are instatiated in-place and have the correct target type
-    (given initially to typchecker) by `Component.__init__`.
+    At the stage of `Component` creation all fields are instantiated in-place and have the correct target type
+    (given initially to the typechecker) by `Component.__init__`.
     """
 
     if TYPE_CHECKING:
@@ -100,7 +100,7 @@ class ComponentInterface(AbstractComponentInterface):
     """Component Interface
     Syntactic sugar for using typed lib.wiring `Signature`s in `Component`.
 
-    It allows to avoid defining desired Amaranth `Signature` and separetly `AbstractInterface` of `Signals` to get
+    It allows to avoid defining desired Amaranth `Signature` and separately `AbstractInterface` of `Signals` to get
     `Component` attribute-level typing of interface.
 
     Interface should be constructed in `__init__` of class that inherits `ComponentInterface`, by defining
@@ -151,7 +151,7 @@ class ComponentInterface(AbstractComponentInterface):
                 res[m_name] = Flow.Out(m_val.signature)
             else:
                 raise AttributeError(
-                    f"Illegal attribute `{name_prefix+m_name}`: `{m_val}`.  "
+                    f"Illegal attribute `{name_prefix + m_name}`: `{m_val}`.  "
                     "Expected `CIn`, `COut`, `ComponentInterface` or `FlippedComponentInterface`"
                 )
         return res

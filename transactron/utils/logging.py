@@ -95,7 +95,7 @@ class LogRecord(LogRecordInfo):
     trigger: Value
     """Single bit Amaranth signal triggering the log."""
 
-    fields: tuple[Value, ...] = tuple()
+    fields: tuple[Value, ...] = ()
     """Amaranth signals that will be used to format the message."""
 
     def to_amaranth_format(self) -> Format:
@@ -327,7 +327,7 @@ class HardwareLogger:
     ):
         """Log a message with severity 'ERROR'.
 
-        This severity level has special semantics. If a log with this serverity
+        This severity level has special semantics. If a log with this severity
         level is triggered, the simulation will be terminated.
 
         See `HardwareLogger.log` function for more details.

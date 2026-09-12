@@ -57,7 +57,7 @@ class TestFifoBase(TestCaseWithSimulator):
 class TestFIFO(TestFifoBase):
     @pytest.mark.parametrize("writer_rand, reader_rand", [(0, 0), (2, 0), (0, 2), (1, 1)])
     def test_fifo(self, writer_rand, reader_rand):
-        self.do_test_fifo(FIFO, writer_rand=writer_rand, reader_rand=reader_rand, fifo_kwargs=dict(depth=4))
+        self.do_test_fifo(FIFO, writer_rand=writer_rand, reader_rand=reader_rand, fifo_kwargs={"depth": 4})
 
 
 class TestConnect(TestFifoBase):
