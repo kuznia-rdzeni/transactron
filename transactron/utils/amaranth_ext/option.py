@@ -12,7 +12,7 @@ __all__ = ["OptionView", "Option"]
 
 class OptionView[T: ShapeLike](ValueCastable):
     """A view into a value of ``Option`` shape.
- 
+
     Provides convenient accessors for the ``valid`` and ``data`` fields of an
     underlying value that has the layout produced by ``Option``, as well as
     helper methods for working with such a value in module context.
@@ -72,18 +72,15 @@ class OptionView[T: ShapeLike](ValueCastable):
 
     @overload
     @contextmanager
-    def with_data(self: "OptionView[FlatShapeLike]", m: ModuleLike) -> Generator[Value]:
-        ...
+    def with_data(self: "OptionView[FlatShapeLike]", m: ModuleLike) -> Generator[Value]: ...
 
     @overload
     @contextmanager
-    def with_data[U](self: "OptionView[ShapeCastable[U]]", m: ModuleLike) -> Generator[U]:
-        ...
+    def with_data[U](self: "OptionView[ShapeCastable[U]]", m: ModuleLike) -> Generator[U]: ...
 
     @overload
     @contextmanager
-    def with_data(self, m: ModuleLike) -> Generator[Value | ValueCastable]:
-        ...
+    def with_data(self, m: ModuleLike) -> Generator[Value | ValueCastable]: ...
 
     @contextmanager
     def with_data(self, m: ModuleLike) -> Generator[T]:
@@ -120,7 +117,9 @@ class OptionView[T: ShapeLike](ValueCastable):
 
     def __eq__(self, other) -> Value:  # type: ignore
         if isinstance(other, OptionView) and self._shape == other._shape:
-            return ~(self.valid() | other.valid()) | (self.valid() & other.valid() & (self._target.data == other._target.data))
+            return ~(self.valid() | other.valid()) | (
+                self.valid() & other.valid() & (self._target.data == other._target.data)
+            )
         else:
             raise TypeError(
                 f"Option view with layout {self._shape} can only be compared to another option view with same layout"
@@ -139,6 +138,7 @@ class Option[T: ShapeLike](ShapeCastable[OptionView[T]]):
     ``data`` field of shape `data_shape`; ``data`` is meaningless whenever
     ``valid`` is deasserted.
     """
+
     def __init__(self, data_shape: T):
         """
         Parameters
