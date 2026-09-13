@@ -1,6 +1,6 @@
 from collections.abc import Generator
 from contextlib import contextmanager
-from typing import overload
+from typing import overload, Any
 from amaranth import Cat, Const, Format, Shape, ShapeCastable, Value, ValueCastable
 from amaranth.hdl._ast import Assign
 from amaranth_types import FlatShapeLike, ModuleLike, ShapeLike, ValueLike
@@ -196,7 +196,7 @@ class Option[T: ShapeLike](ShapeCastable[OptionView[T]]):
     def as_shape(self) -> data.StructLayout:
         return self._internal_shape
 
-    def const(self, init):
+    def const(self, init) -> "data.Const[data.StructLayout]":
         if init is None:
             return self._internal_shape.const({"valid": 0})
         else:
@@ -205,7 +205,7 @@ class Option[T: ShapeLike](ShapeCastable[OptionView[T]]):
     def __call__(self, target: ValueLike) -> OptionView[T]:
         return OptionView[T](self.data_shape, target)
 
-    def from_bits(self, raw: int):
+    def from_bits(self, raw: int) -> Any:
         if raw & 1:
             raw >>= 1
             if isinstance(self._data_shape, ShapeCastable):
@@ -214,7 +214,7 @@ class Option[T: ShapeLike](ShapeCastable[OptionView[T]]):
         else:
             return None
 
-    def format(self, obj: ValueLike, spec: str):
+    def format(self, obj: ValueLike, spec: str) -> Format:
         if spec != "":
             raise ValueError(f"Format specifier {spec!r} is not supported for options")
         if not isinstance(obj, OptionView):
