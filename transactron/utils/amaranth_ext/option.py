@@ -1,7 +1,7 @@
 from collections.abc import Generator
 from contextlib import contextmanager
 from typing import overload, Any
-from amaranth import Cat, Const, Format, Shape, ShapeCastable, Value, ValueCastable
+from amaranth import Cat, Const, Format, Shape, ShapeCastable, Signal, Value, ValueCastable
 from amaranth.hdl._ast import Assign
 from amaranth_types import FlatShapeLike, ModuleLike, ShapeLike, ValueLike
 from amaranth.lib import data
@@ -50,6 +50,7 @@ class OptionView[T: ShapeLike](ValueCastable):
     def shape(self) -> "Option[T]":
         return self._shape
 
+    @property
     def valid(self) -> Value:
         """Whether the option currently holds a value."""
         return self._target.valid
@@ -67,7 +68,11 @@ class OptionView[T: ShapeLike](ValueCastable):
         ...
 
     def data(self) -> Value | ValueCastable:
-        """The contained data. Only meaningful when `valid` is asserted."""
+        """The contained data. Only meaningful when ``valid`` is asserted.
+
+        Prefer using ``with_data`` and ``eq_data``, if applicable. This helps
+        avoid errors where ``valid`` bit is ignored or not updated by mistake.
+        """
         return self._target.data
 
     @overload
@@ -86,16 +91,18 @@ class OptionView[T: ShapeLike](ValueCastable):
     def with_data(self, m: ModuleLike) -> Generator[T]:
         """Enter a conditional block active only while this option is valid.
 
+        Equivalent to ``m.If(self.valid)``. Can be used with ``m.Else()``.
+
         Parameters
         ----------
         m : ModuleLike
-            The module to add the `m.If(self.valid)` conditional to.
+            The module to add the ``m.If(self.valid)`` conditional to.
         """
-        with m.If(self.valid()):
+        with m.If(self.valid):
             yield self.data()  # type: ignore
 
     def eq(self, other: ValueLike) -> Assign:
-        """Create an assignment of `other` to this option.
+        """Create an assignment of ``other`` to this option.
 
         Parameters
         ----------
@@ -113,13 +120,38 @@ class OptionView[T: ShapeLike](ValueCastable):
                 raise TypeError(
                     f"Cannot assign value with shape {other.shape()} to an option view with shape {self.shape()}"
                 )
-        return self.as_value().eq(other)
+        try:
+            # Special-case for consts, for efficient setting to empty
+            c = Const.cast(other)
+            return self.valid.eq(c & 1)
+        except TypeError:
+            return self.as_value().eq(other)
+
+    def data_eq(self, other: ValueLike | None) -> Assign:
+        """Create an assignment of ``other`` to this option's data.
+
+        If ``other`` is not ``None``, the valid bit is also set to 1. This
+        is equivalent to ``opt.eq(opt.shape().wrap(other))``. Otherwise,
+        the valid bit is cleared.
+
+        Parameters
+        ----------
+        other : ValueLike, optional
+            The value to assign. If ``None``, valid bit is set to 0.
+
+        Returns
+        -------
+        Assign
+            The assignment statement.
+        """
+        if other is None:
+            return self.valid.eq(0)
+        else:
+            return self.eq(self.shape().wrap(other))
 
     def __eq__(self, other) -> Value:  # type: ignore
         if isinstance(other, OptionView) and self._shape == other._shape:
-            return ~(self.valid() | other.valid()) | (
-                self.valid() & other.valid() & (self._target.data == other._target.data)
-            )
+            return ~(self.valid | other.valid) | (self.valid & other.valid & (self._target.data == other._target.data))
         else:
             raise TypeError(
                 f"Option view with layout {self._shape} can only be compared to another option view with same layout"
@@ -164,7 +196,7 @@ class Option[T: ShapeLike](ShapeCastable[OptionView[T]]):
         """A view of an invalid ("empty") constant of this shape."""
         return self(Const(0, Shape.cast(self).width))
 
-    def wrap(self, data: ValueLike) -> OptionView[T]:
+    def wrap(self, data: ValueLike | None) -> OptionView[T]:
         """Wrap a value as a valid option.
 
         Parameters
@@ -175,12 +207,26 @@ class Option[T: ShapeLike](ShapeCastable[OptionView[T]]):
             constructor would interpret it. Otherwise, ``data`` is cast to a
             ``Value`` and truncated or zero-extended to fit ``data_shape``.
         """
+        if data is None:
+            return self.empty
         if isinstance(self._data_shape, ShapeCastable):
             val = Value.cast(self._data_shape(data))
         else:
             shape = Shape.cast(self._data_shape)
             val = (Value.cast(data) | Const(0, shape.width))[: shape.width]
         return self(Cat(Const(1, 1), val))
+
+    def signal(self, *, src_loc_at: int = 0) -> OptionView[T]:
+        """Create a signal of this shape.
+
+        The data field of an option can be declared as reset-less.
+        Unfortunately, because of the limitations of how ``Signal``
+        works, it is not possible to do this with ``Signal(Option(...))``.
+        This method works around this limitation.
+        """
+        valid = Signal(1, src_loc_at=src_loc_at + 1)
+        data = Signal(self.data_shape, reset_less=True, src_loc_at=src_loc_at + 1)
+        return self(Cat(valid, data))
 
     def __eq__(self, other) -> bool:
         while isinstance(other, ShapeCastable) and not isinstance(other, Option):
@@ -202,8 +248,12 @@ class Option[T: ShapeLike](ShapeCastable[OptionView[T]]):
         else:
             return self._internal_shape.const({"valid": 1, "data": init})
 
-    def __call__(self, target: ValueLike) -> OptionView[T]:
-        return OptionView[T](self.data_shape, target)
+    def __call__(self, target: ValueLike | None) -> OptionView[T]:
+        if isinstance(target, (Value, ValueCastable)) and target.shape() == Shape.cast(self):
+            # ShapeCastables are required to return a higher-level representation in this case.
+            return OptionView[T](self.data_shape, target)
+        else:
+            return self.wrap(target)
 
     def from_bits(self, raw: int) -> Any:
         if raw & 1:
@@ -219,4 +269,4 @@ class Option[T: ShapeLike](ShapeCastable[OptionView[T]]):
             raise ValueError(f"Format specifier {spec!r} is not supported for options")
         if not isinstance(obj, OptionView):
             obj = self(obj)
-        return Format("Option({}, {})", obj.valid(), obj.data())
+        return Format("Option({}, {})", obj.valid, obj.data())
