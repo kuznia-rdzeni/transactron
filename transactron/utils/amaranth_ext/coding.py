@@ -6,12 +6,12 @@ from transactron.utils.amaranth_ext.functions import count_trailing_zeros
 
 
 __all__ = [
-    "Encoder",
     "Decoder",
-    "PriorityEncoder",
-    "PriorityDecoder",
-    "GrayEncoder",
+    "Encoder",
     "GrayDecoder",
+    "GrayEncoder",
+    "PriorityDecoder",
+    "PriorityEncoder",
 ]
 
 

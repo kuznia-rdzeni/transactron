@@ -1,32 +1,31 @@
 from typing import (
-    Callable,
     Concatenate,
     Protocol,
     TypeAlias,
     cast,
     runtime_checkable,
-    Union,
     Any,
 )
+from collections.abc import Callable
 from collections.abc import Iterable, Mapping
 from amaranth import *
 from amaranth.lib.data import StructLayout, View
 from amaranth_types import ShapeLike, ValueLike
 
 __all__ = [
-    "MethodLayout",
-    "MethodStruct",
-    "ValueBundle",
-    "LayoutListField",
-    "LayoutList",
-    "LayoutIterable",
-    "NameIntDict",
-    "NameValueDict",
-    "ReturnDict",
-    "ROGraph",
     "Graph",
     "GraphCC",
     "HasDebugSignals",
+    "LayoutIterable",
+    "LayoutList",
+    "LayoutListField",
+    "MethodLayout",
+    "MethodStruct",
+    "NameIntDict",
+    "NameValueDict",
+    "ROGraph",
+    "ReturnDict",
+    "ValueBundle",
 ]
 
 # Internal Transactron types
@@ -37,8 +36,8 @@ type LayoutIterable = Iterable["LayoutListField"]
 type MethodLayout = StructLayout | LayoutIterable
 MethodStruct: TypeAlias = "View[StructLayout]"  # defined as TypeAlias because of def_method logic
 
-type NameIntDict = Mapping[str, Union[int, "NameIntDict"]]
-type NameValueDict = Mapping[str, Union[ValueLike, "NameValueDict"]]
+type NameIntDict = Mapping[str, "int | NameIntDict"]
+type NameValueDict = Mapping[str, ValueLike | "NameValueDict"]
 type ReturnDict = ValueLike | NameValueDict
 
 type ROGraph[T] = Mapping[T, Iterable[T]]

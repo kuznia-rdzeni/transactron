@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import Optional, Unpack
+from typing import Unpack
 from amaranth import *
 from amaranth.lib.wiring import Component, In, Out
 from amaranth.lib.data import StructLayout, View
@@ -8,9 +8,9 @@ from ..utils import SrcLoc, get_src_loc, MethodStruct, MethodLayout, ValueBundle
 from ..core import *
 
 __all__ = [
+    "Adapter",
     "AdapterBase",
     "AdapterTrans",
-    "Adapter",
 ]
 
 
@@ -57,7 +57,7 @@ class AdapterTrans(AdapterBase):
     """The method called by the `AdapterTrans`."""
 
     def __init__(
-        self, name: Optional[str] = None, i: MethodLayout = [], o: MethodLayout = [], src_loc: int | SrcLoc = 0
+        self, name: str | None = None, i: MethodLayout = [], o: MethodLayout = [], src_loc: int | SrcLoc = 0
     ):
         """
         Parameters
@@ -136,7 +136,7 @@ class Adapter(AdapterBase):
 
     def __init__(
         self,
-        name: Optional[str] = None,
+        name: str | None = None,
         i: MethodLayout = [],
         o: MethodLayout = [],
         src_loc: int | SrcLoc = 0,
@@ -188,7 +188,7 @@ class Adapter(AdapterBase):
         self.kwargs.update(kwargs)
         return self
 
-    def set(self, with_validate_arguments: Optional[bool]):
+    def set(self, with_validate_arguments: bool | None):
         if with_validate_arguments is not None:
             self.with_validate_arguments = with_validate_arguments
         return self

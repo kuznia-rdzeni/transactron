@@ -4,7 +4,6 @@ from amaranth_types import ValueLike
 from ..utils import SrcLoc
 from ..core import TModule, Transaction, Body
 from contextlib import contextmanager
-from typing import Optional
 
 __all__ = [
     "condition",
@@ -61,7 +60,7 @@ def condition(m: TModule, *, nonblocking: bool = False, priority: bool = False):
     conds = list[Signal]()
 
     @contextmanager
-    def branch(cond: Optional[ValueLike] = None, *, src_loc: int | SrcLoc = 2):
+    def branch(cond: ValueLike | None = None, *, src_loc: int | SrcLoc = 2):
         nonlocal last
         if last:
             raise RuntimeError("Condition clause added after catch-all")

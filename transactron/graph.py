@@ -4,7 +4,7 @@ Utilities for extracting dependency graphs from Amaranth designs.
 
 from enum import IntFlag
 from collections import defaultdict
-from typing import Literal, Optional, Protocol, overload
+from typing import Literal, Protocol, overload
 
 from amaranth import Elaboratable, Fragment
 from .tracing import TracingFragment
@@ -12,7 +12,7 @@ from .tracing import TracingFragment
 
 class Owned(Protocol):
     name: str
-    owner: Optional[Elaboratable]
+    owner: Elaboratable | None
 
     @property
     def owned_name(self):
@@ -30,7 +30,7 @@ class Direction(IntFlag):
 
 
 class OwnershipGraph:
-    mermaid_direction = ["---", "-->", "<--", "<-->"]
+    mermaid_direction = ("---", "-->", "<--", "<-->")
 
     def __init__(self, root):
         self.class_counters: defaultdict[type, int] = defaultdict(int)
@@ -120,7 +120,7 @@ class OwnershipGraph:
     @overload
     def prune(self, owner: int) -> bool: ...
 
-    def prune(self, owner: Optional[int] = None):
+    def prune(self, owner: int | None = None):
         """
         Mark all empty subgraphs.
         """
@@ -147,7 +147,7 @@ class OwnershipGraph:
         dumper = getattr(self, "dump_" + format)
         dumper(fp)
 
-    def dump_dot(self, fp, owner: Optional[int] = None, indent: str = ""):
+    def dump_dot(self, fp, owner: int | None = None, indent: str = ""):
         if owner is None:
             fp.write("digraph G {\n")
             for owner in self.names:
@@ -177,7 +177,7 @@ class OwnershipGraph:
                 self.dump_dot(fp, subowner, indent)
         fp.write(f"{indent}}}\n")
 
-    def dump_elk(self, fp, owner: Optional[int] = None, indent: str = ""):
+    def dump_elk(self, fp, owner: int | None = None, indent: str = ""):
         if owner is None:
             fp.write(f"{indent}hierarchyHandling: INCLUDE_CHILDREN\n")
             fp.write(f"{indent}elk.direction: DOWN\n")
@@ -233,7 +233,7 @@ class OwnershipGraph:
 
         fp.write(f"{indent}}}\n")
 
-    def dump_mermaid(self, fp, owner: Optional[int] = None, indent: str = ""):
+    def dump_mermaid(self, fp, owner: int | None = None, indent: str = ""):
         if owner is None:
             fp.write("flowchart TB\n")
             for owner in self.names:

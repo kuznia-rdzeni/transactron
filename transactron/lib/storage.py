@@ -8,10 +8,9 @@ from transactron.utils.amaranth_ext.elaboratables import OneHotMux
 from transactron.utils.transactron_helpers import from_method_layout, make_layout
 from ..core import *
 from ..utils import SrcLoc, get_src_loc, MultiPriorityEncoder
-from typing import Optional
 from transactron.utils import LayoutList, MethodLayout
 
-__all__ = ["MemoryBank", "ContentAddressableMemory", "AsyncMemoryBank"]
+__all__ = ["AsyncMemoryBank", "ContentAddressableMemory", "MemoryBank"]
 
 
 class MemoryBank(Elaboratable):
@@ -39,7 +38,7 @@ class MemoryBank(Elaboratable):
         *,
         shape: ShapeLike,
         depth: int,
-        granularity: Optional[int] = None,
+        granularity: int | None = None,
         transparent: bool = False,
         read_on_resp: bool = False,
         read_ports: int = 1,
@@ -332,7 +331,7 @@ class AsyncMemoryBank(Elaboratable):
         *,
         shape: ShapeLike,
         depth: int,
-        granularity: Optional[int] = None,
+        granularity: int | None = None,
         read_ports: int = 1,
         write_ports: int = 1,
         memory_type: amemory.AbstractMemoryConstructor[ShapeLike, Value] = memory.Memory,

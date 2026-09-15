@@ -1,5 +1,5 @@
 from itertools import chain
-from typing import Any, Optional
+from typing import Any
 
 from amaranth.sim._async import ProcessContext
 
@@ -11,7 +11,7 @@ from .tick_count import TicksKey
 __all__ = ["capture_evlog"]
 
 
-def _make_evlog_process(sink: RawEventSink, records: Optional[list[EmittedEvent]]):
+def _make_evlog_process(sink: RawEventSink, records: list[EmittedEvent] | None):
     """Creates a simulation process which samples all registered event
     emission sites every clock cycle and reports fired events to the sink.
     """
@@ -36,7 +36,7 @@ def _make_evlog_process(sink: RawEventSink, records: Optional[list[EmittedEvent]
     return evlog_process
 
 
-def capture_evlog(metadata: Optional[dict[str, Any]] = None):
+def capture_evlog(metadata: dict[str, Any] | None = None):
     """Creates an in-memory event log capturing all registered event emission
     sites, together with the simulation process filling it.
 

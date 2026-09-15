@@ -1,24 +1,24 @@
 from amaranth import *
 from amaranth.hdl import ValueCastable
 from collections.abc import Sequence
-from typing import Optional, cast, overload
+from typing import cast, overload
 from amaranth_types import ValueLike, FlatValueLike
 from .functions import shape_of, const_of
 
 
 __all__ = [
-    "generic_shift_right",
     "generic_shift_left",
-    "shift_right",
-    "shift_left",
-    "rotate_right",
-    "rotate_left",
-    "generic_shift_vec_right",
+    "generic_shift_right",
     "generic_shift_vec_left",
-    "shift_vec_right",
-    "shift_vec_left",
-    "rotate_vec_right",
+    "generic_shift_vec_right",
+    "rotate_left",
+    "rotate_right",
     "rotate_vec_left",
+    "rotate_vec_right",
+    "shift_left",
+    "shift_right",
+    "shift_vec_left",
+    "shift_vec_right",
 ]
 
 
@@ -289,20 +289,20 @@ def generic_shift_vec_left(
 
 @overload
 def shift_vec_right[T: ValueCastable](
-    data: Sequence[T], offset: ValueLike, placeholder: Optional[T]
+    data: Sequence[T], offset: ValueLike, placeholder: T | None
 ) -> Sequence[T]: ...
 
 
 @overload
 def shift_vec_right(
-    data: Sequence[FlatValueLike], offset: ValueLike, placeholder: Optional[ValueLike]
+    data: Sequence[FlatValueLike], offset: ValueLike, placeholder: ValueLike | None
 ) -> Sequence[Value]: ...
 
 
 def shift_vec_right(
     data: Sequence[ValueLike],
     offset: ValueLike,
-    placeholder: Optional[ValueLike] = None,
+    placeholder: ValueLike | None = None,
 ) -> Sequence[Value | ValueCastable]:
     """Right shift function for bit vectors and complex data.
 
@@ -334,19 +334,19 @@ def shift_vec_right(
 
 
 @overload
-def shift_vec_left[T: ValueCastable](data: Sequence[T], offset: ValueLike, placeholder: Optional[T]) -> Sequence[T]: ...
+def shift_vec_left[T: ValueCastable](data: Sequence[T], offset: ValueLike, placeholder: T | None) -> Sequence[T]: ...
 
 
 @overload
 def shift_vec_left(
-    data: Sequence[FlatValueLike], offset: ValueLike, placeholder: Optional[FlatValueLike]
+    data: Sequence[FlatValueLike], offset: ValueLike, placeholder: FlatValueLike | None
 ) -> Sequence[Value]: ...
 
 
 def shift_vec_left(
     data: Sequence[ValueLike],
     offset: ValueLike,
-    placeholder: Optional[ValueLike] = None,
+    placeholder: ValueLike | None = None,
 ) -> Sequence[Value | ValueCastable]:
     """Left shift function for bit vectors and complex data.
 

@@ -16,7 +16,7 @@ from transactron.core.context import TransactronContextElaboratable
 from transactron.utils import auto_debug_signals, HasDebugSignals
 
 
-__all__ = ["PysimSimulator", "tick", "random_wait", "random_wait_geom"]
+__all__ = ["PysimSimulator", "random_wait", "random_wait_geom", "tick"]
 
 
 class _TestModule(Elaboratable):

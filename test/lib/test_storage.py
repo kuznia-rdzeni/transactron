@@ -164,9 +164,10 @@ bank_shapes = [
 
 
 class TestMemoryBank(TestCaseWithSimulator):
-    test_conf = [(9, 3, 3, 3, 14), (16, 1, 1, 3, 15), (16, 1, 1, 1, 16), (12, 3, 1, 1, 17), (9, 0, 0, 0, 18)]
-
-    @pytest.mark.parametrize("max_addr, writer_rand, reader_req_rand, reader_resp_rand, seed", test_conf)
+    @pytest.mark.parametrize(
+        "max_addr, writer_rand, reader_req_rand, reader_resp_rand, seed",
+        [(9, 3, 3, 3, 14), (16, 1, 1, 3, 15), (16, 1, 1, 1, 16), (12, 3, 1, 1, 17), (9, 0, 0, 0, 18)],
+    )
     @pytest.mark.parametrize("transparent", [False, True])
     @pytest.mark.parametrize("read_on_resp", [False, True])
     @pytest.mark.parametrize("read_ports", [1, 4])

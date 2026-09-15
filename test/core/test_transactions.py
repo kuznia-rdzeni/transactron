@@ -9,7 +9,7 @@ import random
 import contextlib
 
 from collections import deque
-from typing import Iterable, Callable
+from collections.abc import Iterable, Callable
 from transactron.core.keys import TransactionsKey
 
 from transactron.testing import TestCaseWithSimulator, TestbenchIO, data_layout
@@ -123,7 +123,7 @@ class TestTransactionConflict(TestCaseWithSimulator):
             elif self.out2_expected and x == self.out2_expected[0]:
                 self.out2_expected.popleft()
             else:
-                assert False, "%d not found in any of the queues" % x
+                assert False, f"{x} not found in any of the queues"
 
         return self.make_process(self.m.out, prob, self.out_stream, tgt, chk)
 

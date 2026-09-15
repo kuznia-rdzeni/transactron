@@ -1,6 +1,7 @@
 from contextlib import contextmanager
 import functools
-from typing import Callable, Any, Optional, Unpack
+from typing import Any, Optional, Unpack
+from collections.abc import Callable
 
 from amaranth.sim._async import SimulatorContext
 from transactron.core.body import AdapterBodyParams
@@ -17,9 +18,9 @@ class MethodMock:
     def __init__(
         self,
         adapter: AdapterBase,
-        function: Callable[..., Optional[NameIntDict]],
+        function: Callable[..., NameIntDict | None],
         *,
-        validate_arguments: Optional[Callable[..., bool]] = None,
+        validate_arguments: Callable[..., bool] | None = None,
         enable: Callable[[], bool] = lambda: True,
         delay: float = 0,
         **kwargs: Unpack[AdapterBodyParams],
@@ -108,7 +109,7 @@ class MethodMock:
 
 def def_method_mock(
     tb_getter: Callable[[], TestbenchIO] | Callable[[Any], TestbenchIO], **kwargs
-) -> Callable[[Callable[..., Optional[NameIntDict]]], Callable[[], MethodMock]]:
+) -> Callable[[Callable[..., NameIntDict | None]], Callable[[], MethodMock]]:
     """
     Decorator function to create method mock handlers. It should be applied on
     a function which describes functionality which we want to invoke on method call.
@@ -160,7 +161,7 @@ def def_method_mock(
     ```
     """
 
-    def decorator(func: Callable[..., Optional[NameIntDict]]) -> Callable[[], MethodMock]:
+    def decorator(func: Callable[..., NameIntDict | None]) -> Callable[[], MethodMock]:
         @functools.wraps(func)
         def mock(func_self=None, /) -> MethodMock:
             f = func

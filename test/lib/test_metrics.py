@@ -3,7 +3,6 @@ import json
 import random
 import pytest
 import enum as py_enum
-from typing import Optional
 from collections import deque
 
 from amaranth import *
@@ -357,7 +356,7 @@ class TestLatencyMeasurerBase(TestCaseWithSimulator):
 )
 class TestFIFOLatencyMeasurer(TestLatencyMeasurerBase):
     def test_latency_measurer(
-        self, slots_number: int, expected_consumer_wait: float, ways: int, max_count: Optional[int]
+        self, slots_number: int, expected_consumer_wait: float, ways: int, max_count: int | None
     ):
         random.seed(42)
 

@@ -10,7 +10,8 @@ from transactron.core.transaction_base import TransactionBase
 
 from amaranth import *
 from amaranth_types import ShapeLike, ValueLike, SrcLoc
-from typing import TYPE_CHECKING, ClassVar, NewType, NotRequired, Optional, Callable, TypedDict, Unpack, final
+from typing import TYPE_CHECKING, ClassVar, NewType, NotRequired, Optional, TypedDict, Unpack, final
+from collections.abc import Callable
 from transactron.utils.amaranth_ext.elaboratables import OneHotMux
 from transactron.utils.assign import AssignArg
 from transactron.utils.transactron_helpers import from_method_layout, method_def_helper
@@ -20,7 +21,7 @@ if TYPE_CHECKING:
     from .method import Method
 
 
-__all__ = ["AdapterBodyParams", "BodyParams", "Body", "TBody", "MBody"]
+__all__ = ["AdapterBodyParams", "Body", "BodyParams", "MBody", "TBody"]
 
 
 class AdapterBodyParams(TypedDict):
@@ -45,7 +46,7 @@ class Body(TransactionBase["Body"]):
         self,
         *,
         name: str,
-        owner: Optional[Elaboratable],
+        owner: Elaboratable | None,
         i: StructLayout,
         o: StructLayout,
         src_loc: SrcLoc,
@@ -66,7 +67,7 @@ class Body(TransactionBase["Body"]):
         )
         self.nonexclusive = kwargs["nonexclusive"] if "nonexclusive" in kwargs else False
         self.single_caller = kwargs["single_caller"] if "single_caller" in kwargs else False
-        self.validate_arguments: Optional[Callable[..., ValueLike]] = (
+        self.validate_arguments: Callable[..., ValueLike] | None = (
             kwargs["validate_arguments"] if "validate_arguments" in kwargs else None
         )
         self.method_calls = defaultdict(list)

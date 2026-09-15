@@ -3,7 +3,7 @@ from amaranth.utils import *
 import amaranth.lib.memory as memory
 from amaranth.hdl import AlreadyElaborated
 
-from typing import Optional, Any, final
+from typing import Any, final
 from collections.abc import Iterable
 
 from transactron.utils.amaranth_ext.elaboratables import OneHotMux
@@ -14,7 +14,7 @@ from .. import get_src_loc
 from amaranth_types.types import ShapeLike, ValueLike
 import amaranth_types.memory as amemory
 
-__all__ = ["MultiReadMemory", "MultiportXORMemory", "MultiportXORILVTMemory", "MultiportOneHotILVTMemory"]
+__all__ = ["MultiReadMemory", "MultiportOneHotILVTMemory", "MultiportXORILVTMemory", "MultiportXORMemory"]
 
 
 @final
@@ -42,7 +42,7 @@ class WritePort:
     def __init__(
         self,
         memory: "BaseMultiportMemory",
-        granularity: Optional[int] = None,
+        granularity: int | None = None,
         src_loc=0,
     ):
         self.src_loc = get_src_loc(src_loc)
@@ -74,7 +74,7 @@ class BaseMultiportMemory(Elaboratable):
         shape: ShapeLike,
         depth: int,
         init: Iterable[ValueLike],
-        attrs: Optional[dict[str, str]] = None,
+        attrs: dict[str, str] | None = None,
         src_loc_at: int = 0,
     ):
         """
@@ -111,7 +111,7 @@ class BaseMultiportMemory(Elaboratable):
             src_loc=1 + src_loc_at,
         )
 
-    def write_port(self, *, domain: str = "sync", granularity: Optional[int] = None, src_loc_at: int = 0):
+    def write_port(self, *, domain: str = "sync", granularity: int | None = None, src_loc_at: int = 0):
         if self._frozen:
             raise AlreadyElaborated("Cannot add a memory port to a memory that has already been elaborated")
         if domain != "sync":
@@ -132,7 +132,7 @@ class MultiReadMemory(BaseMultiportMemory):
 
     """
 
-    def write_port(self, *, domain: str = "sync", granularity: Optional[int] = None, src_loc_at: int = 0):
+    def write_port(self, *, domain: str = "sync", granularity: int | None = None, src_loc_at: int = 0):
         if self.write_ports:
             raise IncorrectWritePortNumberError("Cannot add multiple write ports to a single write memory")
         return super().write_port(domain=domain, granularity=granularity, src_loc_at=src_loc_at)
@@ -194,7 +194,7 @@ class MultiportXORMemory(BaseMultiportMemory):
 
     """
 
-    def write_port(self, *, domain: str = "sync", granularity: Optional[int] = None, src_loc_at: int = 0):
+    def write_port(self, *, domain: str = "sync", granularity: int | None = None, src_loc_at: int = 0):
         if granularity is not None:
             raise ValueError("Granularity is not supported.")
         return super().write_port(domain=domain, granularity=granularity, src_loc_at=src_loc_at)
@@ -312,7 +312,7 @@ class OneHotCodedILVT(BaseMultiportMemory):
 
     """
 
-    def write_port(self, *, domain: str = "sync", granularity: Optional[int] = None, src_loc_at: int = 0):
+    def write_port(self, *, domain: str = "sync", granularity: int | None = None, src_loc_at: int = 0):
         if granularity is not None:
             raise ValueError("Granularity is not supported.")
         return super().write_port(domain=domain, granularity=granularity, src_loc_at=src_loc_at)
@@ -452,7 +452,7 @@ class MultiportILVTMemory(BaseMultiportMemory):
         shape: ShapeLike,
         depth: int,
         init: Iterable[ValueLike],
-        attrs: Optional[dict[str, str]] = None,
+        attrs: dict[str, str] | None = None,
         src_loc_at: int = 0,
         memory_type: amemory.AbstractMemoryConstructor[ShapeLike, Value] = memory.Memory,
     ):
@@ -583,7 +583,7 @@ class MultiportOneHotILVTMemory(MultiportILVTMemory):
         shape: ShapeLike,
         depth: int,
         init: Iterable[ValueLike],
-        attrs: Optional[dict[str, str]] = None,
+        attrs: dict[str, str] | None = None,
         src_loc_at: int = 0,
     ):
         super().__init__(
@@ -618,7 +618,7 @@ class MultiportXORILVTMemory(MultiportILVTMemory):
         shape: ShapeLike,
         depth: int,
         init: Iterable[ValueLike],
-        attrs: Optional[dict[str, str]] = None,
+        attrs: dict[str, str] | None = None,
         src_loc_at: int = 0,
     ):
         super().__init__(

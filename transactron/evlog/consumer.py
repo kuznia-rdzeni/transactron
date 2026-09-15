@@ -1,11 +1,12 @@
 from collections.abc import Iterable
-from typing import Any, Callable, ClassVar
+from typing import Any, ClassVar
+from collections.abc import Callable
 
 from .event import Event
 from .log import DecodedEvent
 
 
-__all__ = ["handles", "EventConsumer"]
+__all__ = ["EventConsumer", "handles"]
 
 
 type HandlerMethod[E: Event] = Callable[[Any, DecodedEvent[E]], None]

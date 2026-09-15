@@ -1,6 +1,5 @@
 import argparse
 import re
-from typing import Optional
 from collections.abc import Callable, Iterable
 from tabulate import tabulate
 from dataclasses import asdict
@@ -8,7 +7,7 @@ from transactron.profiler import Profile, RunStat, RunStatNode
 
 
 def process_stat_tree(
-    xs: Iterable[RunStatNode], recursive: bool, ret: Optional[list[tuple]] = None, depth=0
+    xs: Iterable[RunStatNode], recursive: bool, ret: list[tuple] | None = None, depth=0
 ) -> list[tuple]:
     if ret is None:
         ret = list[tuple]()

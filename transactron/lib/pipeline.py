@@ -1,7 +1,7 @@
 from collections.abc import Callable
 from dataclasses import dataclass
 from inspect import Parameter, signature
-from typing import Optional, Protocol, final
+from typing import Protocol, final
 
 from amaranth import *
 from amaranth.lib.data import StructLayout
@@ -173,7 +173,7 @@ class PipelineBuilder(Elaboratable):
         *,
         i: MethodLayout,
         o: MethodLayout,
-        name: Optional[str] = None,
+        name: str | None = None,
         src_loc: int | SrcLoc = 0,
         **kwargs,
     ) -> Method:
@@ -247,8 +247,8 @@ class PipelineBuilder(Elaboratable):
         m: TModule,
         o: MethodLayout = (),
         *,
-        i: Optional[MethodLayout] = None,
-        name: Optional[str] = None,
+        i: MethodLayout | None = None,
+        name: str | None = None,
         src_loc: int | SrcLoc = 0,
         **kwargs,
     ) -> Callable:
@@ -287,7 +287,7 @@ class PipelineBuilder(Elaboratable):
 
         src_loc = get_src_loc(src_loc)
 
-        def decorator(func: Callable[..., Optional[AssignArg]]) -> None:
+        def decorator(func: Callable[..., AssignArg | None]) -> None:
             params = signature(func).parameters
             i_layout_from_pipeline: dict[str, ShapeLike] = {}
             va_args_type = None
@@ -467,8 +467,8 @@ class PipelineBuilder(Elaboratable):
 
         live_types = self.get_live_signals()
 
-        read_methods: list[Optional[Method]] = [None] * len(self._nodes)
-        write_methods: list[Optional[Method]] = [None] * len(self._nodes)
+        read_methods: list[Method | None] = [None] * len(self._nodes)
+        write_methods: list[Method | None] = [None] * len(self._nodes)
 
         for i in range(len(self._nodes) - 1):
             read_methods[i + 1] = Method(name=f"{i}_pipeline_read", o=live_types[i].items())

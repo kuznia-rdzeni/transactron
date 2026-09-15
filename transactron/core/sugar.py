@@ -1,7 +1,7 @@
 from collections.abc import Sequence, Callable
 from amaranth import *
 from amaranth_types import ValueLike
-from typing import Optional, Concatenate, ParamSpec, Unpack
+from typing import Concatenate, ParamSpec, Unpack
 from transactron.core.body import BodyParams
 from transactron.utils import *
 from transactron.utils.assign import AssignArg
@@ -73,7 +73,7 @@ def def_method(m: TModule, method: Method, ready: ValueLike = C(1), **kwargs: Un
             return {"res": arg.arg1 + arg.arg2}
     """
 
-    def decorator(func: Callable[..., Optional[AssignArg]]):
+    def decorator(func: Callable[..., AssignArg | None]):
         out = Signal(method.layout_out)
         ret_out = None
 
@@ -158,7 +158,7 @@ def def_methods(
             return fifo.read(m)
     """
 
-    def decorator(func: Callable[Concatenate[int, P], Optional[ReturnDict]]):
+    def decorator(func: Callable[Concatenate[int, P], ReturnDict | None]):
         for i in range(len(methods)):
             partial_f = partial(func, i)
             def_method(m, methods[i], ready(i), **kwargs)(partial_f)

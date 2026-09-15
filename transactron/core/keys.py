@@ -7,7 +7,7 @@ if TYPE_CHECKING:
     from .method import Method  # noqa: F401 because of https://github.com/PyCQA/pyflakes/issues/571
     from .transaction import Transaction  # noqa: F401 because of https://github.com/PyCQA/pyflakes/issues/571
 
-__all__ = ["TransactionManagerKey", "TransactionsKey", "DefinedMethodsKey", "ProvidedMethodsKey"]
+__all__ = ["DefinedMethodsKey", "ProvidedMethodsKey", "TransactionManagerKey", "TransactionsKey"]
 
 
 @dataclass(frozen=True)

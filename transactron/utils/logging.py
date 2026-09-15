@@ -12,16 +12,16 @@ from transactron.utils.dependencies import DependencyContext, ListKey
 
 
 __all__ = [
-    "LogLevel",
-    "LogChunkInfo",
-    "LogRecordInfo",
-    "LogRecord",
-    "LogKey",
     "HardwareLogger",
-    "top_assertion",
+    "LogChunkInfo",
+    "LogKey",
+    "LogLevel",
+    "LogRecord",
+    "LogRecordInfo",
     "assertion",
     "get_log_records",
     "get_trigger_bit",
+    "top_assertion",
 ]
 
 

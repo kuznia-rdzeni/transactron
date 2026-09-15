@@ -13,18 +13,18 @@ from .simulator import tick
 
 
 __all__ = [
-    "exponential",
-    "geometric",
-    "draw_wait_geom",
-    "shrinkable_constants",
-    "shrinkable_lists",
-    "sized_lists",
     "amaranth_consts",
     "amaranth_structs",
+    "draw_wait_geom",
+    "exponential",
+    "generate_input",
+    "geometric",
     "intersperse",
     "intersperse_many",
     "intersperse_range",
-    "generate_input",
+    "shrinkable_constants",
+    "shrinkable_lists",
+    "sized_lists",
 ]
 
 
