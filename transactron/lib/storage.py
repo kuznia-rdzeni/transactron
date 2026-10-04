@@ -8,7 +8,7 @@ from transactron.utils.amaranth_ext.elaboratables import OneHotMux
 from transactron.utils.transactron_helpers import from_method_layout, make_layout
 from ..core import *
 from ..utils import SrcLoc, get_src_loc, MultiPriorityEncoder
-from typing import Optional
+from typing import Any, Iterable, Optional
 from transactron.utils import LayoutList, MethodLayout
 
 __all__ = ["MemoryBank", "ContentAddressableMemory", "AsyncMemoryBank"]
@@ -39,6 +39,7 @@ class MemoryBank(Elaboratable):
         *,
         shape: ShapeLike,
         depth: int,
+        init: Iterable[Any] = (),
         granularity: Optional[int] = None,
         transparent: bool = False,
         read_on_resp: bool = False,
@@ -54,6 +55,8 @@ class MemoryBank(Elaboratable):
             The format of structures stored in the Memory.
         depth: int
             Number of elements stored in Memory.
+        init: Iterable[Any]
+            Initial contents of the Memory, in any form accepted by `amaranth.lib.memory.Memory`.
         granularity: Optional[int]
             Granularity of write. If `None` the whole structure is always saved at once.
             If not, shape is split into `granularity` parts, which can be saved independently (according to
@@ -76,6 +79,7 @@ class MemoryBank(Elaboratable):
         self.src_loc = get_src_loc(src_loc)
         self.shape = shape
         self.depth = depth
+        self.init = list(init)
         self.granularity = granularity
         self.transparent = transparent
         self.read_on_resp = read_on_resp
@@ -103,7 +107,7 @@ class MemoryBank(Elaboratable):
     def elaborate(self, platform) -> TModule:
         m = TModule()
 
-        m.submodules.mem = self.mem = mem = self.memory_type(shape=self.shape, depth=self.depth, init=[])
+        m.submodules.mem = self.mem = mem = self.memory_type(shape=self.shape, depth=self.depth, init=self.init)
         write_port = [mem.write_port(granularity=self.granularity) for _ in range(self.writes_ports)]
         read_port = [
             mem.read_port(transparent_for=write_port if self.transparent or self.read_on_resp else [])
@@ -332,6 +336,7 @@ class AsyncMemoryBank(Elaboratable):
         *,
         shape: ShapeLike,
         depth: int,
+        init: Iterable[Any] = (),
         granularity: Optional[int] = None,
         read_ports: int = 1,
         write_ports: int = 1,
@@ -345,6 +350,8 @@ class AsyncMemoryBank(Elaboratable):
             The format of structures stored in the Memory.
         depth: int
             Number of elements stored in Memory.
+        init: Iterable[Any]
+            Initial contents of the Memory, in any form accepted by `amaranth.lib.memory.Memory`.
         granularity: Optional[int]
             Granularity of write. If `None` the whole structure is always saved at once.
             If not, shape is split into `granularity` parts, which can be saved independently (according to
@@ -360,6 +367,7 @@ class AsyncMemoryBank(Elaboratable):
         self.src_loc = get_src_loc(src_loc)
         self.shape = shape
         self.depth = depth
+        self.init = list(init)
         self.granularity = granularity
         self.reads_ports = read_ports
         self.writes_ports = write_ports
@@ -384,7 +392,7 @@ class AsyncMemoryBank(Elaboratable):
     def elaborate(self, platform) -> TModule:
         m = TModule()
 
-        mem = self.memory_type(shape=self.shape, depth=self.depth, init=[])
+        mem = self.memory_type(shape=self.shape, depth=self.depth, init=self.init)
         m.submodules.mem = self.mem = mem
         write_port = [mem.write_port(granularity=self.granularity) for _ in range(self.writes_ports)]
         read_port = [mem.read_port(domain="comb") for _ in range(self.reads_ports)]
