@@ -2,7 +2,7 @@ import os
 import sys
 from contextlib import contextmanager
 from typing import Optional, Any, Concatenate, TypeGuard
-from collections.abc import Callable, Mapping, Sequence
+from collections.abc import Callable, Mapping, Sequence, Iterable
 from .typing import ROGraph, GraphCC, MethodLayout, MethodStruct, LayoutList, LayoutListField
 from amaranth_types import SrcLoc, ShapeLike
 from inspect import Parameter, signature
@@ -29,6 +29,9 @@ __all__ = [
     "make_layout",
     "extend_layout",
     "dataclass_asdict",
+    "NestedCollection",
+    "guard_nested_collection",
+    "nested_collection_items",
 ]
 
 
@@ -182,3 +185,27 @@ def dataclass_asdict(obj: Any) -> dict[str, Any]:
     # Workaround for dataclass.asdict calling deepcopy without a reason, see:
     # https://github.com/python/cpython/issues/88071
     return {field.name: getattr(obj, field.name) for field in dataclasses.fields(obj)}
+
+
+type NestedCollection[T] = T | list["NestedCollection[T]"] | dict[str, "NestedCollection[T]"]
+
+
+def guard_nested_collection[T](cont: Any, *t: type[T]) -> TypeGuard[NestedCollection[T]]:
+    if isinstance(cont, (list, dict)):
+        if isinstance(cont, dict):
+            cont = cont.values()
+        return all(guard_nested_collection(elem, *t) for elem in cont)
+    elif isinstance(cont, t):
+        return True
+    else:
+        return False
+
+
+def nested_collection_items[T](collection: NestedCollection[T]) -> Iterable[tuple[tuple[int | str, ...], T]]:
+    if isinstance(collection, (list, dict)):
+        items = collection.items() if isinstance(collection, dict) else enumerate(collection)
+        for idx, elem in items:
+            for key, val in nested_collection_items(elem):
+                yield ((idx, *key), val)
+    else:
+        yield ((), collection)

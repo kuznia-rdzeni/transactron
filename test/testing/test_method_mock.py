@@ -6,7 +6,7 @@ import pytest
 
 from transactron import *
 from transactron.testing import TestCaseWithSimulator, TestbenchContext, SimpleTestCircuit
-from transactron.testing.method_mock import MethodMock, def_method_mock
+from transactron.testing.method_mock import MethodMock, def_method_mock, def_method_mocks
 from transactron.lib import *
 
 
@@ -108,3 +108,46 @@ class TestReverseMethodMock(TestCaseWithSimulator):
         self.accepted_val = 0
         with self.run_simulation(self.m) as sim:
             sim.add_testbench(self.active)
+
+
+class SimpleMethodMocksTestCircuit(Elaboratable):
+    method: Required[Methods]
+    wrapper: Provided[Methods]
+
+    def __init__(self, count: int, width: int):
+        self.method = Methods(count, i=StructLayout({"input": width}), o=StructLayout({"output": width}))
+        self.wrapper = Methods(count, i=StructLayout({"input": width}), o=StructLayout({"output": width}))
+
+    def elaborate(self, platform):
+        m = TModule()
+
+        @def_methods(m, self.wrapper)
+        def _(k, input):
+            return {"output": self.method[k](m, input).output + k}
+
+        return m
+
+
+class TestMethodMocks(TestCaseWithSimulator):
+    def make_process(self, k: int):
+        async def process(sim: TestbenchContext):
+            for _ in range(20):
+                val = random.randrange(2**self.width)
+                ret = await self.dut.wrapper[k].call(sim, input=val)
+                assert ret.output == (val + 2 * k) % 2**self.width
+
+        return process
+
+    @def_method_mocks(lambda self: self.dut.method, enable=lambda _: random.randint(0, 1))
+    def method_mock(self, k, input):
+        return {"output": input + k}
+
+    def test_method_mocks(self):
+        random.seed(42)
+        self.count = 3
+        self.width = 10
+        self.dut = SimpleTestCircuit(SimpleMethodMocksTestCircuit(self.count, self.width))
+
+        with self.run_simulation(self.dut) as sim:
+            for k in range(self.count):
+                sim.add_testbench(self.make_process(k))

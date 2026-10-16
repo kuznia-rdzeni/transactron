@@ -5,7 +5,7 @@ from typing import Callable, Any, Optional, Unpack
 from amaranth.sim._async import SimulatorContext
 from transactron.core.body import AdapterBodyParams
 from transactron.lib.adapters import Adapter, AdapterBase
-from transactron.utils.transactron_helpers import async_mock_def_helper
+from transactron.utils.transactron_helpers import async_mock_def_helper, NestedCollection, nested_collection_items
 from .testbenchio import TestbenchIO
 from transactron.utils.typing import NameIntDict
 
@@ -176,6 +176,55 @@ def def_method_mock(
             tb = getter()
             assert isinstance(tb, TestbenchIO)
             return MethodMock(tb.adapter, f, **kw)
+
+        mock._transactron_method_mock = 1  # type: ignore
+        return mock
+
+    return decorator
+
+
+def def_method_mocks(
+    tb_getter: Callable[[], NestedCollection[TestbenchIO]] | Callable[[Any], NestedCollection[TestbenchIO]], **kwargs
+) -> Callable[[Callable[..., Optional[NameIntDict]]], Callable[[], list[MethodMock]]]:
+    """
+    Decorator function for defining multiple method mocks for similar function
+    definitions. Should be used like ``def_method_mock``, but on lists or
+    dicts of ``TestbenchIO`` objects. The decorated function will receive
+    additional positional arguments depending on the index of the mocked
+    method, similar to ``def_methods``.
+
+    Example
+    -------
+    ```
+    @def_method_mock(lambda: m.target)
+    def process(k, arg):
+        return {"data": arg["data"] + k}
+    ```
+    or for class methods
+    ```
+    @def_method_mock(lambda self: self.target)
+    def process(self, k, data):
+        return {"data": data + k}
+    ```
+    """
+
+    def decorator(func: Callable[..., Optional[NameIntDict]]) -> Callable[[], list[MethodMock]]:
+        @functools.wraps(func)
+        def mock(func_self=None, /) -> list[MethodMock]:
+            f = func
+            getter: Any = tb_getter
+            kw = kwargs
+            if func_self is not None:
+                getter = getter.__get__(func_self)
+                f = f.__get__(func_self)
+                kw = {}
+                for k, v in kwargs.items():
+                    bind = getattr(v, "__get__", None)
+                    kw[k] = bind(func_self) if bind else v
+            tbs = getter()
+            return [
+                MethodMock(tb.adapter, functools.partial(f, *key), **kw) for key, tb in nested_collection_items(tbs)
+            ]
 
         mock._transactron_method_mock = 1  # type: ignore
         return mock

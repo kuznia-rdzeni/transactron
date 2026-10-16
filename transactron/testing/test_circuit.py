@@ -1,6 +1,6 @@
 from collections.abc import Iterable
 import inspect
-from typing import TypeGuard, Any
+from typing import Any
 from amaranth import *
 from amaranth.sim import *
 from transactron.core.method import MethodDir
@@ -9,31 +9,17 @@ from transactron.lib.adapters import Adapter
 from .testbenchio import TestbenchIO
 from transactron import Method, Methods
 from transactron.lib import AdapterTrans
-from transactron.utils import ModuleConnector, auto_debug_signals
+from transactron.utils import ModuleConnector, auto_debug_signals, NestedCollection, guard_nested_collection
 from amaranth_types import HasElaborate
 
 
 __all__ = ["SimpleTestCircuit"]
 
 
-type _T_nested_collection[T] = T | list["_T_nested_collection[T]"] | dict[str, "_T_nested_collection[T]"]
-
-
-def guard_nested_collection[T](cont: Any, *t: type[T]) -> TypeGuard[_T_nested_collection[T]]:
-    if isinstance(cont, (list, dict)):
-        if isinstance(cont, dict):
-            cont = cont.values()
-        return all(guard_nested_collection(elem, *t) for elem in cont)
-    elif isinstance(cont, t):
-        return True
-    else:
-        return False
-
-
 class SimpleTestCircuit[T: HasElaborate](Elaboratable):
     def __init__(self, dut: T, *, exclude: Iterable[str] = ()):
         self._dut = dut
-        self._io: dict[str, _T_nested_collection[TestbenchIO]] = {}
+        self._io: dict[str, NestedCollection[TestbenchIO]] = {}
         self._exclude = set(exclude)
 
     def __getattr__(self, name: str) -> Any:
@@ -45,9 +31,9 @@ class SimpleTestCircuit[T: HasElaborate](Elaboratable):
     def elaborate(self, platform):
         def transform_methods_to_testbenchios(
             adapter_type: type[Adapter] | type[AdapterTrans],
-            container: _T_nested_collection[Method | Methods],
+            container: NestedCollection[Method | Methods],
         ) -> tuple[
-            _T_nested_collection["TestbenchIO"],
+            NestedCollection["TestbenchIO"],
             "ModuleConnector | TestbenchIO",
         ]:
             if isinstance(container, list):

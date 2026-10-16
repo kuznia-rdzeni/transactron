@@ -31,20 +31,24 @@ class TestCaseWithSimulatorBase:
         with DependencyContext(self.dependency_manager):
             yield Tick()
 
+    def _add_implicit_mock(self, sim: PysimSimulator, val) -> None:
+        if hasattr(val, "_transactron_testing_process"):
+            sim.add_process(val)
+        elif hasattr(val, "_transactron_method_mock"):
+            val = val()
+            if isinstance(val, list):
+                for mock in val:
+                    sim.add_mock(mock)
+            else:
+                sim.add_mock(val)
+
     def _add_class_mocks(self, sim: PysimSimulator) -> None:
         for key in dir(self):
-            val = getattr(self, key)
-            if hasattr(val, "_transactron_testing_process"):
-                sim.add_process(val)
-            elif hasattr(val, "_transactron_method_mock"):
-                sim.add_mock(val())
+            self._add_implicit_mock(sim, getattr(self, key))
 
     def _add_local_mocks(self, sim: PysimSimulator, frame_locals: dict) -> None:
-        for key, val in frame_locals.items():
-            if hasattr(val, "_transactron_testing_process"):
-                sim.add_process(val)
-            elif hasattr(val, "_transactron_method_mock"):
-                sim.add_mock(val())
+        for val in frame_locals.values():
+            self._add_implicit_mock(sim, val)
 
     def _add_all_mocks(self, sim: PysimSimulator, frame_locals: dict) -> None:
         self._add_class_mocks(sim)
