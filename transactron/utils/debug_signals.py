@@ -1,13 +1,14 @@
 from typing import Optional
 from amaranth import *
-from .typing import ValueBundle, HasDebugSignals
+from amaranth.hdl import ValueCastable
+from .typing import DebugBundle, HasDebugSignals
 from collections.abc import Collection, Mapping
 
 
 __all__ = ["auto_debug_signals"]
 
 
-def auto_debug_signals(thing) -> ValueBundle:
+def auto_debug_signals(thing) -> DebugBundle:
     """Automatic debug signal generation.
 
     Exposes class attributes with debug signals (Amaranth `Signal`\\s,
@@ -16,12 +17,12 @@ def auto_debug_signals(thing) -> ValueBundle:
     use in ``gtkwave``.
     """
 
-    def auto_debug_signals_internal(thing, *, _visited: set) -> Optional[ValueBundle]:
+    def auto_debug_signals_internal(thing, *, _visited: set) -> Optional[DebugBundle]:
         # Please note, that the set `_visited` is used to memorise visited elements
         # to break reference cycles. There is only one instance of this set, for whole
         # `auto_debug_signals` recursion stack. It is being mutated by adding to it more
         # elements id, so that caller know what was visited by callee.
-        smap: dict[str, ValueBundle] = {}
+        smap: dict[str, DebugBundle] = {}
 
         # Check for reference cycles e.g. Amaranth's MustUse
         if id(thing) in _visited:
@@ -36,10 +37,10 @@ def auto_debug_signals(thing) -> ValueBundle:
                 return None
             case Collection() | Mapping():
                 match thing:
-                    case Collection():
-                        f_iter = enumerate(thing)
                     case Mapping():
                         f_iter = thing.items()
+                    case Collection():
+                        f_iter = enumerate(thing)
                 for i, e in f_iter:
                     sublist = auto_debug_signals_internal(e, _visited=_visited)
                     if sublist is not None:
@@ -47,7 +48,7 @@ def auto_debug_signals(thing) -> ValueBundle:
                 if smap:
                     return smap
                 return None
-            case Signal() | Array():
+            case Signal() | Array() | ValueCastable():
                 return thing
             case _:
                 try:

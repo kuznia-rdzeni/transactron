@@ -10,6 +10,7 @@ from typing import (
 )
 from collections.abc import Iterable, Mapping
 from amaranth import *
+from amaranth.hdl import ValueCastable
 from amaranth.lib.data import StructLayout, View
 from amaranth_types import ShapeLike, ValueLike
 
@@ -30,6 +31,7 @@ __all__ = [
 ]
 
 # Internal Transactron types
+type DebugBundle = Value | ValueCastable | Iterable["DebugBundle"] | Mapping[str, "DebugBundle"]
 type ValueBundle = Value | View | Iterable["ValueBundle"] | Mapping[str, "ValueBundle"]
 type LayoutListField = tuple[str, "ShapeLike | LayoutList"]
 type LayoutList = list["LayoutListField"]
@@ -48,7 +50,7 @@ type GraphCC[T] = set[T]
 
 @runtime_checkable
 class HasDebugSignals(Protocol):
-    def debug_signals(self) -> ValueBundle: ...
+    def debug_signals(self) -> DebugBundle: ...
 
 
 def type_self_kwargs_as[**P](as_func: Callable[Concatenate[Any, P], Any]):
