@@ -4,6 +4,7 @@ from amaranth import *
 from amaranth.lib.data import View
 import amaranth.lib.fifo
 
+from transactron.utils.amaranth_ext.option import Option
 from transactron.utils.transactron_helpers import from_method_layout
 from amaranth_types.types import HasElaborate
 from ..core import *
@@ -126,34 +127,32 @@ class Forwarder(Elaboratable):
     def elaborate(self, platform):
         m = TModule()
 
-        reg = Signal.like(self.read.data_out, reset_less=True)
-        reg_valid = Signal()
+        reg = Option(self.read.data_out.shape()).signal()
         read_value = Signal.like(self.read.data_out)
 
         self.write.schedule_before(self.read)  # to avoid combinational loops
         self.write.schedule_before(self.peek)
 
-        @def_method(m, self.write, ready=~reg_valid)
+        @def_method(m, self.write, ready=~reg.valid)
         def _(arg):
             m.d.av_comb += read_value.eq(arg)  # for forwarding
-            m.d.sync += reg.eq(arg)
-            m.d.sync += reg_valid.eq(1)
+            m.d.sync += reg.data_eq(arg)
 
-        with m.If(reg_valid):
-            m.d.av_comb += read_value.eq(reg)  # write method is not ready
+        with reg.with_data(m) as data:
+            m.d.av_comb += read_value.eq(data)  # write method is not ready
 
-        @def_method(m, self.read, ready=reg_valid | self.write.run)
+        @def_method(m, self.read, ready=reg.valid | self.write.run)
         def _():
-            m.d.sync += reg_valid.eq(0)
+            m.d.sync += reg.data_eq(None)
             return read_value
 
-        @def_method(m, self.peek, ready=reg_valid | self.write.run, nonexclusive=True)
+        @def_method(m, self.peek, ready=reg.valid | self.write.run, nonexclusive=True)
         def _():
             return read_value
 
         @def_method(m, self.clear, nonexclusive=True)
         def _():
-            m.d.sync += reg_valid.eq(0)
+            m.d.sync += reg.data_eq(None)
 
         return m
 
@@ -200,29 +199,27 @@ class Pipe(Elaboratable):
     def elaborate(self, platform):
         m = TModule()
 
-        reg = Signal.like(self.read.data_out, reset_less=True)
-        reg_valid = Signal()
+        reg = Option(self.read.data_out.shape()).signal()
 
         self.read.schedule_before(self.write)  # to avoid combinational loops
         self.peek.schedule_before(self.write)
 
-        @def_method(m, self.read, ready=reg_valid)
+        @def_method(m, self.read, ready=reg.valid)
         def _():
-            m.d.sync += reg_valid.eq(0)
-            return reg
+            m.d.sync += reg.data_eq(None)
+            return reg.data()
 
-        @def_method(m, self.peek, ready=reg_valid, nonexclusive=True)
+        @def_method(m, self.peek, ready=reg.valid, nonexclusive=True)
         def _():
-            return reg
+            return reg.data()
 
-        @def_method(m, self.write, ready=~reg_valid | self.read.run)
+        @def_method(m, self.write, ready=~reg.valid | self.read.run)
         def _(arg):
-            m.d.sync += reg.eq(arg)
-            m.d.sync += reg_valid.eq(1)
+            m.d.sync += reg.data_eq(arg)
 
         @def_method(m, self.clear, nonexclusive=True)
         def _():
-            m.d.sync += reg_valid.eq(0)
+            m.d.sync += reg.data_eq(None)
 
         return m
 
