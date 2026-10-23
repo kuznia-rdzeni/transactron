@@ -45,6 +45,7 @@ Module contents
 ---------------
 
 .. automodule:: transactron
+   :no-index:
    :members:
    :show-inheritance:
    :undoc-members:
