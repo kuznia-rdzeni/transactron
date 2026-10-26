@@ -31,7 +31,7 @@ __all__ = [
 ]
 
 
-log = HardwareLogger("transactron.utils.transformers")
+log = HardwareLogger("transactron.lib.transformers")
 
 
 class Transformer(HasElaborate, Protocol):
