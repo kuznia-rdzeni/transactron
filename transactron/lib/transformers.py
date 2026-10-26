@@ -13,7 +13,9 @@ from transactron.utils import (
     AssignType,
     MethodStruct,
     MethodLayout,
+    HardwareLogger,
 )
+from transactron.utils.amaranth_ext.functions import popcount
 from .connectors import Forwarder, CrossbarConnectTrans
 from .simultaneous import condition
 
@@ -27,6 +29,9 @@ __all__ = [
     "Transformer",
     "Unifier",
 ]
+
+
+log = HardwareLogger("transactron.utils.transformers")
 
 
 class Transformer(HasElaborate, Protocol):
@@ -527,7 +532,11 @@ class NonexclusiveWrapper(Elaboratable, TransformerOneTarget):
     def elaborate(self, platform):
         m = TModule()
 
-        @def_method(m, self.method, nonexclusive=True, combiner=Body._default_combiner(self.target.layout_in))
+        def combiner(m: Module, args: Sequence[MethodStruct], runs: Value):
+            log.top_assertion(popcount(runs) <= 1, "NonexclusiveWrapper: more than one method call in a single cycle")
+            return Body._default_combiner(self.target.layout_in)(m, args, runs)
+
+        @def_method(m, self.method, nonexclusive=True, combiner=combiner)
         def _(arg):
             return self.target(m, arg)
 

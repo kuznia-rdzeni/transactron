@@ -284,16 +284,17 @@ class TestNonexclusiveWrapper(TestCaseWithSimulator):
             for i in range(wrappers):
                 sim.add_testbench(caller_process(i))
 
-    def test_no_conflict(self):
-        m = NonexclusiveWrapperTestCircuit(1, 1, 2)
+    def test_no_conflict_and_fail(self):
+        with pytest.raises(AssertionError):
+            m = NonexclusiveWrapperTestCircuit(1, 1, 2)
 
-        async def process(sim: TestbenchContext):
-            res1, res2 = await CallTrigger(sim).call(m.sources[0][0], data=1).call(m.sources[0][1], data=2).until_done()
-            assert res1 is not None and res2 is not None  # there was no conflict, however the result is undefined
+            async def process(sim: TestbenchContext):
+                await CallTrigger(sim).call(m.sources[0][0], data=1).call(m.sources[0][1], data=2).until_done()
+                # this should try to run and hit assertion in the wrapper
 
-        @def_method_mock(m.target)
-        def target(data):
-            return {"data": data + 1}
+            @def_method_mock(m.target)
+            def target(data):
+                return {"data": data + 1}
 
-        with self.run_simulation(m) as sim:
-            sim.add_testbench(process)
+            with self.run_simulation(m) as sim:
+                sim.add_testbench(process)
