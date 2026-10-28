@@ -1,49 +1,59 @@
-from collections.abc import Iterable
-import inspect
+from collections.abc import Iterable, Mapping, Sequence
 from typing import Any
 from amaranth import *
 from amaranth.sim import *
-from transactron.core.method import MethodDir
-from transactron.lib.adapters import Adapter
+from transactron.lib.adapters import Adapter, AdapterTrans
 
 from .testbenchio import TestbenchIO
-from transactron import Method, Methods
-from transactron.lib import AdapterTrans
-from transactron.utils import ModuleConnector, auto_debug_signals, NestedCollection, is_nested_collection
+from transactron.core import interface_members, InterfaceMembers, InterfacePart, MethodDir
+from transactron.utils import ModuleConnector, auto_debug_signals, NestedCollection
 from amaranth_types import HasElaborate
 
 
 __all__ = ["SimpleTestCircuit"]
 
 
+def mdir_adapter_type(mdir: MethodDir) -> type[AdapterTrans] | type[Adapter]:
+    match mdir:
+        case MethodDir.PROVIDED:
+            return AdapterTrans
+        case MethodDir.REQUIRED:
+            return Adapter
+
+
 def transform_methods_to_testbenchios(
-    adapter_type: type[Adapter] | type[AdapterTrans],
-    container: NestedCollection[Method | Methods],
+    mdir: MethodDir,
+    iface: InterfacePart,
 ) -> tuple[
-    NestedCollection["TestbenchIO"],
-    "ModuleConnector | TestbenchIO",
+    NestedCollection[TestbenchIO],
+    ModuleConnector | TestbenchIO,
 ]:
-    if isinstance(container, list):
-        tb_list = []
-        mc_list = []
-        for elem in container:
-            tb, mc = transform_methods_to_testbenchios(adapter_type, elem)
-            tb_list.append(tb)
-            mc_list.append(mc)
-        return tb_list, ModuleConnector(*mc_list)
-    elif isinstance(container, dict):
-        tb_dict = {}
-        mc_dict = {}
-        for name, elem in container.items():
-            tb, mc = transform_methods_to_testbenchios(adapter_type, elem)
-            tb_dict[name] = tb
-            mc_dict[name] = mc
-        return tb_dict, ModuleConnector(*mc_dict)
-    elif isinstance(container, Methods):
-        tb_list = [TestbenchIO(adapter_type.create(method)) for method in container]
-        return list(tb_list), ModuleConnector(*tb_list)
+    if isinstance(iface, InterfaceMembers):
+        ntb_dict: dict[str, NestedCollection[TestbenchIO]] = {}
+        mc_dict: dict[str, HasElaborate] = {}
+        for name, member in iface.items():
+            ntb, mod = transform_methods_to_testbenchios(mdir.under(member.mdir), member.iface)
+            ntb_dict[name] = ntb
+            mc_dict[name] = mod
+        return ntb_dict, ModuleConnector(**mc_dict)
+    elif isinstance(iface, Sequence):
+        ntb_list: list[NestedCollection[TestbenchIO]] = []
+        mod_list: list[HasElaborate] = []
+        for elem in iface:
+            ntb, mod = transform_methods_to_testbenchios(mdir, elem)
+            ntb_list.append(ntb)
+            mod_list.append(mod)
+        return ntb_list, ModuleConnector(*mod_list)
+    elif isinstance(iface, Mapping):
+        ntb_dict: dict[str, NestedCollection[TestbenchIO]] = {}
+        mc_dict: dict[str, HasElaborate] = {}
+        for name, elem in iface.items():
+            ntb, mod = transform_methods_to_testbenchios(mdir, elem)
+            ntb_dict[name] = ntb
+            mc_dict[name] = mod
+        return ntb_dict, ModuleConnector(**mc_dict)
     else:
-        tb = TestbenchIO(adapter_type.create(container))
+        tb = TestbenchIO(mdir_adapter_type(mdir).create(iface))
         return tb, tb
 
 
@@ -54,25 +64,13 @@ class SimpleTestCircuit[T: HasElaborate](Elaboratable):
         self._submodules: dict[str, HasElaborate] = {}
         self._exclude = set(exclude)
 
-        hints: dict[str, Any] = {}
-        for cls in reversed(self._dut.__class__.__mro__):
-            hints.update(inspect.get_annotations(cls, eval_str=True))
-
-        for name, attr in vars(self._dut).items():
+        iface = interface_members(self._dut)
+        for name, member in iface.items():
             if name in self._exclude:
                 continue
-            if is_nested_collection(attr, Method, Methods) and attr:
-                if (
-                    name in hints
-                    and hasattr(hints[name], "__metadata__")
-                    and MethodDir.REQUIRED in hints[name].__metadata__
-                ):
-                    adapter_type = Adapter
-                else:  # PROVIDED is the default
-                    adapter_type = AdapterTrans
-                tb_cont, mc = transform_methods_to_testbenchios(adapter_type, attr)
-                self._io[name] = tb_cont
-                self._submodules[name] = mc
+            tb_cont, mc = transform_methods_to_testbenchios(member.mdir, member.iface)
+            self._io[name] = tb_cont
+            self._submodules[name] = mc
 
     def __getattr__(self, name: str) -> Any:
         try:
