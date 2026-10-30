@@ -5,6 +5,7 @@ from amaranth import ShapeCastable
 from amaranth.sim._async import SimulatorContext
 from amaranth_types import ShapeLike
 import hypothesis.strategies as st
+from hypothesis import reject
 import enum as py_enum
 import math
 from amaranth.lib import data
@@ -137,6 +138,14 @@ def shrinkable_lists[T](draw: DrawFn, size: int, elements: SearchStrategy[T]) ->
         if b:
             break
         lst.append(draw(elements))
+
+    # Hypothesis generates some of the first test cases by filling everything after a random prefix with zeros.
+    # Combined with how `shrinkable_lists` works, this generates full-size examples filled with the simplest element.
+    # The following code attempts to counteract this by drawing an additional value and rejecting if it's zero.
+    # After a few rejections, Hypothesis stops generating examples like this.
+    if not any(draw(st.binary(min_size=8, max_size=8))):
+        reject()
+
     return lst
 
 
