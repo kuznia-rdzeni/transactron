@@ -66,6 +66,22 @@ def test_shrinkable_lists(size: int):
     assert sizes.count(size) / len(sizes) >= 0.7
 
 
+def test_shrinkable_lists_no_zero_filled():
+    lists: list[list[int]] = []
+
+    # Hypothesis generates some of the first examples by filling everything after
+    # a random prefix with zeros. An unrelated draw first gives the prefix a place to end.
+    @settings(max_examples=200, database=None)
+    @given(st.integers(0, 3), shrinkable_lists(20, st.integers()))
+    def f(_: int, elems: list[int]):
+        lists.append(elems)
+
+    f()
+
+    # no wasted examples consisting only of the simplest element
+    assert not any(len(elems) >= 2 and all(i == 0 for i in elems) for elems in lists)
+
+
 @pytest.mark.parametrize("size_range", [(0, 5), (0, 20), (5, 20), (3, 3)])
 def test_sized_lists_range(size_range: tuple[int, int]):
     lo, hi = size_range
