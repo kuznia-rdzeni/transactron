@@ -1,7 +1,7 @@
 from collections.abc import Sequence, Callable
 from amaranth import *
 from amaranth_types import ValueLike
-from typing import Concatenate, ParamSpec, Unpack
+from typing import Any, Concatenate, ParamSpec, Unpack
 from transactron.core.body import BodyParams
 from transactron.utils import *
 from transactron.utils.assign import AssignArg
@@ -15,7 +15,7 @@ __all__ = ["def_method", "def_methods"]
 P = ParamSpec("P")
 
 
-def def_method(m: TModule, method: Method, ready: ValueLike = C(1), **kwargs: Unpack[BodyParams]):
+def def_method(m: TModule, method: Method[Any, Any], ready: ValueLike = C(1), **kwargs: Unpack[BodyParams]):
     """Define a method.
 
     This decorator allows to define transactional methods in an
@@ -74,7 +74,7 @@ def def_method(m: TModule, method: Method, ready: ValueLike = C(1), **kwargs: Un
     """
 
     def decorator(func: Callable[..., AssignArg | None]):
-        out = Signal(method.layout_out)
+        out = Signal(method.shape_out)
         ret_out = None
 
         with method.body(m, ready=ready, out=out, **kwargs) as arg:
@@ -88,7 +88,7 @@ def def_method(m: TModule, method: Method, ready: ValueLike = C(1), **kwargs: Un
 
 def def_methods(
     m: TModule,
-    methods: Sequence[Method],
+    methods: Sequence[Method[Any, Any]],
     ready: Callable[[int], ValueLike] = lambda _: C(1),
     **kwargs: Unpack[BodyParams],
 ):

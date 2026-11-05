@@ -1,9 +1,9 @@
 from collections.abc import Generator, Iterable
 from amaranth import *
-from amaranth.lib.data import View, StructLayout
+from amaranth.lib.data import Const as DataConst, Layout, View, StructLayout
 from amaranth.sim._async import SimulatorContext, TestbenchContext
 from amaranth_types import ValueLike
-from typing import Any
+from typing import Any, cast, overload
 
 from transactron.lib import AdapterBase
 from .functions import MethodData
@@ -25,7 +25,7 @@ class CallTrigger:
     def __init__(
         self,
         sim: SimulatorContext,
-        _calls: Iterable[ValueLike | tuple["TestbenchIO", dict[str, Any] | None]] = (),
+        _calls: Iterable[ValueLike | tuple["TestbenchIO[Any]", dict[str, Any] | None]] = (),
     ):
         """
         Parameters
@@ -34,9 +34,9 @@ class CallTrigger:
             Amaranth simulator context.
         """
         self.sim = sim
-        self.calls_and_values: list[ValueLike | tuple[TestbenchIO, dict[str, Any] | None]] = list(_calls)
+        self.calls_and_values: list[ValueLike | tuple[TestbenchIO[Any], dict[str, Any] | None]] = list(_calls)
 
-    def sample(self, *values: "ValueLike | TestbenchIO"):
+    def sample(self, *values: "ValueLike | TestbenchIO[Any]"):
         """Sample a signal or a method result on a clock edge.
 
         Values are sampled like in standard Amaranth `TickTrigger`. Sampling a method result works like `call()`,
@@ -48,7 +48,7 @@ class CallTrigger:
         *values: ValueLike | TestbenchIO
             Value or method to sample.
         """
-        new_calls_and_values: list[ValueLike | tuple["TestbenchIO", None]] = []
+        new_calls_and_values: list[ValueLike | tuple["TestbenchIO[Any]", None]] = []
         for value in values:
             if isinstance(value, TestbenchIO):
                 new_calls_and_values.append((value, None))
@@ -56,7 +56,7 @@ class CallTrigger:
                 new_calls_and_values.append(value)
         return CallTrigger(self.sim, (*self.calls_and_values, *new_calls_and_values))
 
-    def call(self, tbio: "TestbenchIO", data: dict[str, Any] = {}, /, **kwdata):
+    def call(self, tbio: "TestbenchIO[Any]", data: Any = None, /, **kwdata):
         """Call a method and sample its result.
 
         Adds a method call to the trigger. The method result is sampled on a clock edge. If the call did not
@@ -66,15 +66,16 @@ class CallTrigger:
         ----------
         tbio: TestbenchIO
             The method to call.
-        data: dict[str, Any]
-            Method call arguments stored in a dict.
+        data: Any
+            Method call arguments stored in a dict, or a value for methods
+            which don't use struct layouts.
         **kwdata: Any
             Method call arguments passed as keyword arguments. If keyword arguments are used,
             the `data` argument should not be provided.
         """
-        if data and kwdata:
+        if data is not None and kwdata:
             raise TypeError("call() takes either a single dict or keyword arguments")
-        return CallTrigger(self.sim, (*self.calls_and_values, (tbio, data or kwdata)))
+        return CallTrigger(self.sim, (*self.calls_and_values, (tbio, kwdata if data is None else data)))
 
     async def until_done(self) -> Any:
         """Wait until at least one of the calls succeeds.
@@ -102,7 +103,7 @@ class CallTrigger:
             if data is not None:
                 tbio.call_init(self.sim, data)
 
-        def layout_for(tbio: TestbenchIO):
+        def layout_for(tbio: TestbenchIO[Any]):
             return StructLayout({"outputs": tbio.adapter.data_out.shape(), "done": 1})
 
         trigger = (
@@ -133,8 +134,17 @@ class CallTrigger:
             yield await self
 
 
-class TestbenchIO(Elaboratable):
-    def __init__(self, adapter: AdapterBase):
+class TestbenchIO[R = MethodData](Elaboratable):
+    @overload
+    def __init__[L: Layout](self: "TestbenchIO[DataConst[L]]", adapter: AdapterBase[Any, L]) -> None: ...
+
+    @overload
+    def __init__(self: "TestbenchIO[int]", adapter: AdapterBase[Any, Shape]) -> None: ...
+
+    @overload
+    def __init__(self: "TestbenchIO[Any]", adapter: AdapterBase[Any, Any]) -> None: ...
+
+    def __init__(self, adapter: AdapterBase[Any, Any]):
         self.adapter = adapter
 
     def elaborate(self, platform):
@@ -167,8 +177,8 @@ class TestbenchIO(Elaboratable):
     def get_done(self, sim: TestbenchContext):
         return sim.get(self.adapter.done)
 
-    def get_outputs(self, sim: TestbenchContext) -> MethodData:
-        return sim.get(self.adapter.data_out)
+    def get_outputs(self, sim: TestbenchContext) -> R:
+        return cast(R, sim.get(self.adapter.data_out))
 
     def sample_outputs(self, sim: SimulatorContext):
         return sim.tick().sample(self.adapter.data_out)
@@ -181,32 +191,32 @@ class TestbenchIO(Elaboratable):
 
     # Operations for AdapterTrans
 
-    def call_init(self, sim: SimulatorContext, data={}, /, **kwdata):
-        if data and kwdata:
+    def call_init(self, sim: SimulatorContext, data=None, /, **kwdata):
+        if data is not None and kwdata:
             raise TypeError("call_init() takes either a single dict or keyword arguments")
-        if not data:
+        if data is None:
             data = kwdata
         self.enable(sim)
         self.set_inputs(sim, data)
 
-    def get_call_result(self, sim: TestbenchContext) -> MethodData | None:
+    def get_call_result(self, sim: TestbenchContext) -> R | None:
         if self.get_done(sim):
             return self.get_outputs(sim)
         return None
 
-    async def call_result(self, sim: SimulatorContext) -> MethodData | None:
+    async def call_result(self, sim: SimulatorContext) -> R | None:
         *_, data, done = await self.sample_outputs_done(sim)
         if done:
             return data
         return None
 
-    async def call_do(self, sim: SimulatorContext) -> MethodData:
+    async def call_do(self, sim: SimulatorContext) -> R:
         *_, outputs = await self.sample_outputs_until_done(sim)
         self.disable(sim)
         return outputs
 
-    async def call_try(self, sim: SimulatorContext, data={}, /, **kwdata) -> MethodData | None:
+    async def call_try(self, sim: SimulatorContext, data=None, /, **kwdata) -> R | None:
         return (await CallTrigger(sim).call(self, data, **kwdata))[0]
 
-    async def call(self, sim: SimulatorContext, data={}, /, **kwdata) -> MethodData:
+    async def call(self, sim: SimulatorContext, data=None, /, **kwdata) -> R:
         return (await CallTrigger(sim).call(self, data, **kwdata).until_done())[0]

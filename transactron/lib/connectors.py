@@ -327,7 +327,7 @@ class ConnectTrans(Elaboratable):
             How many stack frames deep the source location is taken from.
             Alternatively, the source location to use instead of the default.
         """
-        ct = ConnectTrans(method1.layout_in, method1.layout_out, src_loc=get_src_loc(src_loc))
+        ct = ConnectTrans(method1.shape_in, method1.shape_out, src_loc=get_src_loc(src_loc))
         ct.method1.provide(method1)
         ct.method2.provide(method2)
         return ct
@@ -416,8 +416,8 @@ class CrossbarConnectTrans(Elaboratable):
             src_loc=get_src_loc(src_loc),
             count1=len(methods1),
             count2=len(methods2),
-            i_layout=methods1[0].layout_in,
-            o_layout=methods1[0].layout_out,
+            i_layout=methods1[0].shape_in,
+            o_layout=methods1[0].shape_out,
         )
         for cct_method1, method1 in zip(cct.methods1, methods1):
             cct_method1.provide(method1)
@@ -449,7 +449,7 @@ class Connector(HasElaborate, Protocol):
     Returns
     -------
     MethodStruct
-        Data with layout `write.layout_in`
+        Data with layout `write.shape_in`
     """
     peek: Method
     """Returns the element that would be output from `read`.
@@ -465,7 +465,7 @@ class Connector(HasElaborate, Protocol):
     Returns
     -------
     MethodStruct
-        Data with layout `write.layout_in`.
+        Data with layout `write.shape_in`.
     """
     write: Method
     """Writes to the connector.

@@ -17,8 +17,8 @@ __all__ = ["MethodMock", "def_method_mock", "def_method_mocks"]
 class MethodMock:
     def __init__(
         self,
-        adapter: AdapterBase,
-        function: Callable[..., NameIntDict | None],
+        adapter: AdapterBase[Any, Any],
+        function: Callable[..., NameIntDict | int | None],
         *,
         validate_arguments: Callable[..., bool] | None = None,
         enable: Callable[[], bool] = lambda: True,
@@ -108,8 +108,8 @@ class MethodMock:
 
 
 def def_method_mock(
-    tb_getter: TestbenchIO | Callable[[], TestbenchIO] | Callable[[Any], TestbenchIO], **kwargs
-) -> Callable[[Callable[..., NameIntDict | None]], Callable[[], MethodMock]]:
+    tb_getter: TestbenchIO[Any] | Callable[[], TestbenchIO[Any]] | Callable[[Any], TestbenchIO[Any]], **kwargs
+) -> Callable[[Callable[..., NameIntDict | int | None]], Callable[[], MethodMock]]:
     """
     Decorator function to create method mock handlers. It should be applied on
     a function which describes functionality which we want to invoke on method call.
@@ -161,7 +161,7 @@ def def_method_mock(
     ```
     """
 
-    def decorator(func: Callable[..., NameIntDict | None]) -> Callable[[], MethodMock]:
+    def decorator(func: Callable[..., NameIntDict | int | None]) -> Callable[[], MethodMock]:
         @functools.wraps(func)
         def mock(func_self=None, /) -> MethodMock:
             f = func
@@ -185,11 +185,11 @@ def def_method_mock(
 
 
 def def_method_mocks(
-    tb_getter: TestbenchIO
-    | Callable[[], NestedCollection[TestbenchIO]]
-    | Callable[[Any], NestedCollection[TestbenchIO]],
+    tb_getter: TestbenchIO[Any]
+    | Callable[[], NestedCollection[TestbenchIO[Any]]]
+    | Callable[[Any], NestedCollection[TestbenchIO[Any]]],
     **kwargs,
-) -> Callable[[Callable[..., NameIntDict | None]], Callable[[], list[MethodMock]]]:
+) -> Callable[[Callable[..., NameIntDict | int | None]], Callable[[], list[MethodMock]]]:
     """
     Decorator function for defining multiple method mocks for similar function
     definitions. Should be used like ``def_method_mock``, but on lists or
@@ -213,7 +213,7 @@ def def_method_mocks(
     ```
     """
 
-    def decorator(func: Callable[..., NameIntDict | None]) -> Callable[[], list[MethodMock]]:
+    def decorator(func: Callable[..., NameIntDict | int | None]) -> Callable[[], list[MethodMock]]:
         @functools.wraps(func)
         def mock(func_self=None, /) -> list[MethodMock]:
             f = func

@@ -5,13 +5,15 @@ import textwrap
 from transactron.utils import *
 from amaranth import *
 from amaranth import tracer
-from amaranth_types import ValueLike
-from typing import TYPE_CHECKING, Annotated, Optional, TypeAlias, TypeVar, Unpack, overload
+from amaranth.hdl import ShapeCastable
+from amaranth.lib.data import Layout, StructLayout, View
+from amaranth_types import ShapeLike, ValueLike
+from typing import TYPE_CHECKING, Annotated, Any, Optional, Self, TypeAlias, TypeVar, Unpack, overload
 from collections.abc import Iterator
 from .transaction_base import *
-from contextlib import contextmanager
+from contextlib import AbstractContextManager, contextmanager
+from warnings import deprecated
 from transactron.utils.assign import AssignArg
-from transactron.utils.typing import type_self_add_1pos_kwargs_as
 
 from .body import Body, BodyParams, MBody
 from .keys import DefinedMethodsKey, ProvidedMethodsKey
@@ -36,7 +38,63 @@ Provided: TypeAlias = Annotated[_T, MethodDir.PROVIDED]  # noqa: UP040
 Required: TypeAlias = Annotated[_T, MethodDir.REQUIRED]  # noqa: UP040
 
 
-class Method(TransactionBase["Transaction | Method"]):
+type _FlatShape = int | range | type[enum.Enum]
+
+
+def _method_shape(shape: LayoutIterable | ShapeLike) -> Shape | ShapeCastable:
+    if isinstance(shape, ShapeCastable | Shape):
+        return shape
+    elif isinstance(shape, int | range | type):
+        return Shape.cast(shape)
+    else:
+        return from_method_layout(shape)
+
+
+# The data types of `Method`'s `data_in` and `data_out` are computed from
+# the shape type parameters by the overloads of `__get__`.
+class _DataIn:
+    @overload
+    def __get__[L: Layout](self, obj: "Method[L, Any]", owner: Any) -> View[L]: ...
+
+    @overload
+    def __get__[T: MethodData](self, obj: "Method[ShapeCastable[T], Any]", owner: Any) -> T: ...
+
+    @overload
+    def __get__(self, obj: "Method[Shape, Any]", owner: Any) -> Signal: ...
+
+    @overload
+    def __get__(self, obj: "Method[Any, Any]", owner: Any) -> MethodData: ...
+
+    @overload
+    def __get__(self, obj: None, owner: Any) -> Self: ...
+
+    def __get__(self, obj: "Method[Any, Any] | None", owner: Any) -> Any:
+        return self if obj is None else obj._data_in
+
+
+class _DataOut:
+    @overload
+    def __get__[L: Layout](self, obj: "Method[Any, L]", owner: Any) -> View[L]: ...
+
+    @overload
+    def __get__[T: MethodData](self, obj: "Method[Any, ShapeCastable[T]]", owner: Any) -> T: ...
+
+    @overload
+    def __get__(self, obj: "Method[Any, Shape]", owner: Any) -> Signal: ...
+
+    @overload
+    def __get__(self, obj: "Method[Any, Any]", owner: Any) -> MethodData: ...
+
+    @overload
+    def __get__(self, obj: None, owner: Any) -> Self: ...
+
+    def __get__(self, obj: "Method[Any, Any] | None", owner: Any) -> Any:
+        return self if obj is None else obj._data_out
+
+
+class Method[I: Shape | ShapeCastable = StructLayout, O: Shape | ShapeCastable = StructLayout](
+    TransactionBase["Transaction | Method[Any, Any]"]
+):
     """Transactional method.
 
     A `Method` serves to interface a module with external `Transaction`\\s
@@ -48,10 +106,16 @@ class Method(TransactionBase["Transaction | Method"]):
     behavior.) Calling a `Method` always takes a single clock cycle.
 
     Data is combinationally transferred between to and from `Method`\\s
-    using Amaranth structures (`View` with a `StructLayout`). The transfer
+    using Amaranth values. Typically these are structures (`View` with
+    a `StructLayout`), but any Amaranth shape can be used. The transfer
     can take place in both directions at the same time: from the called
     `Method` to the caller (`data_out`) and from the caller to the called
     `Method` (`data_in`).
+
+    The type parameters `I` and `O` are the shapes of `data_in` and
+    `data_out`; they are inferred from the layouts passed to the constructor.
+    Shapes which are not shape-castable (e.g. `int` or `range`) are converted
+    to `Shape`.
 
     A module which defines a `Method` should use `body` or `def_method`
     to describe the method's effect on the module state.
@@ -66,19 +130,89 @@ class Method(TransactionBase["Transaction | Method"]):
     run: Signal, out
         Signals that the method is called in the current cycle by some
         `Transaction`. Defined by the `TransactionManager`.
-    data_in: MethodStruct, out
+    data_in: Value or ValueCastable, out
         Contains the data passed to the `Method` by the caller
         (a `Transaction` or another `Method`).
-    data_out: MethodStruct, in
+    data_out: Value or ValueCastable, in
         Contains the data passed from the `Method` to the caller
         (a `Transaction` or another `Method`). Typically defined by
         calling `body`.
     """
 
-    _body_ptr: Optional["Body | Method"] = None
+    _body_ptr: Optional["Body | Method[Any, Any]"] = None
+
+    _data_in: MethodData
+    _data_out: MethodData
+    data_in = _DataIn()
+    data_out = _DataOut()
+
+    @overload
+    def __init__(
+        self,
+        *,
+        name: str | None = None,
+        i: LayoutIterable | I = (),
+        o: LayoutIterable | O = (),
+        src_loc: int | SrcLoc = 0,
+    ) -> None: ...
+
+    @overload
+    def __init__(
+        self: "Method[Shape, StructLayout]",
+        *,
+        name: str | None = None,
+        i: _FlatShape,
+        o: LayoutIterable = (),
+        src_loc: int | SrcLoc = 0,
+    ) -> None: ...
+
+    @overload
+    def __init__[O2: Shape | ShapeCastable](
+        self: "Method[Shape, O2]",
+        *,
+        name: str | None = None,
+        i: _FlatShape,
+        o: O2,
+        src_loc: int | SrcLoc = 0,
+    ) -> None: ...
+
+    @overload
+    def __init__(
+        self: "Method[StructLayout, Shape]",
+        *,
+        name: str | None = None,
+        i: LayoutIterable = (),
+        o: _FlatShape,
+        src_loc: int | SrcLoc = 0,
+    ) -> None: ...
+
+    @overload
+    def __init__[I2: Shape | ShapeCastable](
+        self: "Method[I2, Shape]",
+        *,
+        name: str | None = None,
+        i: I2,
+        o: _FlatShape,
+        src_loc: int | SrcLoc = 0,
+    ) -> None: ...
+
+    @overload
+    def __init__(
+        self: "Method[Shape, Shape]",
+        *,
+        name: str | None = None,
+        i: _FlatShape,
+        o: _FlatShape,
+        src_loc: int | SrcLoc = 0,
+    ) -> None: ...
 
     def __init__(
-        self, *, name: str | None = None, i: MethodLayout = (), o: MethodLayout = (), src_loc: int | SrcLoc = 0
+        self,
+        *,
+        name: str | None = None,
+        i: LayoutIterable | ShapeLike = (),
+        o: LayoutIterable | ShapeLike = (),
+        src_loc: int | SrcLoc = 0,
     ):
         """
         Parameters
@@ -86,9 +220,9 @@ class Method(TransactionBase["Transaction | Method"]):
         name: str or None
             Name hint for this `Method`. If `None` (default) the name is
             inferred from the variable name this `Method` is assigned to.
-        i: method layout
+        i: method layout or shape
             The format of `data_in`.
-        o: method layout
+        o: method layout or shape
             The format of `data_out`.
         src_loc: int | SrcLoc
             How many stack frames deep the source location is taken from.
@@ -99,19 +233,33 @@ class Method(TransactionBase["Transaction | Method"]):
         self.name = name or tracer.get_var_name(depth=2, default=owner_name)
         self.ready = Signal(name=self.owned_name + "_ready")
         self.run = Signal(name=self.owned_name + "_run")
-        self.data_in: MethodStruct = Signal(from_method_layout(i), name=self.owned_name + "_data_in")
-        self.data_out: MethodStruct = Signal(from_method_layout(o), name=self.owned_name + "_data_out")
+        self._shape_in: I = _method_shape(i)  # type: ignore  # checked by the overloads
+        self._shape_out: O = _method_shape(o)  # type: ignore  # checked by the overloads
+        self._data_in = Signal(self._shape_in, name=self.owned_name + "_data_in")
+        self._data_out = Signal(self._shape_out, name=self.owned_name + "_data_out")
 
     @property
-    def layout_in(self):
-        return self.data_in.shape()
+    def shape_in(self) -> I:
+        return self._shape_in
 
     @property
-    def layout_out(self):
-        return self.data_out.shape()
+    def shape_out(self) -> O:
+        return self._shape_out
+
+    @property
+    @deprecated("Use `shape_in` instead.")
+    def layout_in(self) -> I:
+        return self._shape_in
+
+    @property
+    @deprecated("Use `shape_out` instead.")
+    def layout_out(self) -> O:
+        return self._shape_out
 
     @staticmethod
-    def like(other: "Method", *, name: str | None = None) -> "Method":
+    def like[I2: Shape | ShapeCastable, O2: Shape | ShapeCastable](
+        other: "Method[I2, O2]", *, name: str | None = None
+    ) -> "Method[I2, O2]":
         """Constructs a new `Method` based on another.
 
         The returned `Method` has the same input/output data layouts as the
@@ -129,7 +277,7 @@ class Method(TransactionBase["Transaction | Method"]):
         Method
             The freshly constructed `Method`.
         """
-        return Method(name=name, i=other.layout_in, o=other.layout_out)
+        return Method(name=name, i=other.shape_in, o=other.shape_out)
 
     @property
     def _body(self) -> MBody:
@@ -140,24 +288,24 @@ class Method(TransactionBase["Transaction | Method"]):
             return self._body_ptr
         raise RuntimeError(f"Method '{self.name}' {self.src_loc} not defined")
 
-    def _set_impl(self, value: "Body | Method"):
+    def _set_impl(self, value: "Body | Method[Any, Any]"):
         if self._body_ptr is not None:
             raise RuntimeError(f"Method '{self.name}' {self.src_loc} already defined")
-        if value.data_in.shape() != self.layout_in or value.data_out.shape() != self.layout_out:
+        if value.data_in.shape() != self.shape_in or value.data_out.shape() != self.shape_out:
             raise ValueError(
                 textwrap.dedent(
                     f"""\
                     Method {value.name} at {value.src_loc} has different interface than {self.name} at {self.src_loc}
                     {value.name} input: {value.data_in.shape()}
                     {value.name} output: {value.data_out.shape()}
-                    {self.name} input: {self.layout_in}
-                    {self.name} output: {self.layout_out}
+                    {self.name} input: {self.shape_in}
+                    {self.name} output: {self.shape_out}
                     """
                 )
             )
         self._body_ptr = value
 
-    def provide(self, method: "Method"):
+    def provide(self, method: "Method[Any, Any]"):
         """Provide method definition using another method.
 
         The calls to this method will be forwarded to `method`. Input and
@@ -171,10 +319,50 @@ class Method(TransactionBase["Transaction | Method"]):
         self._set_impl(method)
         DependencyContext.get().add_dependency(ProvidedMethodsKey(), self)
 
+    @overload
+    def body[L: Layout](
+        self: "Method[L, Any]",
+        m: TModule,
+        *,
+        ready: ValueLike = ...,
+        out: ValueLike = ...,
+        **kwargs: Unpack[BodyParams],
+    ) -> AbstractContextManager[View[L]]: ...
+
+    @overload
+    def body[T: MethodData](
+        self: "Method[ShapeCastable[T], Any]",
+        m: TModule,
+        *,
+        ready: ValueLike = ...,
+        out: ValueLike = ...,
+        **kwargs: Unpack[BodyParams],
+    ) -> AbstractContextManager[T]: ...
+
+    @overload
+    def body(
+        self: "Method[Shape, Any]",
+        m: TModule,
+        *,
+        ready: ValueLike = ...,
+        out: ValueLike = ...,
+        **kwargs: Unpack[BodyParams],
+    ) -> AbstractContextManager[Signal]: ...
+
+    @overload
+    def body(
+        self: "Method[Any, Any]",
+        m: TModule,
+        *,
+        ready: ValueLike = ...,
+        out: ValueLike = ...,
+        **kwargs: Unpack[BodyParams],
+    ) -> AbstractContextManager[MethodData]: ...
+
     @contextmanager
     def body(
         self, m: TModule, *, ready: ValueLike = C(1), out: ValueLike = C(0, 0), **kwargs: Unpack[BodyParams]
-    ) -> Iterator[MethodStruct]:
+    ) -> Iterator[Any]:
         """Define method body
 
         The `body` context manager can be used to define the actions
@@ -221,7 +409,7 @@ class Method(TransactionBase["Transaction | Method"]):
 
         Returns
         -------
-        data_in : StructLayout, out
+        data_in : Value or ValueCastable, out
             Data passed from the caller (a `Transaction` or another
             `Method`) to this `Method`.
 
@@ -237,12 +425,17 @@ class Method(TransactionBase["Transaction | Method"]):
                 m.d.comb += sum.eq(data_in.arg1 + data_in.arg2)
         """
         body = Body(
-            name=self.name, owner=self.owner, i=self.layout_in, o=self.layout_out, src_loc=self.src_loc, **kwargs
+            name=self.name,
+            owner=self.owner,
+            i=self.shape_in,
+            o=self.shape_out,
+            src_loc=self.src_loc,
+            **kwargs,
         )
         self._set_impl(body)
 
         m.d.av_comb += body.ready.eq(ready)
-        m.d.top_comb += body.data_out.eq(out)
+        m.d.top_comb += Value.cast(body.data_out).eq(out)
         with body.context(m):
             with m.AvoidedIf(body.run):
                 yield body.data_in
@@ -252,14 +445,54 @@ class Method(TransactionBase["Transaction | Method"]):
         # - This simulates faster in pysim.
         m.d.top_comb += self.ready.eq(body.ready)
         m.d.top_comb += self.run.eq(body.run)
-        m.d.top_comb += self.data_in.eq(body.data_in)
-        m.d.top_comb += self.data_out.eq(body.data_out)
+        m.d.top_comb += Value.cast(self.data_in).eq(body.data_in)
+        m.d.top_comb += Value.cast(self.data_out).eq(body.data_out)
 
         DependencyContext.get().add_dependency(DefinedMethodsKey(), self)
 
+    @overload
+    def __call__[L: Layout](
+        self: "Method[Any, L]",
+        m: TModule,
+        arg: AssignArg | None = None,
+        /,
+        enable_call: ValueLike = ...,
+        **kwargs: AssignArg,
+    ) -> View[L]: ...
+
+    @overload
+    def __call__[T: MethodData](
+        self: "Method[Any, ShapeCastable[T]]",
+        m: TModule,
+        arg: AssignArg | None = None,
+        /,
+        enable_call: ValueLike = ...,
+        **kwargs: AssignArg,
+    ) -> T: ...
+
+    @overload
+    def __call__(
+        self: "Method[Any, Shape]",
+        m: TModule,
+        arg: AssignArg | None = None,
+        /,
+        enable_call: ValueLike = ...,
+        **kwargs: AssignArg,
+    ) -> Signal: ...
+
+    @overload
+    def __call__(
+        self: "Method[Any, Any]",
+        m: TModule,
+        arg: AssignArg | None = None,
+        /,
+        enable_call: ValueLike = ...,
+        **kwargs: AssignArg,
+    ) -> MethodData: ...
+
     def __call__(
         self, m: TModule, arg: AssignArg | None = None, /, enable_call: ValueLike = C(1), **kwargs: AssignArg
-    ) -> MethodStruct:
+    ) -> Any:
         """Call a method.
 
         Methods can only be called from transaction and method bodies.
@@ -286,7 +519,7 @@ class Method(TransactionBase["Transaction | Method"]):
 
         Returns
         -------
-        data_out : MethodStruct
+        data_out : Value or ValueCastable
             The result of the method call.
 
         Examples
@@ -330,34 +563,118 @@ class Method(TransactionBase["Transaction | Method"]):
     def __repr__(self) -> str:
         return f"(method {self.name})"
 
-    def debug_signals(self) -> ValueBundle:
+    def debug_signals(self) -> DebugBundle:
         return [self.ready, self.run, self.data_in, self.data_out]
 
 
-class Methods(Sequence[Method]):
-    @type_self_add_1pos_kwargs_as(Method.__init__)
-    def __init__(self, count: int, **kwargs):
+class Methods[I: Shape | ShapeCastable = StructLayout, O: Shape | ShapeCastable = StructLayout](Sequence[Method[I, O]]):
+    # See `Method.__init__` for the explanation of the overloads.
+    @overload
+    def __init__(
+        self,
+        count: int,
+        *,
+        name: str | None = None,
+        i: LayoutIterable | I = (),
+        o: LayoutIterable | O = (),
+        src_loc: int | SrcLoc = 0,
+    ) -> None: ...
+
+    @overload
+    def __init__(
+        self: "Methods[Shape, StructLayout]",
+        count: int,
+        *,
+        name: str | None = None,
+        i: _FlatShape,
+        o: LayoutIterable = (),
+        src_loc: int | SrcLoc = 0,
+    ) -> None: ...
+
+    @overload
+    def __init__[O2: Shape | ShapeCastable](
+        self: "Methods[Shape, O2]",
+        count: int,
+        *,
+        name: str | None = None,
+        i: _FlatShape,
+        o: O2,
+        src_loc: int | SrcLoc = 0,
+    ) -> None: ...
+
+    @overload
+    def __init__(
+        self: "Methods[StructLayout, Shape]",
+        count: int,
+        *,
+        name: str | None = None,
+        i: LayoutIterable = (),
+        o: _FlatShape,
+        src_loc: int | SrcLoc = 0,
+    ) -> None: ...
+
+    @overload
+    def __init__[I2: Shape | ShapeCastable](
+        self: "Methods[I2, Shape]",
+        count: int,
+        *,
+        name: str | None = None,
+        i: I2,
+        o: _FlatShape,
+        src_loc: int | SrcLoc = 0,
+    ) -> None: ...
+
+    @overload
+    def __init__(
+        self: "Methods[Shape, Shape]",
+        count: int,
+        *,
+        name: str | None = None,
+        i: _FlatShape,
+        o: _FlatShape,
+        src_loc: int | SrcLoc = 0,
+    ) -> None: ...
+
+    def __init__(
+        self,
+        count: int,
+        *,
+        name: str | None = None,
+        i: LayoutIterable | ShapeLike = (),
+        o: LayoutIterable | ShapeLike = (),
+        src_loc: int | SrcLoc = 0,
+    ):
         if count < 0:
             raise ValueError("count should be at least 0")
         _, owner_name = get_caller_class_name(default="$method")
-        self.name = kwargs["name"] if "name" in kwargs else tracer.get_var_name(depth=2, default=owner_name)
-        if "src_loc" not in kwargs:
-            kwargs["src_loc"] = 0
-        if isinstance(kwargs["src_loc"], int):
-            kwargs["src_loc"] += 1
-        self._methods = [Method(**{**kwargs, "name": f"{self.name}{i}"}) for i in range(count)]
-        self._layout_in = from_method_layout(kwargs["i"] if "i" in kwargs else ())
-        self._layout_out = from_method_layout(kwargs["o"] if "o" in kwargs else ())
+        self.name = name if name is not None else tracer.get_var_name(depth=2, default=owner_name)
+        if isinstance(src_loc, int):
+            src_loc += 1
+        self._shape_in: I = _method_shape(i)  # type: ignore  # checked by the overloads
+        self._shape_out: O = _method_shape(o)  # type: ignore  # checked by the overloads
+        self._methods: list[Method[I, O]] = [
+            Method(name=f"{self.name}{k}", i=self._shape_in, o=self._shape_out, src_loc=src_loc) for k in range(count)
+        ]
 
     @property
-    def layout_in(self):
-        return self._layout_in
+    def shape_in(self) -> I:
+        return self._shape_in
 
     @property
-    def layout_out(self):
-        return self._layout_out
+    def shape_out(self) -> O:
+        return self._shape_out
 
-    def provide(self, methods: Iterable[Method]):
+    @property
+    @deprecated("Use `shape_in` instead.")
+    def layout_in(self) -> I:
+        return self._shape_in
+
+    @property
+    @deprecated("Use `shape_out` instead.")
+    def layout_out(self) -> O:
+        return self._shape_out
+
+    def provide(self, methods: Iterable[Method[Any, Any]]):
         """Provide methods' definition using another set of methods.
 
         The calls to `i`-th method will be forwarded to `i`-th method of
@@ -374,24 +691,64 @@ class Methods(Sequence[Method]):
         for self_method, method in zip(self, methods):
             self_method.provide(method)
 
+    @overload
+    def __call__[L: Layout](
+        self: "Methods[Any, L]",
+        m: TModule,
+        arg: AssignArg | None = None,
+        /,
+        enable_call: ValueLike = ...,
+        **kwargs: AssignArg,
+    ) -> View[L]: ...
+
+    @overload
+    def __call__[T: MethodData](
+        self: "Methods[Any, ShapeCastable[T]]",
+        m: TModule,
+        arg: AssignArg | None = None,
+        /,
+        enable_call: ValueLike = ...,
+        **kwargs: AssignArg,
+    ) -> T: ...
+
+    @overload
+    def __call__(
+        self: "Methods[Any, Shape]",
+        m: TModule,
+        arg: AssignArg | None = None,
+        /,
+        enable_call: ValueLike = ...,
+        **kwargs: AssignArg,
+    ) -> Signal: ...
+
+    @overload
+    def __call__(
+        self: "Methods[Any, Any]",
+        m: TModule,
+        arg: AssignArg | None = None,
+        /,
+        enable_call: ValueLike = ...,
+        **kwargs: AssignArg,
+    ) -> MethodData: ...
+
     def __call__(
         self, m: TModule, arg: AssignArg | None = None, /, enable_call: ValueLike = C(1), **kwargs: AssignArg
-    ) -> MethodStruct:
+    ) -> Any:
         if len(self._methods) != 1:
             raise RuntimeError("calling Methods only allowed when count=1")
         return self._methods[0](m, arg, enable_call, **kwargs)
 
     @overload
-    def __getitem__(self, key: int) -> Method: ...
+    def __getitem__(self, key: int) -> Method[I, O]: ...
 
     @overload
-    def __getitem__(self, key: slice) -> Sequence[Method]: ...
+    def __getitem__(self, key: slice) -> Sequence[Method[I, O]]: ...
 
-    def __getitem__(self, key: int | slice) -> Method | Sequence[Method]:
+    def __getitem__(self, key: int | slice) -> Method[I, O] | Sequence[Method[I, O]]:
         return self._methods[key]
 
     def __len__(self) -> int:
         return len(self._methods)
 
-    def debug_signals(self) -> ValueBundle:
+    def debug_signals(self) -> DebugBundle:
         return {method.name: method.debug_signals() for method in self._methods}

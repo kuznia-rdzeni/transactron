@@ -20,8 +20,8 @@ def transform_methods_to_testbenchios(
     adapter_type: type[Adapter] | type[AdapterTrans],
     container: NestedCollection[Method | Methods],
 ) -> tuple[
-    NestedCollection["TestbenchIO"],
-    "ModuleConnector | TestbenchIO",
+    NestedCollection["TestbenchIO[Any]"],
+    "ModuleConnector | TestbenchIO[Any]",
 ]:
     if isinstance(container, list):
         tb_list = []
@@ -50,7 +50,7 @@ def transform_methods_to_testbenchios(
 class SimpleTestCircuit[T: HasElaborate](Elaboratable):
     def __init__(self, dut: T, *, exclude: Iterable[str] = ()):
         self._dut = dut
-        self._io: dict[str, NestedCollection[TestbenchIO]] = {}
+        self._io: dict[str, NestedCollection[TestbenchIO[Any]]] = {}
         self._submodules: dict[str, HasElaborate] = {}
         self._exclude = set(exclude)
 

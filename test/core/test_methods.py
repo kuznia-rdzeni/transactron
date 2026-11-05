@@ -3,7 +3,7 @@ import pytest
 import random
 from amaranth import *
 from amaranth.sim import *
-from amaranth.lib.data import StructLayout
+from amaranth.lib.data import ArrayLayout, StructLayout
 
 from transactron.testing import TestCaseWithSimulator, TestbenchIO, data_layout, SimpleTestCircuit
 
@@ -157,6 +157,31 @@ class TestDefMethods(TestCaseWithSimulator):
                 val = random.randrange(0, 2**3)
                 ret = await method.call(sim, foo=val)
                 assert ret["foo"] == (val + k) % 2**3
+
+        with self.run_simulation(circuit) as sim:
+            sim.add_testbench(test_process)
+
+    class FlatCircuitTestModule(Elaboratable):
+        def __init__(self):
+            self.methods = Methods(4, i=3, o=3)
+
+        def elaborate(self, platform):
+            m = TModule()
+
+            @def_methods(m, self.methods)
+            def _(idx: int, arg: Value):
+                return arg + idx
+
+            return m
+
+    def test_flat_methods(self):
+        circuit = SimpleTestCircuit(TestDefMethods.FlatCircuitTestModule())
+
+        async def test_process(sim):
+            for k, method in enumerate(circuit.methods):
+                val = random.randrange(0, 2**3)
+                ret = await method.call(sim, val)
+                assert ret == (val + k) % 2**3
 
         with self.run_simulation(circuit) as sim:
             sim.add_testbench(test_process)
@@ -465,6 +490,30 @@ class Quadruple2(Elaboratable):
         return m
 
 
+class QuadrupleFlat(Elaboratable):
+    def __init__(self):
+        self.id = Method(i=WIDTH, o=WIDTH)
+        self.double = Method(i=WIDTH, o=WIDTH)
+        self.quadruple = Method(i=WIDTH, o=WIDTH)
+
+    def elaborate(self, platform):
+        m = TModule()
+
+        @def_method(m, self.id)
+        def _(arg):
+            return arg
+
+        @def_method(m, self.double)
+        def _(arg):
+            return self.id(m, arg) * 2
+
+        @def_method(m, self.quadruple)
+        def _(arg):
+            return self.double(m, arg) * 2
+
+        return m
+
+
 class TestQuadrupleCircuits(TestCaseWithSimulator):
     @pytest.mark.parametrize("quadruple", [Quadruple, Quadruple2])
     def test(self, quadruple):
@@ -474,6 +523,51 @@ class TestQuadrupleCircuits(TestCaseWithSimulator):
             for n in range(1 << (WIDTH - 2)):
                 out = await circ.tb.call(sim, data=n)
                 assert out["data"] == n * 4
+
+        with self.run_simulation(circ) as sim:
+            sim.add_testbench(process)
+
+    def test_flat(self):
+        circ = QuadrupleCircuit(QuadrupleFlat())
+
+        async def process(sim):
+            for n in range(1 << (WIDTH - 2)):
+                out = await circ.tb.call(sim, n)
+                assert out == n * 4
+
+        with self.run_simulation(circ) as sim:
+            sim.add_testbench(process)
+
+
+class ShapesCircuit(Elaboratable):
+    def __init__(self):
+        self.sum = Method(i=ArrayLayout(WIDTH, 4), o=WIDTH + 2)
+        self.split = Method(i=[("data", WIDTH)], o=ArrayLayout(WIDTH // 2, 2))
+
+    def elaborate(self, platform):
+        m = TModule()
+
+        @def_method(m, self.sum)
+        def _(arg):
+            return sum(arg[i] for i in range(4))
+
+        @def_method(m, self.split)
+        def _(data):
+            return [data[: WIDTH // 2], data[WIDTH // 2 :]]
+
+        return m
+
+
+class TestShapes(TestCaseWithSimulator):
+    def test_shapes(self):
+        circ = SimpleTestCircuit(ShapesCircuit())
+
+        async def process(sim):
+            for _ in range(32):
+                xs = [random.randrange(1 << WIDTH) for _ in range(4)]
+                assert await circ.sum.call(sim, xs) == sum(xs)
+                x = random.randrange(1 << WIDTH)
+                assert list(await circ.split.call(sim, data=x)) == [x % (1 << WIDTH // 2), x >> WIDTH // 2]
 
         with self.run_simulation(circ) as sim:
             sim.add_testbench(process)
