@@ -161,6 +161,31 @@ class TestDefMethods(TestCaseWithSimulator):
         with self.run_simulation(circuit) as sim:
             sim.add_testbench(test_process)
 
+    class FlatCircuitTestModule(Elaboratable):
+        def __init__(self):
+            self.methods = Methods(4, i=3, o=3)
+
+        def elaborate(self, platform):
+            m = TModule()
+
+            @def_methods(m, self.methods)
+            def _(idx: int, arg: Value):
+                return arg + idx
+
+            return m
+
+    def test_flat_methods(self):
+        circuit = SimpleTestCircuit(TestDefMethods.FlatCircuitTestModule())
+
+        async def test_process(sim):
+            for k, method in enumerate(circuit.methods):
+                val = random.randrange(0, 2**3)
+                ret = await method.call(sim, val)
+                assert ret == (val + k) % 2**3
+
+        with self.run_simulation(circuit) as sim:
+            sim.add_testbench(test_process)
+
 
 class AdapterCircuit(Elaboratable):
     def __init__(self, module, methods: list[Method]):

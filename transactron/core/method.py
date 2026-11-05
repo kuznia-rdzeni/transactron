@@ -14,7 +14,6 @@ from .transaction_base import *
 from contextlib import AbstractContextManager, contextmanager
 from warnings import deprecated
 from transactron.utils.assign import AssignArg
-from transactron.utils.typing import type_self_add_1pos_kwargs_as
 
 from .body import Body, BodyParams, MBody
 from .keys import DefinedMethodsKey, ProvidedMethodsKey
@@ -568,30 +567,114 @@ class Method[I: Shape | ShapeCastable = StructLayout, O: Shape | ShapeCastable =
         return [self.ready, self.run, self.data_in, self.data_out]
 
 
-class Methods(Sequence[Method]):
-    @type_self_add_1pos_kwargs_as(Method.__init__)
-    def __init__(self, count: int, **kwargs):
+class Methods[I: Shape | ShapeCastable = StructLayout, O: Shape | ShapeCastable = StructLayout](Sequence[Method[I, O]]):
+    # See `Method.__init__` for the explanation of the overloads.
+    @overload
+    def __init__(
+        self,
+        count: int,
+        *,
+        name: str | None = None,
+        i: LayoutIterable | I = (),
+        o: LayoutIterable | O = (),
+        src_loc: int | SrcLoc = 0,
+    ) -> None: ...
+
+    @overload
+    def __init__(
+        self: "Methods[Shape, StructLayout]",
+        count: int,
+        *,
+        name: str | None = None,
+        i: _FlatShape,
+        o: LayoutIterable = (),
+        src_loc: int | SrcLoc = 0,
+    ) -> None: ...
+
+    @overload
+    def __init__[O2: Shape | ShapeCastable](
+        self: "Methods[Shape, O2]",
+        count: int,
+        *,
+        name: str | None = None,
+        i: _FlatShape,
+        o: O2,
+        src_loc: int | SrcLoc = 0,
+    ) -> None: ...
+
+    @overload
+    def __init__(
+        self: "Methods[StructLayout, Shape]",
+        count: int,
+        *,
+        name: str | None = None,
+        i: LayoutIterable = (),
+        o: _FlatShape,
+        src_loc: int | SrcLoc = 0,
+    ) -> None: ...
+
+    @overload
+    def __init__[I2: Shape | ShapeCastable](
+        self: "Methods[I2, Shape]",
+        count: int,
+        *,
+        name: str | None = None,
+        i: I2,
+        o: _FlatShape,
+        src_loc: int | SrcLoc = 0,
+    ) -> None: ...
+
+    @overload
+    def __init__(
+        self: "Methods[Shape, Shape]",
+        count: int,
+        *,
+        name: str | None = None,
+        i: _FlatShape,
+        o: _FlatShape,
+        src_loc: int | SrcLoc = 0,
+    ) -> None: ...
+
+    def __init__(
+        self,
+        count: int,
+        *,
+        name: str | None = None,
+        i: LayoutIterable | ShapeLike = (),
+        o: LayoutIterable | ShapeLike = (),
+        src_loc: int | SrcLoc = 0,
+    ):
         if count < 0:
             raise ValueError("count should be at least 0")
         _, owner_name = get_caller_class_name(default="$method")
-        self.name = kwargs["name"] if "name" in kwargs else tracer.get_var_name(depth=2, default=owner_name)
-        if "src_loc" not in kwargs:
-            kwargs["src_loc"] = 0
-        if isinstance(kwargs["src_loc"], int):
-            kwargs["src_loc"] += 1
-        self._methods = [Method(**{**kwargs, "name": f"{self.name}{i}"}) for i in range(count)]
-        self._layout_in = from_method_layout(kwargs["i"] if "i" in kwargs else ())
-        self._layout_out = from_method_layout(kwargs["o"] if "o" in kwargs else ())
+        self.name = name if name is not None else tracer.get_var_name(depth=2, default=owner_name)
+        if isinstance(src_loc, int):
+            src_loc += 1
+        self._shape_in: I = _method_shape(i)  # type: ignore  # checked by the overloads
+        self._shape_out: O = _method_shape(o)  # type: ignore  # checked by the overloads
+        self._methods: list[Method[I, O]] = [
+            Method(name=f"{self.name}{k}", i=self._shape_in, o=self._shape_out, src_loc=src_loc) for k in range(count)
+        ]
 
     @property
-    def layout_in(self):
-        return self._layout_in
+    def shape_in(self) -> I:
+        return self._shape_in
 
     @property
-    def layout_out(self):
-        return self._layout_out
+    def shape_out(self) -> O:
+        return self._shape_out
 
-    def provide(self, methods: Iterable[Method]):
+    @property
+    @deprecated("Use `shape_in` instead.")
+    def layout_in(self) -> I:
+        return self._shape_in
+
+    @property
+    @deprecated("Use `shape_out` instead.")
+    def layout_out(self) -> O:
+        return self._shape_out
+
+    def provide(self, methods: Iterable[Method[Any, Any]]):
         """Provide methods' definition using another set of methods.
 
         The calls to `i`-th method will be forwarded to `i`-th method of
@@ -608,20 +691,60 @@ class Methods(Sequence[Method]):
         for self_method, method in zip(self, methods):
             self_method.provide(method)
 
+    @overload
+    def __call__[L: Layout](
+        self: "Methods[Any, L]",
+        m: TModule,
+        arg: AssignArg | None = None,
+        /,
+        enable_call: ValueLike = ...,
+        **kwargs: AssignArg,
+    ) -> View[L]: ...
+
+    @overload
+    def __call__[T: MethodData](
+        self: "Methods[Any, ShapeCastable[T]]",
+        m: TModule,
+        arg: AssignArg | None = None,
+        /,
+        enable_call: ValueLike = ...,
+        **kwargs: AssignArg,
+    ) -> T: ...
+
+    @overload
+    def __call__(
+        self: "Methods[Any, Shape]",
+        m: TModule,
+        arg: AssignArg | None = None,
+        /,
+        enable_call: ValueLike = ...,
+        **kwargs: AssignArg,
+    ) -> Signal: ...
+
+    @overload
+    def __call__(
+        self: "Methods[Any, Any]",
+        m: TModule,
+        arg: AssignArg | None = None,
+        /,
+        enable_call: ValueLike = ...,
+        **kwargs: AssignArg,
+    ) -> MethodData: ...
+
     def __call__(
         self, m: TModule, arg: AssignArg | None = None, /, enable_call: ValueLike = C(1), **kwargs: AssignArg
-    ) -> MethodStruct:
+    ) -> Any:
         if len(self._methods) != 1:
             raise RuntimeError("calling Methods only allowed when count=1")
         return self._methods[0](m, arg, enable_call, **kwargs)
 
     @overload
-    def __getitem__(self, key: int) -> Method: ...
+    def __getitem__(self, key: int) -> Method[I, O]: ...
 
     @overload
-    def __getitem__(self, key: slice) -> Sequence[Method]: ...
+    def __getitem__(self, key: slice) -> Sequence[Method[I, O]]: ...
 
-    def __getitem__(self, key: int | slice) -> Method | Sequence[Method]:
+    def __getitem__(self, key: int | slice) -> Method[I, O] | Sequence[Method[I, O]]:
         return self._methods[key]
 
     def __len__(self) -> int:
