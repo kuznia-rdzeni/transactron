@@ -14,12 +14,14 @@ from amaranth.lib.data import StructLayout, View
 from amaranth_types import ShapeLike, ValueLike
 
 __all__ = [
+    "DebugBundle",
     "Graph",
     "GraphCC",
     "HasDebugSignals",
     "LayoutIterable",
     "LayoutList",
     "LayoutListField",
+    "MethodData",
     "MethodLayout",
     "MethodStruct",
     "NameIntDict",
@@ -37,6 +39,7 @@ type LayoutList = list[LayoutListField]
 type LayoutIterable = Iterable[LayoutListField]
 type MethodLayout = StructLayout | LayoutIterable
 MethodStruct: TypeAlias = "View[StructLayout]"  # noqa: UP040 # defined as TypeAlias because of def_method logic
+type MethodData = Value | ValueCastable
 
 type NameIntDict = Mapping[str, int | NameIntDict]
 type NameValueDict = Mapping[str, ValueLike | NameValueDict]

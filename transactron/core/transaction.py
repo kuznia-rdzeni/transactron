@@ -2,7 +2,7 @@ from amaranth.lib.data import StructLayout
 from amaranth import *
 from amaranth import tracer
 from amaranth_types import SrcLoc, ValueLike
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Any, Optional  # noqa: F401 used in a string type argument
 from collections.abc import Iterator
 
 from transactron.utils.typing import ValueBundle
@@ -24,7 +24,7 @@ if TYPE_CHECKING:
 __all__ = ["Transaction"]
 
 
-class Transaction(TransactionBase["Transaction | Method"]):
+class Transaction(TransactionBase["Transaction | Method[Any, Any]"]):
     """Transaction.
 
     A `Transaction` represents a task which needs to be regularly done.
@@ -93,7 +93,7 @@ class Transaction(TransactionBase["Transaction | Method"]):
     def _set_impl(self, m: TModule, value: Body):
         if self._body_ptr is not None:
             raise RuntimeError(f"Transaction '{self.name}' {self.src_loc} already defined")
-        if value.data_in.shape().size != 0 or value.data_out.shape().size != 0:
+        if len(Value.cast(value.data_in)) != 0 or len(Value.cast(value.data_out)) != 0:
             raise ValueError(f"Transaction body {value.name} {value.src_loc} has invalid interface")
         self._body_ptr = value
         m.d.top_comb += self.ready.eq(value.ready)

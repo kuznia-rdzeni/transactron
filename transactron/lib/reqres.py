@@ -147,9 +147,9 @@ class Serializer(Elaboratable):
             How many stack frames deep the source location is taken from.
             Alternatively, the source location to use instead of the default.
         """
-        if serialized_req_method.layout_out.size != 0:
+        if serialized_req_method.shape_out.size != 0:
             raise ValueError("serialized_req_method must not return values")
-        if serialized_resp_method.layout_in.size != 0:
+        if serialized_resp_method.shape_in.size != 0:
             raise ValueError("serialized_resp_method must not accept arguments")
 
         self.src_loc = get_src_loc(src_loc)
@@ -162,8 +162,8 @@ class Serializer(Elaboratable):
         self.id_layout = [("id", range(self.port_count))]
 
         self.clear = Method()
-        self.serialize_in = Methods(port_count, i=serialized_req_method.layout_in, src_loc=self.src_loc)
-        self.serialize_out = Methods(port_count, o=serialized_resp_method.layout_out, src_loc=self.src_loc)
+        self.serialize_in = Methods(port_count, i=serialized_req_method.shape_in, src_loc=self.src_loc)
+        self.serialize_out = Methods(port_count, o=serialized_resp_method.shape_out, src_loc=self.src_loc)
 
     def elaborate(self, platform) -> TModule:
         m = TModule()

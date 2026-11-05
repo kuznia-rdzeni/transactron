@@ -3,6 +3,7 @@ from collections.abc import Callable, Iterable, Sequence, Collection, Mapping
 import textwrap
 from dataclasses import dataclass
 from os import environ
+from typing import Any
 from amaranth import *
 from itertools import chain, filterfalse, product
 import networkx
@@ -39,7 +40,7 @@ def call_paths_exclusive(path1: tuple[CtrlPath, ...], path2: tuple[CtrlPath, ...
 class CallInfo:
     ancestors: tuple[MBody, ...]
     call_path: tuple[CtrlPath, ...]
-    arg: MethodStruct
+    arg: MethodData
     enable: Value
 
 
@@ -312,8 +313,8 @@ class TransactionManager(Elaboratable):
     @staticmethod
     def _method_calls(
         m: Module, method_map: MethodMap
-    ) -> tuple[Mapping[MBody, Sequence[MethodStruct]], Mapping[MBody, Sequence[Value]]]:
-        args = defaultdict[MBody, list[MethodStruct]](list)
+    ) -> tuple[Mapping[MBody, Sequence[MethodData]], Mapping[MBody, Sequence[Value]]]:
+        args = defaultdict[MBody, list[MethodData]](list)
         runs = defaultdict[MBody, list[Value]](list)
 
         for source in method_map.methods_and_transactions:
@@ -514,7 +515,9 @@ class TransactionManager(Elaboratable):
                 if method.nonexclusive:
                     return Cat(method._validate_arguments(call.enable, call.arg) for call in calls).all()
 
-                combined = OneHotMux.create(m, [(call.enable, call.arg) for call in calls])
+                # The argument can be a `Value` or a `ValueCastable`, which have separate overloads.
+                inputs: list[tuple[Value, Any]] = [(call.enable, call.arg) for call in calls]
+                combined = OneHotMux.create(m, inputs)
                 return method._validate_arguments(Cat(call.enable for call in calls).any(), combined)
 
             runnable_terms = [
@@ -587,9 +590,9 @@ class TransactionManager(Elaboratable):
         graph = OwnershipGraph(fragment)
         method_map = MethodMap(self.transactions, self.methods)
         for method, transactions in method_map.transactions_by_method.items():
-            if len(method.data_in.as_value()) > len(method.data_out.as_value()):
+            if len(Value.cast(method.data_in)) > len(Value.cast(method.data_out)):
                 direction = Direction.IN
-            elif method.data_in.shape().size < method.data_out.shape().size:
+            elif len(Value.cast(method.data_in)) < len(Value.cast(method.data_out)):
                 direction = Direction.OUT
             else:
                 direction = Direction.INOUT

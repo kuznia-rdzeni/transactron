@@ -38,10 +38,10 @@ class _ProvidedMethodNode(_PipelineNodeProtocol):
         self.method = method
 
     def get_required_fields(self):
-        return self.method.layout_out
+        return self.method.shape_out
 
     def get_generated_fields(self):
-        return self.method.layout_in
+        return self.method.shape_in
 
     def finalize(self, m: TModule, method: Method) -> None:
         self.method.provide(method)
@@ -55,10 +55,10 @@ class _CalledMethodNode(_PipelineNodeProtocol):
         self.method = method
 
     def get_required_fields(self):
-        return self.method.layout_in
+        return self.method.shape_in
 
     def get_generated_fields(self):
-        return self.method.layout_out
+        return self.method.shape_out
 
     def finalize(self, m: TModule, method: Method) -> None:
         m.submodules += ConnectTrans.create(self.method, method)
@@ -404,7 +404,7 @@ class PipelineBuilder(Elaboratable):
         ValueError
             If the clear method has input or output fields.
         """
-        if method.layout_in.members or method.layout_out.members:
+        if method.shape_in.members or method.shape_out.members:
             raise ValueError("Clear methods cannot have input or output fields")
         self._clear_methods.append(method)
 
@@ -492,9 +492,9 @@ class PipelineBuilder(Elaboratable):
                     m.d.top_comb += assign(out_data, in_data, fields=AssignType.LHS)
 
                 if write_method is not None:
-                    collected = Signal(write_method.layout_in)
+                    collected = Signal(write_method.shape_in)
 
-                    for k in write_method.layout_in.members.keys():
+                    for k in write_method.shape_in.members.keys():
                         if k in in_layout.members.keys():
                             m.d.top_comb += collected[k].eq(arg[k])
                         else:
@@ -505,7 +505,7 @@ class PipelineBuilder(Elaboratable):
                 return out_data
 
             if node.no_dependency:
-                m.submodules[f"{i}_nodep"] = nodep = Pipe(stage_method.layout_in)
+                m.submodules[f"{i}_nodep"] = nodep = Pipe(stage_method.shape_in)
                 node.node.finalize(m, nodep.write)
                 m.submodules += ConnectTrans.create(nodep.read, stage_method)
 
@@ -520,7 +520,7 @@ class PipelineBuilder(Elaboratable):
             assert curr_read is not None
             assert prev_write is not None
 
-            m.submodules[f"{i}_forwarder"] = fwd = node.forwarder(prev_write.layout_in)
+            m.submodules[f"{i}_forwarder"] = fwd = node.forwarder(prev_write.shape_in)
             prev_write.provide(fwd.write)
             curr_read.provide(fwd.read)
 

@@ -1,5 +1,5 @@
 from transactron.utils import *
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any  # noqa: F401 used in a string type argument
 from dataclasses import dataclass
 
 if TYPE_CHECKING:
@@ -21,10 +21,10 @@ class TransactionsKey(ListKey["Transaction"]):
 
 
 @dataclass(frozen=True)
-class DefinedMethodsKey(ListKey["Method"]):
+class DefinedMethodsKey(ListKey["Method[Any, Any]"]):
     pass
 
 
 @dataclass(frozen=True)
-class ProvidedMethodsKey(ListKey["Method"]):
+class ProvidedMethodsKey(ListKey["Method[Any, Any]"]):
     pass

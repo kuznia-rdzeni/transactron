@@ -72,6 +72,44 @@ class TestMethodMock(TestCaseWithSimulator):
             pass
 
 
+class FlatMethodMockTestCircuit(Elaboratable):
+    method: Required[Method[Shape, Shape]]
+    wrapper: Provided[Method[Shape, Shape]]
+
+    def __init__(self, width: int):
+        self.method = Method(i=width, o=width)
+        self.wrapper = Method(i=width, o=width)
+
+    def elaborate(self, platform):
+        m = TModule()
+
+        @def_method(m, self.wrapper)
+        def _(arg):
+            return self.method(m, arg) + 1
+
+        return m
+
+
+class TestFlatMethodMock(TestCaseWithSimulator):
+    async def process(self, sim: TestbenchContext):
+        for _ in range(20):
+            val = random.randrange(2**self.width)
+            ret = await self.dut.wrapper.call(sim, val)
+            assert ret == (val + 2) % 2**self.width
+
+    @def_method_mock(lambda self: self.dut.method, enable=lambda _: random.randint(0, 1))
+    def method_mock(self, arg):
+        return arg + 1
+
+    def test_method_mock_flat(self):
+        random.seed(42)
+        self.width = 4
+        self.dut = SimpleTestCircuit(FlatMethodMockTestCircuit(self.width))
+
+        with self.run_simulation(self.dut) as sim:
+            sim.add_testbench(self.process)
+
+
 class ReverseMethodMockTestCircuit(Elaboratable):
     def __init__(self, width):
         self.method = Method(i=StructLayout({"input": width}), o=StructLayout({"output": width}))

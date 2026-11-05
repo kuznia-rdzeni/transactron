@@ -3,7 +3,7 @@ import sys
 from contextlib import contextmanager
 from typing import Any, Concatenate, TypeIs
 from collections.abc import Callable, Mapping, Sequence, Iterable
-from .typing import ROGraph, GraphCC, MethodLayout, MethodStruct, LayoutList, LayoutListField
+from .typing import ROGraph, GraphCC, MethodData, MethodLayout, MethodStruct, LayoutList, LayoutListField
 from amaranth_types import SrcLoc, ShapeLike
 from inspect import Parameter, signature
 from itertools import count
@@ -111,16 +111,20 @@ def mock_def_helper[T](tb, func: Callable[..., T], arg: Mapping[str, Any]) -> T:
     return def_helper(f"mock definition for {tb}", func, Mapping[str, Any], arg, **arg)
 
 
-def async_mock_def_helper[T](tb, func: Callable[..., T], arg: "data.Const[StructLayout]") -> T:
-    marg = {}
-    for k, _ in arg.shape():
-        marg[k] = arg[k]
-    return def_helper(f"mock definition for {tb}", func, Mapping[str, Any], marg, **marg)
+def async_mock_def_helper[T](tb, func: Callable[..., T], arg: Any) -> T:
+    if isinstance(arg, data.Const) and isinstance(layout := arg.shape(), StructLayout):
+        marg = {}
+        for k, _ in layout:
+            marg[k] = arg[k]
+        return def_helper(f"mock definition for {tb}", func, Mapping[str, Any], marg, **marg)
+    return func(arg)
 
 
-def method_def_helper[T](method, func: Callable[..., T], arg: MethodStruct) -> T:
-    kwargs = {k: arg[k] for k in arg.shape().members}
-    return def_helper(f"method definition for {method}", func, MethodStruct, arg, **kwargs)  # type: ignore
+def method_def_helper[T](method, func: Callable[..., T], arg: MethodData) -> T:
+    if isinstance(arg, data.View) and isinstance(layout := arg.shape(), StructLayout):
+        kwargs = {k: arg[k] for k in layout.members}
+        return def_helper(f"method definition for {method}", func, MethodStruct, arg, **kwargs)  # type: ignore
+    return func(arg)
 
 
 def get_caller_class_name(default: str | None = None) -> tuple[Elaboratable | None, str]:

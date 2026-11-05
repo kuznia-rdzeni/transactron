@@ -72,7 +72,7 @@ class AdapterTrans(AdapterBase):
         """
         self.src_loc = get_src_loc(src_loc)
         method = Method(name=name, i=i, o=o, src_loc=self.src_loc)
-        super().__init__(method, method.layout_in, method.layout_out)
+        super().__init__(method, method.shape_in, method.shape_out)
 
     @staticmethod
     def create(method: Method, *, src_loc: int | SrcLoc = 0):
@@ -87,7 +87,7 @@ class AdapterTrans(AdapterBase):
             Alternatively, the source location to use instead of the default.
         """
         src_loc = get_src_loc(src_loc)
-        adapter = AdapterTrans(name=method.name, i=method.layout_in, o=method.layout_out, src_loc=src_loc)
+        adapter = AdapterTrans(name=method.name, i=method.shape_in, o=method.shape_out, src_loc=src_loc)
         adapter.iface.provide(method)
         return adapter
 
@@ -157,7 +157,7 @@ class Adapter(AdapterBase):
             See `transactron.core.Method.body` for parameters description.
         """
         method = Method(name=name, i=i, o=o, src_loc=get_src_loc(src_loc))
-        super().__init__(method, method.layout_out, method.layout_in)
+        super().__init__(method, method.shape_out, method.shape_in)
         self.validators: list[tuple[View[StructLayout], Signal]] = []
         self.with_validate_arguments: bool = False
         self.kwargs = kwargs
@@ -178,7 +178,7 @@ class Adapter(AdapterBase):
             See `transactron.core.Method.body` for parameters description.
         """
         src_loc = get_src_loc(src_loc)
-        adapter = Adapter(name=method.name, i=method.layout_in, o=method.layout_out, src_loc=src_loc, **kwargs)
+        adapter = Adapter(name=method.name, i=method.shape_in, o=method.shape_out, src_loc=src_loc, **kwargs)
         method.provide(adapter.iface)
         return adapter
 

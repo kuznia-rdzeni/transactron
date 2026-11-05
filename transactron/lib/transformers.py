@@ -141,7 +141,7 @@ class MethodMap(Elaboratable, TransformerOneTarget):
         """
         src_loc = get_src_loc(src_loc)
         tr = MethodMap(
-            target.layout_in, target.layout_out, i_transform=i_transform, o_transform=o_transform, src_loc=src_loc
+            target.shape_in, target.shape_out, i_transform=i_transform, o_transform=o_transform, src_loc=src_loc
         )
         tr.target.provide(target)
         return tr
@@ -207,7 +207,7 @@ class MethodFilter(Elaboratable, TransformerOneTarget):
         src_loc = get_src_loc(src_loc)
         self.method = Method(i=i_layout, o=o_layout, src_loc=src_loc)
         self.condition = condition
-        self.default = default if default is not None else Signal(self.target.layout_out)
+        self.default = default if default is not None else Signal(self.target.shape_out)
 
         assert not (use_condition and isinstance(condition, Method))
 
@@ -237,7 +237,7 @@ class MethodFilter(Elaboratable, TransformerOneTarget):
         """
         src_loc = get_src_loc(src_loc)
         tr = MethodFilter(
-            target.layout_in, target.layout_out, condition, default, use_condition=use_condition, src_loc=src_loc
+            target.shape_in, target.shape_out, condition, default, use_condition=use_condition, src_loc=src_loc
         )
         tr.target.provide(target)
         return tr
@@ -327,8 +327,8 @@ class MethodProduct(Elaboratable, Unifier):
         targets = list(targets)
         src_loc = get_src_loc(src_loc)
         tr = MethodProduct(
-            i_layout=targets[0].layout_in,
-            o_layouts=[target.layout_out for target in targets],
+            i_layout=targets[0].shape_in,
+            o_layouts=[target.shape_out for target in targets],
             combiner=combiner,
             src_loc=src_loc,
         )
@@ -411,9 +411,7 @@ class MethodTryProduct(Elaboratable, Unifier):
         """
         targets = list(targets)
         src_loc = get_src_loc(src_loc)
-        tr = MethodTryProduct(
-            targets[0].layout_in, [target.layout_out for target in targets], combiner, src_loc=src_loc
-        )
+        tr = MethodTryProduct(targets[0].shape_in, [target.shape_out for target in targets], combiner, src_loc=src_loc)
         for m1, m2 in zip(tr.targets, targets):
             m1.provide(m2)
         return tr
@@ -471,7 +469,7 @@ class Collector(Elaboratable, Unifier):
         """
         targets = list(targets)
         src_loc = get_src_loc(src_loc)
-        tr = Collector(len(targets), targets[0].layout_out)
+        tr = Collector(len(targets), targets[0].shape_out)
         for m1, m2 in zip(tr.targets, targets):
             m1.provide(m2)
         return tr
@@ -479,7 +477,7 @@ class Collector(Elaboratable, Unifier):
     def elaborate(self, platform):
         m = TModule()
 
-        m.submodules.forwarder = forwarder = Forwarder(self.method.layout_out, src_loc=self.src_loc)
+        m.submodules.forwarder = forwarder = Forwarder(self.method.shape_out, src_loc=self.src_loc)
         m.submodules.connect = CrossbarConnectTrans.create(self.targets, forwarder.write, src_loc=self.src_loc)
 
         self.method.provide(forwarder.read)
@@ -525,7 +523,7 @@ class NonexclusiveWrapper(Elaboratable, TransformerOneTarget):
             Alternatively, the source location to use instead of the default.
         """
         src_loc = get_src_loc(src_loc)
-        tr = NonexclusiveWrapper(target.layout_in, target.layout_out)
+        tr = NonexclusiveWrapper(target.shape_in, target.shape_out)
         tr.target.provide(target)
         return tr
 
@@ -534,7 +532,7 @@ class NonexclusiveWrapper(Elaboratable, TransformerOneTarget):
 
         def combiner(m: Module, args: Sequence[MethodStruct], runs: Value):
             log.top_assertion(popcount(runs) <= 1, "NonexclusiveWrapper: more than one method call in a single cycle")
-            return Body._default_combiner(self.target.layout_in)(m, args, runs)
+            return Body._default_combiner(self.target.shape_in)(m, args, runs)
 
         @def_method(m, self.method, nonexclusive=True, combiner=combiner)
         def _(arg):

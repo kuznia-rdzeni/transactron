@@ -56,7 +56,7 @@ class CallTrigger:
                 new_calls_and_values.append(value)
         return CallTrigger(self.sim, (*self.calls_and_values, *new_calls_and_values))
 
-    def call(self, tbio: "TestbenchIO", data: dict[str, Any] = {}, /, **kwdata):
+    def call(self, tbio: "TestbenchIO", data: Any = None, /, **kwdata):
         """Call a method and sample its result.
 
         Adds a method call to the trigger. The method result is sampled on a clock edge. If the call did not
@@ -66,15 +66,16 @@ class CallTrigger:
         ----------
         tbio: TestbenchIO
             The method to call.
-        data: dict[str, Any]
-            Method call arguments stored in a dict.
+        data: Any
+            Method call arguments stored in a dict, or a value for methods
+            which don't use struct layouts.
         **kwdata: Any
             Method call arguments passed as keyword arguments. If keyword arguments are used,
             the `data` argument should not be provided.
         """
-        if data and kwdata:
+        if data is not None and kwdata:
             raise TypeError("call() takes either a single dict or keyword arguments")
-        return CallTrigger(self.sim, (*self.calls_and_values, (tbio, data or kwdata)))
+        return CallTrigger(self.sim, (*self.calls_and_values, (tbio, kwdata if data is None else data)))
 
     async def until_done(self) -> Any:
         """Wait until at least one of the calls succeeds.
@@ -181,10 +182,10 @@ class TestbenchIO(Elaboratable):
 
     # Operations for AdapterTrans
 
-    def call_init(self, sim: SimulatorContext, data={}, /, **kwdata):
-        if data and kwdata:
+    def call_init(self, sim: SimulatorContext, data=None, /, **kwdata):
+        if data is not None and kwdata:
             raise TypeError("call_init() takes either a single dict or keyword arguments")
-        if not data:
+        if data is None:
             data = kwdata
         self.enable(sim)
         self.set_inputs(sim, data)
@@ -205,8 +206,8 @@ class TestbenchIO(Elaboratable):
         self.disable(sim)
         return outputs
 
-    async def call_try(self, sim: SimulatorContext, data={}, /, **kwdata) -> MethodData | None:
+    async def call_try(self, sim: SimulatorContext, data=None, /, **kwdata) -> MethodData | None:
         return (await CallTrigger(sim).call(self, data, **kwdata))[0]
 
-    async def call(self, sim: SimulatorContext, data={}, /, **kwdata) -> MethodData:
+    async def call(self, sim: SimulatorContext, data=None, /, **kwdata) -> MethodData:
         return (await CallTrigger(sim).call(self, data, **kwdata).until_done())[0]
