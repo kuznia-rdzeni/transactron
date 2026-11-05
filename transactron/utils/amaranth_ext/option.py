@@ -130,11 +130,13 @@ class OptionView[T: ShapeLike](ValueCastable):
                     f"Cannot assign value with shape {other.shape()} to an option view with shape {self.shape()}"
                 )
         try:
-            # Special-case for consts, for efficient setting to empty
             c = Const.cast(other)
-            return self.valid.eq(c & 1)
         except TypeError:
             return self.as_value().eq(other)
+        if not c.value & 1:
+            # Special-case for empty consts: data bits are don't-care, assign only the valid bit
+            return self.valid.eq(0)
+        return self.as_value().eq(c)
 
     def data_eq(self, other: ValueLike | None) -> Assign:
         """Create an assignment of ``other`` to this option's data.
@@ -251,11 +253,12 @@ class Option[T: ShapeLike](ShapeCastable[OptionView[T]]):
     def as_shape(self) -> data.StructLayout:
         return self._internal_shape
 
-    def const(self, init) -> "data.Const[data.StructLayout]":
+    def const(self, init) -> OptionView[T]:
         if init is None:
-            return self._internal_shape.const({"valid": 0})
+            c = self._internal_shape.const({"valid": 0})
         else:
-            return self._internal_shape.const({"valid": 1, "data": init})
+            c = self._internal_shape.const({"valid": 1, "data": init})
+        return self(Const.cast(c))
 
     def __call__(self, target: ValueLike | None) -> OptionView[T]:
         if isinstance(target, (Value, ValueCastable)) and target.shape() == Shape.cast(self):
