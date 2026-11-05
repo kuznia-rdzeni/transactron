@@ -207,11 +207,11 @@ class Pipe(Elaboratable):
         @def_method(m, self.read, ready=reg.valid)
         def _():
             m.d.sync += reg.data_eq(None)
-            return reg.data()
+            return reg.data
 
         @def_method(m, self.peek, ready=reg.valid, nonexclusive=True)
         def _():
-            return reg.data()
+            return reg.data
 
         @def_method(m, self.write, ready=~reg.valid | self.read.run)
         def _(arg):

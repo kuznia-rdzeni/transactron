@@ -1,6 +1,6 @@
 from collections.abc import Generator
 from contextlib import contextmanager
-from typing import overload, Any
+from typing import overload, Any, Self
 from amaranth import Cat, Const, Format, Shape, ShapeCastable, Signal, Value, ValueCastable
 from amaranth.hdl._ast import Assign
 from amaranth_types import FlatShapeLike, ModuleLike, ShapeLike, ValueLike
@@ -8,6 +8,28 @@ from amaranth.lib import data
 
 
 __all__ = ["OptionView", "Option"]
+
+
+class _OptionDataDescriptor:
+    # A descriptor is used instead of a property, because properties cannot
+    # be overloaded on the type of ``self``.
+
+    @overload
+    def __get__(self, instance: None, owner: Any) -> Self: ...
+
+    @overload
+    def __get__(self, instance: "OptionView[FlatShapeLike]", owner: Any) -> Value: ...
+
+    @overload
+    def __get__[U: ValueCastable](self, instance: "OptionView[ShapeCastable[U]]", owner: Any) -> U: ...
+
+    @overload
+    def __get__(self, instance: "OptionView[Any]", owner: Any) -> Value | ValueCastable: ...
+
+    def __get__(self, instance: "OptionView[Any] | None", owner: Any) -> "Value | ValueCastable | Self":
+        if instance is None:
+            return self
+        return instance._target.data
 
 
 class OptionView[T: ShapeLike](ValueCastable):
@@ -55,25 +77,12 @@ class OptionView[T: ShapeLike](ValueCastable):
         """Whether the option currently holds a value."""
         return self._target.valid
 
-    @overload
-    def data(self: "OptionView[FlatShapeLike]") -> Value:  # type: ignore
-        ...
+    data = _OptionDataDescriptor()
+    """The contained data. Only meaningful when ``valid`` is asserted.
 
-    @overload
-    def data[U: ValueCastable](self: "OptionView[ShapeCastable[U]]") -> U:  # type: ignore
-        ...
-
-    @overload
-    def data(self) -> Value | ValueCastable:  # type: ignore
-        ...
-
-    def data(self) -> Value | ValueCastable:
-        """The contained data. Only meaningful when ``valid`` is asserted.
-
-        Prefer using ``with_data`` and ``eq_data``, if applicable. This helps
-        avoid errors where ``valid`` bit is ignored or not updated by mistake.
-        """
-        return self._target.data
+    Prefer using ``with_data`` and ``eq_data``, if applicable. This helps
+    avoid errors where ``valid`` bit is ignored or not updated by mistake.
+    """
 
     @overload
     @contextmanager
@@ -99,7 +108,7 @@ class OptionView[T: ShapeLike](ValueCastable):
             The module to add the ``m.If(self.valid)`` conditional to.
         """
         with m.If(self.valid):
-            yield self.data()  # type: ignore
+            yield self.data  # type: ignore
 
     def eq(self, other: ValueLike) -> Assign:
         """Create an assignment of ``other`` to this option.
@@ -269,4 +278,4 @@ class Option[T: ShapeLike](ShapeCastable[OptionView[T]]):
             raise ValueError(f"Format specifier {spec!r} is not supported for options")
         if not isinstance(obj, OptionView):
             obj = self(obj)
-        return Format("Option({}, {})", obj.valid, obj.data())
+        return Format("Option({}, {})", obj.valid, obj.data)
