@@ -7,7 +7,7 @@ from amaranth_types import FlatShapeLike, ModuleLike, ShapeLike, ValueLike
 from amaranth.lib import data
 
 
-__all__ = ["OptionView", "Option"]
+__all__ = ["Option", "OptionView"]
 
 
 class _OptionDataDescriptor:
@@ -80,7 +80,7 @@ class OptionView[T: ShapeLike](ValueCastable):
     data = _OptionDataDescriptor()
     """The contained data. Only meaningful when ``valid`` is asserted.
 
-    Prefer using ``with_data`` and ``eq_data``, if applicable. This helps
+    Prefer using ``with_data`` and ``data_eq``, if applicable. This helps
     avoid errors where ``valid`` bit is ignored or not updated by mistake.
     """
 
