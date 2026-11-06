@@ -205,6 +205,21 @@ def shape_of(value: ValueLike) -> Shape | ShapeCastable:
 
 
 def const_of(value: int, shape: ShapeLike) -> Any:
+    """Creates a constant of a given shape from its bit representation.
+
+    Parameters
+    ----------
+    value : int
+        The bit representation of the constant.
+    shape : ShapeLike
+        The shape of the constant.
+
+    Returns
+    -------
+    Any
+        For a ``ShapeCastable``, the result of ``shape.from_bits(value)``.
+        Otherwise, a ``Const`` of the given shape.
+    """
     if isinstance(shape, ShapeCastable):
         return shape.from_bits(value)
     else:
@@ -249,6 +264,20 @@ def _uniformize_values(
 
 
 def binary_tree_reduce[T](*values: T, neutral: T, operator: Callable[[T, T], T]) -> T:
+    """Reduces values using a binary operator, arranged in a balanced tree.
+
+    The values are combined pairwise, layer by layer, which gives a circuit
+    of logarithmic depth. The operator is assumed to be associative.
+
+    Parameters
+    ----------
+    *values : T
+        The values to reduce.
+    neutral : T
+        The value returned when no values are given.
+    operator : Callable[[T, T], T]
+        The binary operator used for combining values.
+    """
     min_layers = list(values)
     if not min_layers:
         min_layers.append(neutral)
@@ -261,18 +290,59 @@ def binary_tree_reduce[T](*values: T, neutral: T, operator: Callable[[T, T], T])
 
 
 def sum_value(*values: ValueLike) -> Value:
+    """Computes the sum of the input values.
+
+    The width of the result is large enough to avoid overflow.
+    If no values are given, returns a zero-width constant.
+
+    Parameters
+    ----------
+    *values : ValueLike
+        The values to sum.
+    """
     return binary_tree_reduce(*(Value.cast(v) for v in values), neutral=C(0, 0), operator=operator.add)
 
 
 def or_value(*values: ValueLike) -> Value:
+    """Computes the bitwise OR of the input values.
+
+    If no values are given, returns a zero-width constant.
+
+    Parameters
+    ----------
+    *values : ValueLike
+        The values to OR.
+    """
     return binary_tree_reduce(*(Value.cast(v) for v in values), neutral=C(0, 0), operator=operator.or_)
 
 
 def and_value(*values: ValueLike) -> Value:
+    """Computes the bitwise AND of the input values.
+
+    If no values are given, returns ``C(-1)``, which has all bits set.
+
+    Parameters
+    ----------
+    *values : ValueLike
+        The values to AND.
+    """
     return binary_tree_reduce(*(Value.cast(v) for v in values), neutral=C(-1), operator=operator.and_)
 
 
 def generic_min_value(*values: ValueLike, operator: Callable[[Value, Value], Value]) -> Value:
+    """Selects the minimum of the input values according to a comparison.
+
+    If no values are given, returns ``C(0)``.
+
+    Parameters
+    ----------
+    *values : ValueLike
+        The values to compare.
+    operator : Callable[[Value, Value], Value]
+        The comparison. When ``operator(v1, v2)`` is true, ``v1`` is selected,
+        otherwise ``v2``.
+    """
+
     def binary_min(v1: Value, v2: Value) -> Value:
         return Mux(operator(v1, v2), v1, v2)
 
@@ -280,10 +350,28 @@ def generic_min_value(*values: ValueLike, operator: Callable[[Value, Value], Val
 
 
 def min_value(*values: ValueLike) -> Value:
+    """Computes the minimum of the input values.
+
+    If no values are given, returns ``C(0)``.
+
+    Parameters
+    ----------
+    *values : ValueLike
+        The values to compare.
+    """
     return generic_min_value(*values, operator=operator.lt)
 
 
 def max_value(*values: ValueLike) -> Value:
+    """Computes the maximum of the input values.
+
+    If no values are given, returns ``C(0)``.
+
+    Parameters
+    ----------
+    *values : ValueLike
+        The values to compare.
+    """
     return generic_min_value(*values, operator=operator.gt)
 
 
@@ -317,6 +405,24 @@ def switch_value(
     *,
     src_loc: int | SrcLoc = 0,
 ) -> ValueLike:
+    """Selects a value based on a test value, like a ``switch`` statement.
+
+    Works like Amaranth's ``SwitchValue``, but supports ``ValueCastable``
+    values. If any of the values is a ``ValueCastable``, all of them must have
+    the same shape, and the result has that shape too. Plain constants are
+    converted using the shape's ``const`` method.
+
+    Parameters
+    ----------
+    test : ValueLike
+        The value to match against the case keys.
+    cases : Iterable[tuple[SwitchKey | tuple[SwitchKey, ...] | None, ValueLike]]
+        Pairs of case keys and values. The first matching case is selected.
+        A key of ``None`` matches any value.
+    src_loc : int | SrcLoc, default 0
+        How many stack frames deep the source location is taken from.
+        Alternatively, the source location to use instead of the default.
+    """
     src_loc = get_src_loc(src_loc)
     cases = list(cases)
     shape_cast, values = _uniformize_values(val for _, val in cases)
@@ -345,6 +451,20 @@ def mux(sel: ValueLike, val1: ValueLike, val0: ValueLike) -> ValueLike: ...
 
 
 def mux(sel: ValueLike, val1: ValueLike, val0: ValueLike) -> ValueLike:
+    """Selects one of two values.
+
+    Works like Amaranth's ``Mux``, but supports ``ValueCastable`` values,
+    in the same way as ``switch_value``.
+
+    Parameters
+    ----------
+    sel : ValueLike
+        The selector. If nonzero, ``val1`` is selected, otherwise ``val0``.
+    val1 : ValueLike
+        The value selected when ``sel`` is nonzero.
+    val0 : ValueLike
+        The value selected when ``sel`` is zero.
+    """
     return switch_value(sel, [(0, val0), (None, val1)], src_loc=1)
 
 
