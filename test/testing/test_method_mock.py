@@ -5,7 +5,8 @@ from amaranth.lib.data import StructLayout
 import pytest
 
 from transactron import *
-from transactron.testing import TestCaseWithSimulator, TestbenchContext, SimpleTestCircuit
+from transactron.testing import TestCaseWithSimulator, TestbenchContext, SimpleTestCircuit, TestbenchIO
+from transactron.utils import UniformObject
 from transactron.testing.method_mock import MethodMock, def_method_mock, def_method_mocks
 from transactron.lib import *
 
@@ -180,3 +181,58 @@ class TestMethodMocksEnable(TestCaseWithSimulator):
         with self.run_simulation(self.dut) as sim:
             for k in range(self.count):
                 sim.add_testbench(self.make_process(k))
+
+
+class NestedMethodMocksSub:
+    a: Provided[Method]
+    b: Provided[Method]
+
+    def __init__(self, width: int):
+        self.a = Method(i=StructLayout({"input": width}), o=StructLayout({"output": width}))
+        self.b = Method(i=StructLayout({"input": width}), o=StructLayout({"output": width}))
+
+
+class NestedMethodMocksTestCircuit(Elaboratable):
+    sub: Required[NestedMethodMocksSub]
+    wrapper: Provided[dict[str, Method]]
+
+    def __init__(self, width: int):
+        self.sub = NestedMethodMocksSub(width)
+        self.wrapper = {
+            name: Method(i=StructLayout({"input": width}), o=StructLayout({"output": width})) for name in ["a", "b"]
+        }
+
+    def elaborate(self, platform):
+        m = TModule()
+
+        for name, method in vars(self.sub).items():
+
+            @def_method(m, self.wrapper[name])
+            def _(input):
+                return {"output": method(m, input).output}
+
+        return m
+
+
+class TestNestedObjectMethodMocks(TestCaseWithSimulator):
+    @def_method_mocks(lambda self: self.dut.sub)
+    def method_mock(self, key, input):
+        return {"output": input + {"a": 1, "b": 2}[key]}
+
+    def test_nested_object(self):
+        self.width = 10
+        self.dut = SimpleTestCircuit(NestedMethodMocksTestCircuit(self.width))
+
+        assert isinstance(self.dut.sub, UniformObject)
+        assert set(vars(self.dut.sub)) == {"a", "b"}
+        assert isinstance(self.dut.sub.a, TestbenchIO)
+        assert isinstance(self.dut.wrapper, dict)
+
+        async def process(sim: TestbenchContext):
+            for _ in range(10):
+                val = random.randrange(2**self.width)
+                assert (await self.dut.wrapper["a"].call(sim, input=val)).output == (val + 1) % 2**self.width
+                assert (await self.dut.wrapper["b"].call(sim, input=val)).output == (val + 2) % 2**self.width
+
+        with self.run_simulation(self.dut) as sim:
+            sim.add_testbench(process)
