@@ -32,7 +32,7 @@ class InterfaceMembers(Mapping[str, "InterfaceMember"]):
         return iter(self._dict)
 
 
-type InterfacePart = Method | InterfaceMembers | Sequence["InterfacePart"] | Mapping[str, "InterfacePart"]
+type InterfacePart = Method | InterfaceMembers | Sequence[InterfacePart] | Mapping[str, InterfacePart]
 
 
 def interface_members(obj, cls: type | None = None) -> InterfaceMembers:
