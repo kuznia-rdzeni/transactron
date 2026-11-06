@@ -8,7 +8,7 @@ from enum import Enum
 from amaranth import *
 from amaranth.utils import bits_for, ceil_log2, exact_log2
 
-from transactron.utils import OneHotSwitchDynamic, ValueBundle, logging
+from transactron.utils import OneHotSwitchDynamic, DebugBundle, logging
 from transactron import Method, Methods, def_methods, TModule
 from transactron.lib import WideFifo, AsyncMemoryBank
 from transactron.utils.amaranth_ext.functions import and_value, max_value, min_value, or_value, sum_value, popcount
@@ -486,9 +486,9 @@ class HwExpHistogram(Elaboratable, HwMetric):
         method_min_samples = [sample_or_default(m, C(1 << self.sample_width) - 1) for m in self.add]
         method_max_samples = [sample_or_default(m, C(0)) for m in self.add]
 
-        min_sample = min_value(self.min.value, method_min_samples)
-        max_sample = max_value(self.max.value, method_max_samples)
-        sample_sum = sum_value(self.sum.value, method_max_samples)
+        min_sample = min_value(self.min.value, *method_min_samples)
+        max_sample = max_value(self.max.value, *method_max_samples)
+        sample_sum = sum_value(self.sum.value, *method_max_samples)
 
         m.d.sync += self.min.value.eq(min_sample)
         m.d.sync += self.max.value.eq(max_sample)
@@ -819,7 +819,7 @@ class TaggedLatencyMeasurer(Elaboratable):
         st_stop_init = [2**self.slots_number - 1 for _ in range(len(self.stop))]
         slots_taken_stop = Signal(ArrayLayout(self.slots_number, len(self.stop)), init=st_stop_init)
 
-        m.d.sync += slots_taken.eq(or_value(slots_taken_start, and_value(slots_taken_stop, slots_taken)))
+        m.d.sync += slots_taken.eq(or_value(*slots_taken_start, and_value(*slots_taken_stop, slots_taken)))
 
         epoch = Signal(epoch_width)
 
@@ -922,14 +922,14 @@ class HardwareMetricsManager:
             raise RuntimeError(f"Couldn't find metric '{metric_name}'")
         return metrics[metric_name].signals[reg_name]
 
-    def debug_signals(self) -> ValueBundle:
+    def debug_signals(self) -> DebugBundle:
         """
         Returns tree-like SignalBundle composed of all metric registers.
         """
         metrics = self.get_metrics()
 
         def rec(metric_names: list[str], depth: int = 1):
-            bundle: list[ValueBundle] = []
+            bundle: list[DebugBundle] = []
             components: dict[str, list[str]] = {}
 
             for metric in metric_names:

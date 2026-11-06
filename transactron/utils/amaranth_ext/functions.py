@@ -3,14 +3,13 @@ from amaranth import *
 from amaranth.hdl import ShapeCastable, ValueCastable
 from amaranth.hdl._ast import SwitchValue
 from amaranth.utils import bits_for, ceil_log2
-from amaranth.lib import data, enum
-from collections.abc import Callable, Iterable, Mapping, Sequence
+from amaranth.lib import enum
+from collections.abc import Callable, Iterable, Sequence
 import operator
 
 from amaranth_types import FlatValueLike, ModuleLike, SrcLoc, SwitchKey
 from amaranth_types.types import ValueLike, ShapeLike
 from transactron.utils.transactron_helpers import get_src_loc
-from transactron.utils.typing import ValueBundle
 from transactron.utils.logging import top_assertion
 
 __all__ = [
@@ -22,7 +21,6 @@ __all__ = [
     "count_trailing_zeros",
     "cyclic_mask",
     "extract_lowest_set_bit",
-    "flatten_signals",
     "generic_min_value",
     "mask_after_first_set_bit",
     "mask_before_first_set_bit",
@@ -44,39 +42,87 @@ __all__ = [
 ]
 
 
-def mod_incr(sig: ValueLike, mod: int) -> Value:
-    """
-    Perform `(sig+1) % mod` operation.
+def mod_incr(value: ValueLike, mod: int) -> Value:
+    """Increment a signal modulo a constant.
+
+    Performs ``(value + 1) % mod`` operation. If ``mod`` is a power of two,
+    overflow arithmetic is used for performance.
+
+    Parameters
+    ----------
+    sig : ValueLike
+        The signal to increment. Assumed to be unsigned and less or equal than
+        ``mod``.
+    mod : int
+        The modulus. Must be positive.
     """
     assert mod > 0
-    sig = Value.cast(sig)
+    value = Value.cast(value)
     if not (mod & (mod - 1)):
-        return (sig + 1) & (mod - 1)
-    return Mux(sig == mod - 1, 0, sig + 1)
+        return (value + 1) & (mod - 1)
+    return Mux(value == mod - 1, 0, value + 1)
 
 
-def mod_add(sig: ValueLike, mod: int, incr: ValueLike, max_incr: int):
-    """
-    Perform `(sig+incr) % mod` operation, for `0 < incr <= max_incr`.
+def mod_add(value: ValueLike, mod: int, incr: ValueLike, max_incr: int) -> Value:
+    """Add a signal to another small signal modulo a constant.
+
+    Performs ``(sig + incr) % mod`` operation, for `0 <= incr <= max_incr`.
+    If ``mod`` is a power of two, overflow arithmetic is used for performance.
+    For other values of ``mod``, the circuit size is linear in size with
+    respect to ``max_incr``.
+
+    Parameters
+    ----------
+    sig : ValueLike
+        The signal to add to. Assumed to be unsigned and less or equal than
+        ``mod``.
+    mod : int
+        The modulus. Must be positive.
+    incr : ValueLike
+        The signal to be added. Assumed to be unsigned and less or equal than
+        ``max_incr``.
+    max_incr : int
+        The maximum value of ``incr``. Must be less or equal than ``mod``.
     """
     assert mod > 0
     assert max_incr >= 0
-    sig = Value.cast(sig)
+    value = Value.cast(value)
     incr = Value.cast(incr)
     if not (mod & (mod - 1)):
-        return (sig + incr) & (mod - 1)
-    return SwitchValue(sig + incr, [(mod + i, i) for i in range(max_incr)] + [(None, sig + incr)])
+        return (value + incr) & (mod - 1)
+    res = value + incr
+    return SwitchValue(res, [(mod + i, i) for i in range(max_incr)] + [(None, res)])
 
 
-def popcount(s: Value):
+def popcount(value: ValueLike) -> Value:
+    """Computes the number of set bits in a signal.
+
+    Parameters
+    ----------
+    value : ValueLike
+        The input signal.
+    """
+    value = Value.cast(value)
     return binary_tree_reduce(
-        *[s[i] for i in range(len(s))],
+        *[value[i] for i in range(len(value))],
         neutral=C(0, 0),
         operator=operator.add,
-    )[: bits_for(len(s))]
+    )[: bits_for(len(value))]
 
 
-def count_trailing_zeros(s: Value) -> Value:
+def count_trailing_zeros(value: ValueLike) -> Value:
+    """Computes the number of trailing zeros in a signal.
+
+    Trailing zeros are the zeros after the last non-zero digit. In other
+    words, the computed value is the position of the least significant
+    set bit, or the signal width if the input is 0.
+
+    Parameters
+    ----------
+    value : ValueLike
+        The input signal.
+    """
+
     def iter(s: Value, step: int) -> Value:
         # if no bits left - return empty value
         if step == 0:
@@ -96,20 +142,32 @@ def count_trailing_zeros(s: Value) -> Value:
         # otherwise add 1 << (step - 1) to upper value and return
         return Mux(s[:partition].any(), Cat(lower_value, 0), Cat(upper_value, 1))
 
-    return iter(s.as_unsigned(), ceil_log2(len(s) + 1))
+    value = Value.cast(value)
+    return iter(value.as_unsigned(), ceil_log2(len(value) + 1))
 
 
-def count_leading_zeros(s: Value) -> Value:
-    return count_trailing_zeros(s[::-1])
+def count_leading_zeros(value: ValueLike) -> Value:
+    """Computes the number of leading zeros in a signal.
 
+    Leading zeros are the zeroz before the first non-zero digit.
 
-def cyclic_mask(bits: int, start: Value, end: Value):
+    Parameters
+    ----------
+    value : ValueLike
+        The input signal.
     """
-    Generate `bits` bit-wide mask with ones from `start` to `end` position, including both ends.
-    If `end` value is < than `start` the mask wraps around.
+    value = Value.cast(value)
+    return count_trailing_zeros(value[::-1])
+
+
+def cyclic_mask(bits: int, start: ValueLike, end: ValueLike):
     """
-    start = start.as_unsigned()
-    end = end.as_unsigned()
+    Generate ``bits`` bit-wide mask with ones from ``start`` to ``end``
+    position, including both ends. If ``end`` value is less than ``start``,
+    the mask wraps around.
+    """
+    start = Value.cast(start).as_unsigned()
+    end = Value.cast(end).as_unsigned()
 
     # start <= end
     length = (end - start + 1).as_unsigned()
@@ -123,25 +181,18 @@ def cyclic_mask(bits: int, start: Value, end: Value):
     return Mux(start <= end, mask_se, mask_es)
 
 
-def flatten_signals(signals: ValueBundle) -> Iterable[Value]:
-    """
-    Flattens input data, which can be either a signal, a record, a list (or a dict) of SignalBundle items.
-
-    """
-    if isinstance(signals, Mapping):
-        for x in signals.values():
-            yield from flatten_signals(x)
-    elif isinstance(signals, Iterable):
-        for x in signals:
-            yield from flatten_signals(x)
-    elif isinstance(signals, data.View):
-        for x, _ in signals.shape():
-            yield from flatten_signals(signals[x])
-    else:
-        yield signals
-
-
 def shape_of(value: ValueLike) -> Shape | ShapeCastable:
+    """Computes the shape of a ``ValueLike``.
+
+    * For ``Value`` and ``ValueCastable``, returns ``value.shape()``.
+    * For ``Enum``, returns ``type(value)``.
+    * Otherwise, returns `Value.cast(value).shape()`.
+
+    Parameters
+    ----------
+    value : ValueLike
+        The input.
+    """
     value_type = type(value)
     if isinstance(value, ValueCastable):
         shape = value.shape()
@@ -154,6 +205,21 @@ def shape_of(value: ValueLike) -> Shape | ShapeCastable:
 
 
 def const_of(value: int, shape: ShapeLike) -> Any:
+    """Creates a constant of a given shape from its bit representation.
+
+    Parameters
+    ----------
+    value : int
+        The bit representation of the constant.
+    shape : ShapeLike
+        The shape of the constant.
+
+    Returns
+    -------
+    Any
+        For a ``ShapeCastable``, the result of ``shape.from_bits(value)``.
+        Otherwise, a ``Const`` of the given shape.
+    """
     if isinstance(shape, ShapeCastable):
         return shape.from_bits(value)
     else:
@@ -197,8 +263,22 @@ def _uniformize_values(
     return (lambda v: shape(v)), [unify(v) for v in values]
 
 
-def binary_tree_reduce(*values: ValueBundle, neutral: Value, operator: Callable[[Value, Value], Value]) -> Value:
-    min_layers = list(flatten_signals(values))
+def binary_tree_reduce[T](*values: T, neutral: T, operator: Callable[[T, T], T]) -> T:
+    """Reduces values using a binary operator, arranged in a balanced tree.
+
+    The values are combined pairwise, layer by layer, which gives a circuit
+    of logarithmic depth. The operator is assumed to be associative.
+
+    Parameters
+    ----------
+    *values : T
+        The values to reduce.
+    neutral : T
+        The value returned when no values are given.
+    operator : Callable[[T, T], T]
+        The binary operator used for combining values.
+    """
+    min_layers = list(values)
     if not min_layers:
         min_layers.append(neutral)
 
@@ -209,30 +289,89 @@ def binary_tree_reduce(*values: ValueBundle, neutral: Value, operator: Callable[
     return min_layers[0]
 
 
-def sum_value(*values: ValueBundle):
-    return binary_tree_reduce(*values, neutral=C(0, 0), operator=operator.add)
+def sum_value(*values: ValueLike) -> Value:
+    """Computes the sum of the input values.
+
+    The width of the result is large enough to avoid overflow.
+    If no values are given, returns a zero-width constant.
+
+    Parameters
+    ----------
+    *values : ValueLike
+        The values to sum.
+    """
+    return binary_tree_reduce(*(Value.cast(v) for v in values), neutral=C(0, 0), operator=operator.add)
 
 
-def or_value(*values: ValueBundle):
-    return binary_tree_reduce(*values, neutral=C(0, 0), operator=operator.or_)
+def or_value(*values: ValueLike) -> Value:
+    """Computes the bitwise OR of the input values.
+
+    If no values are given, returns a zero-width constant.
+
+    Parameters
+    ----------
+    *values : ValueLike
+        The values to OR.
+    """
+    return binary_tree_reduce(*(Value.cast(v) for v in values), neutral=C(0, 0), operator=operator.or_)
 
 
-def and_value(*values: ValueBundle):
-    return binary_tree_reduce(*values, neutral=C(-1), operator=operator.and_)
+def and_value(*values: ValueLike) -> Value:
+    """Computes the bitwise AND of the input values.
+
+    If no values are given, returns ``C(-1)``, which has all bits set.
+
+    Parameters
+    ----------
+    *values : ValueLike
+        The values to AND.
+    """
+    return binary_tree_reduce(*(Value.cast(v) for v in values), neutral=C(-1), operator=operator.and_)
 
 
-def generic_min_value(*values: ValueBundle, operator: Callable[[Value, Value], Value]) -> Value:
-    def binary_min(v1: Value, v2: Value):
+def generic_min_value(*values: ValueLike, operator: Callable[[Value, Value], Value]) -> Value:
+    """Selects the minimum of the input values according to a comparison.
+
+    If no values are given, returns ``C(0)``.
+
+    Parameters
+    ----------
+    *values : ValueLike
+        The values to compare.
+    operator : Callable[[Value, Value], Value]
+        The comparison. When ``operator(v1, v2)`` is true, ``v1`` is selected,
+        otherwise ``v2``.
+    """
+
+    def binary_min(v1: Value, v2: Value) -> Value:
         return Mux(operator(v1, v2), v1, v2)
 
-    return binary_tree_reduce(*values, neutral=C(0), operator=binary_min)
+    return binary_tree_reduce(*(Value.cast(v) for v in values), neutral=C(0), operator=binary_min)
 
 
-def min_value(*values: ValueBundle) -> Value:
+def min_value(*values: ValueLike) -> Value:
+    """Computes the minimum of the input values.
+
+    If no values are given, returns ``C(0)``.
+
+    Parameters
+    ----------
+    *values : ValueLike
+        The values to compare.
+    """
     return generic_min_value(*values, operator=operator.lt)
 
 
-def max_value(*values: ValueBundle) -> Value:
+def max_value(*values: ValueLike) -> Value:
+    """Computes the maximum of the input values.
+
+    If no values are given, returns ``C(0)``.
+
+    Parameters
+    ----------
+    *values : ValueLike
+        The values to compare.
+    """
     return generic_min_value(*values, operator=operator.gt)
 
 
@@ -266,6 +405,24 @@ def switch_value(
     *,
     src_loc: int | SrcLoc = 0,
 ) -> ValueLike:
+    """Selects a value based on a test value, like a ``switch`` statement.
+
+    Works like Amaranth's ``SwitchValue``, but supports ``ValueCastable``
+    values. If any of the values is a ``ValueCastable``, all of them must have
+    the same shape, and the result has that shape too. Plain constants are
+    converted using the shape's ``const`` method.
+
+    Parameters
+    ----------
+    test : ValueLike
+        The value to match against the case keys.
+    cases : Iterable[tuple[SwitchKey | tuple[SwitchKey, ...] | None, ValueLike]]
+        Pairs of case keys and values. The first matching case is selected.
+        A key of ``None`` matches any value.
+    src_loc : int | SrcLoc, default 0
+        How many stack frames deep the source location is taken from.
+        Alternatively, the source location to use instead of the default.
+    """
     src_loc = get_src_loc(src_loc)
     cases = list(cases)
     shape_cast, values = _uniformize_values(val for _, val in cases)
@@ -294,6 +451,20 @@ def mux(sel: ValueLike, val1: ValueLike, val0: ValueLike) -> ValueLike: ...
 
 
 def mux(sel: ValueLike, val1: ValueLike, val0: ValueLike) -> ValueLike:
+    """Selects one of two values.
+
+    Works like Amaranth's ``Mux``, but supports ``ValueCastable`` values,
+    in the same way as ``switch_value``.
+
+    Parameters
+    ----------
+    sel : ValueLike
+        The selector. If nonzero, ``val1`` is selected, otherwise ``val0``.
+    val1 : ValueLike
+        The value selected when ``sel`` is nonzero.
+    val0 : ValueLike
+        The value selected when ``sel`` is zero.
+    """
     return switch_value(sel, [(0, val0), (None, val1)], src_loc=1)
 
 
@@ -330,8 +501,8 @@ def one_hot_mux(
     priority: bool = False,
     assert_one_hot: bool = False,
 ) -> Value | ValueCastable:
-    """
-    One-hot multiplexer.
+    """One-hot multiplexer.
+
     Takes n input values and n one-hot select signals and outputs the value corresponding to the set select signal.
 
     Parameters
@@ -378,7 +549,7 @@ def one_hot_mux(
     if len(all_data) == 1:
         return shape_cast(all_data[0])
 
-    return shape_cast(or_value([Mux(all_sel[i], all_data[i], C(0, 0)) for i in range(len(all_data))]))
+    return shape_cast(or_value(*(Mux(all_sel[i], all_data[i], C(0, 0)) for i in range(len(all_data)))))
 
 
 def extract_lowest_set_bit(value: Value) -> Value:

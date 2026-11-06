@@ -5,7 +5,7 @@ from amaranth_types import SrcLoc, ValueLike
 from typing import TYPE_CHECKING, Optional
 from collections.abc import Iterator
 
-from transactron.utils.typing import ValueBundle
+from transactron.utils.typing import DebugBundle
 from transactron.utils.dependencies import DependencyContext
 from transactron.utils.transactron_helpers import get_caller_class_name, get_src_loc
 from transactron.utils.logging import HardwareLogger
@@ -152,5 +152,5 @@ class Transaction(TransactionBase["Transaction | Method"]):
     def __repr__(self) -> str:
         return f"(transaction {self.name})"
 
-    def debug_signals(self) -> ValueBundle:
+    def debug_signals(self) -> DebugBundle:
         return [self.ready, self.runnable, self.run]
