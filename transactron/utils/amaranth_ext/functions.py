@@ -248,9 +248,8 @@ def _uniformize_values(
     return (lambda v: shape(v)), [unify(v) for v in values]
 
 
-def binary_tree_reduce(*values: ValueLike, neutral: ValueLike, operator: Callable[[Value, Value], Value]) -> Value:
-    min_layers = [Value.cast(v) for v in values]
-    neutral = Value.cast(neutral)
+def binary_tree_reduce[T](*values: T, neutral: T, operator: Callable[[T, T], T]) -> T:
+    min_layers = list(values)
     if not min_layers:
         min_layers.append(neutral)
 
@@ -261,23 +260,23 @@ def binary_tree_reduce(*values: ValueLike, neutral: ValueLike, operator: Callabl
     return min_layers[0]
 
 
-def sum_value(*values: ValueLike):
-    return binary_tree_reduce(*values, neutral=C(0, 0), operator=operator.add)
+def sum_value(*values: ValueLike) -> Value:
+    return binary_tree_reduce(*(Value.cast(v) for v in values), neutral=C(0, 0), operator=operator.add)
 
 
-def or_value(*values: ValueLike):
-    return binary_tree_reduce(*values, neutral=C(0, 0), operator=operator.or_)
+def or_value(*values: ValueLike) -> Value:
+    return binary_tree_reduce(*(Value.cast(v) for v in values), neutral=C(0, 0), operator=operator.or_)
 
 
-def and_value(*values: ValueLike):
-    return binary_tree_reduce(*values, neutral=C(-1), operator=operator.and_)
+def and_value(*values: ValueLike) -> Value:
+    return binary_tree_reduce(*(Value.cast(v) for v in values), neutral=C(-1), operator=operator.and_)
 
 
 def generic_min_value(*values: ValueLike, operator: Callable[[Value, Value], Value]) -> Value:
-    def binary_min(v1: Value, v2: Value):
+    def binary_min(v1: Value, v2: Value) -> Value:
         return Mux(operator(v1, v2), v1, v2)
 
-    return binary_tree_reduce(*values, neutral=C(0), operator=binary_min)
+    return binary_tree_reduce(*(Value.cast(v) for v in values), neutral=C(0), operator=binary_min)
 
 
 def min_value(*values: ValueLike) -> Value:
