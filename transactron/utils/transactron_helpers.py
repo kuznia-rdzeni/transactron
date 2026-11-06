@@ -17,6 +17,7 @@ import dataclasses
 __all__ = [
     "NestedCollection",
     "SrcLoc",
+    "UniformObject",
     "async_mock_def_helper",
     "dataclass_asdict",
     "def_helper",
@@ -185,13 +186,31 @@ def dataclass_asdict(obj: Any) -> dict[str, Any]:
     return {field.name: getattr(obj, field.name) for field in dataclasses.fields(obj)}
 
 
-type NestedCollection[T] = T | list["NestedCollection[T]"] | dict[str, "NestedCollection[T]"]
+class UniformObject[T]:
+    """Object with attributes of type `T`."""
+
+    def __init__(self, **kwargs: T):
+        self.__dict__.update(kwargs)
+
+    # Called at runtime only for missing attributes; gives the type checker the attribute type.
+    def __getattr__(self, name: str) -> T:
+        raise AttributeError(f"'{type(self).__name__}' object has no attribute '{name}'")
+
+    def __repr__(self):
+        return f"{type(self).__name__}({vars(self)!r})"
+
+
+type NestedCollection[T] = (
+    T | list[NestedCollection[T]] | dict[str, NestedCollection[T]] | UniformObject[NestedCollection[T]]
+)
 
 
 def is_nested_collection[T](cont: Any, *t: type[T]) -> TypeIs[NestedCollection[T]]:
-    if isinstance(cont, (list, dict)):
+    if isinstance(cont, (list, dict, UniformObject)):
         if isinstance(cont, dict):
             cont = cont.values()
+        elif isinstance(cont, UniformObject):
+            cont = vars(cont).values()
         return all(is_nested_collection(elem, *t) for elem in cont)
     elif isinstance(cont, t):
         return True
@@ -200,8 +219,13 @@ def is_nested_collection[T](cont: Any, *t: type[T]) -> TypeIs[NestedCollection[T
 
 
 def nested_collection_items[T](collection: NestedCollection[T]) -> Iterable[tuple[tuple[int | str, ...], T]]:
-    if isinstance(collection, (list, dict)):
-        items = collection.items() if isinstance(collection, dict) else enumerate(collection)
+    if isinstance(collection, (list, dict, UniformObject)):
+        if isinstance(collection, dict):
+            items = collection.items()
+        elif isinstance(collection, UniformObject):
+            items = vars(collection).items()
+        else:
+            items = enumerate(collection)
         for idx, elem in items:
             for key, val in nested_collection_items(elem):
                 yield ((idx, *key), val)

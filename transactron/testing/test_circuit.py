@@ -6,7 +6,7 @@ from transactron.lib.adapters import Adapter, AdapterTrans
 
 from .testbenchio import TestbenchIO
 from transactron.core import interface_members, InterfaceMembers, InterfacePart, MethodDir
-from transactron.utils import ModuleConnector, auto_debug_signals, NestedCollection
+from transactron.utils import ModuleConnector, auto_debug_signals, NestedCollection, UniformObject
 from amaranth_types import HasElaborate
 
 
@@ -35,7 +35,7 @@ def transform_methods_to_testbenchios(
             ntb, mod = transform_methods_to_testbenchios(mdir.under(member.mdir), member.iface)
             ntb_dict[name] = ntb
             mc_dict[name] = mod
-        return ntb_dict, ModuleConnector(**mc_dict)
+        return UniformObject(**ntb_dict), ModuleConnector(**mc_dict)
     elif isinstance(iface, Sequence):
         ntb_list: list[NestedCollection[TestbenchIO]] = []
         mod_list: list[HasElaborate] = []
