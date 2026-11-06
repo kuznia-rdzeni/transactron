@@ -4,7 +4,7 @@ from amaranth import *
 from amaranth.lib.wiring import Component, In, Out
 from amaranth.lib.data import StructLayout, View
 
-from ..utils import SrcLoc, get_src_loc, MethodStruct, MethodLayout, ValueBundle
+from ..utils import SrcLoc, get_src_loc, MethodStruct, MethodLayout, DebugBundle
 from ..core import *
 
 __all__ = [
@@ -24,7 +24,7 @@ class AdapterBase(Component):
         super().__init__({"data_in": In(layout_in), "data_out": Out(layout_out), "en": In(1), "done": Out(1)})
         self.iface = iface
 
-    def debug_signals(self) -> ValueBundle:
+    def debug_signals(self) -> DebugBundle:
         return [self.en, self.done, self.data_in, self.data_out]
 
     @abstractmethod
