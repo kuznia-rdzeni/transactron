@@ -1280,6 +1280,354 @@ Write port granularity is not yet supported.</p>
 </dd></dl>
 
 </section>
+<section id="module-transactron.utils.amaranth_ext.option">
+<span id="transactron-utils-amaranth-ext-option-module"></span><h2>transactron.utils.amaranth_ext.option module<a class="headerlink" href="#module-transactron.utils.amaranth_ext.option" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="transactron.utils.amaranth_ext.option.Option">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">transactron.utils.amaranth_ext.option.</span></span><span class="sig-name descname"><span class="pre">Option</span></span><a class="headerlink" href="#transactron.utils.amaranth_ext.option.Option" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://amaranth-lang.org/docs/amaranth/v0.5.4/reference.html#amaranth.hdl.ShapeCastable" title="(in Amaranth language &amp; toolchain v0.5.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ShapeCastable</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Generic" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Generic</span></code></a></p>
+<p>A shape representing an optional (“maybe”) value.</p>
+<p>An <code class="docutils literal notranslate"><span class="pre">Option</span></code> describes a value that either carries data of the given
+shape, or carries no data. It is internally represented as a
+<code class="docutils literal notranslate"><span class="pre">amaranth.lib.data.StructLayout</span></code> with a single-bit <code class="docutils literal notranslate"><span class="pre">valid</span></code> field and a
+<code class="docutils literal notranslate"><span class="pre">data</span></code> field of shape <cite>data_shape</cite>; <code class="docutils literal notranslate"><span class="pre">data</span></code> is meaningless whenever
+<code class="docutils literal notranslate"><span class="pre">valid</span></code> is deasserted.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.utils.amaranth_ext.option.Option.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_shape</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">T</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.utils.amaranth_ext.option.Option.__init__" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>data_shape</strong><span class="classifier">ShapeLike</span></dt><dd><p>Shape of the data carried when the option is valid. Must be
+shape-castable.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.utils.amaranth_ext.option.Option.as_shape">
+<span class="sig-name descname"><span class="pre">as_shape</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#transactron.utils.amaranth_ext.option.Option.as_shape" title="Link to this definition"></a></dt>
+<dd><p>Convert <code class="code highlight py python docutils literal highlight-python"><span class="bp">self</span></code> to a <a class="reference external" href="https://amaranth-lang.org/docs/amaranth/v0.5.4/guide.html#lang-shapelike" title="(in Amaranth language &amp; toolchain v0.5.4)"><span class="xref std std-ref">shape-like object</span></a>.</p>
+<p>This method is called by the Amaranth language to convert <code class="code highlight py python docutils literal highlight-python"><span class="bp">self</span></code> to a concrete
+<code class="xref py py-class docutils literal notranslate"><span class="pre">Shape</span></code>. It will usually return a <code class="xref py py-class docutils literal notranslate"><span class="pre">Shape</span></code> object, but it may also return
+another shape-like object to delegate its functionality.</p>
+<p>This method must be idempotent: when called twice on the same object, the result must be
+exactly the same.</p>
+<p>This method may also be called by code that is not a part of the Amaranth language.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt>Any other object recognized by <code class="xref py py-meth docutils literal notranslate"><span class="pre">Shape.cast()</span></code>.</dt><dd></dd>
+</dl>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>Exception</dt><dd><p>When the conversion cannot be done. This exception must be propagated by callers
+(except when checking whether an object is shape-castable or not), either directly
+or as a cause of another exception.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.utils.amaranth_ext.option.Option.const">
+<span class="sig-name descname"><span class="pre">const</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.utils.amaranth_ext.option.Option.const" title="Link to this definition"></a></dt>
+<dd><p>Convert a constant initializer <code class="code highlight py python docutils literal highlight-python"><span class="n">obj</span></code> to its value representation.</p>
+<p>This method is called by the Amaranth language to convert <code class="code highlight py python docutils literal highlight-python"><span class="n">obj</span></code>, which may be an
+arbitrary Python object, to a concrete <a class="reference external" href="https://amaranth-lang.org/docs/amaranth/v0.5.4/guide.html#lang-valuelike" title="(in Amaranth language &amp; toolchain v0.5.4)"><span class="xref std std-ref">value-like object</span></a>.
+The object <code class="code highlight py python docutils literal highlight-python"><span class="n">obj</span></code> will usually be a Python literal that can conveniently represent
+a constant value whose shape is described by <code class="code highlight py python docutils literal highlight-python"><span class="bp">self</span></code>. While not constrained here,
+the result will usually be an instance of the return type of <code class="xref py py-meth docutils literal notranslate"><span class="pre">__call__()</span></code>.</p>
+<p>For any <code class="code highlight py python docutils literal highlight-python"><span class="n">obj</span></code>, the following condition must hold:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Shape</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">==</span> <span class="n">Const</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">const</span><span class="p">(</span><span class="n">obj</span><span class="p">))</span><span class="o">.</span><span class="n">shape</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>This method may also be called by code that is not a part of the Amaranth language.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt>A <a class="reference external" href="https://amaranth-lang.org/docs/amaranth/v0.5.4/guide.html#lang-valuelike" title="(in Amaranth language &amp; toolchain v0.5.4)"><span class="xref std std-ref">value-like object</span></a> that is <a class="reference external" href="https://amaranth-lang.org/docs/amaranth/v0.5.4/guide.html#lang-constcasting" title="(in Amaranth language &amp; toolchain v0.5.4)"><span class="xref std std-ref">constant-castable</span></a>.</dt><dd></dd>
+</dl>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>Exception</dt><dd><p>When the conversion cannot be done. This exception must be propagated by callers,
+either directly or as a cause of another exception. While not constrained here,
+usually the exception class will be <a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#TypeError" title="(in Python v3.15)"><code class="xref py py-exc docutils literal notranslate"><span class="pre">TypeError</span></code></a> or <a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.15)"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code></a>.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="transactron.utils.amaranth_ext.option.Option.data_shape">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">data_shape</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">T</span></span><a class="headerlink" href="#transactron.utils.amaranth_ext.option.Option.data_shape" title="Link to this definition"></a></dt>
+<dd><p>The shape of the data carried when the option is valid.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="transactron.utils.amaranth_ext.option.Option.empty">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">empty</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#transactron.utils.amaranth_ext.option.OptionView" title="transactron.utils.amaranth_ext.option.OptionView"><span class="pre">OptionView</span></a></span><a class="headerlink" href="#transactron.utils.amaranth_ext.option.Option.empty" title="Link to this definition"></a></dt>
+<dd><p>A view of an invalid (“empty”) constant of this shape.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.utils.amaranth_ext.option.Option.format">
+<span class="sig-name descname"><span class="pre">format</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/v0.5.4/reference.html#amaranth.hdl.Value" title="(in Amaranth language &amp; toolchain v0.5.4)"><span class="pre">Value</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/enum.html#enum.Enum" title="(in Python v3.15)"><span class="pre">Enum</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/v0.5.4/reference.html#amaranth.hdl.ValueCastable" title="(in Amaranth language &amp; toolchain v0.5.4)"><span class="pre">ValueCastable</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">spec</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Format</span></span></span><a class="headerlink" href="#transactron.utils.amaranth_ext.option.Option.format" title="Link to this definition"></a></dt>
+<dd><p>Format a value.</p>
+<p>This method is called by the Amaranth language to implement formatting for custom
+shapes. Whenever <code class="code highlight py python docutils literal highlight-python"><span class="s2">"{obj:spec}"</span></code> is encountered by <code class="xref py py-class docutils literal notranslate"><span class="pre">Format</span></code>, and <code class="code highlight py python docutils literal highlight-python"><span class="n">obj</span></code>
+has a custom shape that has a <a class="reference internal" href="#transactron.utils.amaranth_ext.option.Option.format" title="transactron.utils.amaranth_ext.option.Option.format"><code class="xref py py-meth docutils literal notranslate"><span class="pre">format()</span></code></a> method, <code class="code highlight py python docutils literal highlight-python"><span class="n">obj</span><span class="o">.</span><span class="n">shape</span><span class="p">()</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="s2">"spec"</span><span class="p">)</span></code>
+is called, and the format specifier is replaced with the result.</p>
+<p>The default <a class="reference internal" href="#transactron.utils.amaranth_ext.option.Option.format" title="transactron.utils.amaranth_ext.option.Option.format"><code class="xref py py-meth docutils literal notranslate"><span class="pre">format()</span></code></a> implementation is:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">format</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">spec</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">Format</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="se">{{</span><span class="s2">:</span><span class="si">{</span><span class="n">spec</span><span class="si">}</span><span class="se">}}</span><span class="s2">"</span><span class="p">,</span> <span class="n">Value</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">obj</span><span class="p">))</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><code class="xref py py-class docutils literal notranslate"><span class="pre">Format</span></code></dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.utils.amaranth_ext.option.Option.from_bits">
+<span class="sig-name descname"><span class="pre">from_bits</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">raw</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><span class="pre">Any</span></a></span></span><a class="headerlink" href="#transactron.utils.amaranth_ext.option.Option.from_bits" title="Link to this definition"></a></dt>
+<dd><p>Lift a bit pattern to a higher-level representation.</p>
+<p>This method is called by the Amaranth language to lift <code class="code highlight py python docutils literal highlight-python"><span class="n">raw</span></code>, which is an <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>,
+to a higher-level representation, which may be any object accepted by <a class="reference internal" href="#transactron.utils.amaranth_ext.option.Option.const" title="transactron.utils.amaranth_ext.option.Option.const"><code class="xref py py-meth docutils literal notranslate"><span class="pre">const()</span></code></a>.
+Most importantly, the simulator calls this method when the value of a shape-castable
+object is retrieved.</p>
+<p>For any valid bit pattern <code class="code highlight py python docutils literal highlight-python"><span class="n">raw</span></code>, the following condition must hold:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Const</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">const</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">from_bits</span><span class="p">(</span><span class="n">raw</span><span class="p">)))</span><span class="o">.</span><span class="n">value</span> <span class="o">==</span> <span class="n">raw</span>
+</pre></div>
+</div>
+<p>While <a class="reference internal" href="#transactron.utils.amaranth_ext.option.Option.const" title="transactron.utils.amaranth_ext.option.Option.const"><code class="xref py py-meth docutils literal notranslate"><span class="pre">const()</span></code></a> will usually return an Amaranth value or a custom value-castable
+object that is convenient to use while constructing the design, this method will usually
+return a Python object that is convenient to use while simulating the design. While not
+constrained here, these objects should have the same type whenever feasible.</p>
+<p>This method may also be called by code that is not a part of the Amaranth language.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt>unspecified type</dt><dd></dd>
+</dl>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>Exception</dt><dd><p>When the bit pattern isn’t valid. This exception must be propagated by callers,
+either directly or as a cause of another exception. While not constrained here,
+usually the exception class will be <a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.15)"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code></a>.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.utils.amaranth_ext.option.Option.signal">
+<span class="sig-name descname"><span class="pre">signal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">src_loc_at</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#transactron.utils.amaranth_ext.option.OptionView" title="transactron.utils.amaranth_ext.option.OptionView"><span class="pre">OptionView</span></a></span></span><a class="headerlink" href="#transactron.utils.amaranth_ext.option.Option.signal" title="Link to this definition"></a></dt>
+<dd><p>Create a signal of this shape.</p>
+<p>The data field of an option can be declared as reset-less.
+Unfortunately, because of the limitations of how <code class="docutils literal notranslate"><span class="pre">Signal</span></code>
+works, it is not possible to do this with <code class="docutils literal notranslate"><span class="pre">Signal(Option(...))</span></code>.
+This method works around this limitation.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.utils.amaranth_ext.option.Option.wrap">
+<span class="sig-name descname"><span class="pre">wrap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/v0.5.4/reference.html#amaranth.hdl.Value" title="(in Amaranth language &amp; toolchain v0.5.4)"><span class="pre">Value</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/enum.html#enum.Enum" title="(in Python v3.15)"><span class="pre">Enum</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/v0.5.4/reference.html#amaranth.hdl.ValueCastable" title="(in Amaranth language &amp; toolchain v0.5.4)"><span class="pre">ValueCastable</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><span class="pre">None</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#transactron.utils.amaranth_ext.option.OptionView" title="transactron.utils.amaranth_ext.option.OptionView"><span class="pre">OptionView</span></a></span></span><a class="headerlink" href="#transactron.utils.amaranth_ext.option.Option.wrap" title="Link to this definition"></a></dt>
+<dd><p>Wrap a value as a valid option.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>data</strong><span class="classifier">ValueLike</span></dt><dd><p>The data to wrap. If <code class="docutils literal notranslate"><span class="pre">data_shape</span></code> is shape-castable, <code class="docutils literal notranslate"><span class="pre">data</span></code> is
+passed to it directly and interpreted as that shape’s
+constructor would interpret it. Otherwise, <code class="docutils literal notranslate"><span class="pre">data</span></code> is cast to a
+<code class="docutils literal notranslate"><span class="pre">Value</span></code> and truncated or zero-extended to fit <code class="docutils literal notranslate"><span class="pre">data_shape</span></code>.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="transactron.utils.amaranth_ext.option.OptionView">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">transactron.utils.amaranth_ext.option.</span></span><span class="sig-name descname"><span class="pre">OptionView</span></span><a class="headerlink" href="#transactron.utils.amaranth_ext.option.OptionView" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://amaranth-lang.org/docs/amaranth/v0.5.4/reference.html#amaranth.hdl.ValueCastable" title="(in Amaranth language &amp; toolchain v0.5.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ValueCastable</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Generic" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Generic</span></code></a></p>
+<p>A view into a value of <code class="docutils literal notranslate"><span class="pre">Option</span></code> shape.</p>
+<p>Provides convenient accessors for the <code class="docutils literal notranslate"><span class="pre">valid</span></code> and <code class="docutils literal notranslate"><span class="pre">data</span></code> fields of an
+underlying value that has the layout produced by <code class="docutils literal notranslate"><span class="pre">Option</span></code>, as well as
+helper methods for working with such a value in module context.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.utils.amaranth_ext.option.OptionView.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_shape</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">T</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/v0.5.4/reference.html#amaranth.hdl.Value" title="(in Amaranth language &amp; toolchain v0.5.4)"><span class="pre">Value</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/enum.html#enum.Enum" title="(in Python v3.15)"><span class="pre">Enum</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/v0.5.4/reference.html#amaranth.hdl.ValueCastable" title="(in Amaranth language &amp; toolchain v0.5.4)"><span class="pre">ValueCastable</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.utils.amaranth_ext.option.OptionView.__init__" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>data_shape</strong><span class="classifier">T</span></dt><dd><p>Shape of the data carried when the option is valid. Used to
+construct the corresponding <code class="docutils literal notranslate"><span class="pre">Option</span></code> shape that this view
+conforms to.</p>
+</dd>
+<dt><strong>target</strong><span class="classifier">ValueLike</span></dt><dd><p>The value this view wraps. Must be exactly as wide as
+<code class="docutils literal notranslate"><span class="pre">Option(data_shape)</span></code>.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.utils.amaranth_ext.option.OptionView.as_value">
+<span class="sig-name descname"><span class="pre">as_value</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#transactron.utils.amaranth_ext.option.OptionView.as_value" title="Link to this definition"></a></dt>
+<dd><p>Convert <code class="code highlight py python docutils literal highlight-python"><span class="bp">self</span></code> to a <a class="reference external" href="https://amaranth-lang.org/docs/amaranth/v0.5.4/guide.html#lang-valuelike" title="(in Amaranth language &amp; toolchain v0.5.4)"><span class="xref std std-ref">value-like object</span></a>.</p>
+<p>This method is called by the Amaranth language to convert <code class="code highlight py python docutils literal highlight-python"><span class="bp">self</span></code> to a concrete
+<code class="xref py py-class docutils literal notranslate"><span class="pre">Value</span></code>. It will usually return a <code class="xref py py-class docutils literal notranslate"><span class="pre">Value</span></code> object, but it may also return
+another value-like object to delegate its functionality.</p>
+<p>This method must be idempotent: when called twice on the same object, the result must be
+exactly the same.</p>
+<p>This method may also be called by code that is not a part of the Amaranth language.</p>
+<dl class="field-list">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt>Any other object recognized by <code class="xref py py-meth docutils literal notranslate"><span class="pre">Value.cast()</span></code>.</dt><dd></dd>
+</dl>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><dl>
+<dt>Exception</dt><dd><p>When the conversion cannot be done. This exception must be propagated by callers,
+either directly or as a cause of another exception.</p>
+<p>It is recommended that, in cases where this method raises an exception,
+the <a class="reference internal" href="#transactron.utils.amaranth_ext.option.OptionView.shape" title="transactron.utils.amaranth_ext.option.OptionView.shape"><code class="xref py py-meth docutils literal notranslate"><span class="pre">shape()</span></code></a> method also raises an exception.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="transactron.utils.amaranth_ext.option.OptionView.data">
+<span class="sig-name descname"><span class="pre">data</span></span><a class="headerlink" href="#transactron.utils.amaranth_ext.option.OptionView.data" title="Link to this definition"></a></dt>
+<dd><p>The contained data. Only meaningful when <code class="docutils literal notranslate"><span class="pre">valid</span></code> is asserted.</p>
+<p>Prefer using <code class="docutils literal notranslate"><span class="pre">with_data</span></code> and <code class="docutils literal notranslate"><span class="pre">data_eq</span></code>, if applicable. This helps
+avoid errors where <code class="docutils literal notranslate"><span class="pre">valid</span></code> bit is ignored or not updated by mistake.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.utils.amaranth_ext.option.OptionView.data_eq">
+<span class="sig-name descname"><span class="pre">data_eq</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/v0.5.4/reference.html#amaranth.hdl.Value" title="(in Amaranth language &amp; toolchain v0.5.4)"><span class="pre">Value</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/enum.html#enum.Enum" title="(in Python v3.15)"><span class="pre">Enum</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/v0.5.4/reference.html#amaranth.hdl.ValueCastable" title="(in Amaranth language &amp; toolchain v0.5.4)"><span class="pre">ValueCastable</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><span class="pre">None</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Assign</span></span></span><a class="headerlink" href="#transactron.utils.amaranth_ext.option.OptionView.data_eq" title="Link to this definition"></a></dt>
+<dd><p>Create an assignment of <code class="docutils literal notranslate"><span class="pre">other</span></code> to this option’s data.</p>
+<p>If <code class="docutils literal notranslate"><span class="pre">other</span></code> is not <code class="docutils literal notranslate"><span class="pre">None</span></code>, the valid bit is also set to 1. This
+is equivalent to <code class="docutils literal notranslate"><span class="pre">opt.eq(opt.shape().wrap(other))</span></code>. Otherwise,
+the valid bit is cleared.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>other</strong><span class="classifier">ValueLike, optional</span></dt><dd><p>The value to assign. If <code class="docutils literal notranslate"><span class="pre">None</span></code>, valid bit is set to 0.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>Assign</dt><dd><p>The assignment statement.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.utils.amaranth_ext.option.OptionView.eq">
+<span class="sig-name descname"><span class="pre">eq</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/v0.5.4/reference.html#amaranth.hdl.Value" title="(in Amaranth language &amp; toolchain v0.5.4)"><span class="pre">Value</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/enum.html#enum.Enum" title="(in Python v3.15)"><span class="pre">Enum</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/v0.5.4/reference.html#amaranth.hdl.ValueCastable" title="(in Amaranth language &amp; toolchain v0.5.4)"><span class="pre">ValueCastable</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Assign</span></span></span><a class="headerlink" href="#transactron.utils.amaranth_ext.option.OptionView.eq" title="Link to this definition"></a></dt>
+<dd><p>Create an assignment of <code class="docutils literal notranslate"><span class="pre">other</span></code> to this option.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>other</strong><span class="classifier">ValueLike</span></dt><dd><p>The value to assign. If it is value-castable, its shape must
+match the shape of this option.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>Assign</dt><dd><p>The assignment statement.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.utils.amaranth_ext.option.OptionView.shape">
+<span class="sig-name descname"><span class="pre">shape</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#transactron.utils.amaranth_ext.option.OptionView.shape" title="Link to this definition"></a></dt>
+<dd><p>Compute the shape of <code class="code highlight py python docutils literal highlight-python"><span class="bp">self</span></code>.</p>
+<p>This method is not called by the Amaranth language itself; whenever it needs to discover
+the shape of a value-castable object, it calls <code class="xref py py-class docutils literal notranslate"><span class="pre">self.as_value().shape()</span></code>. However,
+that method must return a <code class="xref py py-class docutils literal notranslate"><span class="pre">Shape</span></code>, and <code class="xref py py-class docutils literal notranslate"><span class="pre">ValueCastable</span></code> subclasses may have
+a richer representation of their shape provided by an instance of a <code class="xref py py-class docutils literal notranslate"><span class="pre">ShapeCastable</span></code>
+subclass. This method may return such a representation.</p>
+<p>This method must be idempotent: when called twice on the same object, the result must be
+exactly the same.</p>
+<p>The following condition must hold:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Shape</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">())</span> <span class="o">==</span> <span class="n">Value</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">shape</span><span class="p">()</span>
+</pre></div>
+</div>
+<dl class="field-list">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt>A <a class="reference external" href="https://amaranth-lang.org/docs/amaranth/v0.5.4/guide.html#lang-shapelike" title="(in Amaranth language &amp; toolchain v0.5.4)"><span class="xref std std-ref">shape-like</span></a> object.</dt><dd></dd>
+</dl>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><dl>
+<dt>Exception</dt><dd><p>When the conversion cannot be done. This exception must be propagated by callers,
+either directly or as a cause of another exception.</p>
+<p>It is recommended that, in cases where this method raises an exception,
+the <a class="reference internal" href="#transactron.utils.amaranth_ext.option.OptionView.as_value" title="transactron.utils.amaranth_ext.option.OptionView.as_value"><code class="xref py py-meth docutils literal notranslate"><span class="pre">as_value()</span></code></a> method also raises an exception.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="transactron.utils.amaranth_ext.option.OptionView.valid">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">valid</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://amaranth-lang.org/docs/amaranth/v0.5.4/reference.html#amaranth.hdl.Value" title="(in Amaranth language &amp; toolchain v0.5.4)"><span class="pre">Value</span></a></span><a class="headerlink" href="#transactron.utils.amaranth_ext.option.OptionView.valid" title="Link to this definition"></a></dt>
+<dd><p>Whether the option currently holds a value.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.utils.amaranth_ext.option.OptionView.with_data">
+<span class="sig-name descname"><span class="pre">with_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">m</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ModuleLike</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Generator</span><span class="p"><span class="pre">[</span></span><span class="pre">Value</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#transactron.utils.amaranth_ext.option.OptionView.with_data" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">with_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">m</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ModuleLike</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Generator</span><span class="p"><span class="pre">[</span></span><span class="pre">U</span><span class="p"><span class="pre">]</span></span></span></span></dt>
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">with_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">m</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ModuleLike</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Generator</span><span class="p"><span class="pre">[</span></span><span class="pre">Value</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ValueCastable</span><span class="p"><span class="pre">]</span></span></span></span></dt>
+<dd><p>Enter a conditional block active only while this option is valid.</p>
+<p>Equivalent to <code class="docutils literal notranslate"><span class="pre">m.If(self.valid)</span></code>. Can be used with <code class="docutils literal notranslate"><span class="pre">m.Else()</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>m</strong><span class="classifier">ModuleLike</span></dt><dd><p>The module to add the <code class="docutils literal notranslate"><span class="pre">m.If(self.valid)</span></code> conditional to.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
 <section id="module-transactron.utils.amaranth_ext.shifter">
 <span id="transactron-utils-amaranth-ext-shifter-module"></span><h2>transactron.utils.amaranth_ext.shifter module<a class="headerlink" href="#module-transactron.utils.amaranth_ext.shifter" title="Link to this heading"></a></h2>
 <dl class="py function">
@@ -1641,7 +1989,7 @@ The entries of <cite>data</cite> must be of the same width.</p>
 
   <div role="contentinfo">
     <p>&#169; Copyright Kuźnia Rdzeni, 2026.
-      <span class="lastupdated">Last updated on 10:17 2026-11-02.
+      <span class="lastupdated">Last updated on 19:48 2026-11-06.
       </span></p>
   </div>
 
