@@ -14,6 +14,7 @@ from amaranth.lib.data import StructLayout, View
 from amaranth_types import ShapeLike, ValueLike
 
 __all__ = [
+    "DebugBundle",
     "Graph",
     "GraphCC",
     "HasDebugSignals",
@@ -26,12 +27,10 @@ __all__ = [
     "NameValueDict",
     "ROGraph",
     "ReturnDict",
-    "ValueBundle",
 ]
 
 # Internal Transactron types
 type DebugBundle = Value | ValueCastable | Iterable[DebugBundle] | Mapping[str, DebugBundle]
-type ValueBundle = Value | View | Iterable[ValueBundle] | Mapping[str, ValueBundle]
 type LayoutListField = tuple[str, ShapeLike | LayoutList]
 type LayoutList = list[LayoutListField]
 type LayoutIterable = Iterable[LayoutListField]

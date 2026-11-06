@@ -3,14 +3,13 @@ from amaranth import *
 from amaranth.hdl import ShapeCastable, ValueCastable
 from amaranth.hdl._ast import SwitchValue
 from amaranth.utils import bits_for, ceil_log2
-from amaranth.lib import data, enum
-from collections.abc import Callable, Iterable, Mapping, Sequence
+from amaranth.lib import enum
+from collections.abc import Callable, Iterable, Sequence
 import operator
 
 from amaranth_types import FlatValueLike, ModuleLike, SrcLoc, SwitchKey
 from amaranth_types.types import ValueLike, ShapeLike
 from transactron.utils.transactron_helpers import get_src_loc
-from transactron.utils.typing import ValueBundle
 from transactron.utils.logging import top_assertion
 
 __all__ = [
@@ -22,7 +21,6 @@ __all__ = [
     "count_trailing_zeros",
     "cyclic_mask",
     "extract_lowest_set_bit",
-    "flatten_signals",
     "generic_min_value",
     "mask_after_first_set_bit",
     "mask_before_first_set_bit",
@@ -183,24 +181,6 @@ def cyclic_mask(bits: int, start: ValueLike, end: ValueLike):
     return Mux(start <= end, mask_se, mask_es)
 
 
-def flatten_signals(signals: ValueBundle) -> Iterable[Value]:
-    """
-    Flattens input data, which can be either a signal, a record, a list (or a dict) of SignalBundle items.
-
-    """
-    if isinstance(signals, Mapping):
-        for x in signals.values():
-            yield from flatten_signals(x)
-    elif isinstance(signals, Iterable):
-        for x in signals:
-            yield from flatten_signals(x)
-    elif isinstance(signals, data.View):
-        for x, _ in signals.shape():
-            yield from flatten_signals(signals[x])
-    else:
-        yield signals
-
-
 def shape_of(value: ValueLike) -> Shape | ShapeCastable:
     """Computes the shape of a ``ValueLike``.
 
@@ -268,8 +248,9 @@ def _uniformize_values(
     return (lambda v: shape(v)), [unify(v) for v in values]
 
 
-def binary_tree_reduce(*values: ValueBundle, neutral: Value, operator: Callable[[Value, Value], Value]) -> Value:
-    min_layers = list(flatten_signals(values))
+def binary_tree_reduce(*values: ValueLike, neutral: ValueLike, operator: Callable[[Value, Value], Value]) -> Value:
+    min_layers = [Value.cast(v) for v in values]
+    neutral = Value.cast(neutral)
     if not min_layers:
         min_layers.append(neutral)
 
@@ -280,30 +261,30 @@ def binary_tree_reduce(*values: ValueBundle, neutral: Value, operator: Callable[
     return min_layers[0]
 
 
-def sum_value(*values: ValueBundle):
+def sum_value(*values: ValueLike):
     return binary_tree_reduce(*values, neutral=C(0, 0), operator=operator.add)
 
 
-def or_value(*values: ValueBundle):
+def or_value(*values: ValueLike):
     return binary_tree_reduce(*values, neutral=C(0, 0), operator=operator.or_)
 
 
-def and_value(*values: ValueBundle):
+def and_value(*values: ValueLike):
     return binary_tree_reduce(*values, neutral=C(-1), operator=operator.and_)
 
 
-def generic_min_value(*values: ValueBundle, operator: Callable[[Value, Value], Value]) -> Value:
+def generic_min_value(*values: ValueLike, operator: Callable[[Value, Value], Value]) -> Value:
     def binary_min(v1: Value, v2: Value):
         return Mux(operator(v1, v2), v1, v2)
 
     return binary_tree_reduce(*values, neutral=C(0), operator=binary_min)
 
 
-def min_value(*values: ValueBundle) -> Value:
+def min_value(*values: ValueLike) -> Value:
     return generic_min_value(*values, operator=operator.lt)
 
 
-def max_value(*values: ValueBundle) -> Value:
+def max_value(*values: ValueLike) -> Value:
     return generic_min_value(*values, operator=operator.gt)
 
 
@@ -449,7 +430,7 @@ def one_hot_mux(
     if len(all_data) == 1:
         return shape_cast(all_data[0])
 
-    return shape_cast(or_value([Mux(all_sel[i], all_data[i], C(0, 0)) for i in range(len(all_data))]))
+    return shape_cast(or_value(*(Mux(all_sel[i], all_data[i], C(0, 0)) for i in range(len(all_data)))))
 
 
 def extract_lowest_set_bit(value: Value) -> Value:
