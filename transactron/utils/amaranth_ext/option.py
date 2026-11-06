@@ -55,7 +55,7 @@ class OptionView[T: ShapeLike](ValueCastable):
         try:
             cast_target = Value.cast(target)
         except TypeError as e:
-            raise TypeError(f"Target of an option view must be a value-castable object, not {target}") from e
+            raise TypeError(f"Target of an option view must be a value-castable object, not {target!r}") from e
 
         self._shape = Option(data_shape)
 
@@ -131,12 +131,12 @@ class OptionView[T: ShapeLike](ValueCastable):
                 )
         try:
             c = Const.cast(other)
+            if not c.value & 1:
+                # Special-case for empty consts: data bits are don't-care, assign only the valid bit
+                return self.valid.eq(0)
+            return self.as_value().eq(c)
         except TypeError:
             return self.as_value().eq(other)
-        if not c.value & 1:
-            # Special-case for empty consts: data bits are don't-care, assign only the valid bit
-            return self.valid.eq(0)
-        return self.as_value().eq(c)
 
     def data_eq(self, other: ValueLike | None) -> Assign:
         """Create an assignment of ``other`` to this option's data.
@@ -161,15 +161,17 @@ class OptionView[T: ShapeLike](ValueCastable):
             return self.eq(self.shape().wrap(other))
 
     def __eq__(self, other) -> Value:  # type: ignore
-        if isinstance(other, OptionView) and self._shape == other._shape:
-            return ~(self.valid | other.valid) | (self.valid & other.valid & (self._target.data == other._target.data))
-        else:
+        if not isinstance(other, OptionView) or self._shape != other._shape:
             raise TypeError(
-                f"Option view with layout {self._shape} can only be compared to another option view with same layout"
+                f"Option view with layout {self._shape!r} can only be compared to another option view with same layout"
             )
+        return (self.valid == other.valid) & (~self.valid | (self.data == other.data))
 
     def __ne__(self, other) -> Value:  # type: ignore
         return ~(self == other)
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}({self._shape.data_shape!r}, {self._target.as_value()!r})"
 
 
 class Option[T: ShapeLike](ShapeCastable[OptionView[T]]):
@@ -193,7 +195,7 @@ class Option[T: ShapeLike](ShapeCastable[OptionView[T]]):
         try:
             Shape.cast(data_shape)
         except TypeError as e:
-            raise TypeError(f"Option data shape must be a shape-castable object, not {data_shape}") from e
+            raise TypeError(f"Option data shape must be a shape-castable object, not {data_shape!r}") from e
         self._data_shape = data_shape
         self._internal_shape = data.StructLayout({"valid": 1, "data": data_shape})
 
@@ -250,6 +252,9 @@ class Option[T: ShapeLike](ShapeCastable[OptionView[T]]):
     def __hash__(self) -> int:
         return hash(self._data_shape)
 
+    def __repr__(self) -> str:
+        return f"Option({self._data_shape!r})"
+
     def as_shape(self) -> data.StructLayout:
         return self._internal_shape
 
@@ -277,8 +282,6 @@ class Option[T: ShapeLike](ShapeCastable[OptionView[T]]):
             return None
 
     def format(self, obj: ValueLike, spec: str) -> Format:
-        if spec != "":
-            raise ValueError(f"Format specifier {spec!r} is not supported for options")
         if not isinstance(obj, OptionView):
             obj = self(obj)
-        return Format("Option({}, {})", obj.valid, obj.data)
+        return Format(f"Option({{}}, {{:{spec}}})", obj.valid, obj.data)
