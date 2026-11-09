@@ -25,7 +25,7 @@ __all__ = ["Transaction"]
 
 
 class Transaction(TransactionBase["Transaction | Method"]):
-    """Transaction.
+    r"""Transaction.
 
     A `Transaction` represents a task which needs to be regularly done.
     Execution of a `Transaction` always lasts a single clock cycle.
@@ -34,13 +34,13 @@ class Transaction(TransactionBase["Transaction | Method"]):
     can be run by the `TransactionManager`.
 
     A `Transaction` can, as part of its execution, call a number of
-    `Method`\\s. A `Transaction` can be run only if every `Method`
+    `Method`\s. A `Transaction` can be run only if every `Method`
     it calls is ready.
 
     A `Transaction` cannot execute concurrently with another, conflicting
-    `Transaction`. Conflicts between `Transaction`\\s are either explicit
+    `Transaction`. Conflicts between `Transaction`\s are either explicit
     or implicit. An explicit conflict is added using the `add_conflict`
-    method. Implicit conflicts arise between pairs of `Transaction`\\s
+    method. Implicit conflicts arise between pairs of `Transaction`\s
     which use the same `Method`.
 
     A module which defines a `Transaction` should use `body` to

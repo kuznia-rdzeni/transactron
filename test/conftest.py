@@ -26,7 +26,7 @@ def pytest_addoption(parser: pytest.Parser) -> None:
 
 def pytest_runtest_setup(item: pytest.Item) -> None:
     """
-    This function is called to perform the setup phase for every test, so
+    Called to perform the setup phase for every test, so
     it is a perfect moment to set environment variables.
     """
     if item.config.getoption("--transactron-traces", False):  # type: ignore

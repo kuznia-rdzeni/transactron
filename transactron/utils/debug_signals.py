@@ -8,10 +8,10 @@ __all__ = ["auto_debug_signals"]
 
 
 def auto_debug_signals(thing) -> DebugBundle:
-    """Automatic debug signal generation.
+    r"""Automatic debug signal generation.
 
-    Exposes class attributes with debug signals (Amaranth `Signal`\\s,
-    `Array`\\s and `Elaboratable`\\s, `Method`\\s, classes which define
+    Exposes class attributes with debug signals (Amaranth `Signal`\s,
+    `Array`\s and `Elaboratable`\s, `Method`\s, classes which define
     `debug_signals`). Used for generating ``gtkw`` files in tests, for
     use in ``gtkwave``.
     """
