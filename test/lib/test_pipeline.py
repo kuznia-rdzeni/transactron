@@ -457,7 +457,7 @@ class MiddleExitPipeline(Elaboratable):
 
 class TestMiddleExitPipeline(TestCaseWithSimulator):
     def test_pipeline(self):
-        """peek observes intermediate values and forwards them; read gets the final result.
+        """Peek observes intermediate values and forwards them; read gets the final result.
 
         peek is a mandatory synchronisation point: every element must be
         consumed by peek (which also writes it to the next stage) before read

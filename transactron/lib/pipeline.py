@@ -284,7 +284,6 @@ class PipelineBuilder(Elaboratable):
             A decorator that wraps the stage function and registers it with the pipeline.
             The decorator can be further modified by :meth:`fifo` before registration.
         """
-
         src_loc = get_src_loc(src_loc)
 
         def decorator(func: Callable[..., AssignArg | None]) -> None:
@@ -418,7 +417,6 @@ class PipelineBuilder(Elaboratable):
         list[dict[str, ShapeLike]]
             A list of live variable dicts, one per node.  Each dict maps field names to their types.
         """
-
         live: dict[str, ShapeLike] = {}
         live_per_node: list[dict[str, ShapeLike]] = []
 

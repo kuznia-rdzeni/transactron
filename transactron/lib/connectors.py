@@ -87,13 +87,13 @@ class FIFO(Elaboratable):
 
 
 class Forwarder(Elaboratable):
-    """Forwarding with overflow buffering
+    r"""Forwarding with overflow buffering
 
     Provides a means to connect two transactions with forwarding. Exposes
     two methods: `read`, and `write`. When both of these methods are
     executed simultaneously, data is forwarded between them. If `write`
     is executed, but `read` is not, the value cannot be forwarded,
-    but is stored into an overflow buffer. No further `write`\\s are
+    but is stored into an overflow buffer. No further `write`\s are
     possible until the overflow buffer is cleared by `read`.
 
     The `write` method is scheduled before `read`.
@@ -159,7 +159,7 @@ class Forwarder(Elaboratable):
 
 class Pipe(Elaboratable):
     """
-    This module implements a `Pipe`. It is a halfway between
+    Implements a `Pipe`. It is a halfway between
     `Forwarder` and `2-FIFO`. In the `Pipe` data is always
     stored localy, so the critical path of the data is cut, but there is a
     combinational path between the control signals of the `read` and

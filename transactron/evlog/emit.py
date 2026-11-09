@@ -52,7 +52,8 @@ class EvLogKey(ListKey[EmittedEvent]):
 class EvLogEnabledKey(SimpleKey[bool]):
     """DependencyManager key for enabling the event log. If the event log
     is disabled (the default), `EventSource.emit` is a no-op and no signals
-    are synthesized."""
+    are synthesized.
+    """
 
     empty_valid = True
     default_value = False
@@ -65,7 +66,8 @@ def evlog_enabled() -> bool:
 
 def get_emitted_events() -> list[EmittedEvent]:
     """Returns all event emission sites registered during elaboration,
-    in registration order."""
+    in registration order.
+    """
     return DependencyContext.get().get_dependency(EvLogKey())
 
 

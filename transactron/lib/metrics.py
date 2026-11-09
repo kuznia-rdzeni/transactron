@@ -225,7 +225,6 @@ class HwCounter(Elaboratable, HwMetric):
         ways: int
             The number of users of this counter.
         """
-
         super().__init__(fully_qualified_name, description)
 
         self.count = HwMetricRegister("count", width_bits, "the value of the counter")
@@ -305,7 +304,6 @@ class TaggedCounter(Elaboratable, HwMetric):
         ways: int
             The number of users of this counter.
         """
-
         super().__init__(fully_qualified_name, description)
 
         if isinstance(tags, range) or isinstance(tags, list):
@@ -420,7 +418,6 @@ class HwExpHistogram(Elaboratable, HwMetric):
         ways: int
             The number of users of this metric.
         """
-
         super().__init__(fully_qualified_name, description)
         self.bucket_count = bucket_count
         self.sample_width = sample_width
@@ -896,9 +893,7 @@ class HardwareMetricsManager:
         return metrics
 
     def get_metrics(self) -> dict[str, HwMetric]:
-        """
-        Returns all metrics registered in the circuit.
-        """
+        """Returns all metrics registered in the circuit."""
         if self._metrics is None:
             self._metrics = self._collect_metrics()
         return self._metrics
@@ -916,16 +911,13 @@ class HardwareMetricsManager:
             the metric is a histogram, the 'reg_name' could be 'min'
             or 'bucket-32'.
         """
-
         metrics = self.get_metrics()
         if metric_name not in metrics:
             raise RuntimeError(f"Couldn't find metric '{metric_name}'")
         return metrics[metric_name].signals[reg_name]
 
     def debug_signals(self) -> DebugBundle:
-        """
-        Returns tree-like SignalBundle composed of all metric registers.
-        """
+        """Returns tree-like SignalBundle composed of all metric registers."""
         metrics = self.get_metrics()
 
         def rec(metric_names: list[str], depth: int = 1):

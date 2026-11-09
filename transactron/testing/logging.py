@@ -118,9 +118,7 @@ def make_logging_process(level: tlog.LogLevel, namespace_regexp: str, on_error: 
 
 
 class HDLLogWrapper(Elaboratable):
-    """
-    Wrapper for a module to enable `utils.logging` backend for printing in HDL simulation.
-    """
+    """Wrapper for a module to enable `utils.logging` backend for printing in HDL simulation."""
 
     def __init__(
         self,
@@ -168,9 +166,7 @@ class HDLLogWrapper(Elaboratable):
 
 
 class HDLLogWrapperComponent(HDLLogWrapper, Component):
-    """
-    `HDLLogWrapper` variant for use with `Component`.
-    """
+    """`HDLLogWrapper` variant for use with `Component`."""
 
     def __init__(
         self,

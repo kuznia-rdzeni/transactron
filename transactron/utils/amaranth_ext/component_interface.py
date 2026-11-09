@@ -58,7 +58,6 @@ class _ComponentSignal:
 
     Parameters
     ----------
-
     flow: Flow
         Direction of signal flow. `Flow.In` or `Flow.Out`.
 

@@ -256,7 +256,6 @@ class TestStreamIntegration(TestCaseWithSimulator):
 
     def test_producer_consumer_integration(self):
         """Test amaranth stream -> transactron -> amaranth stream roundtrip"""
-
         m = TestStreamIntegration.StreamToTransactronToStreamCircuit(self.data_width)
         circuit = SimpleTestCircuit(m)
         test_data = [random.randrange(2**self.data_width) for _ in range(20)]
@@ -287,7 +286,6 @@ class TestStreamIntegration(TestCaseWithSimulator):
 
     def test_backpressure(self):
         """Test that backpressure works correctly through the chain"""
-
         m = TestStreamIntegration.StreamToTransactronToStreamCircuit(self.data_width)
         circuit = SimpleTestCircuit(m)
 
@@ -320,7 +318,6 @@ class TestStreamIntegration(TestCaseWithSimulator):
 
     def test_stream_passthrough(self):
         """Test transactron -> amaranth stream -> transactron roundtrip"""
-
         m = TestStreamIntegration.TransactronToStreamToTransactronCircuit(self.data_width)
         circuit = SimpleTestCircuit(m)
         test_data = [random.randrange(2**self.data_width) for _ in range(20)]
@@ -343,7 +340,6 @@ class TestStreamIntegration(TestCaseWithSimulator):
 
         Make producer and consumer ready only on subset of cycles
         """
-
         p_producer = 0.5
         p_consumer = 0.5
         test_data = [random.randint(0, 2**self.data_width - 1) for _ in range(1000)]

@@ -13,12 +13,12 @@ __all__ = ["TransactronContextComponent", "TransactronContextElaboratable"]
 
 
 class TransactronContextElaboratable(Elaboratable):
-    """Top-level Elaboratable for Transactron projects.
+    r"""Top-level Elaboratable for Transactron projects.
 
     `TransactronContextElaboratable` is used as wrapper on `Elaboratable`
     classes, which adds support for transactions. It creates a
     `TransactionManager` which will handle transaction scheduling
-    and can be used in definition of `Method`\\s and `Transaction`\\s.
+    and can be used in definition of `Method`\s and `Transaction`\s.
     The `TransactionManager` is stored in a `DependencyManager`.
     """
 

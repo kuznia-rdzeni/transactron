@@ -15,7 +15,8 @@ from transactron.evlog.schema import EventSiteSchema
 def site_field_types(site: EventSiteSchema) -> dict[str, Any]:
     """Returns the declared field types of the site's event, or an empty
     mapping if the event type is not registered (its defining module was
-    not imported)."""
+    not imported).
+    """
     try:
         return dict(get_event_class(site.event_name)._field_types)
     except KeyError:

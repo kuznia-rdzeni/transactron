@@ -1,6 +1,4 @@
-"""
-Utilities for extracting dependencies from Amaranth.
-"""
+"""Utilities for extracting dependencies from Amaranth."""
 
 import warnings
 
@@ -100,7 +98,7 @@ class TracingFragment(Fragment):
     @staticmethod
     def get(obj: HasElaborate, platform) -> "TracingFragment":
         """
-        This function code is based on Amaranth, which originally loses all information.
+        Code of this function is based on Amaranth, which originally loses all information.
         It was too difficult to hook into, so this has to be a near-exact copy.
 
         Relevant copyrights apply.
