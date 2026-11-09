@@ -280,7 +280,7 @@ class TestMemoryBank(TestCaseWithSimulator):
             async def process(sim: TestbenchContext):
                 for cycle in range(test_count):
                     a = random.randrange(max_addr)
-                    await m.read_req[i].call(sim, addr=a)
+                    await m.read[i].request.call(sim, addr=a)
                     await sim.delay(1e-9 * (1 if not transparent else write_ports + 2))
                     if read_on_resp:
                         read_req_queues[i].append(a)
@@ -302,7 +302,7 @@ class TestMemoryBank(TestCaseWithSimulator):
                             d = data[read_req_queues[i].popleft()]
                     else:
                         d = read_req_queues[i].popleft()
-                    rd = from_shape((await m.read_resp[i].call(sim)).data)
+                    rd = from_shape((await m.read[i].response.call(sim)).data)
                     await sim.delay(1e-9 * (write_ports + 3))
                     if read_on_resp and transparent:
                         d = data[read_req_queues[i].popleft()]

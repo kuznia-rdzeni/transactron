@@ -9,6 +9,7 @@ from transactron.utils.transactron_helpers import from_method_layout, make_layou
 from ..core import *
 from ..utils import SrcLoc, get_src_loc, MultiPriorityEncoder
 from transactron.utils import LayoutList, MethodLayout
+from .reqres import RequestResponseInterface, RequestResponseMethods
 
 __all__ = ["AsyncMemoryBank", "ContentAddressableMemory", "MemoryBank"]
 
@@ -18,19 +19,24 @@ class MemoryBank(Elaboratable):
 
     Provides a transactional interface to synchronous Amaranth Memory with arbitrary
     number of read and write ports. It supports optionally writing with given granularity.
+    """
 
-    Attributes
-    ----------
-    read_req: Methods
-        The read request methods, one for each read port. Accepts an `addr` from which data should be read.
-        Only ready if there is there is a place to buffer response. After calling `read_reqs[i]`, the result
-        will be available via the method `read_resps[i]`.
-    read_resp: Methods
-        The read response methods, one for each read port. Return `data_layout` View which was saved on `addr` given
-        by last corresponding `read_reqs` method call. Only ready after corresponding `read_reqs` call.
-    write: Methods
-        The write methods, one for each write port. Accepts write address `addr`, `data` in form of `data_layout`
-        and optionally `mask` if `granularity` is not None. `1` in mask means that appropriate part should be written.
+    read: Provided[list[RequestResponseInterface]]
+    """The read ports.
+
+    The `request` method of a port accepts an `addr` from which data should be read. It is only ready if there is
+    a place to buffer the response. After calling it, the result will be available via the `response` method
+    of the same port.
+
+    The `response` method returns `data_layout` View which was saved on `addr` given by the last corresponding
+    `request` call. It is only ready after a corresponding `request` call.
+    """
+
+    write: Provided[Methods]
+    """The write methods, one for each write port.
+
+    Accepts write address `addr`, `data` in form of `data_layout` and optionally `mask` if `granularity` is not None.
+    `1` in mask means that appropriate part should be written.
     """
 
     def __init__(
@@ -95,8 +101,10 @@ class MemoryBank(Elaboratable):
             write_layout.append(("mask", amaranth_write_port_sig.members["en"].shape))
         self.writes_layout = make_layout(*write_layout)
 
-        self.read_req = Methods(read_ports, i=self.read_reqs_layout, src_loc=self.src_loc)
-        self.read_resp = Methods(read_ports, o=self.read_resps_layout, src_loc=self.src_loc)
+        self.read = [
+            RequestResponseMethods(self.read_reqs_layout, self.read_resps_layout, src_loc=self.src_loc)
+            for _ in range(read_ports)
+        ]
         self.write = Methods(write_ports, i=self.writes_layout, src_loc=self.src_loc)
 
     def elaborate(self, platform) -> TModule:
@@ -151,12 +159,14 @@ class MemoryBank(Elaboratable):
             # The first result is stored in the overflow buffer, the second - in the read value buffer of the memory.
             # If the responses are always read as they arrive, overflow is never written and no stalls occur.
 
-            with m.If(read_output_valid[i] & ~overflow_valid[i] & self.read_req[i].run & ~self.read_resp[i].run):
+            with m.If(
+                read_output_valid[i] & ~overflow_valid[i] & self.read[i].request.run & ~self.read[i].response.run
+            ):
                 m.d.sync += overflow_valid[i].eq(1)
                 m.d.sync += overflow_addr[i].eq(read_output_addr[i])
                 m.d.sync += overflow_data[i].eq(read_output_next[i])
 
-        @def_methods(m, self.read_resp, lambda i: read_output_valid[i] | overflow_valid[i])
+        @def_methods(m, [port.response for port in self.read], lambda i: read_output_valid[i] | overflow_valid[i])
         def _(i: int):
             with m.If(overflow_valid[i]):
                 m.d.sync += overflow_valid[i].eq(0)
@@ -185,7 +195,7 @@ class MemoryBank(Elaboratable):
             else:
                 m.d.comb += read_port[i].en.eq(0)  # because the init value is 1
 
-        @def_methods(m, self.read_req, lambda i: ~overflow_valid[i])
+        @def_methods(m, [port.request for port in self.read], lambda i: ~overflow_valid[i])
         def _(i: int, addr):
             m.d.sync += read_output_valid[i].eq(1)
             m.d.sync += read_output_addr[i].eq(addr)
