@@ -332,8 +332,7 @@ class MethodProduct(Elaboratable, Unifier):
             combiner=combiner,
             src_loc=src_loc,
         )
-        for m1, m2 in zip(tr.targets, targets):
-            m1.provide(m2)
+        provide(tr.targets, targets)
         return tr
 
     def elaborate(self, platform):
@@ -414,8 +413,7 @@ class MethodTryProduct(Elaboratable, Unifier):
         tr = MethodTryProduct(
             targets[0].layout_in, [target.layout_out for target in targets], combiner, src_loc=src_loc
         )
-        for m1, m2 in zip(tr.targets, targets):
-            m1.provide(m2)
+        provide(tr.targets, targets)
         return tr
 
     def elaborate(self, platform):
@@ -472,8 +470,7 @@ class Collector(Elaboratable, Unifier):
         targets = list(targets)
         src_loc = get_src_loc(src_loc)
         tr = Collector(len(targets), targets[0].layout_out)
-        for m1, m2 in zip(tr.targets, targets):
-            m1.provide(m2)
+        provide(tr.targets, targets)
         return tr
 
     def elaborate(self, platform):

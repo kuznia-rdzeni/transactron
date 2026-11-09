@@ -5,7 +5,7 @@ from typing import Protocol, final
 
 from amaranth import *
 from amaranth.lib.data import StructLayout
-from amaranth_types import ShapeLike, SrcLoc, ValueLike
+from amaranth_types import HasElaborate, ShapeLike, SrcLoc, ValueLike
 
 from transactron.core import Method, TModule, def_method, Provided
 from transactron.lib.connectors import ConnectTrans, Pipe, ClearableConnector
@@ -20,6 +20,9 @@ __all__ = ["PipelineBuilder"]
 # ---------------------------------------------------------------------------
 # Node descriptor types
 # ---------------------------------------------------------------------------
+
+
+class _ForwarderModule(ClearableConnector, HasElaborate, Protocol): ...
 
 
 class _PipelineNodeProtocol(Protocol):
@@ -108,7 +111,7 @@ class PipelineBuilder(Elaboratable):
         src_loc: SrcLoc
         ready: ValueLike
         no_dependency: bool
-        forwarder: Callable[[MethodLayout], ClearableConnector]
+        forwarder: Callable[[MethodLayout], _ForwarderModule]
 
     def __init__(self, allow_unused: bool = False, allow_empty: bool = False):
         """Initialize a new pipeline builder.
@@ -376,7 +379,7 @@ class PipelineBuilder(Elaboratable):
         if self._next_forwarder is not None:
             raise RuntimeError("Fifo was added twice for the same stage")
 
-        def fifo_forwarder(layout: MethodLayout) -> ClearableConnector:
+        def fifo_forwarder(layout: MethodLayout) -> _ForwarderModule:
             return BasicFifo(layout, depth, src_loc=src_loc)
 
         self._next_forwarder = fifo_forwarder
@@ -553,7 +556,7 @@ class PipelineBuilder(Elaboratable):
                     f"Signal {k} from {src_loc} has incompatible shape: expected {v}, got {self._live_signal_shapes[k]}"
                 )
 
-        def pipe_forwarder(layout: MethodLayout) -> ClearableConnector:
+        def pipe_forwarder(layout: MethodLayout) -> _ForwarderModule:
             return Pipe(layout, src_loc=src_loc)
 
         forwarder = self._next_forwarder or pipe_forwarder
