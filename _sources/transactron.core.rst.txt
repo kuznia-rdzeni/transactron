@@ -20,6 +20,14 @@ transactron.core.context module
    :show-inheritance:
    :undoc-members:
 
+transactron.core.interface module
+---------------------------------
+
+.. automodule:: transactron.core.interface
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 transactron.core.keys module
 ----------------------------
 

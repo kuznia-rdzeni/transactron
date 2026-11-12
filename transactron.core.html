@@ -282,6 +282,104 @@ If omitted, a new one is created.</p>
 </dd></dl>
 
 </section>
+<section id="module-transactron.core.interface">
+<span id="transactron-core-interface-module"></span><h2>transactron.core.interface module<a class="headerlink" href="#module-transactron.core.interface" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="transactron.core.interface.InterfaceMember">
+<span class="property"><span class="k"><span class="pre">final</span></span><span class="w"> </span><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">transactron.core.interface.</span></span><span class="sig-name descname"><span class="pre">InterfaceMember</span></span><a class="headerlink" href="#transactron.core.interface.InterfaceMember" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.core.interface.InterfaceMember.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mdir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#transactron.core.method.MethodDir" title="transactron.core.method.MethodDir"><span class="pre">MethodDir</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">iface</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#transactron.core.interface.InterfacePart" title="transactron.core.interface.InterfacePart"><span class="pre">InterfacePart</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#transactron.core.interface.InterfaceMember.__init__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="transactron.core.interface.InterfaceMember.iface">
+<span class="sig-name descname"><span class="pre">iface</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#transactron.core.interface.InterfacePart" title="transactron.core.interface.InterfacePart"><span class="pre">InterfacePart</span></a></span><a class="headerlink" href="#transactron.core.interface.InterfaceMember.iface" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="transactron.core.interface.InterfaceMember.mdir">
+<span class="sig-name descname"><span class="pre">mdir</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#transactron.core.method.MethodDir" title="transactron.core.method.MethodDir"><span class="pre">MethodDir</span></a></span><a class="headerlink" href="#transactron.core.interface.InterfaceMember.mdir" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="transactron.core.interface.InterfaceMembers">
+<span class="property"><span class="k"><span class="pre">final</span></span><span class="w"> </span><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">transactron.core.interface.</span></span><span class="sig-name descname"><span class="pre">InterfaceMembers</span></span><a class="headerlink" href="#transactron.core.interface.InterfaceMembers" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Mapping</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, InterfaceMember]</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.core.interface.InterfaceMembers.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">members</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterable" title="(in Python v3.15)"><span class="pre">Iterable</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#transactron.core.interface.InterfaceMember" title="transactron.core.interface.InterfaceMember"><span class="pre">InterfaceMember</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.core.interface.InterfaceMembers.__init__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py type">
+<dt class="sig sig-object py" id="transactron.core.interface.InterfacePart">
+<span class="property"><span class="k"><span class="pre">type</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">transactron.core.interface.</span></span><span class="sig-name descname"><span class="pre">InterfacePart</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><a class="reference internal" href="#transactron.core.method.Method" title="transactron.core.method.Method"><span class="pre">Method</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="#transactron.core.interface.InterfaceMembers" title="transactron.core.interface.InterfaceMembers"><span class="pre">InterfaceMembers</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.15)"><span class="pre">Sequence</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#transactron.core.interface.InterfacePart" title="transactron.core.interface.InterfacePart"><span class="pre">InterfacePart</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping" title="(in Python v3.15)"><span class="pre">Mapping</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#transactron.core.interface.InterfacePart" title="transactron.core.interface.InterfacePart"><span class="pre">InterfacePart</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#transactron.core.interface.InterfacePart" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="transactron.core.interface.interface_members">
+<span class="sig-prename descclassname"><span class="pre">transactron.core.interface.</span></span><span class="sig-name descname"><span class="pre">interface_members</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#type" title="(in Python v3.15)"><span class="pre">type</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#transactron.core.interface.InterfaceMembers" title="transactron.core.interface.InterfaceMembers"><span class="pre">InterfaceMembers</span></a></span></span><a class="headerlink" href="#transactron.core.interface.interface_members" title="Link to this definition"></a></dt>
+<dd><p>Collect the interface members of an object.</p>
+<p>Interface members are attributes annotated with <cite>Required</cite> and
+<cite>Provided</cite>. Accepted types are <cite>Method</cite> and <cite>Methods</cite> instances,
+arbitrary sequences and mappings of accepted types, and arbitrary
+objects containing interface members.</p>
+<p>If <cite>cls</cite> is given, only the members annotated in <cite>cls</cite> and its base
+classes are collected. <cite>cls</cite> can be a <cite>Protocol</cite>, which the object
+doesn’t need to explicitly inherit from. Otherwise, annotations from
+the object’s class are used, and unannotated <cite>Method</cite> and <cite>Methods</cite>
+attributes are collected as provided members.</p>
+<p>Members are collected recursively according to their declared types,
+e.g. a member annotated <cite>Provided[list[P]]</cite> is collected as a list of
+objects implementing <cite>P</cite>, using only the members declared in <cite>P</cite>.
+If the declared type is <cite>Any</cite>, the actual types of the values are
+used, as if <cite>cls</cite> was not given.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="transactron.core.interface.provide">
+<span class="sig-prename descclassname"><span class="pre">transactron.core.interface.</span></span><span class="sig-name descname"><span class="pre">provide</span></span><a class="headerlink" href="#transactron.core.interface.provide" title="Link to this definition"></a></dt>
+<dd><p>Connect the interfaces of two objects.</p>
+<p>There are two distinct ways to use <cite>provide</cite>.</p>
+<ul>
+<li><p><cite>provide(lhs, rhs)</cite>: provided methods of <cite>lhs</cite> are provided by the
+corresponding methods of <cite>rhs</cite>, and required methods of <cite>rhs</cite> are
+provided by the corresponding methods of <cite>lhs</cite>.</p>
+<p>Used this way, <cite>lhs</cite> and <cite>rhs</cite> can be anything <cite>interface_members</cite>
+accepts as the value of an annotated attribute, including <cite>Method</cite>
+instances, sequences (which includes <cite>Methods</cite>), mappings and arbitrary
+objects. When objects are given, every <cite>Method</cite> and <cite>Methods</cite> attribute
+is considered for connection, in addition to all <cite>Provided</cite> and
+<cite>Required</cite> attributes.</p>
+</li>
+<li><p><cite>provide[cls](lhs, rhs)</cite>: only the members declared in <cite>cls</cite> (e.g. a
+<cite>Protocol</cite>) and its base classes are connected, and the type checker
+checks that both objects conform to <cite>cls</cite>. This allows an object
+implementing multiple interfaces to provide each of them separately.</p>
+<p>When used this way, <cite>lhs</cite> and <cite>rhs</cite> must both implement <cite>cls</cite>, if
+<cite>cls</cite> is a <cite>Protocol</cite>, or be instances of <cite>cls</cite>, if <cite>cls</cite> is an
+ordinary class. Only <cite>Provided</cite> and <cite>Required</cite> annotated attributes
+are considered for connection, and nested members are connected
+according to their declared types.</p>
+</li>
+</ul>
+<dl class="field-list simple">
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#transactron.core.interface.interface_members" title="transactron.core.interface.interface_members"><code class="xref py py-obj docutils literal notranslate"><span class="pre">interface_members</span></code></a></dt><dd><p>Used internally to identify which methods to provide.</p>
+</dd>
+</dl>
+</div>
+</dd></dl>
+
+</section>
 <section id="module-transactron.core.keys">
 <span id="transactron-core-keys-module"></span><h2>transactron.core.keys module<a class="headerlink" href="#module-transactron.core.keys" title="Link to this heading"></a></h2>
 <dl class="py class">
@@ -559,6 +657,16 @@ output data layouts of this method and <cite>method</cite> must match.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="transactron.core.method.MethodDir.REQUIRED">
 <span class="sig-name descname"><span class="pre">REQUIRED</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2</span></span><a class="headerlink" href="#transactron.core.method.MethodDir.REQUIRED" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.core.method.MethodDir.opposite">
+<span class="sig-name descname"><span class="pre">opposite</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#transactron.core.method.MethodDir" title="transactron.core.method.MethodDir"><span class="pre">MethodDir</span></a></span></span><a class="headerlink" href="#transactron.core.method.MethodDir.opposite" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.core.method.MethodDir.under">
+<span class="sig-name descname"><span class="pre">under</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#transactron.core.method.MethodDir" title="transactron.core.method.MethodDir"><span class="pre">MethodDir</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#transactron.core.method.MethodDir" title="transactron.core.method.MethodDir"><span class="pre">MethodDir</span></a></span></span><a class="headerlink" href="#transactron.core.method.MethodDir.under" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -1103,7 +1211,7 @@ but mutually exclusive, with this <cite>Transaction</cite> or <cite>Method</cite
 
   <div role="contentinfo">
     <p>&#169; Copyright Kuźnia Rdzeni, 2026.
-      <span class="lastupdated">Last updated on 13:44 2026-11-09.
+      <span class="lastupdated">Last updated on 13:30 2026-11-12.
       </span></p>
   </div>
 
