@@ -7,6 +7,7 @@ from .core import (
     def_methods,
     Required,
     Provided,
+    provide,
     Priority,
     TransactronContextElaboratable,
     TransactronContextComponent,
@@ -32,4 +33,5 @@ __all__ = [
     "condition",
     "def_method",
     "def_methods",
+    "provide",
 ]
