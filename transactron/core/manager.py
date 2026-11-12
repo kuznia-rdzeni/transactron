@@ -168,10 +168,10 @@ class MethodMap:
 
 
 class TransactionManager(Elaboratable):
-    """Transaction manager
+    r"""Transaction manager
 
-    This module is responsible for granting `Transaction`\\s and running
-    `Method`\\s. It takes care that two conflicting `Transaction`\\s
+    This module is responsible for granting `Transaction`\s and running
+    `Method`\s. It takes care that two conflicting `Transaction`\s
     are never granted in the same clock cycle.
     """
 

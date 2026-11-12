@@ -145,7 +145,8 @@ class CtrlPath:
 class CtrlPathBuilder:
     """Constructs control paths.
 
-    Used internally by `TModule`."""
+    Used internally by `TModule`.
+    """
 
     def __init__(self, module: int):
         """

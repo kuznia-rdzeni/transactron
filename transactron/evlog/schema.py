@@ -135,7 +135,8 @@ class GeneratedEvLog:
 
 def schema_from_records(records: Iterable[EmittedEvent], metadata: dict[str, Any] | None = None) -> EvLogSchema:
     """Builds an event log schema from the emission sites registered during
-    elaboration (see `get_emitted_events`)."""
+    elaboration (see `get_emitted_events`).
+    """
     sites: list[EventSiteSchema] = []
     for rec in records:
         fields_schema: list[EventFieldSchema] = []

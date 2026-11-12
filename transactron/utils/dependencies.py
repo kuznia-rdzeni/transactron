@@ -105,7 +105,6 @@ class DependencyManager:
         Depending on the key type, a key can have a single dependency or
         multiple dependencies added to it.
         """
-
         if key in self.locked_dependencies:
             raise KeyError(f"Trying to add dependency to {key} that was already read and is locked")
 

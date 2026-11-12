@@ -63,11 +63,11 @@ def is_union(val: AssignArg):
 def assign(
     lhs: AssignArg, rhs: AssignArg, *, fields: AssignFields = AssignType.RHS, lhs_strict=False, rhs_strict=False
 ) -> Iterable["Assign"]:
-    """Safe structured assignment.
+    r"""Safe structured assignment.
 
     This function recursively generates assignment statements for
     field-containing structures. This includes:
-    Amaranth `View`\\s using `StructLayout`, Python `dict`\\s. In case of
+    Amaranth `View`\s using `StructLayout`, Python `dict`\s. In case of
     mismatching fields or bit widths, error is raised.
 
     When both `lhs` and `rhs` are field-containing, `assign` generates

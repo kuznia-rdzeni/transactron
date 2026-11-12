@@ -51,17 +51,17 @@ Required: TypeAlias = Annotated[_T, MethodDir.REQUIRED]  # noqa: UP040
 
 
 class Method(TransactionBase["Transaction | Method"]):
-    """Transactional method.
+    r"""Transactional method.
 
-    A `Method` serves to interface a module with external `Transaction`\\s
-    or `Method`\\s. It can be called by at most once in a given clock cycle.
-    When a given `Method` is called by multiple `Transaction`\\s
+    A `Method` serves to interface a module with external `Transaction`\s
+    or `Method`\s. It can be called by at most once in a given clock cycle.
+    When a given `Method` is called by multiple `Transaction`\s
     (either directly, or indirectly via another `Method`) simultaneously,
     at most one of them is run by the `TransactionManager`, and the rest
     of them must wait. (Non-exclusive methods are an exception to this
     behavior.) Calling a `Method` always takes a single clock cycle.
 
-    Data is combinationally transferred between to and from `Method`\\s
+    Data is combinationally transferred between to and from `Method`\s
     using Amaranth structures (`View` with a `StructLayout`). The transfer
     can take place in both directions at the same time: from the called
     `Method` to the caller (`data_out`) and from the caller to the called

@@ -39,7 +39,7 @@ def layout_keys(layout: data.Layout) -> Sequence[str | int]:
 
 
 def transpose_layout(layout: data.Layout) -> data.Layout:
-    """Transpose a two-level layout.
+    r"""Transpose a two-level layout.
 
     `layout` is expected to be an `ArrayLayout` or `StructLayout` whose every field
     is itself an `ArrayLayout` or `StructLayout`, with all of the fields sharing the
@@ -51,7 +51,7 @@ def transpose_layout(layout: data.Layout) -> data.Layout:
     ----------
     layout : data.Layout
         The layout to transpose. Must be an `ArrayLayout` or `StructLayout` whose
-        fields are all `ArrayLayout`\\s or `StructLayout`\\s sharing identical keys.
+        fields are all `ArrayLayout`\s or `StructLayout`\s sharing identical keys.
 
     Returns
     -------
@@ -62,7 +62,7 @@ def transpose_layout(layout: data.Layout) -> data.Layout:
     ------
     ValueError
         If `layout` is not an `ArrayLayout` or `StructLayout`; if it has no fields;
-        if its fields are not all `ArrayLayout`\\s or `StructLayout`\\s; if its
+        if its fields are not all `ArrayLayout`\s or `StructLayout`\s; if its
         fields have no keys; or if its fields do not all share the same keys.
     """
     return transpose_layout_with_keys(layout)[0]

@@ -91,6 +91,7 @@ select = [
     "PLE",  # pylint error
     "RUF",  # ruff-specific rules
     "UP",   # pyupgrade
+    "D",    # pydocstyle
 ]
 ignore = [
     "F403",   # star imports
@@ -99,7 +100,14 @@ ignore = [
     "RUF021", # requires redundant parentheses around and expressions
     "RUF100", # unused noqa, seems nice but does spurious reports
     "UP037",  # remove quotes from type annotation (TODO py3.14)
+    "D1",     # missing docstrings
+    "D205",   # blank line after summary (TODO)
+    "D400",   # summary ends with a period (TODO)
+    "D401",   # imperative mood
 ]
+
+[tool.ruff.lint.pydocstyle]
+convention = "numpy"
 
 [tool.ruff.lint.pep8-naming]
 ignore-names = ["OneHotCase", "OneHotSwitch", "OneHotSwitchDynamic"]

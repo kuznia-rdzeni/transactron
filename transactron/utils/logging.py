@@ -59,7 +59,6 @@ class LogRecordInfo:
 
     def format(self, *args: int) -> str:
         """Format the log message with a set of concrete arguments."""
-
         chunks = []
         fields_iter = iter(args)
         for chunk in self.format_spec:
@@ -403,7 +402,6 @@ def get_log_records(level: LogLevel, namespace_regexp: str = ".*") -> list[LogRe
         The regexp of the namespace. If not specified, logs from all namespaces
         will be processed.
     """
-
     dependencies = DependencyContext.get()
     all_logs = dependencies.get_dependency(LogKey())
     return [rec for rec in all_logs if rec.level >= level and re.search(namespace_regexp, rec.logger_name)]
@@ -425,5 +423,4 @@ def get_trigger_bit(level: LogLevel, namespace_regexp: str = ".*") -> Value:
         The regexp of the namespace. If not specified, logs from all namespaces
         will be processed.
     """
-
     return Cat(rec.trigger for rec in get_log_records(level, namespace_regexp)).any()

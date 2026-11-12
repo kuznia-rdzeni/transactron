@@ -208,6 +208,7 @@ class RoundRobin(Elaboratable):
     ----------
     count : int
         Number of requests.
+
     Attributes
     ----------
     requests : Signal(count), in
@@ -656,7 +657,6 @@ class OneHotMux(Elaboratable):
             input when all select bits are 0. If False, the output is zero when inputs_count > 1,
             the only value if inputs_count == 1 and 0 vector if inputs_count == 0.
         """
-
         self.inputs = Signal(ArrayLayout(shape, inputs_count))
         self.select = Signal(inputs_count)
         if has_default:

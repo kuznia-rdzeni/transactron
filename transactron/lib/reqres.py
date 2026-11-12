@@ -14,7 +14,7 @@ __all__ = [
 
 
 class ArgumentsToResultsZipper(Elaboratable):
-    """Zips arguments used to call method with results, cutting critical path.
+    r"""Zips arguments used to call method with results, cutting critical path.
 
     This module provides possibility to pass arguments from caller and connect it with results
     from callee. Arguments are stored in 2-FIFO and results in Forwarder. Because of this asymmetry,
@@ -28,7 +28,7 @@ class ArgumentsToResultsZipper(Elaboratable):
 
         graph LR
             Caller -- write_arguments --> 2-FIFO;
-            Caller -- invoke --> Callee["Callee \\n (1+ cycle delay)"];
+            Caller -- invoke --> Callee["Callee \n (1+ cycle delay)"];
             Callee -- write_results --> Forwarder;
             Forwarder -- read --> Zip;
             2-FIFO -- read --> Zip;
@@ -103,9 +103,9 @@ class ArgumentsToResultsZipper(Elaboratable):
 
 
 class Serializer(Elaboratable):
-    """Module to serialize request-response methods.
+    r"""Module to serialize request-response methods.
 
-    Provides a transactional interface to connect many client `Module`\\s (which request somethig using method call)
+    Provides a transactional interface to connect many client `Module`\s (which request somethig using method call)
     with a server `Module` which provides method to request operation and method to get response.
 
     Requests are being serialized from many clients and forwarded to a server which can process only one request

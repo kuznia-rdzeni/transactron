@@ -98,24 +98,18 @@ class PysimSimulator(Simulator):
 
 
 async def tick(ctx: SimulatorContext, cycle_cnt: int = 1):
-    """
-    Waits for the given number of cycles.
-    """
+    """Waits for the given number of cycles."""
     for _ in range(cycle_cnt):
         await ctx.tick()
 
 
 async def random_wait(ctx: SimulatorContext, max_cycle_cnt: int, *, min_cycle_cnt: int = 0):
-    """
-    Wait for a random amount of cycles in range [min_cycle_cnt, max_cycle_cnt]
-    """
+    """Wait for a random amount of cycles in range [min_cycle_cnt, max_cycle_cnt]"""
     await tick(ctx, random.randrange(min_cycle_cnt, max_cycle_cnt + 1))
 
 
 async def random_wait_geom(ctx: SimulatorContext, prob: float = 0.5, max_cycle_cnt: int = 2**16):
-    """
-    Wait till the first success, where there is `prob` probability for success in each cycle.
-    """
+    """Wait till the first success, where there is `prob` probability for success in each cycle."""
     assert prob > 0 and prob <= 1
     if prob == 1:
         cycle_cnt = 0

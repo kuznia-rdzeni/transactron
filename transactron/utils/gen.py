@@ -128,17 +128,13 @@ class GenerationInfo:
     evlog: GeneratedEvLog
 
     def encode(self, file_name: str):
-        """
-        Encodes the generation information as JSON and saves it to a file.
-        """
+        """Encodes the generation information as JSON and saves it to a file."""
         with open(file_name, "w") as fp:
             fp.write(self.to_json())  # type: ignore
 
     @staticmethod
     def decode(file_name: str) -> "GenerationInfo":
-        """
-        Loads the generation information from a JSON file.
-        """
+        """Loads the generation information from a JSON file."""
         with open(file_name) as fp:
             return GenerationInfo.from_json(fp.read())  # type: ignore
 
@@ -155,7 +151,6 @@ def escape_verilog_identifier(identifier: str) -> str:
     space (space, tab, newline). They provide a means of including any of the printable ASCII
     characters in an identifier (the decimal values 33 through 126, or 21 through 7E in hexadecimal)."
     """
-
     # The standard says how to escape a identifier, but not when. So this is
     # a non-exhaustive list of characters that Yosys escapes (it is used
     # by Amaranth when generating Verilog code).
@@ -226,7 +221,8 @@ class SignalLogRecord(logging.LogRecordInfo):
 class VerilogDebugWrapper(Elaboratable):
     """Wraps an elaboratable in order to expose debug information (log records
     and event emission sites) as named signals locatable in the generated
-    Verilog code."""
+    Verilog code.
+    """
 
     def __init__(self, elaboratable: Elaboratable):
         self.elaboratable = elaboratable

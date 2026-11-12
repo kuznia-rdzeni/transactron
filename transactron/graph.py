@@ -1,6 +1,4 @@
-"""
-Utilities for extracting dependency graphs from Amaranth designs.
-"""
+"""Utilities for extracting dependency graphs from Amaranth designs."""
 
 from enum import IntFlag
 from collections import defaultdict
@@ -121,9 +119,7 @@ class OwnershipGraph:
     def prune(self, owner: int) -> bool: ...
 
     def prune(self, owner: int | None = None):
-        """
-        Mark all empty subgraphs.
-        """
+        """Mark all empty subgraphs."""
         if owner is None:
             backup = self.graph.copy()
             for owner in self.names:

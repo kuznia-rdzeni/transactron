@@ -165,7 +165,6 @@ class StreamModuleWrapper(Elaboratable):
             How many stack frames deep the source location is taken from.
             Alternatively, the source location to use instead of the default.
         """
-
         self.module = module
 
         src_loc = get_src_loc(src_loc)

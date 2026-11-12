@@ -51,7 +51,7 @@ class TransactionBase[T: TransactionBase](Owned, Protocol):
         self.independent_list = []
 
     def add_conflict(self, end: T, priority: Priority = Priority.UNDEFINED) -> None:
-        """Registers a conflict.
+        r"""Registers a conflict.
 
         Record that that the given `Transaction` or `Method` cannot execute
         simultaneously with this `Method` or `Transaction`. Typical reason
@@ -62,7 +62,7 @@ class TransactionBase[T: TransactionBase](Owned, Protocol):
         end: Transaction or Method
             The conflicting `Transaction` or `Method`
         priority: Priority, optional
-            Is one of conflicting `Transaction`\\s or `Method`\\s prioritized?
+            Is one of conflicting `Transaction`\s or `Method`\s prioritized?
             Defaults to undefined priority relation.
         """
         self.relations.append(
@@ -95,42 +95,42 @@ class TransactionBase[T: TransactionBase](Owned, Protocol):
         )
 
     def simultaneous(self, *others: T) -> None:
-        """Adds simultaneity relations.
+        r"""Adds simultaneity relations.
 
-        The given `Transaction`\\s or `Method``\\s will execute simultaneously
+        The given `Transaction`\s or `Method``\s will execute simultaneously
         (in the same clock cycle) with this `Transaction` or `Method`.
 
         Parameters
         ----------
         *others: Transaction or Method
-            The `Transaction`\\s or `Method`\\s to be executed simultaneously.
+            The `Transaction`\s or `Method`\s to be executed simultaneously.
         """
         self.simultaneous_list += others
         for other in others:
             other.simultaneous_list.append(self)  # type: ignore
 
     def simultaneous_alternatives(self, *others: T) -> None:
-        """Adds exclusive simultaneity relations.
+        r"""Adds exclusive simultaneity relations.
 
-        Each of the given `Transaction`\\s or `Method``\\s will execute
+        Each of the given `Transaction`\s or `Method``\s will execute
         simultaneously (in the same clock cycle) with this `Transaction` or
-        `Method`. However, each of the given `Transaction`\\s or `Method`\\s
+        `Method`. However, each of the given `Transaction`\s or `Method`\s
         will be separately considered for execution.
 
         Parameters
         ----------
         *others: Transaction or Method
-            The `Transaction`\\s or `Method`\\s to be executed simultaneously,
+            The `Transaction`\s or `Method`\s to be executed simultaneously,
             but mutually exclusive, with this `Transaction` or `Method`.
         """
         self.simultaneous(*others)
         others[0]._independent(*others[1:])
 
     def _independent(self, *others: T) -> None:
-        """Adds independence relations.
+        r"""Adds independence relations.
 
         This `Transaction` or `Method`, together with all the given
-        `Transaction`\\s or `Method`\\s, will never be considered (pairwise)
+        `Transaction`\s or `Method`\s, will never be considered (pairwise)
         for simultaneous execution.
 
         Warning: this function is an implementation detail, do not use in
@@ -139,7 +139,7 @@ class TransactionBase[T: TransactionBase](Owned, Protocol):
         Parameters
         ----------
         *others: Transaction or Method
-            The `Transaction`\\s or `Method`\\s which, together with this
+            The `Transaction`\s or `Method`\s which, together with this
             `Transaction` or `Method`, need to be independently considered
             for execution.
         """
