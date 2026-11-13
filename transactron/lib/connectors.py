@@ -240,6 +240,9 @@ class Connect(Elaboratable):
     write: Method
         The write method. Accepts a structure, returns a (possibly empty)
         structure.
+    clear: Method, nonexclusive
+        Does nothing, as `Connect` does not store any data. Provided for
+        compatibility with other clearable connectors.
     """
 
     def __init__(self, layout: MethodLayout = (), rev_layout: MethodLayout = (), *, src_loc: int | SrcLoc = 0):
@@ -257,6 +260,7 @@ class Connect(Elaboratable):
         src_loc = get_src_loc(src_loc)
         self.read = Method(o=layout, i=rev_layout, src_loc=src_loc)
         self.write = Method(i=layout, o=rev_layout, src_loc=src_loc)
+        self.clear = Method(src_loc=src_loc)
 
     def elaborate(self, platform):
         m = TModule()
@@ -275,6 +279,10 @@ class Connect(Elaboratable):
         def _(arg):
             m.d.av_comb += rev_read_value.eq(arg)
             return read_value
+
+        @def_method(m, self.clear, nonexclusive=True)
+        def _():
+            pass
 
         return m
 
