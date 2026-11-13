@@ -11,8 +11,8 @@ from amaranth.utils import *
 
 __all__ = [
     "ArgumentsToResultsZipper",
+    "PureRequestResponseInterface",
     "RequestResponseInterface",
-    "RequestResponseMethods",
     "Serializer",
 ]
 
@@ -116,8 +116,8 @@ class RequestResponseInterface(Protocol):
     """Accepts the response to the oldest pending request."""
 
 
-class RequestResponseMethods(RequestResponseInterface):
-    """Fresh, undefined `RequestResponseInterface` methods."""
+class PureRequestResponseInterface(RequestResponseInterface):
+    """`RequestResponseInterface` with no behavior of its own."""
 
     def __init__(self, req_layout: MethodLayout, resp_layout: MethodLayout, *, src_loc: int | SrcLoc = 0):
         """
@@ -134,6 +134,30 @@ class RequestResponseMethods(RequestResponseInterface):
         src_loc = get_src_loc(src_loc)
         self.request = Method(i=req_layout, src_loc=src_loc)
         self.response = Method(o=resp_layout, src_loc=src_loc)
+
+    @staticmethod
+    def create(request: Method, response: Method, *, src_loc: int | SrcLoc = 0) -> "PureRequestResponseInterface":
+        """Creates a `PureRequestResponseInterface` connected to the given methods.
+
+        Parameters
+        ----------
+        request: Method
+            Method used as `request`. It must not return values.
+        response: Method
+            Method used as `response`. It must not accept arguments.
+        src_loc: int | SrcLoc
+            How many stack frames deep the source location is taken from.
+            Alternatively, the source location to use instead of the default.
+        """
+        if request.layout_out.size != 0:
+            raise ValueError("request must not return values")
+        if response.layout_in.size != 0:
+            raise ValueError("response must not accept arguments")
+
+        iface = PureRequestResponseInterface(request.layout_in, response.layout_out, src_loc=get_src_loc(src_loc))
+        iface.request.provide(request)
+        iface.response.provide(response)
+        return iface
 
 
 class Serializer(Elaboratable):
@@ -180,34 +204,33 @@ class Serializer(Elaboratable):
         """
         self.src_loc = get_src_loc(src_loc)
         self.port_count = port_count
-        self.server = RequestResponseMethods(req_layout, resp_layout, src_loc=self.src_loc)
+        self.server = PureRequestResponseInterface(req_layout, resp_layout, src_loc=self.src_loc)
 
         self.depth = depth
 
         self.id_layout = [("id", range(self.port_count))]
 
         self.clear = Method()
-        self.ports = [RequestResponseMethods(req_layout, resp_layout, src_loc=self.src_loc) for _ in range(port_count)]
+        self.ports = [
+            PureRequestResponseInterface(req_layout, resp_layout, src_loc=self.src_loc) for _ in range(port_count)
+        ]
 
     @staticmethod
     def create(
         *,
         port_count: int,
-        serialized_req_method: Method,
-        serialized_resp_method: Method,
+        server: RequestResponseInterface,
         depth: int = 4,
         src_loc: int | SrcLoc = 0,
     ):
-        """Creates a `Serializer` connected to the given server methods.
+        """Creates a `Serializer` connected to the given server.
 
         Parameters
         ----------
         port_count: int
             Number of ports which should be generated. `len(ports)=port_count`
-        serialized_req_method: Method
-            Request method provided by server's `Module`.
-        serialized_resp_method: Method
-            Response method provided by server's `Module`.
+        server: RequestResponseInterface
+            Request and response methods provided by server.
         depth: int
             Number of requests which can be forwarded to server, before server provides first response. Describe
             the resistance of `Serializer` to latency of server in case when server is fully pipelined.
@@ -215,20 +238,14 @@ class Serializer(Elaboratable):
             How many stack frames deep the source location is taken from.
             Alternatively, the source location to use instead of the default.
         """
-        if serialized_req_method.layout_out.size != 0:
-            raise ValueError("serialized_req_method must not return values")
-        if serialized_resp_method.layout_in.size != 0:
-            raise ValueError("serialized_resp_method must not accept arguments")
-
         serializer = Serializer(
             port_count=port_count,
-            req_layout=serialized_req_method.layout_in,
-            resp_layout=serialized_resp_method.layout_out,
+            req_layout=server.request.layout_in,
+            resp_layout=server.response.layout_out,
             depth=depth,
             src_loc=get_src_loc(src_loc),
         )
-        serializer.server.request.provide(serialized_req_method)
-        serializer.server.response.provide(serialized_resp_method)
+        provide[RequestResponseInterface](serializer.server, server)
         return serializer
 
     def elaborate(self, platform) -> TModule:

@@ -9,7 +9,7 @@ from transactron.utils.transactron_helpers import from_method_layout, make_layou
 from ..core import *
 from ..utils import SrcLoc, get_src_loc, MultiPriorityEncoder
 from transactron.utils import LayoutList, MethodLayout
-from .reqres import RequestResponseInterface, RequestResponseMethods
+from .reqres import RequestResponseInterface, PureRequestResponseInterface
 
 __all__ = ["AsyncMemoryBank", "ContentAddressableMemory", "MemoryBank"]
 
@@ -102,7 +102,7 @@ class MemoryBank(Elaboratable):
         self.writes_layout = make_layout(*write_layout)
 
         self.read = [
-            RequestResponseMethods(self.read_reqs_layout, self.read_resps_layout, src_loc=self.src_loc)
+            PureRequestResponseInterface(self.read_reqs_layout, self.read_resps_layout, src_loc=self.src_loc)
             for _ in range(read_ports)
         ]
         self.write = Methods(write_ports, i=self.writes_layout, src_loc=self.src_loc)
