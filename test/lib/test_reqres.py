@@ -5,12 +5,14 @@ from amaranth import *
 import pytest
 from transactron import *
 from transactron.lib.reqres import *
-from transactron.testing.method_mock import MethodMock
 from transactron.testing import (
+    MethodMock,
     SimpleTestCircuit,
     TestCaseWithSimulator,
-    def_method_mock,
     TestbenchContext,
+    call_request_response,
+    data_layout,
+    def_request_response_mock,
 )
 
 
@@ -25,7 +27,7 @@ class TestSerializer(TestCaseWithSimulator):
 
         self.requestor_rand = 4
 
-        layout = [("field", self.data_width)]
+        layout = data_layout(self.data_width)
 
         self.test_circuit = SimpleTestCircuit(
             Serializer(
@@ -37,32 +39,13 @@ class TestSerializer(TestCaseWithSimulator):
 
         random.seed(14)
 
-        self.serialized_data = deque()
         self.port_data = [deque() for _ in range(self.port_count)]
-
-        self.got_request = False
-
-    @def_method_mock(lambda self: self.test_circuit.server.request, enable=lambda self: not self.got_request)
-    def serial_req_mock(self, field):
-        @MethodMock.effect
-        def eff():
-            self.serialized_data.append(field)
-            self.got_request = True
-
-    @def_method_mock(lambda self: self.test_circuit.server.response, enable=lambda self: self.got_request)
-    def serial_resp_mock(self):
-        @MethodMock.effect
-        def eff():
-            self.got_request = False
-
-        if self.serialized_data:
-            return {"field": self.serialized_data[-1]}
 
     def requestor(self, i: int):
         async def f(sim: TestbenchContext):
             for _ in range(self.test_count):
                 d = random.randrange(2**self.data_width)
-                await self.test_circuit.ports[i].request.call(sim, field=d)
+                await self.test_circuit.ports[i].request.call(sim, data=d)
                 self.port_data[i].append(d)
                 await self.random_wait(sim, self.requestor_rand, min_cycle_cnt=1)
 
@@ -72,13 +55,83 @@ class TestSerializer(TestCaseWithSimulator):
         async def f(sim: TestbenchContext):
             for _ in range(self.test_count):
                 data_out = await self.test_circuit.ports[i].response.call(sim)
-                assert self.port_data[i].popleft() == data_out.field
+                assert self.port_data[i].popleft() == data_out.data
                 await self.random_wait(sim, self.requestor_rand, min_cycle_cnt=1)
 
         return f
 
-    def test_serial(self, port_count: int):
+    @pytest.mark.parametrize("max_pending", [1, None])
+    def test_serial(self, port_count: int, max_pending: int | None):
+        @def_request_response_mock(self.test_circuit.server, max_pending=max_pending)
+        def server(data):
+            return {"data": data}
+
         with self.run_simulation(self.test_circuit) as sim:
             for i in range(port_count):
                 sim.add_testbench(self.requestor(i))
                 sim.add_testbench(self.responder(i))
+
+    def test_call(self, port_count: int):
+        @def_request_response_mock(self.test_circuit.server)
+        def server(data):
+            return {"data": data}
+
+        async def process(sim: TestbenchContext):
+            for _ in range(self.test_count):
+                d = random.randrange(2**self.data_width)
+                port = self.test_circuit.ports[random.randrange(port_count)]
+                assert (await call_request_response(sim, port, data=d)).data == d
+
+        with self.run_simulation(self.test_circuit) as sim:
+            sim.add_testbench(process)
+
+    @pytest.mark.parametrize("max_pending", [1, 2, None])
+    def test_max_pending(self, port_count: int, max_pending: int | None):
+        accepted = 0
+        respond = False
+
+        @def_request_response_mock(self.test_circuit.server, max_pending=max_pending, response_enable=lambda: respond)
+        def server(data):
+            @MethodMock.effect
+            def _():
+                nonlocal accepted
+                accepted += 1
+
+            return {"data": data}
+
+        async def process(sim: TestbenchContext):
+            nonlocal respond
+            requested = []
+            for i in range(port_count):
+                if await self.test_circuit.ports[i].request.call_try(sim, data=i) is not None:
+                    requested.append(i)
+            await self.tick(sim, 3)
+            assert accepted == len(requested) == min(port_count, max_pending or port_count)
+
+            respond = True
+            for i in requested:
+                assert (await self.test_circuit.ports[i].response.call(sim)).data == i
+
+        with self.run_simulation(self.test_circuit) as sim:
+            sim.add_testbench(process)
+
+    @pytest.mark.parametrize("compute_on_response", [False, True])
+    def test_compute_on_response(self, port_count: int, compute_on_response: bool):
+        counter = 0
+
+        @def_request_response_mock(self.test_circuit.server, compute_on_response=compute_on_response)
+        def server(data):
+            return {"data": counter}
+
+        async def process(sim: TestbenchContext):
+            nonlocal counter
+            for _ in range(self.test_count):
+                port = self.test_circuit.ports[random.randrange(port_count)]
+                await port.request.call(sim, data=0)
+                before = counter
+                counter = (counter + 1) % 2**self.data_width
+                await self.random_wait(sim, self.requestor_rand)
+                assert (await port.response.call(sim)).data == (counter if compute_on_response else before)
+
+        with self.run_simulation(self.test_circuit) as sim:
+            sim.add_testbench(process)
