@@ -6,7 +6,6 @@ import amaranth.lib.fifo
 
 from transactron.utils.amaranth_ext.option import Option
 from transactron.utils.transactron_helpers import from_method_layout
-from amaranth_types.types import HasElaborate
 from ..core import *
 from ..utils import SrcLoc, get_src_loc, MethodLayout
 
@@ -416,10 +415,8 @@ class CrossbarConnectTrans(Elaboratable):
             i_layout=methods1[0].layout_in,
             o_layout=methods1[0].layout_out,
         )
-        for cct_method1, method1 in zip(cct.methods1, methods1):
-            cct_method1.provide(method1)
-        for cct_method2, method2 in zip(cct.methods2, methods2):
-            cct_method2.provide(method2)
+        provide(cct.methods1, methods1)
+        provide(cct.methods2, methods2)
         return cct
 
     def elaborate(self, platform):
@@ -432,10 +429,10 @@ class CrossbarConnectTrans(Elaboratable):
         return m
 
 
-class Connector(HasElaborate, Protocol):
+class Connector(Protocol):
     """Module implementing fifo-ordered connector."""
 
-    read: Method
+    read: Provided[Method]
     """Reads from the connector.
 
     Parameters
@@ -448,7 +445,7 @@ class Connector(HasElaborate, Protocol):
     MethodStruct
         Data with layout `write.layout_in`
     """
-    peek: Method
+    peek: Provided[Method]
     """Returns the element that would be output from `read`.
 
     This method must not be in conflict with `read`.
@@ -464,7 +461,7 @@ class Connector(HasElaborate, Protocol):
     MethodStruct
         Data with layout `write.layout_in`.
     """
-    write: Method
+    write: Provided[Method]
     """Writes to the connector.
 
     The values written via this method must show to the `read` and `peek` methods
@@ -482,7 +479,7 @@ class Connector(HasElaborate, Protocol):
 class ClearableConnector(Connector, Protocol):
     """Connector with a clear support."""
 
-    clear: Method
+    clear: Provided[Method]
     """Clears the connector.
 
     The connector must be empty the cycle after the clear regardless of `write` being run or not.
