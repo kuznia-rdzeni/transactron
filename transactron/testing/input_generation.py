@@ -1,4 +1,4 @@
-from collections.abc import Iterable, Mapping
+from collections.abc import Callable, Iterable, Mapping, Sequence
 from typing import Any
 from amaranth import *
 from amaranth import ShapeCastable
@@ -8,6 +8,9 @@ import hypothesis.strategies as st
 from hypothesis import reject
 import enum as py_enum
 import math
+import random
+import weakref
+from dataclasses import dataclass
 from amaranth.lib import data
 from hypothesis.strategies import DataObject, DrawFn, SearchStrategy
 from .simulator import tick
@@ -16,6 +19,7 @@ from .simulator import tick
 __all__ = [
     "amaranth_consts",
     "amaranth_structs",
+    "draw_enable",
     "draw_wait_geom",
     "exponential",
     "generate_input",
@@ -83,6 +87,80 @@ async def draw_wait_geom(ctx: SimulatorContext, data: DataObject, prob: float = 
     This is a Hypothesis compatible equivalent of ``random_wait_geom``.
     """
     await tick(ctx, data.draw(geometric(prob, max_cycle_cnt), label="wait"))
+
+
+@dataclass
+class _EnableState:
+    seed: int
+    counter: int = 0
+
+
+_enable_states: weakref.WeakKeyDictionary[Any, _EnableState] = weakref.WeakKeyDictionary()
+
+
+def draw_enable(data: DataObject, probs: Sequence[float] = (1.0, 0.9, 0.7, 0.5)) -> Callable[..., bool]:
+    """Returns a random enable function, e.g. for method mocks.
+
+    The returned function returns ``True`` with a fixed probability, drawn
+    from ``probs``, every time it is called. The probability and the seed
+    of the random number generator are drawn using Hypothesis, so a failing
+    test can be reproduced, and the probability is shrunk towards the first
+    element of ``probs``.
+
+    Parameters
+    ----------
+    data : DataObject
+        Hypothesis data object used for drawing.
+    probs : Sequence[float], optional
+        Enable probabilities to choose from. Must be in range (0, 1].
+        During shrinking, Hypothesis prefers earlier elements, so the
+        simplest one (usually 1.0, always enabled) should be first.
+
+    Returns
+    -------
+    Callable[..., bool]
+        The random enable function, taking the key as positional arguments.
+
+    Examples
+    --------
+    .. highlight:: python
+    .. code-block:: python
+
+        @def_method_mock(lambda: m.target, enable=draw_enable(data, [0.5, 0.1]))
+        def target_mock(arg):
+            ...
+
+        @def_method_mocks(lambda: m.targets, enable=draw_enable(data))
+        def targets_mock(k, arg):
+            ...
+    """
+    if not probs:
+        raise ValueError("No enable probabilities given")
+    for p in probs:
+        if not 0 < p <= 1:
+            raise ValueError(f"Enable probability {p} not in range (0, 1]")
+
+    cdata = data.conjecture_data
+    if cdata not in _enable_states:
+        _enable_states[cdata] = _EnableState(data.draw(st.integers(), label="enable_seed"))
+    state = _enable_states[cdata]
+
+    index = state.counter
+    state.counter += 1
+    enables: dict[tuple, Callable[[], bool]] = {}
+
+    def make_enable(key: tuple) -> Callable[[], bool]:
+        name = f"enable{index}" + "".join(f"[{k!r}]" for k in key)
+        prob = data.draw(st.sampled_from(probs), label=f"{name}_prob")
+        rnd = random.Random(f"{name}:{state.seed}")
+        return lambda: rnd.random() < prob
+
+    def enable(*key) -> bool:
+        if key not in enables:
+            enables[key] = make_enable(key)
+        return enables[key]()
+
+    return enable
 
 
 def shrinkable_constants(n: int) -> SearchStrategy[int]:
