@@ -107,6 +107,26 @@ class MethodMock:
             sim.set(self.adapter.en, self.enable())
 
 
+def _bind_mock_args(
+    func_self: Any, tb_getter: Any, func: Callable[..., Any], kwargs: dict[str, Any]
+) -> tuple[Any, Callable[..., Any], dict[str, Any]]:
+    """Get the mocked testbenches and the arguments for a mock decorator.
+
+    When a mock is defined as a method, `func_self` is the object the method
+    is accessed from. The testbench getter, the mock function and the
+    function-valued keyword arguments are then bound to it.
+    """
+    if func_self is None:
+        return (tb_getter() if callable(tb_getter) else tb_getter), func, kwargs
+
+    def bind(value: Any) -> Any:
+        bind_value = getattr(value, "__get__", None)
+        return bind_value(func_self) if bind_value else value
+
+    tb = bind(tb_getter)() if callable(tb_getter) else tb_getter
+    return tb, bind(func), {k: bind(v) for k, v in kwargs.items()}
+
+
 def def_method_mock(
     tb_getter: TestbenchIO | Callable[[], TestbenchIO] | Callable[[Any], TestbenchIO], **kwargs
 ) -> Callable[[Callable[..., NameIntDict | None]], Callable[[], MethodMock]]:
@@ -164,17 +184,7 @@ def def_method_mock(
     def decorator(func: Callable[..., NameIntDict | None]) -> Callable[[], MethodMock]:
         @functools.wraps(func)
         def mock(func_self=None, /) -> MethodMock:
-            f = func
-            getter: Any = tb_getter if isinstance(tb_getter, Callable) else lambda: tb_getter
-            kw = kwargs
-            if func_self is not None:
-                getter = getter.__get__(func_self)
-                f = f.__get__(func_self)
-                kw = {}
-                for k, v in kwargs.items():
-                    bind = getattr(v, "__get__", None)
-                    kw[k] = bind(func_self) if bind else v
-            tb = getter()
+            tb, f, kw = _bind_mock_args(func_self, tb_getter, func, kwargs)
             assert isinstance(tb, TestbenchIO)
             return MethodMock(tb.adapter, f, **kw)
 
@@ -216,17 +226,7 @@ def def_method_mocks(
     def decorator(func: Callable[..., NameIntDict | None]) -> Callable[[], list[MethodMock]]:
         @functools.wraps(func)
         def mock(func_self=None, /) -> list[MethodMock]:
-            f = func
-            getter: Any = tb_getter if isinstance(tb_getter, Callable) else lambda: tb_getter
-            kw = kwargs
-            if func_self is not None:
-                getter = getter.__get__(func_self)
-                f = f.__get__(func_self)
-                kw = {}
-                for k, v in kwargs.items():
-                    bind = getattr(v, "__get__", None)
-                    kw[k] = bind(func_self) if bind else v
-            tbs = getter()
+            tbs, f, kw = _bind_mock_args(func_self, tb_getter, func, kwargs)
 
             def bind_key(key) -> dict[str, Any]:
                 return {k: functools.partial(v, *key) if k == "enable" else v for k, v in kw.items()}

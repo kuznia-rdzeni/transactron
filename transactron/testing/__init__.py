@@ -12,6 +12,7 @@ from .profiler import *  # noqa: F401
 from .logging import *  # noqa: F401
 from .evlog import *  # noqa: F401
 from .tick_count import *  # noqa: F401
+from .reqres import *  # noqa: F401
 from .test_case import *  # noqa: F401
 
 
@@ -28,15 +29,18 @@ __all__ = [
     "MethodMock",
     "ProcessContext",
     "PysimSimulator",
+    "RequestResponseTestbenchIO",
     "SimpleTestCircuit",
     "SimulatorContext",
     "TestCaseWithSimulator",
     "TestCaseWithSimulatorBase",
     "TestbenchContext",
     "TestbenchIO",
+    "call_request_response",
     "data_const_to_dict",
     "data_layout",
     "def_method_mock",
+    "def_request_response_mock",
 ]
 
 
