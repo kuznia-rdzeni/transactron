@@ -52,6 +52,14 @@ transactron.testing.profiler module
    :show-inheritance:
    :undoc-members:
 
+transactron.testing.reqres module
+---------------------------------
+
+.. automodule:: transactron.testing.reqres
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 transactron.testing.simulator module
 ------------------------------------
 

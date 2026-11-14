@@ -913,6 +913,17 @@
 <li class="toctree-l3"><a class="reference internal" href="transactron.testing.html#transactron.testing.profiler.profiler_process"><code class="docutils literal notranslate"><span class="pre">profiler_process()</span></code></a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="transactron.testing.html#module-transactron.testing.reqres">transactron.testing.reqres module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="transactron.testing.html#transactron.testing.reqres.RequestResponseTestbenchIO"><code class="docutils literal notranslate"><span class="pre">RequestResponseTestbenchIO</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="transactron.testing.html#transactron.testing.reqres.RequestResponseTestbenchIO.__init__"><code class="docutils literal notranslate"><span class="pre">RequestResponseTestbenchIO.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.testing.html#transactron.testing.reqres.RequestResponseTestbenchIO.request"><code class="docutils literal notranslate"><span class="pre">RequestResponseTestbenchIO.request</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.testing.html#transactron.testing.reqres.RequestResponseTestbenchIO.response"><code class="docutils literal notranslate"><span class="pre">RequestResponseTestbenchIO.response</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="transactron.testing.html#transactron.testing.reqres.call_request_response"><code class="docutils literal notranslate"><span class="pre">call_request_response()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="transactron.testing.html#transactron.testing.reqres.def_request_response_mock"><code class="docutils literal notranslate"><span class="pre">def_request_response_mock()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="transactron.testing.html#module-transactron.testing.simulator">transactron.testing.simulator module</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="transactron.testing.html#transactron.testing.simulator.PysimSimulator"><code class="docutils literal notranslate"><span class="pre">PysimSimulator</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="transactron.testing.html#transactron.testing.simulator.PysimSimulator.__init__"><code class="docutils literal notranslate"><span class="pre">PysimSimulator.__init__()</span></code></a></li>
@@ -1023,6 +1034,12 @@
 <li class="toctree-l4"><a class="reference internal" href="transactron.testing.html#transactron.testing.PysimSimulator.run"><code class="docutils literal notranslate"><span class="pre">PysimSimulator.run()</span></code></a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="transactron.testing.html#transactron.testing.RequestResponseTestbenchIO"><code class="docutils literal notranslate"><span class="pre">RequestResponseTestbenchIO</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="transactron.testing.html#transactron.testing.RequestResponseTestbenchIO.__init__"><code class="docutils literal notranslate"><span class="pre">RequestResponseTestbenchIO.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.testing.html#transactron.testing.RequestResponseTestbenchIO.request"><code class="docutils literal notranslate"><span class="pre">RequestResponseTestbenchIO.request</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="transactron.testing.html#transactron.testing.RequestResponseTestbenchIO.response"><code class="docutils literal notranslate"><span class="pre">RequestResponseTestbenchIO.response</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="transactron.testing.html#transactron.testing.SimpleTestCircuit"><code class="docutils literal notranslate"><span class="pre">SimpleTestCircuit</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="transactron.testing.html#transactron.testing.SimpleTestCircuit.__init__"><code class="docutils literal notranslate"><span class="pre">SimpleTestCircuit.__init__()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="transactron.testing.html#transactron.testing.SimpleTestCircuit.debug_signals"><code class="docutils literal notranslate"><span class="pre">SimpleTestCircuit.debug_signals()</span></code></a></li>
@@ -1079,9 +1096,11 @@
 <li class="toctree-l4"><a class="reference internal" href="transactron.testing.html#transactron.testing.TestbenchIO.set_inputs"><code class="docutils literal notranslate"><span class="pre">TestbenchIO.set_inputs()</span></code></a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="transactron.testing.html#transactron.testing.call_request_response"><code class="docutils literal notranslate"><span class="pre">call_request_response()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="transactron.testing.html#transactron.testing.data_const_to_dict"><code class="docutils literal notranslate"><span class="pre">data_const_to_dict()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="transactron.testing.html#transactron.testing.data_layout"><code class="docutils literal notranslate"><span class="pre">data_layout()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="transactron.testing.html#transactron.testing.def_method_mock"><code class="docutils literal notranslate"><span class="pre">def_method_mock()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="transactron.testing.html#transactron.testing.def_request_response_mock"><code class="docutils literal notranslate"><span class="pre">def_request_response_mock()</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -2736,7 +2755,7 @@ When omitted, each defined method is always ready. Assigned combinationally to t
 
   <div role="contentinfo">
     <p>&#169; Copyright Kuźnia Rdzeni, 2026.
-      <span class="lastupdated">Last updated on 07:58 2026-11-14.
+      <span class="lastupdated">Last updated on 08:13 2026-11-14.
       </span></p>
   </div>
 
