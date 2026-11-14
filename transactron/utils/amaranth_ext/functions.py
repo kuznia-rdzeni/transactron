@@ -66,16 +66,16 @@ def mod_incr(value: ValueLike, mod: int) -> Value:
 def mod_add(value: ValueLike, mod: int, incr: ValueLike, max_incr: int) -> Value:
     """Add a signal to another small signal modulo a constant.
 
-    Performs ``(sig + incr) % mod`` operation, for `0 <= incr <= max_incr`.
+    Performs ``(value + incr) % mod`` operation, for `incr <= max_incr, mod` and
+    `value` < `mod`.
     If ``mod`` is a power of two, overflow arithmetic is used for performance.
     For other values of ``mod``, the circuit size is linear in size with
     respect to ``max_incr``.
 
     Parameters
     ----------
-    sig : ValueLike
-        The signal to add to. Assumed to be unsigned and less or equal than
-        ``mod``.
+    value : ValueLike
+        The signal to add to. Assumed to be unsigned and less than ``mod``.
     mod : int
         The modulus. Must be positive.
     incr : ValueLike
@@ -86,6 +86,7 @@ def mod_add(value: ValueLike, mod: int, incr: ValueLike, max_incr: int) -> Value
     """
     assert mod > 0
     assert max_incr >= 0
+    assert max_incr <= mod
     value = Value.cast(value)
     incr = Value.cast(incr)
     if not (mod & (mod - 1)):
