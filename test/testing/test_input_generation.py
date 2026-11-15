@@ -212,3 +212,20 @@ def test_intersperse_range(lo: int, seq_list: list[int], data: st.DataObject):
     if hi is not None:
         assert all(hi >= len(gr) for gr in groups)
     assert [x for x in result if isinstance(x, int)] == seq_list
+
+
+@pytest.mark.parametrize("prob", [0.3, 1.0])
+@settings(max_examples=10)
+@given(data=st.data())
+def test_draw_enable(prob: float, data: st.DataObject):
+    enable = draw_enable(data, [prob])
+    assert abs(sum(enable() for _ in range(1000)) / 1000 - prob) < 0.1
+
+
+@settings(max_examples=10)
+@given(st.data())
+def test_draw_enable_independent(data: st.DataObject):
+    enable1 = draw_enable(data, [0.5])
+    enable2 = draw_enable(data, [0.5])
+    sequences = [[f() for _ in range(100)] for f in [enable1, lambda: enable1(1), enable2]]
+    assert len({tuple(seq) for seq in sequences}) == len(sequences)
