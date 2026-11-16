@@ -587,7 +587,7 @@ class AlwaysReadyWrapper(Elaboratable, TransformerOneTarget):
         def _(arg):
             data_out = Signal.like(self.target.data_out)
             with Transaction().always_body(m):
-                m.d.av_comb += data_out.eq(self.target(m, self.method.data_in))
+                m.d.av_comb += data_out.eq(self.target(m, arg))
             return data_out
 
         return m
