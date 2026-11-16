@@ -653,12 +653,12 @@ class TestTransactionOutsideElaborate(TestCaseWithSimulator):
 
 
 class AlwaysCicruit(Elaboratable):
-    def __init__(self, stacked):
+    def __init__(self, nested):
         self.trans_ready = Signal()
         self.ready = Signal()
         self.ok = Signal()
 
-        self.stacked = stacked
+        self.nested = nested
 
     def elaborate(self, platform):
         m = TModule()
@@ -669,7 +669,7 @@ class AlwaysCicruit(Elaboratable):
         def _():
             pass
 
-        if not self.stacked:
+        if not self.nested:
             with Transaction().always_body(m, ready=self.trans_ready):
                 method(m)
                 m.d.comb += self.ok.eq(1)
@@ -682,10 +682,10 @@ class AlwaysCicruit(Elaboratable):
         return m
 
 
-@pytest.mark.parametrize("stacked", [False, True])
+@pytest.mark.parametrize("nested", [False, True])
 class TestAlways(TestCaseWithSimulator):
-    def test_always_call_ok(self, stacked):
-        m = AlwaysCicruit(stacked)
+    def test_always_call_ok(self, nested):
+        m = AlwaysCicruit(nested)
         dut = SimpleTestCircuit(m)
 
         async def process(sim):
@@ -699,8 +699,8 @@ class TestAlways(TestCaseWithSimulator):
         with self.run_simulation(dut) as sim:
             sim.add_testbench(process)
 
-    def test_always_call_fail(self, stacked):
-        m = AlwaysCicruit(stacked)
+    def test_always_call_fail(self, nested):
+        m = AlwaysCicruit(nested)
         dut = SimpleTestCircuit(m)
 
         async def process(sim):
