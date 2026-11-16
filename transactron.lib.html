@@ -3460,6 +3460,49 @@ Alternatively, the source location to use instead of the default.</p>
 <section id="module-transactron.lib.transformers">
 <span id="transactron-lib-transformers-module"></span><h2>transactron.lib.transformers module<a class="headerlink" href="#module-transactron.lib.transformers" title="Link to this heading"></a></h2>
 <dl class="py class">
+<dt class="sig sig-object py" id="transactron.lib.transformers.AlwaysReadyWrapper">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">transactron.lib.transformers.</span></span><span class="sig-name descname"><span class="pre">AlwaysReadyWrapper</span></span><a class="headerlink" href="#transactron.lib.transformers.AlwaysReadyWrapper" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Elaboratable</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">TransformerOneTarget</span></code></p>
+<p>Always ready wrapper around a method.</p>
+<p>Useful when you can assume, for external reasons, that a given method, when
+anyone tries to, call it will always be ready.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.lib.transformers.AlwaysReadyWrapper.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">i_layout</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="transactron.utils.html#transactron.utils.typing.MethodLayout" title="transactron.utils.typing.MethodLayout"><span class="pre">MethodLayout</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">o_layout</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="transactron.utils.html#transactron.utils.typing.MethodLayout" title="transactron.utils.typing.MethodLayout"><span class="pre">MethodLayout</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">src_loc</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.lib.transformers.AlwaysReadyWrapper.__init__" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>i_layout: MethodLayout</strong></dt><dd><p>Input layout of the <cite>target</cite> method.</p>
+</dd>
+<dt><strong>o_layout: MethodLayout</strong></dt><dd><p>Output layout of the <cite>target</cite> method.</p>
+</dd>
+<dt><strong>src_loc: int | SrcLoc</strong></dt><dd><p>How many stack frames deep the source location is taken from.
+Alternatively, the source location to use instead of the default.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="transactron.lib.transformers.AlwaysReadyWrapper.create">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">create</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">target</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="transactron.core.html#transactron.core.method.Method" title="transactron.core.method.Method"><span class="pre">Method</span></a></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">src_loc</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.lib.transformers.AlwaysReadyWrapper.create" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>target: Method</strong></dt><dd><p>The target method.</p>
+</dd>
+<dt><strong>src_loc: int | SrcLoc</strong></dt><dd><p>How many stack frames deep the source location is taken from.
+Alternatively, the source location to use instead of the default.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="transactron.lib.transformers.Collector">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">transactron.lib.transformers.</span></span><span class="sig-name descname"><span class="pre">Collector</span></span><a class="headerlink" href="#transactron.lib.transformers.Collector" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Elaboratable</span></code>, <a class="reference internal" href="#transactron.lib.transformers.Unifier" title="transactron.lib.transformers.Unifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">Unifier</span></code></a></p>
@@ -3836,7 +3879,7 @@ Alternatively, the source location to use instead of the default.</p>
 
   <div role="contentinfo">
     <p>&#169; Copyright Kuźnia Rdzeni, 2026.
-      <span class="lastupdated">Last updated on 10:01 2026-11-15.
+      <span class="lastupdated">Last updated on 13:38 2026-11-16.
       </span></p>
   </div>
 
