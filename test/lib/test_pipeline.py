@@ -1,5 +1,8 @@
+import random
+
 import pytest
 from amaranth import *
+from amaranth.lib import data
 
 from transactron import Method, TModule, def_method
 from transactron.core.transaction import Transaction
@@ -9,6 +12,8 @@ from transactron.testing import (
     TestbenchContext,
     TestCaseWithSimulator,
 )
+from transactron.testing.functions import data_const_to_dict
+
 
 # ---------------------------------------------------------------------------
 # Simple pipeline: write → (+1) → read
@@ -615,3 +620,68 @@ class TestPipelineClear(TestCaseWithSimulator):
 
         with self.run_simulation(m) as sim:
             sim.add_testbench(tester)
+
+
+# ---------------------------------------------------------------------------
+# Transposition: rows in external methods, columns inside the pipeline
+# ---------------------------------------------------------------------------
+
+
+row_layout = data.StructLayout({"a": 8, "s": data.StructLayout({"x": 4, "y": 4})})
+
+
+class TransposeCallPipeline(Elaboratable):
+    """write (rows) → called method on rows (+1 on a) → read (rows), columns inside the pipeline."""
+
+    def __init__(self):
+        self.layout = [("data", data.ArrayLayout(row_layout, 2))]
+        self.write = Method(i=self.layout)
+        self.read = Method(o=self.layout)
+
+    def elaborate(self, platform):
+        m = TModule()
+
+        inc = Method(i=self.layout, o=self.layout)
+
+        @def_method(m, inc)
+        def _(data):
+            res = Signal.like(data)
+            m.d.av_comb += res.eq(data)
+            for i in range(2):
+                m.d.av_comb += res[i].a.eq(data[i].a + 1)
+            return {"data": res}
+
+        m.submodules.pipeline = p = PipelineBuilder()
+        p.add_external(self.write, transpose=["data"])
+        p.call_method(inc, transpose=["data"])
+        p.add_external(self.read, transpose=["data"])
+
+        return m
+
+
+class TestTransposeCallPipeline(TestCaseWithSimulator):
+    def test_pipeline(self):
+        random.seed(42)
+        m = SimpleTestCircuit(TransposeCallPipeline())
+        groups = [
+            [
+                {"a": random.randrange(255), "s": {"x": random.randrange(16), "y": random.randrange(16)}}
+                for _ in range(2)
+            ]
+            for _ in range(20)
+        ]
+
+        async def writer(sim: TestbenchContext):
+            for group in groups:
+                await m.write.call(sim, data=group)
+
+        async def reader(sim: TestbenchContext):
+            for group in groups:
+                res = await m.read.call(sim)
+                assert [data_const_to_dict(res.data[i]) for i in range(2)] == [
+                    {"a": e["a"] + 1, "s": e["s"]} for e in group
+                ]
+
+        with self.run_simulation(m) as sim:
+            sim.add_testbench(writer)
+            sim.add_testbench(reader)
