@@ -298,3 +298,53 @@ class TestNonexclusiveWrapper(TestCaseWithSimulator):
 
             with self.run_simulation(m) as sim:
                 sim.add_testbench(process)
+
+
+class AlwaysReadyWrapperTestCircuit(Elaboratable):
+    def __init__(self, layout):
+        self.layout = layout
+        self.method = Method(i=layout, o=layout)
+        self.ready = Signal()
+
+    def elaborate(self, platform):
+        m = TModule()
+
+        m.submodules.arw = arw = AlwaysReadyWrapper(self.layout, self.layout)
+
+        @def_method(m, arw.target, ready=self.ready)
+        def _(arg):
+            return arg
+
+        self.method.provide(arw.method)
+
+        return m
+
+
+class TestAlwaysReadyWrapper(TestCaseWithSimulator):
+    def test_call_ok(self):
+        tb = AlwaysReadyWrapperTestCircuit(data_layout(4))
+        self.m = SimpleTestCircuit(tb)
+
+        async def process(sim: TestbenchContext):
+            sim.set(tb.ready, 1)
+            ret = await self.m.method.call(sim, data=5)
+            assert ret.data == 5
+
+            # even if not ready, if not called - everything is fine
+            sim.set(tb.ready, 0)
+            await sim.tick()
+
+        with self.run_simulation(self.m) as sim:
+            sim.add_testbench(process)
+
+    def test_call_not_ready(self):
+        tb = AlwaysReadyWrapperTestCircuit(data_layout(4))
+        self.m = SimpleTestCircuit(tb)
+
+        async def process(sim: TestbenchContext):
+            sim.set(tb.ready, 0)
+            await self.m.method.call(sim, data=5)
+
+        with pytest.raises(AssertionError):
+            with self.run_simulation(self.m) as sim:
+                sim.add_testbench(process)

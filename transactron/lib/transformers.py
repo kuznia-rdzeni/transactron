@@ -20,6 +20,7 @@ from .connectors import Forwarder, CrossbarConnectTrans
 from .simultaneous import condition
 
 __all__ = [
+    "AlwaysReadyWrapper",
     "Collector",
     "MethodFilter",
     "MethodMap",
@@ -112,8 +113,8 @@ class MethodMap(Elaboratable, TransformerOneTarget):
         if o_transform is None:
             o_transform = (o_layout, lambda _, x: x)
 
-        self.target = Method(i=i_layout, o=o_layout)
         src_loc = get_src_loc(src_loc)
+        self.target = Method(i=i_layout, o=o_layout, src_loc=src_loc)
         self.method = Method(i=i_transform[0], o=o_transform[0], src_loc=src_loc)
         self.i_fun = i_transform[1]
         self.o_fun = o_transform[1]
@@ -202,9 +203,9 @@ class MethodFilter(Elaboratable, TransformerOneTarget):
             How many stack frames deep the source location is taken from.
             Alternatively, the source location to use instead of the default.
         """
-        self.target = Method(i=i_layout, o=o_layout)
         self.use_condition = use_condition
         src_loc = get_src_loc(src_loc)
+        self.target = Method(i=i_layout, o=o_layout, src_loc=src_loc)
         self.method = Method(i=i_layout, o=o_layout, src_loc=src_loc)
         self.condition = condition
         self.default = default if default is not None else Signal(self.target.layout_out)
@@ -301,9 +302,9 @@ class MethodProduct(Elaboratable, Unifier):
         o_layouts = tuple(o_layouts)
         if combiner is None:
             combiner = (o_layouts[0], lambda _, x: x[0])
-        self.targets = [Method(i=i_layout, o=o_layout) for o_layout in o_layouts]
         self.combiner = combiner
         src_loc = get_src_loc(src_loc)
+        self.targets = [Method(i=i_layout, o=o_layout, src_loc=src_loc) for o_layout in o_layouts]
         self.method = Method(i=i_layout, o=combiner[0], src_loc=src_loc)
 
     @staticmethod
@@ -385,9 +386,9 @@ class MethodTryProduct(Elaboratable, Unifier):
         """
         if combiner is None:
             combiner = ([], lambda _, __: {})
-        self.targets = [Method(i=i_layout, o=o_layout) for o_layout in o_layouts]
         self.combiner = combiner
         self.src_loc = get_src_loc(src_loc)
+        self.targets = [Method(i=i_layout, o=o_layout, src_loc=self.src_loc) for o_layout in o_layouts]
         self.method = Method(i=i_layout, o=combiner[0], src_loc=self.src_loc)
 
     @staticmethod
@@ -469,7 +470,7 @@ class Collector(Elaboratable, Unifier):
         """
         targets = list(targets)
         src_loc = get_src_loc(src_loc)
-        tr = Collector(len(targets), targets[0].layout_out)
+        tr = Collector(len(targets), targets[0].layout_out, src_loc=src_loc)
         provide(tr.targets, targets)
         return tr
 
@@ -522,7 +523,7 @@ class NonexclusiveWrapper(Elaboratable, TransformerOneTarget):
             Alternatively, the source location to use instead of the default.
         """
         src_loc = get_src_loc(src_loc)
-        tr = NonexclusiveWrapper(target.layout_in, target.layout_out)
+        tr = NonexclusiveWrapper(target.layout_in, target.layout_out, src_loc=src_loc)
         tr.target.provide(target)
         return tr
 
@@ -536,5 +537,57 @@ class NonexclusiveWrapper(Elaboratable, TransformerOneTarget):
         @def_method(m, self.method, nonexclusive=True, combiner=combiner)
         def _(arg):
             return self.target(m, arg)
+
+        return m
+
+
+class AlwaysReadyWrapper(Elaboratable, TransformerOneTarget):
+    """Always ready wrapper around a method.
+
+    Useful when you can assume, for external reasons, that a given method, when
+    anyone tries to, call it will always be ready.
+    """
+
+    def __init__(self, i_layout: MethodLayout = (), o_layout: MethodLayout = (), *, src_loc: int | SrcLoc = 0):
+        """
+        Parameters
+        ----------
+        i_layout: MethodLayout
+            Input layout of the `target` method.
+        o_layout: MethodLayout
+            Output layout of the `target` method.
+        src_loc: int | SrcLoc
+            How many stack frames deep the source location is taken from.
+            Alternatively, the source location to use instead of the default.
+        """
+        src_loc = get_src_loc(src_loc)
+        self.target = Method(i=i_layout, o=o_layout, src_loc=src_loc)
+        self.method = Method(i=i_layout, o=o_layout, src_loc=src_loc)
+
+    @staticmethod
+    def create(target: Method, *, src_loc: int | SrcLoc = 0):
+        """
+        Parameters
+        ----------
+        target: Method
+            The target method.
+        src_loc: int | SrcLoc
+            How many stack frames deep the source location is taken from.
+            Alternatively, the source location to use instead of the default.
+        """
+        src_loc = get_src_loc(src_loc)
+        tr = AlwaysReadyWrapper(target.layout_in, target.layout_out, src_loc=src_loc)
+        tr.target.provide(target)
+        return tr
+
+    def elaborate(self, platform):
+        m = TModule()
+
+        @def_method(m, self.method)
+        def _(arg):
+            data_out = Signal.like(self.target.data_out)
+            with Transaction().always_body(m):
+                m.d.av_comb += data_out.eq(self.target(m, self.method.data_in))
+            return data_out
 
         return m
