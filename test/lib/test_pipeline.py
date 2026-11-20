@@ -4,11 +4,13 @@ from amaranth import *
 from transactron import Method, TModule, def_method
 from transactron.core.transaction import Transaction
 from transactron.lib.pipeline import PipelineBuilder
+from transactron.lib.connectors import Connect, Pipe, Forwarder
 from transactron.testing import (
     SimpleTestCircuit,
     TestbenchContext,
     TestCaseWithSimulator,
 )
+from transactron.testing.testbenchio import CallTrigger
 
 # ---------------------------------------------------------------------------
 # Simple pipeline: write → (+1) → read
@@ -612,6 +614,82 @@ class TestPipelineClear(TestCaseWithSimulator):
             for i in range(5, 10):
                 result = await m.read.call(sim)
                 assert result.data == i
+
+        with self.run_simulation(m) as sim:
+            sim.add_testbench(tester)
+
+
+# ---------------------------------------------------------------------------
+# Custom connectors
+# ---------------------------------------------------------------------------
+
+
+class CustomConnectPipeline(Elaboratable):
+    def __init__(self, default_fwd, fwd1=None):
+        self.write = Method(i=[("data", unsigned(8))])
+        self.read = Method(o=[("data", unsigned(8))])
+        self.default_fwd = default_fwd
+        self.fwd1 = fwd1
+
+    def elaborate(self, platform):
+        m = TModule()
+        m._MustUse__silence = True  # type: ignore
+
+        m.submodules.pipeline = p = PipelineBuilder(default_connector=self.default_fwd)
+        p.add_external(self.write)
+
+        @p.stage(m, o=[("data", unsigned(8))])
+        def _(data):
+            return {"data": data + 1}
+
+        if self.fwd1 is not None:
+            p.connector(self.fwd1)
+        p.add_external(self.read)
+
+        return m
+
+
+class TestCustomConnector(TestCaseWithSimulator):
+    def test_connector_connect(self):
+        m = SimpleTestCircuit(CustomConnectPipeline(Connect))
+
+        async def tester(sim: TestbenchContext):
+            write_res, read_res = await CallTrigger(sim).call(m.write, data=42).call(m.read)
+            assert write_res is not None
+            assert read_res is not None
+            assert read_res.data == 43
+
+            assert (await m.write.call_try(sim, data=100)) is None
+            assert (await m.read.call_try(sim)) is None
+
+        with self.run_simulation(m) as sim:
+            sim.add_testbench(tester)
+
+    def test_connector_pipe_connect(self):
+        m = SimpleTestCircuit(CustomConnectPipeline(Pipe, Connect))
+
+        async def tester(sim: TestbenchContext):
+            write_res, read_res = await CallTrigger(sim).call(m.write, data=42).call(m.read)
+            assert write_res is not None
+            assert read_res is None
+            res = await m.read.call_try(sim)
+            assert res is not None
+            assert res.data == 43
+
+        with self.run_simulation(m) as sim:
+            sim.add_testbench(tester)
+
+    def test_connector_pipe_forwarder(self):
+        m = SimpleTestCircuit(CustomConnectPipeline(Forwarder, Pipe))
+
+        async def tester(sim: TestbenchContext):
+            await m.write.call(sim, data=42)
+            assert (await m.read.call_try(sim)).data == 43
+
+            await m.write.call(sim, data=100)
+            await m.write.call(sim, data=200)
+            assert (await m.read.call_try(sim)).data == 101
+            assert (await m.read.call_try(sim)).data == 201
 
         with self.run_simulation(m) as sim:
             sim.add_testbench(tester)
