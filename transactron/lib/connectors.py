@@ -453,8 +453,26 @@ class Connector(Protocol):
     MethodStruct
         Data with layout `write.layout_in`
     """
+    write: Provided[Method]
+    """Writes to the connector.
+
+    The values written via this method must show to the `read` and `peek` methods
+    in the same order as they were written.
+
+    Parameters
+    ----------
+    m: TModule
+        Transactron module.
+    **kwargs: ValueLike
+        Arguments as specified by the layout.
+    """
+
+
+class PeekableConnector(Connector, Protocol):
+    """Connector with a peek support."""
+
     peek: Provided[Method]
-    """Returns the element that would be output from `read`.
+    """Returns the element that would be output from `read` without consuming the element.
 
     This method must not be in conflict with `read`.
     This method must be nonexclusive.
@@ -468,19 +486,6 @@ class Connector(Protocol):
     -------
     MethodStruct
         Data with layout `write.layout_in`.
-    """
-    write: Provided[Method]
-    """Writes to the connector.
-
-    The values written via this method must show to the `read` and `peek` methods
-    in the same order as they were written.
-
-    Parameters
-    ----------
-    m: TModule
-        Transactron module.
-    **kwargs: ValueLike
-        Arguments as specified by the layout.
     """
 
 
