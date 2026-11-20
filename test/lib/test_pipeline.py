@@ -4,7 +4,7 @@ from amaranth import *
 from transactron import Method, TModule, def_method
 from transactron.core.transaction import Transaction
 from transactron.lib.pipeline import PipelineBuilder
-from transactron.lib.connectors import Connect, Pipe
+from transactron.lib.connectors import Connect, Pipe, Forwarder
 from transactron.testing import (
     SimpleTestCircuit,
     TestbenchContext,
@@ -675,6 +675,21 @@ class TestCustomConnector(TestCaseWithSimulator):
             res = await m.read.call_try(sim)
             assert res is not None
             assert res.data == 43
+
+        with self.run_simulation(m) as sim:
+            sim.add_testbench(tester)
+
+    def test_connector_pipe_forwarder(self):
+        m = SimpleTestCircuit(CustomConnectPipeline(Forwarder, Pipe))
+
+        async def tester(sim: TestbenchContext):
+            await m.write.call(sim, data=42)
+            assert (await m.read.call_try(sim)).data == 43
+
+            await m.write.call(sim, data=100)
+            await m.write.call(sim, data=200)
+            assert (await m.read.call_try(sim)).data == 101
+            assert (await m.read.call_try(sim)).data == 201
 
         with self.run_simulation(m) as sim:
             sim.add_testbench(tester)
