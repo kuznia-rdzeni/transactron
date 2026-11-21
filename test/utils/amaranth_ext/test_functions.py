@@ -143,6 +143,7 @@ class TestTopModule:
         m = TModule()
         top_m = top_module(m)
         assert top_m is m.top_module
+        Fragment.get(m, platform=None)
 
     @pytest.mark.parametrize("mod", [Module, TModule])
     def test_top_module_idempotent(self, mod: Callable[[], ModuleLike]):
@@ -153,6 +154,7 @@ class TestTopModule:
 
         assert top_m_1 is top_m_2
         assert top_m_1 is not m
+        Fragment.get(m, platform=None)
 
 
 class TestToSignal(TestCaseWithSimulator):
