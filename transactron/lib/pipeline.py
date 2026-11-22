@@ -182,7 +182,7 @@ class PipelineBuilder(Elaboratable):
         self,
         allow_unused: bool = False,
         allow_empty: bool = False,
-        default_connector: Callable[[MethodLayout], _ForwarderModule] | None = None,
+        default_connector: Callable[[MethodLayout], _ForwarderModule] = Pipe,
     ):
         """Initialize a new pipeline builder.
 
@@ -198,8 +198,7 @@ class PipelineBuilder(Elaboratable):
             the state back into the pipeline. Default: ``False``.
         default_connector : Callable[[MethodLayout], _ForwarderModule], optional
             If provided, this factory is used to create connectors between stages if
-            the :meth:`connector` method was not called. If not provided,
-            a default :class:`Pipe` connector is used.
+            the :meth:`connector` method was not called. Default: ``Pipe``.
         """
         self._nodes: list[PipelineBuilder._NodeInfo] = []
         self.allow_unused: bool = allow_unused
@@ -207,10 +206,7 @@ class PipelineBuilder(Elaboratable):
         self._live_signal_shapes: dict[str, ShapeLike] = {}
         self._next_forwarder = None
         self._clear_methods = []
-        self._default_connector: Callable[[MethodLayout], _ForwarderModule] = default_connector or (
-            lambda layout: Pipe(layout)
-        )
-
+        self._default_connector = default_connector
         self.clear = Method()
 
     def add_external(
