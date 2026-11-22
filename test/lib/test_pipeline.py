@@ -655,7 +655,7 @@ class TransposePipeline(Elaboratable):
             return {"sum": res}
 
         p.add_external(self.read, transpose=["data"])
-        
+
         return m
 
 
