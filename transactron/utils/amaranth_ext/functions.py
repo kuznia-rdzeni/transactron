@@ -34,6 +34,8 @@ __all__ = [
     "one_hot_mux",
     "or_value",
     "popcount",
+    "rotate_left_dynamic",
+    "rotate_right_dynamic",
     "shape_of",
     "sum_value",
     "switch_value",
@@ -180,6 +182,50 @@ def cyclic_mask(bits: int, start: ValueLike, end: ValueLike):
     mask_es = left | (right << start)
 
     return Mux(start <= end, mask_se, mask_es)
+
+
+def rotate_left_dynamic(value: ValueLike, amount: ValueLike) -> Value:
+    """Rotates a signal left by a dynamic amount.
+
+    Amaranth's ``Value.rotate_left`` only accepts an ``int``. This function
+    accepts a signal as the rotation amount. Amounts greater than or equal to
+    the width of ``value`` wrap around.
+
+    Parameters
+    ----------
+    value : ValueLike
+        The signal to rotate.
+    amount : ValueLike
+        The (unsigned) number of positions to rotate by.
+    """
+    value = Value.cast(value)
+    width = len(value)
+    if width == 0:
+        return value
+    amount = Value.cast(amount).as_unsigned() % width
+    return (Cat(value, value) >> (width - amount).as_unsigned())[:width]
+
+
+def rotate_right_dynamic(value: ValueLike, amount: ValueLike) -> Value:
+    """Rotates a signal right by a dynamic amount.
+
+    Amaranth's ``Value.rotate_right`` only accepts an ``int``. This function
+    accepts a signal as the rotation amount. Amounts greater than or equal to
+    the width of ``value`` wrap around.
+
+    Parameters
+    ----------
+    value : ValueLike
+        The signal to rotate.
+    amount : ValueLike
+        The (unsigned) number of positions to rotate by.
+    """
+    value = Value.cast(value)
+    width = len(value)
+    if width == 0:
+        return value
+    amount = Value.cast(amount).as_unsigned() % width
+    return (Cat(value, value) >> amount)[:width]
 
 
 def shape_of(value: ValueLike) -> Shape | ShapeCastable:

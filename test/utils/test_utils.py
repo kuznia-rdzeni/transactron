@@ -11,6 +11,8 @@ from transactron.utils import (
     count_leading_zeros,
     count_trailing_zeros,
     cyclic_mask,
+    rotate_left_dynamic,
+    rotate_right_dynamic,
     extract_lowest_set_bit,
     clear_lowest_set_bit,
     mask_after_first_set_bit,
@@ -113,6 +115,43 @@ class TestGenCyclicMask(TestCaseWithSimulator):
     def test_count_trailing_zeros(self, size):
         with self.run_simulation(self.m) as sim:
             sim.add_testbench(self.process)
+
+
+class RotateDynamicTestCircuit(Elaboratable):
+    def __init__(self, width: int, amount_width: int):
+        self.value = Signal(width)
+        self.amount = Signal(amount_width)
+        self.out_left = Signal(width)
+        self.out_right = Signal(width)
+
+    def elaborate(self, platform):
+        m = Module()
+
+        m.d.comb += self.out_left.eq(rotate_left_dynamic(self.value, self.amount))
+        m.d.comb += self.out_right.eq(rotate_right_dynamic(self.value, self.amount))
+
+        return m
+
+
+@pytest.mark.parametrize("width", [1, 2, 3, 5, 8])
+class TestRotateDynamic(TestCaseWithSimulator):
+    def test_rotate_dynamic(self, width):
+        amount_width = 4  # larger than needed for small widths: amounts wrap
+        m = RotateDynamicTestCircuit(width, amount_width)
+        mask = (1 << width) - 1
+
+        async def process(sim: TestbenchContext):
+            for value in range(1 << width):
+                for amount in range(1 << amount_width):
+                    sim.set(m.value, value)
+                    sim.set(m.amount, amount)
+                    await sim.delay(1e-6)
+                    k = amount % width
+                    assert sim.get(m.out_left) == ((value << k) | (value >> (width - k))) & mask
+                    assert sim.get(m.out_right) == ((value >> k) | (value << (width - k))) & mask
+
+        with self.run_simulation(m) as sim:
+            sim.add_testbench(process)
 
 
 def reference_popcount(n, width):
