@@ -147,7 +147,10 @@ class Transaction(TransactionBase["Transaction | Method"]):
         with self.body(m, ready=ready) as t:
             yield t
 
-        log.assertion(m, ~self.ready | self.run, f"Transaction '{self.name}' was not run", src_loc=self.src_loc)
+        ready_ctx = Signal()
+        m.d.comb += ready_ctx.eq(ready)
+
+        log.assertion(m, ~ready_ctx | self.run, f"Transaction '{self.name}' was not run", src_loc=self.src_loc)
 
     def __repr__(self) -> str:
         return f"(transaction {self.name})"
