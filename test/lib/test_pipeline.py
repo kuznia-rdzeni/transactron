@@ -1,5 +1,8 @@
+import random
+
 import pytest
 from amaranth import *
+from amaranth.lib import data
 
 from transactron import Method, TModule, def_method
 from transactron.core.transaction import Transaction
@@ -9,6 +12,8 @@ from transactron.testing import (
     TestbenchContext,
     TestCaseWithSimulator,
 )
+from transactron.testing.functions import data_const_to_dict
+
 
 # ---------------------------------------------------------------------------
 # Simple pipeline: write → (+1) → read
@@ -615,3 +620,70 @@ class TestPipelineClear(TestCaseWithSimulator):
 
         with self.run_simulation(m) as sim:
             sim.add_testbench(tester)
+
+
+# ---------------------------------------------------------------------------
+# Transposition: rows in external methods, columns inside the pipeline
+# ---------------------------------------------------------------------------
+
+
+class TransposePipeline(Elaboratable):
+    """Groups of `width` elements are passed as rows, but the pipeline works on columns."""
+
+    def __init__(self, width: int):
+        self.width = width
+        in_row = data.StructLayout({"a": 8, "b": 8})
+        out_row = data.StructLayout({"a": 8, "sum": 10})
+        self.write = Method(i=[("data", data.ArrayLayout(in_row, width)), ("tag", 4)])
+        self.read = Method(o=[("data", data.ArrayLayout(out_row, width)), ("tag", 4)])
+
+    def elaborate(self, platform):
+        m = TModule()
+
+        m.submodules.pipeline = p = PipelineBuilder()
+        p.add_external(self.write, transpose=["data"])
+
+        @p.stage(m, o=[("sum", data.ArrayLayout(10, self.width))])
+        def _(a, b):
+            res = Signal(data.ArrayLayout(10, self.width))
+            prefix = 0
+            for i in range(self.width):
+                prefix = prefix + b[i]
+                m.d.av_comb += res[i].eq(a[i] + prefix)
+            return {"sum": res}
+
+        p.add_external(self.read, transpose=["data"])
+
+        return m
+
+
+class TestTransposePipeline(TestCaseWithSimulator):
+    def test_pipeline(self):
+        random.seed(42)
+        width = 3
+        m = SimpleTestCircuit(TransposePipeline(width))
+        inputs = [
+            ([{"a": random.randrange(256), "b": random.randrange(256)} for _ in range(width)], random.randrange(16))
+            for _ in range(20)
+        ]
+
+        async def writer(sim: TestbenchContext):
+            for group, tag in inputs:
+                await m.write.call(sim, data=group, tag=tag)
+                await self.random_wait_geom(sim, 0.5)
+
+        async def reader(sim: TestbenchContext):
+            for group, tag in inputs:
+                res = await m.read.call(sim)
+                expected = []
+                prefix = 0
+                for e in group:
+                    prefix += e["b"]
+                    expected.append({"a": e["a"], "sum": e["a"] + prefix})
+                assert [data_const_to_dict(res.data[i]) for i in range(width)] == expected
+                assert res.tag == tag
+                await self.random_wait_geom(sim, 0.5)
+
+        with self.run_simulation(m) as sim:
+            sim.add_testbench(writer)
+            sim.add_testbench(reader)

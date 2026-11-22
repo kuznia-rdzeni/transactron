@@ -1,9 +1,10 @@
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from inspect import Parameter, signature
 from typing import Protocol, final
 
 from amaranth import *
+from amaranth.lib import data
 from amaranth.lib.data import StructLayout
 from amaranth_types import HasElaborate, ShapeLike, SrcLoc, ValueLike
 
@@ -11,6 +12,7 @@ from transactron.core import Method, TModule, def_method, Provided
 from transactron.lib.connectors import ConnectTrans, Pipe, ClearableConnector
 from transactron.lib.fifo import BasicFifo
 from transactron.utils import MethodLayout, from_method_layout
+from transactron.utils.amaranth_ext.data import transpose, transpose_layout
 from transactron.utils.assign import AssignArg, AssignType, assign
 from transactron.utils.transactron_helpers import get_src_loc
 
@@ -65,6 +67,69 @@ class _CalledMethodNode(_PipelineNodeProtocol):
 
     def finalize(self, m: TModule, method: Method) -> None:
         m.submodules += ConnectTrans.create(self.method, method)
+
+
+def _columns_layout(layout: StructLayout, fields: Sequence[str]) -> StructLayout:
+    """Replaces each of `fields` (arrays of structures) by its columns."""
+    members: list[tuple[str, ShapeLike]] = []
+    for name, shape in layout.members.items():
+        if name not in fields:
+            members.append((name, shape))
+            continue
+        columns = transpose_layout(shape) if isinstance(shape, data.Layout) else None
+        if not isinstance(columns, data.StructLayout):
+            raise ValueError(f"Field {name} is not an ArrayLayout of StructLayouts")
+        members += columns.members.items()
+    if len({name for name, _ in members}) < len(members):
+        raise ValueError("Transposing produces duplicate field names")
+    return StructLayout(dict(members))
+
+
+@final
+class _TransposedNode(_PipelineNodeProtocol):
+    """Wraps a node, presenting the given array of structures fields as columns to the pipeline."""
+
+    def __init__(self, node: _PipelineNodeProtocol, fields: Sequence[str]):
+        if isinstance(fields, str):
+            raise TypeError("Transposed fields must be a sequence of field names, not a string")
+        self.node = node
+        self.fields = fields
+        present = node.get_generated_fields().members.keys() | node.get_required_fields().members.keys()
+        if missing := set(fields) - present:
+            raise ValueError(f"Fields {missing} to transpose are not in the method layout")
+
+    def get_required_fields(self):
+        return _columns_layout(self.node.get_required_fields(), self.fields)
+
+    def get_generated_fields(self):
+        return _columns_layout(self.node.get_generated_fields(), self.fields)
+
+    def finalize(self, m: TModule, method: Method) -> None:
+        in_layout = self.node.get_generated_fields()
+        out_layout = self.node.get_required_fields()
+        adapted = Method(i=in_layout, o=out_layout)
+
+        @def_method(m, adapted)
+        def _(arg):
+            columns = {}
+            for name in in_layout.members:
+                if name in self.fields:
+                    transposed = transpose(arg[name])
+                    columns.update((column, transposed[column]) for column in transposed.shape().members)
+                else:
+                    columns[name] = arg[name]
+
+            res = method(m, columns)
+
+            out = Signal(out_layout)
+            for name in out_layout.members:
+                if name in self.fields:
+                    m.d.av_comb += assign(transpose(out[name]), res, fields=AssignType.LHS)
+                else:
+                    m.d.av_comb += out[name].eq(res[name])
+            return out
+
+        self.node.finalize(m, adapted)
 
 
 # ---------------------------------------------------------------------------
@@ -142,9 +207,10 @@ class PipelineBuilder(Elaboratable):
         *,
         ready: ValueLike = C(1),
         no_dependency: bool = False,
+        transpose: Sequence[str] = (),
         src_loc: int | SrcLoc = 0,
     ) -> None:
-        """Add a node where the pipeline provides (defines the body of) a ``Method``.
+        r"""Add a node where the pipeline provides (defines the body of) a ``Method``.
 
         This can be used to define initial source signals, output sink signals,
         or interact with submodules in the middle of the pipeline (e.g. send
@@ -161,6 +227,10 @@ class PipelineBuilder(Elaboratable):
             The node will be decoupled from the pipeline. Such nodes cannot have required input signals.
             For more information, see :class:`~transactron.lib.pipeline.PipelineBuilder`.
             Default: ``False``.
+        transpose : Sequence[str]
+            Fields of the method's layout which are arrays of structures
+            (`ArrayLayout`\s of `StructLayout`\s). The pipeline sees them as
+            columns: one `ArrayLayout` field per structure member. Default: none.
         src_loc : int | SrcLoc
             Source location for debugging. Default: ``0``.
 
@@ -169,7 +239,7 @@ class PipelineBuilder(Elaboratable):
         None
         """
         node = _ProvidedMethodNode(method)
-        self._add_node(node, ready, no_dependency=no_dependency, src_loc=get_src_loc(src_loc))
+        self._add_node(node, ready, no_dependency=no_dependency, transpose=transpose, src_loc=get_src_loc(src_loc))
 
     def create_external(
         self,
@@ -213,9 +283,10 @@ class PipelineBuilder(Elaboratable):
         *,
         ready: ValueLike = C(1),
         no_dependency: bool = False,
+        transpose: Sequence[str] = (),
         src_loc: int | SrcLoc = 0,
     ) -> None:
-        """Add a node where the pipeline calls an existing ``Method``.
+        r"""Add a node where the pipeline calls an existing ``Method``.
 
         The method's input fields are taken by name from the current pipeline
         layout. The method's output fields are merged into the pipeline layout.
@@ -235,6 +306,10 @@ class PipelineBuilder(Elaboratable):
             The node will be decoupled from the pipeline. Such nodes cannot have required input signals.
             For more information, see :class:`~transactron.lib.pipeline.PipelineBuilder`.
             Default: ``False``.
+        transpose : Sequence[str]
+            Fields of the method's layout which are arrays of structures
+            (`ArrayLayout`\s of `StructLayout`\s). The pipeline sees them as
+            columns: one `ArrayLayout` field per structure member. Default: none.
         src_loc : int | SrcLoc
             Source location for debugging. Default: ``0``.
 
@@ -243,7 +318,7 @@ class PipelineBuilder(Elaboratable):
         None
         """
         node = _CalledMethodNode(method)
-        self._add_node(node, ready, no_dependency=no_dependency, src_loc=get_src_loc(src_loc))
+        self._add_node(node, ready, no_dependency=no_dependency, transpose=transpose, src_loc=get_src_loc(src_loc))
 
     def stage(
         self,
@@ -539,8 +614,12 @@ class PipelineBuilder(Elaboratable):
         node: _PipelineNodeProtocol,
         ready: ValueLike,
         no_dependency: bool,
+        transpose: Sequence[str],
         src_loc: SrcLoc,
     ) -> None:
+        if transpose:
+            node = _TransposedNode(node, transpose)
+
         gen = node.get_generated_fields().members
         req = node.get_required_fields().members
 
