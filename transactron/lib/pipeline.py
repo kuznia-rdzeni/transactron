@@ -176,7 +176,7 @@ class PipelineBuilder(Elaboratable):
         src_loc: SrcLoc
         ready: ValueLike
         no_dependency: bool
-        forwarder: Callable[[MethodLayout], _ConnectorModule]
+        connector: Callable[[MethodLayout], _ConnectorModule]
 
     def __init__(
         self,
@@ -204,7 +204,7 @@ class PipelineBuilder(Elaboratable):
         self.allow_unused: bool = allow_unused
         self.allow_empty: bool = allow_empty
         self._live_signal_shapes: dict[str, ShapeLike] = {}
-        self._next_forwarder = None
+        self._next_connector = None
         self._clear_methods = []
         self._default_connector = default_connector
         self.clear = Method()
@@ -456,10 +456,10 @@ class PipelineBuilder(Elaboratable):
         RuntimeError
             If a custom connector is added twice for the same stage.
         """
-        if self._next_forwarder is not None:
+        if self._next_connector is not None:
             raise RuntimeError("Connector was added twice for the same stage")
 
-        self._next_forwarder = connector
+        self._next_connector = connector
 
     def fifo(self, depth: int, *, src_loc: int | SrcLoc = 0):
         """Insert a FIFO buffer after the current pipeline stage.
@@ -480,7 +480,7 @@ class PipelineBuilder(Elaboratable):
         Raises
         ------
         RuntimeError
-            If a custom forwarder is added twice for the same stage.
+            If a custom connector is added twice for the same stage.
         """
         src_loc = get_src_loc(src_loc)
         self.connector(lambda layout: BasicFifo(layout, depth, src_loc=src_loc))
@@ -622,11 +622,11 @@ class PipelineBuilder(Elaboratable):
             assert curr_read is not None
             assert prev_write is not None
 
-            m.submodules[f"{i}_forwarder"] = fwd = node.forwarder(prev_write.layout_in)
-            prev_write.provide(fwd.write)
-            curr_read.provide(fwd.read)
+            m.submodules[f"{i}_connector"] = connector = node.connector(prev_write.layout_in)
+            prev_write.provide(connector.write)
+            curr_read.provide(connector.read)
 
-            clear_methods.append(fwd.clear)
+            clear_methods.append(connector.clear)
 
         @def_method(m, self.clear, nonexclusive=True)
         def _():
@@ -661,8 +661,8 @@ class PipelineBuilder(Elaboratable):
                     f"Signal {k} from {src_loc} has incompatible shape: expected {v}, got {self._live_signal_shapes[k]}"
                 )
 
-        forwarder = self._next_forwarder or self._default_connector
-        self._next_forwarder = None
+        connector = self._next_connector or self._default_connector
+        self._next_connector = None
 
         self._nodes.append(
             self._NodeInfo(
@@ -670,7 +670,7 @@ class PipelineBuilder(Elaboratable):
                 src_loc=src_loc,
                 ready=ready,
                 no_dependency=no_dependency,
-                forwarder=forwarder,
+                connector=connector,
             )
         )
 
