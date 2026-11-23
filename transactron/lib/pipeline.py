@@ -24,7 +24,7 @@ __all__ = ["PipelineBuilder"]
 # ---------------------------------------------------------------------------
 
 
-class _ForwarderModule(ClearableConnector, HasElaborate, Protocol): ...
+class _ConnectorModule(ClearableConnector, HasElaborate, Protocol): ...
 
 
 class _PipelineNodeProtocol(Protocol):
@@ -176,13 +176,13 @@ class PipelineBuilder(Elaboratable):
         src_loc: SrcLoc
         ready: ValueLike
         no_dependency: bool
-        forwarder: Callable[[MethodLayout], _ForwarderModule]
+        forwarder: Callable[[MethodLayout], _ConnectorModule]
 
     def __init__(
         self,
         allow_unused: bool = False,
         allow_empty: bool = False,
-        default_connector: Callable[[MethodLayout], _ForwarderModule] = Pipe,
+        default_connector: Callable[[MethodLayout], _ConnectorModule] = Pipe,
     ):
         """Initialize a new pipeline builder.
 
@@ -196,7 +196,7 @@ class PipelineBuilder(Elaboratable):
             (all previous outputs have been consumed). Useful when there are stages
             that fully consume the state and handle it externally and later restore
             the state back into the pipeline. Default: ``False``.
-        default_connector : Callable[[MethodLayout], _ForwarderModule], optional
+        default_connector : Callable[[MethodLayout], _ConnectorModule], optional
             If provided, this factory is used to create connectors between stages if
             the :meth:`connector` method was not called. Default: ``Pipe``.
         """
@@ -439,12 +439,12 @@ class PipelineBuilder(Elaboratable):
 
         return decorator
 
-    def connector(self, connector: Callable[[MethodLayout], _ForwarderModule]) -> None:
+    def connector(self, connector: Callable[[MethodLayout], _ConnectorModule]) -> None:
         """Insert a custom connector module after the current pipeline stage.
 
         Parameters
         ----------
-        connector : Callable[[MethodLayout], _ForwarderModule]
+        connector : Callable[[MethodLayout], _ConnectorModule]
             The factory function that takes a layout and creates the connector.
 
         Returns
