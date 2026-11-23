@@ -1108,6 +1108,13 @@ Connector being empty means that all previously written values should be conside
 </dd></dl>
 
 <dl class="py class">
+<dt class="sig sig-object py" id="transactron.lib.connectors.ClearablePeekableConnector">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">transactron.lib.connectors.</span></span><span class="sig-name descname"><span class="pre">ClearablePeekableConnector</span></span><a class="headerlink" href="#transactron.lib.connectors.ClearablePeekableConnector" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#transactron.lib.connectors.PeekableConnector" title="transactron.lib.connectors.PeekableConnector"><code class="xref py py-class docutils literal notranslate"><span class="pre">PeekableConnector</span></code></a>, <a class="reference internal" href="#transactron.lib.connectors.ClearableConnector" title="transactron.lib.connectors.ClearableConnector"><code class="xref py py-class docutils literal notranslate"><span class="pre">ClearableConnector</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Protocol" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Protocol</span></code></a></p>
+<p>Connector with a peek and clear support.</p>
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="transactron.lib.connectors.Connect">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">transactron.lib.connectors.</span></span><span class="sig-name descname"><span class="pre">Connect</span></span><a class="headerlink" href="#transactron.lib.connectors.Connect" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Elaboratable</span></code></p>
@@ -1221,28 +1228,6 @@ Alternatively, the source location to use instead of the default.</p>
 <dt class="sig sig-object py" id="transactron.lib.connectors.Connector.__init__">
 <span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.lib.connectors.Connector.__init__" title="Link to this definition"></a></dt>
 <dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="transactron.lib.connectors.Connector.peek">
-<span class="sig-name descname"><span class="pre">peek</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">PROVIDED:</span> <span class="pre">1&gt;]</span></span><a class="headerlink" href="#transactron.lib.connectors.Connector.peek" title="Link to this definition"></a></dt>
-<dd><p>Returns the element that would be output from <cite>read</cite>.</p>
-<p>This method must not be in conflict with <cite>read</cite>.
-This method must be nonexclusive.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>m: TModule</strong></dt><dd><p>Transactron module.</p>
-</dd>
-</dl>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><dl class="simple">
-<dt>MethodStruct</dt><dd><p>Data with layout <cite>write.layout_in</cite>.</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="transactron.lib.connectors.Connector.read">
@@ -1423,6 +1408,35 @@ possible until the overflow buffer is cleared by <cite>read</cite>.</p>
 </dd>
 <dt><strong>src_loc: int | SrcLoc</strong></dt><dd><p>How many stack frames deep the source location is taken from.
 Alternatively, the source location to use instead of the default.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="transactron.lib.connectors.PeekableConnector">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">transactron.lib.connectors.</span></span><span class="sig-name descname"><span class="pre">PeekableConnector</span></span><a class="headerlink" href="#transactron.lib.connectors.PeekableConnector" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#transactron.lib.connectors.Connector" title="transactron.lib.connectors.Connector"><code class="xref py py-class docutils literal notranslate"><span class="pre">Connector</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Protocol" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Protocol</span></code></a></p>
+<p>Connector with a peek support.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="transactron.lib.connectors.PeekableConnector.peek">
+<span class="sig-name descname"><span class="pre">peek</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">PROVIDED:</span> <span class="pre">1&gt;]</span></span><a class="headerlink" href="#transactron.lib.connectors.PeekableConnector.peek" title="Link to this definition"></a></dt>
+<dd><p>Returns the element that would be output from <cite>read</cite> without consuming the element.</p>
+<p>This method must not be in conflict with <cite>read</cite>.
+This method must be nonexclusive.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>m: TModule</strong></dt><dd><p>Transactron module.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>MethodStruct</dt><dd><p>Data with layout <cite>write.layout_in</cite>.</p>
 </dd>
 </dl>
 </dd>
@@ -2559,7 +2573,7 @@ the state back into the pipeline. Default: <code class="docutils literal notrans
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="transactron.lib.pipeline.PipelineBuilder.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">allow_unused</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allow_empty</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.lib.pipeline.PipelineBuilder.__init__" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">allow_unused:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">False,</span> <span class="pre">allow_empty:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">False,</span> <span class="pre">default_connector:</span> <span class="pre">~collections.abc.Callable[[~transactron.utils.typing.MethodLayout],</span> <span class="pre">~transactron.lib.pipeline._ConnectorModule]</span> <span class="pre">=</span> <span class="pre">&lt;class</span> <span class="pre">'transactron.lib.connectors.Pipe'&gt;</span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.lib.pipeline.PipelineBuilder.__init__" title="Link to this definition"></a></dt>
 <dd><p>Initialize a new pipeline builder.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -2571,6 +2585,9 @@ consumed by any later stage. Default: <code class="docutils literal notranslate"
 (all previous outputs have been consumed). Useful when there are stages
 that fully consume the state and handle it externally and later restore
 the state back into the pipeline. Default: <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p>
+</dd>
+<dt><strong>default_connector</strong><span class="classifier">Callable[[MethodLayout], _ConnectorModule], optional</span></dt><dd><p>If provided, this factory is used to create connectors between stages if
+the <a class="reference internal" href="#transactron.lib.pipeline.PipelineBuilder.connector" title="transactron.lib.pipeline.PipelineBuilder.connector"><code class="xref py py-meth docutils literal notranslate"><span class="pre">connector()</span></code></a> method was not called. Default: <code class="docutils literal notranslate"><span class="pre">Pipe</span></code>.</p>
 </dd>
 </dl>
 </dd>
@@ -2684,6 +2701,31 @@ columns: one <cite>ArrayLayout</cite> field per structure member. Default: none.
 <dd></dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="transactron.lib.pipeline.PipelineBuilder.connector">
+<span class="sig-name descname"><span class="pre">connector</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">connector</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable" title="(in Python v3.15)"><span class="pre">Callable</span></a><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="transactron.utils.html#transactron.utils.typing.MethodLayout" title="transactron.utils.typing.MethodLayout"><span class="pre">MethodLayout</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">_ConnectorModule</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#transactron.lib.pipeline.PipelineBuilder.connector" title="Link to this definition"></a></dt>
+<dd><p>Insert a custom connector module after the current pipeline stage.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>connector</strong><span class="classifier">Callable[[MethodLayout], _ConnectorModule]</span></dt><dd><p>The factory function that takes a layout and creates the connector.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>None</dt><dd></dd>
+</dl>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt>RuntimeError</dt><dd><p>If a custom connector is added twice for the same stage.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="transactron.lib.pipeline.PipelineBuilder.create_external">
 <span class="sig-name descname"><span class="pre">create_external</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">i</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="transactron.utils.html#transactron.utils.typing.MethodLayout" title="transactron.utils.typing.MethodLayout"><span class="pre">MethodLayout</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">o</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="transactron.utils.html#transactron.utils.typing.MethodLayout" title="transactron.utils.typing.MethodLayout"><span class="pre">MethodLayout</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src_loc</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="transactron.core.html#transactron.core.method.Method" title="transactron.core.method.Method"><span class="pre">Method</span></a></span></span><a class="headerlink" href="#transactron.lib.pipeline.PipelineBuilder.create_external" title="Link to this definition"></a></dt>
 <dd><p>Create a new Method and add a node where the pipeline provides (defines the body of) that Method.</p>
@@ -2716,6 +2758,7 @@ columns: one <cite>ArrayLayout</cite> field per structure member. Default: none.
 <dt class="sig sig-object py" id="transactron.lib.pipeline.PipelineBuilder.fifo">
 <span class="sig-name descname"><span class="pre">fifo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">depth</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">src_loc</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#transactron.lib.pipeline.PipelineBuilder.fifo" title="Link to this definition"></a></dt>
 <dd><p>Insert a FIFO buffer after the current pipeline stage.</p>
+<p>Sugar around <a class="reference internal" href="#transactron.lib.pipeline.PipelineBuilder.connector" title="transactron.lib.pipeline.PipelineBuilder.connector"><code class="xref py py-meth docutils literal notranslate"><span class="pre">connector()</span></code></a> that adds a FIFO buffer with the given depth.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
@@ -2732,7 +2775,7 @@ columns: one <cite>ArrayLayout</cite> field per structure member. Default: none.
 </dd>
 <dt class="field-odd">Raises<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt>RuntimeError</dt><dd><p>If fifo is added twice for the same stage.</p>
+<dt>RuntimeError</dt><dd><p>If a custom connector is added twice for the same stage.</p>
 </dd>
 </dl>
 </dd>
@@ -3887,7 +3930,7 @@ Alternatively, the source location to use instead of the default.</p>
 
   <div role="contentinfo">
     <p>&#169; Copyright Kuźnia Rdzeni, 2026.
-      <span class="lastupdated">Last updated on 15:29 2026-11-22.
+      <span class="lastupdated">Last updated on 14:37 2026-11-23.
       </span></p>
   </div>
 
