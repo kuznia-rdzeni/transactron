@@ -12,11 +12,13 @@ from ..utils import SrcLoc, get_src_loc, MethodLayout
 __all__ = [
     "FIFO",
     "ClearableConnector",
+    "ClearablePeekableConnector",
     "Connect",
     "ConnectTrans",
     "Connector",
     "CrossbarConnectTrans",
     "Forwarder",
+    "PeekableConnector",
     "Pipe",
 ]
 
@@ -503,3 +505,7 @@ class ClearableConnector(Connector, Protocol):
     m: TModule
         Transactron module.
     """
+
+
+class ClearablePeekableConnector(PeekableConnector, ClearableConnector, Protocol):
+    """Connector with a peek and clear support."""
