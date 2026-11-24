@@ -282,7 +282,7 @@ class ContentAddressableMemory(Elaboratable):
         @def_method(m, self.push, ready=~valids.all())
         def _(addr, data):
             id = Signal(range(self.entries_number), name="id_push")
-            m.d.top_comb += id.eq(encoder_push.outputs[0])
+            m.d.top_comb += id.eq(encoder_push.outputs[0].data)
             m.d.sync += address_array[id].eq(addr)
             m.d.sync += data_array[id].eq(data)
             m.d.sync += valids.bit_select(id, 1).eq(1)
@@ -293,7 +293,7 @@ class ContentAddressableMemory(Elaboratable):
             m.d.top_comb += write_mask.eq(Cat([addr == stored_addr for stored_addr in address_array]) & valids)
             m.d.top_comb += encoder_write.input.eq(write_mask)
             with m.If(write_mask.any()):
-                m.d.sync += data_array[encoder_write.outputs[0]].eq(data)
+                m.d.sync += data_array[encoder_write.outputs[0].data].eq(data)
             return {"not_found": ~write_mask.any()}
 
         @def_method(m, self.read)
@@ -301,7 +301,7 @@ class ContentAddressableMemory(Elaboratable):
             read_mask = Signal(self.entries_number, name="read_mask")
             m.d.top_comb += read_mask.eq(Cat([addr == stored_addr for stored_addr in address_array]) & valids)
             m.d.top_comb += encoder_read.input.eq(read_mask)
-            return {"data": Option(self.data_layout).wrap(data_array[encoder_read.outputs[0]], read_mask.any())}
+            return {"data": Option(self.data_layout).wrap(data_array[encoder_read.outputs[0].data], read_mask.any())}
 
         @def_method(m, self.remove)
         def _(addr):
@@ -309,7 +309,7 @@ class ContentAddressableMemory(Elaboratable):
             m.d.top_comb += rm_mask.eq(Cat([addr == stored_addr for stored_addr in address_array]) & valids)
             m.d.top_comb += encoder_remove.input.eq(rm_mask)
             with m.If(rm_mask.any()):
-                m.d.sync += valids.bit_select(encoder_remove.outputs[0], 1).eq(0)
+                m.d.sync += valids.bit_select(encoder_remove.outputs[0].data, 1).eq(0)
 
         return m
 
