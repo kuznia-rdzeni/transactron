@@ -63,6 +63,32 @@ class TestOption(TestCaseWithSimulator):
         with self.run_simulation(m) as sim:
             sim.add_testbench(testbench)
 
+    @pytest.mark.parametrize("data_shape", [8, struct])
+    def test_wrap(self, data_shape):
+        opt = Option(data_shape)
+        m = Module()
+        src = Signal(data_shape)
+        valid = Signal(2)  # wider than one bit to check the boolean cast
+        out = opt.signal()
+        out_default = opt.signal()
+        m.d.comb += out.eq(opt.wrap(src, valid))
+        m.d.comb += out_default.eq(opt.wrap(src))
+
+        async def testbench(ctx: TestbenchContext):
+            for _ in range(50):
+                value = random.randrange(2**8)
+                valid_value = random.randrange(4)
+                ctx.set(Value.cast(src), value)
+                ctx.set(valid, valid_value)
+                assert ctx.get(Value.cast(out_default)) == 1 | (value << 1)
+                if valid_value:
+                    assert ctx.get(Value.cast(out)) == 1 | (value << 1)
+                else:
+                    assert ctx.get(out) is None
+
+        with self.run_simulation(m) as sim:
+            sim.add_testbench(testbench)
+
     def test_compare(self):
         opt = Option(2)
         m = Module()
