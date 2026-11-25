@@ -24,7 +24,7 @@ __all__ = ["PipelineBuilder"]
 # ---------------------------------------------------------------------------
 
 
-class _ForwarderModule(ClearableConnector, HasElaborate, Protocol): ...
+class _ConnectorModule(ClearableConnector, HasElaborate, Protocol): ...
 
 
 class _PipelineNodeProtocol(Protocol):
@@ -176,9 +176,14 @@ class PipelineBuilder(Elaboratable):
         src_loc: SrcLoc
         ready: ValueLike
         no_dependency: bool
-        forwarder: Callable[[MethodLayout], _ForwarderModule]
+        connector: Callable[[MethodLayout], _ConnectorModule]
 
-    def __init__(self, allow_unused: bool = False, allow_empty: bool = False):
+    def __init__(
+        self,
+        allow_unused: bool = False,
+        allow_empty: bool = False,
+        default_connector: Callable[[MethodLayout], _ConnectorModule] = Pipe,
+    ):
         """Initialize a new pipeline builder.
 
         Parameters
@@ -191,14 +196,17 @@ class PipelineBuilder(Elaboratable):
             (all previous outputs have been consumed). Useful when there are stages
             that fully consume the state and handle it externally and later restore
             the state back into the pipeline. Default: ``False``.
+        default_connector : Callable[[MethodLayout], _ConnectorModule], optional
+            If provided, this factory is used to create connectors between stages if
+            the :meth:`connector` method was not called. Default: ``Pipe``.
         """
         self._nodes: list[PipelineBuilder._NodeInfo] = []
         self.allow_unused: bool = allow_unused
         self.allow_empty: bool = allow_empty
         self._live_signal_shapes: dict[str, ShapeLike] = {}
-        self._next_forwarder = None
+        self._next_connector = None
         self._clear_methods = []
-
+        self._default_connector = default_connector
         self.clear = Method()
 
     def add_external(
@@ -431,8 +439,32 @@ class PipelineBuilder(Elaboratable):
 
         return decorator
 
+    def connector(self, connector: Callable[[MethodLayout], _ConnectorModule]) -> None:
+        """Insert a custom connector module after the current pipeline stage.
+
+        Parameters
+        ----------
+        connector : Callable[[MethodLayout], _ConnectorModule]
+            The factory function that takes a layout and creates the connector.
+
+        Returns
+        -------
+        None
+
+        Raises
+        ------
+        RuntimeError
+            If a custom connector is added twice for the same stage.
+        """
+        if self._next_connector is not None:
+            raise RuntimeError("Connector was added twice for the same stage")
+
+        self._next_connector = connector
+
     def fifo(self, depth: int, *, src_loc: int | SrcLoc = 0):
         """Insert a FIFO buffer after the current pipeline stage.
+
+        Sugar around :meth:`connector` that adds a FIFO buffer with the given depth.
 
         Parameters
         ----------
@@ -448,16 +480,10 @@ class PipelineBuilder(Elaboratable):
         Raises
         ------
         RuntimeError
-            If fifo is added twice for the same stage.
+            If a custom connector is added twice for the same stage.
         """
         src_loc = get_src_loc(src_loc)
-        if self._next_forwarder is not None:
-            raise RuntimeError("Fifo was added twice for the same stage")
-
-        def fifo_forwarder(layout: MethodLayout) -> _ForwarderModule:
-            return BasicFifo(layout, depth, src_loc=src_loc)
-
-        self._next_forwarder = fifo_forwarder
+        self.connector(lambda layout: BasicFifo(layout, depth, src_loc=src_loc))
 
     def add_external_clear(self, method: Method) -> None:
         """Add an external clear method that can be called to clear the pipeline state.
@@ -596,11 +622,11 @@ class PipelineBuilder(Elaboratable):
             assert curr_read is not None
             assert prev_write is not None
 
-            m.submodules[f"{i}_forwarder"] = fwd = node.forwarder(prev_write.layout_in)
-            prev_write.provide(fwd.write)
-            curr_read.provide(fwd.read)
+            m.submodules[f"{i}_connector"] = connector = node.connector(prev_write.layout_in)
+            prev_write.provide(connector.write)
+            curr_read.provide(connector.read)
 
-            clear_methods.append(fwd.clear)
+            clear_methods.append(connector.clear)
 
         @def_method(m, self.clear, nonexclusive=True)
         def _():
@@ -635,11 +661,8 @@ class PipelineBuilder(Elaboratable):
                     f"Signal {k} from {src_loc} has incompatible shape: expected {v}, got {self._live_signal_shapes[k]}"
                 )
 
-        def pipe_forwarder(layout: MethodLayout) -> _ForwarderModule:
-            return Pipe(layout, src_loc=src_loc)
-
-        forwarder = self._next_forwarder or pipe_forwarder
-        self._next_forwarder = None
+        connector = self._next_connector or self._default_connector
+        self._next_connector = None
 
         self._nodes.append(
             self._NodeInfo(
@@ -647,7 +670,7 @@ class PipelineBuilder(Elaboratable):
                 src_loc=src_loc,
                 ready=ready,
                 no_dependency=no_dependency,
-                forwarder=forwarder,
+                connector=connector,
             )
         )
 
