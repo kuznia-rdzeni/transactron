@@ -67,10 +67,10 @@ class PriorityEncoderAllocator(Elaboratable):
         m.submodules.priority_encoder = encoder = MultiPriorityEncoder(self.entries, len(self.alloc))
         m.d.top_comb += encoder.input.eq(not_used)
 
-        @def_methods(m, self.alloc, ready=lambda i: encoder.valids[i])
+        @def_methods(m, self.alloc, ready=lambda i: encoder.outputs[i].valid)
         def _(i):
-            m.d.sync += not_used.bit_select(encoder.outputs[i], 1).eq(0)
-            return {"ident": encoder.outputs[i]}
+            m.d.sync += not_used.bit_select(encoder.outputs[i].data, 1).eq(0)
+            return {"ident": encoder.outputs[i].data}
 
         @def_methods(m, self.free)
         def _(_, ident):

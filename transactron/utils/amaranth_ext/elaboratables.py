@@ -8,6 +8,7 @@ from amaranth.lib.data import ArrayLayout, View
 from amaranth_types import FlatValueLike, HasElaborate, ShapeLike, ModuleLike, ValueLike
 
 from transactron.utils.amaranth_ext.functions import one_hot_mux, shape_of, top_module
+from transactron.utils.amaranth_ext.option import Option, OptionView
 
 __all__ = [
     "ModuleConnector",
@@ -264,12 +265,10 @@ class MultiPriorityEncoder(Elaboratable):
         Number of outputs to generate at once.
     input : Signal, in
         Signal with 1 on `i`-th bit if `i` can be selected by encoder
-    outputs : list[Signal], out
-        Signals with selected indicies, sorted in ascending order,
-        if the number of ready signals is less than `outputs_count`
-        then valid signals are at the beginning of the list.
-    valids : list[Signal], out
-        One bit for each output signal, indicating whether the output is valid or not.
+    outputs : Signal(ArrayLayout(Option(range(input_width)), outputs_count)), out
+        Optional selected indices, sorted in ascending order. If the number
+        of ready signals is less than `outputs_count`, then valid options
+        are at the beginning of the array.
     """
 
     def __init__(self, input_width: int, outputs_count: int):
@@ -277,13 +276,12 @@ class MultiPriorityEncoder(Elaboratable):
         self.outputs_count = outputs_count
 
         self.input = Signal(self.input_width)
-        self.outputs = Signal(ArrayLayout(range(self.input_width), self.outputs_count))
-        self.valids = Signal(self.outputs_count)
+        self.outputs = Signal(ArrayLayout(Option(range(self.input_width)), self.outputs_count))
 
     @staticmethod
     def create(
         m: ModuleLike, input_width: int, input: ValueLike, outputs_count: int = 1, name: str | None = None
-    ) -> list[tuple[Value, Value]]:
+    ) -> list[OptionView[range]]:
         """Syntax sugar for creating MultiPriorityEncoder
 
         This static method allows to use MultiPriorityEncoder in a more functional
@@ -297,8 +295,7 @@ class MultiPriorityEncoder(Elaboratable):
 
             m.submodules += prio_encoder = PriorityEncoder(cnt)
             m.d.top_comb += prio_encoder.input.eq(one_hot_singal)
-            idx = prio_encoder.outputs
-            valid = prio.encoder.valids
+            outputs = prio_encoder.outputs
 
         Parameters
         ----------
@@ -317,10 +314,9 @@ class MultiPriorityEncoder(Elaboratable):
 
         Returns
         -------
-        return : list[tuple[Signal, Signal]]
-            Returns a list with len equal to outputs_count. Each tuple contains
-            a pair of decoded index on the first position and a valid signal
-            on the second position.
+        return : list[OptionView[range]]
+            Returns a list with len equal to outputs_count. Each element is
+            an optional decoded index.
         """
         prio_encoder = MultiPriorityEncoder(input_width, outputs_count)
         if name is None:
@@ -333,12 +329,10 @@ class MultiPriorityEncoder(Elaboratable):
                 setattr(m.submodules, name, prio_encoder)
         top_m = top_module(m)
         top_m.d.comb += prio_encoder.input.eq(input)
-        return [(prio_encoder.outputs[i], prio_encoder.valids[i]) for i in range(outputs_count)]
+        return [prio_encoder.outputs[i] for i in range(outputs_count)]
 
     @staticmethod
-    def create_simple(
-        m: ModuleLike, input_width: int, input: ValueLike, name: str | None = None
-    ) -> tuple[Value, Value]:
+    def create_simple(m: ModuleLike, input_width: int, input: ValueLike, name: str | None = None) -> OptionView[range]:
         """Syntax sugar for creating MultiPriorityEncoder
 
         This is the same as `create` function, but with `outputs_count` hardcoded to 1.
@@ -349,41 +343,37 @@ class MultiPriorityEncoder(Elaboratable):
     def _build_tree(self, m: Module, in_sig: Signal, start_idx: int):
         assert len(in_sig) > 0
         level_outputs = [
-            Signal(range(self.input_width), name=f"_lvl_out_idx{start_idx}_{i}") for i in range(self.outputs_count)
+            Signal(Option(range(self.input_width)), name=f"_lvl_out_idx{start_idx}_{i}")
+            for i in range(self.outputs_count)
         ]
-        level_valids = [Signal(name=f"_lvl_val_idx{start_idx}_{i}") for i in range(self.outputs_count)]
         if len(in_sig) == 1:
             with m.If(in_sig):
-                m.d.comb += level_outputs[0].eq(start_idx)
-                m.d.comb += level_valids[0].eq(1)
+                m.d.comb += level_outputs[0].data_eq(start_idx)
         else:
             middle = len(in_sig) // 2
             r_in = Signal(middle, name=f"_r_in_idx{start_idx}")
             l_in = Signal(len(in_sig) - middle, name=f"_l_in_idx{start_idx}")
             m.d.comb += r_in.eq(in_sig[0:middle])
             m.d.comb += l_in.eq(in_sig[middle:])
-            r_out, r_val = self._build_tree(m, r_in, start_idx)
-            l_out, l_val = self._build_tree(m, l_in, start_idx + middle)
+            r_out = self._build_tree(m, r_in, start_idx)
+            l_out = self._build_tree(m, l_in, start_idx + middle)
 
-            with m.Switch(Cat(r_val)):
+            with m.Switch(Cat(out.valid for out in r_out)):
                 for i in range(self.outputs_count + 1):
                     with m.Case((1 << i) - 1):
                         for j in range(i):
                             m.d.comb += level_outputs[j].eq(r_out[j])
-                            m.d.comb += level_valids[j].eq(r_val[j])
                         for j in range(i, self.outputs_count):
                             m.d.comb += level_outputs[j].eq(l_out[j - i])
-                            m.d.comb += level_valids[j].eq(l_val[j - i])
-        return level_outputs, level_valids
+        return level_outputs
 
     def elaborate(self, platform):
         m = Module()
 
-        level_outputs, level_valids = self._build_tree(m, self.input, 0)
+        level_outputs = self._build_tree(m, self.input, 0)
 
         for k in range(self.outputs_count):
             m.d.comb += self.outputs[k].eq(level_outputs[k])
-            m.d.comb += self.valids[k].eq(level_valids[k])
 
         return m
 
@@ -413,12 +403,10 @@ class RingMultiPriorityEncoder(Elaboratable):
         Index of the first bit in the `input`. Inclusive.
     last : Signal, out
         Index of the last bit in the `input`. Exclusive.
-    outputs : list[Signal], out
-        Signals with selected indicies, sorted in ascending order,
-        if the number of ready signals is less than `outputs_count`
-        then valid signals are at the beginning of the list.
-    valids : list[Signal], out
-        One bit for each output signal, indicating whether the output is valid or not.
+    outputs : Signal(ArrayLayout(Option(range(input_width)), outputs_count)), out
+        Optional selected indices, sorted in ascending order. If the number
+        of ready signals is less than `outputs_count`, then valid options
+        are at the beginning of the array.
     """
 
     def __init__(self, input_width: int, outputs_count: int):
@@ -428,8 +416,7 @@ class RingMultiPriorityEncoder(Elaboratable):
         self.input = Signal(self.input_width)
         self.first = Signal(range(self.input_width))
         self.last = Signal(range(self.input_width))
-        self.outputs = Signal(ArrayLayout(range(self.input_width), self.outputs_count))
-        self.valids = Signal(self.outputs_count)
+        self.outputs = Signal(ArrayLayout(Option(range(self.input_width)), self.outputs_count))
 
     @staticmethod
     def create(
@@ -440,7 +427,7 @@ class RingMultiPriorityEncoder(Elaboratable):
         last: ValueLike,
         outputs_count: int = 1,
         name: str | None = None,
-    ) -> list[tuple[Value, Value]]:
+    ) -> list[OptionView[range]]:
         """Syntax sugar for creating RingMultiPriorityEncoder
 
         This static method allows to use RingMultiPriorityEncoder in a more functional
@@ -456,8 +443,7 @@ class RingMultiPriorityEncoder(Elaboratable):
             m.d.comb += prio_encoder.input.eq(one_hot_singal)
             m.d.comb += prio_encoder.first.eq(first)
             m.d.comb += prio_encoder.last.eq(last)
-            idx = prio_encoder.outputs
-            valid = prio.encoder.valids
+            outputs = prio_encoder.outputs
 
         Parameters
         ----------
@@ -480,10 +466,9 @@ class RingMultiPriorityEncoder(Elaboratable):
 
         Returns
         -------
-        return : list[tuple[Signal, Signal]]
-            Returns a list with len equal to outputs_count. Each tuple contains
-            a pair of decoded index on the first position and a valid signal
-            on the second position.
+        return : list[OptionView[range]]
+            Returns a list with len equal to outputs_count. Each element is
+            an optional decoded index.
         """
         prio_encoder = RingMultiPriorityEncoder(input_width, outputs_count)
         if name is None:
@@ -500,12 +485,12 @@ class RingMultiPriorityEncoder(Elaboratable):
         top_m.d.comb += prio_encoder.input.eq(input)
         top_m.d.comb += prio_encoder.first.eq(first)
         top_m.d.comb += prio_encoder.last.eq(last)
-        return [(prio_encoder.outputs[i], prio_encoder.valids[i]) for i in range(outputs_count)]
+        return [prio_encoder.outputs[i] for i in range(outputs_count)]
 
     @staticmethod
     def create_simple(
         m: ModuleLike, input_width: int, input: ValueLike, first: ValueLike, last: ValueLike, name: str | None = None
-    ) -> tuple[Value, Value]:
+    ) -> OptionView[range]:
         """Syntax sugar for creating RingMultiPriorityEncoder
 
         This is the same as `create` function, but with `outputs_count` hardcoded to 1.
@@ -533,11 +518,10 @@ class RingMultiPriorityEncoder(Elaboratable):
         m.d.comb += multi_enc.input.eq(multi_enc_input)
         for k in range(self.outputs_count):
             moved_out = Signal(range(2 * self.input_width))
-            m.d.comb += moved_out.eq(multi_enc.outputs[k] + self.first)
+            m.d.comb += moved_out.eq(multi_enc.outputs[k].data + self.first)
             corrected_out = Mux(moved_out >= self.input_width, moved_out - self.input_width, moved_out)
 
-            m.d.comb += self.outputs[k].eq(corrected_out)
-            m.d.comb += self.valids[k].eq(multi_enc.valids[k])
+            m.d.comb += self.outputs[k].eq(self.outputs[k].shape().wrap(corrected_out, multi_enc.outputs[k].valid))
         return m
 
 

@@ -5,6 +5,7 @@ from amaranth_types import ShapeLike
 import amaranth_types.memory as amemory
 
 from transactron.utils.amaranth_ext.elaboratables import OneHotMux
+from transactron.utils.amaranth_ext.option import Option
 from transactron.utils.transactron_helpers import from_method_layout, make_layout
 from ..core import *
 from ..utils import SrcLoc, get_src_loc, MultiPriorityEncoder
@@ -119,22 +120,21 @@ class MemoryBank(Elaboratable):
 
         # read_output_addr[i] is the address of the value in read_port[i].data
         # read_output_next[i] is the value of the memory cell read_output_addr[i] in the next clock cycle
-        read_output_valid = [Signal() for _ in range(self.reads_ports)]
         read_output_next = [Signal(self.shape) for _ in range(self.reads_ports)]
-        read_output_addr = [Signal(range(self.depth), reset_less=True) for _ in range(self.reads_ports)]
+        read_output_addr = [Option(range(self.depth)).signal() for _ in range(self.reads_ports)]
 
-        overflow_valid = [Signal() for _ in range(self.reads_ports)]
         overflow_data = [Signal(self.shape, reset_less=True) for _ in range(self.reads_ports)]
         overflow_next = [Signal(self.shape) for _ in range(self.reads_ports)]
-        overflow_addr = [Signal(range(self.depth), reset_less=True) for _ in range(self.reads_ports)]
+        overflow_addr = [Option(range(self.depth)).signal() for _ in range(self.reads_ports)]
 
         for i in range(self.reads_ports):
             if self.read_on_resp:
                 read_output_addr_match = [
-                    write_port[j].en & (write_port[j].addr == read_output_addr[i]) for j in range(self.writes_ports)
+                    write_port[j].en & (write_port[j].addr == read_output_addr[i].data)
+                    for j in range(self.writes_ports)
                 ]
                 overflow_addr_match = [
-                    write_port[j].en & (write_port[j].addr == overflow_addr[i]) for j in range(self.writes_ports)
+                    write_port[j].en & (write_port[j].addr == overflow_addr[i].data) for j in range(self.writes_ports)
                 ]
                 m.d.comb += read_output_next[i].eq(
                     OneHotMux.create(
@@ -160,30 +160,26 @@ class MemoryBank(Elaboratable):
             # If the responses are always read as they arrive, overflow is never written and no stalls occur.
 
             with m.If(
-                read_output_valid[i] & ~overflow_valid[i] & self.read[i].request.run & ~self.read[i].response.run
+                read_output_addr[i].valid
+                & ~overflow_addr[i].valid
+                & self.read[i].request.run
+                & ~self.read[i].response.run
             ):
-                m.d.sync += overflow_valid[i].eq(1)
                 m.d.sync += overflow_addr[i].eq(read_output_addr[i])
                 m.d.sync += overflow_data[i].eq(read_output_next[i])
 
-        @def_methods(m, [port.response for port in self.read], lambda i: read_output_valid[i] | overflow_valid[i])
+        @def_methods(
+            m, [port.response for port in self.read], lambda i: read_output_addr[i].valid | overflow_addr[i].valid
+        )
         def _(i: int):
-            with m.If(overflow_valid[i]):
-                m.d.sync += overflow_valid[i].eq(0)
-            with m.Else():
-                m.d.sync += read_output_valid[i].eq(0)
-
+            fwd = self.read_on_resp and self.transparent
             ret = Signal(self.shape)
-            if self.read_on_resp and self.transparent:
-                with m.If(overflow_valid[i]):
-                    m.d.av_comb += ret.eq(overflow_next[i])
-                with m.Else():
-                    m.d.av_comb += ret.eq(read_output_next[i])
-            else:
-                with m.If(overflow_valid[i]):
-                    m.d.av_comb += ret.eq(overflow_data[i])
-                with m.Else():
-                    m.d.av_comb += ret.eq(read_port[i].data)
+            with m.If(overflow_addr[i].valid):
+                m.d.sync += overflow_addr[i].data_eq(None)
+                m.d.av_comb += ret.eq(overflow_next[i] if fwd else overflow_data[i])
+            with m.Else():
+                m.d.sync += read_output_addr[i].data_eq(None)
+                m.d.av_comb += ret.eq(read_output_next[i] if fwd else read_port[i].data)
             return {"data": ret}
 
         # In read_on_resp mode, memory reads are performed every cycle until the response is read, and the read ports
@@ -191,14 +187,13 @@ class MemoryBank(Elaboratable):
 
         for i in range(self.reads_ports):
             if self.read_on_resp:
-                m.d.comb += read_port[i].addr.eq(read_output_addr[i])
+                m.d.comb += read_port[i].addr.eq(read_output_addr[i].data)
             else:
                 m.d.comb += read_port[i].en.eq(0)  # because the init value is 1
 
-        @def_methods(m, [port.request for port in self.read], lambda i: ~overflow_valid[i])
+        @def_methods(m, [port.request for port in self.read], lambda i: ~overflow_addr[i].valid)
         def _(i: int, addr):
-            m.d.sync += read_output_valid[i].eq(1)
-            m.d.sync += read_output_addr[i].eq(addr)
+            m.d.sync += read_output_addr[i].data_eq(addr)
             m.d.comb += read_port[i].en.eq(1)
             if self.read_on_resp:
                 m.d.comb += read_port[i].addr.eq(addr)
@@ -235,7 +230,7 @@ class ContentAddressableMemory(Elaboratable):
     Attributes
     ----------
     read : Method
-        Nondestructive read
+        Nondestructive read. Returns the found data as an `Option`, empty if the key is not present.
     write : Method
         If index present - do update
     remove : Method
@@ -259,7 +254,7 @@ class ContentAddressableMemory(Elaboratable):
         self.data_layout = from_method_layout(data_layout)
         self.entries_number = entries_number
 
-        self.read = Method(i=[("addr", self.address_layout)], o=[("data", self.data_layout), ("not_found", 1)])
+        self.read = Method(i=[("addr", self.address_layout)], o=[("data", Option(self.data_layout))])
         self.remove = Method(i=[("addr", self.address_layout)])
         self.push = Method(i=[("addr", self.address_layout), ("data", self.data_layout)])
         self.write = Method(i=[("addr", self.address_layout), ("data", self.data_layout)], o=[("not_found", 1)])
@@ -287,7 +282,7 @@ class ContentAddressableMemory(Elaboratable):
         @def_method(m, self.push, ready=~valids.all())
         def _(addr, data):
             id = Signal(range(self.entries_number), name="id_push")
-            m.d.top_comb += id.eq(encoder_push.outputs[0])
+            m.d.top_comb += id.eq(encoder_push.outputs[0].data)
             m.d.sync += address_array[id].eq(addr)
             m.d.sync += data_array[id].eq(data)
             m.d.sync += valids.bit_select(id, 1).eq(1)
@@ -298,7 +293,7 @@ class ContentAddressableMemory(Elaboratable):
             m.d.top_comb += write_mask.eq(Cat([addr == stored_addr for stored_addr in address_array]) & valids)
             m.d.top_comb += encoder_write.input.eq(write_mask)
             with m.If(write_mask.any()):
-                m.d.sync += data_array[encoder_write.outputs[0]].eq(data)
+                m.d.sync += data_array[encoder_write.outputs[0].data].eq(data)
             return {"not_found": ~write_mask.any()}
 
         @def_method(m, self.read)
@@ -306,7 +301,7 @@ class ContentAddressableMemory(Elaboratable):
             read_mask = Signal(self.entries_number, name="read_mask")
             m.d.top_comb += read_mask.eq(Cat([addr == stored_addr for stored_addr in address_array]) & valids)
             m.d.top_comb += encoder_read.input.eq(read_mask)
-            return {"data": data_array[encoder_read.outputs[0]], "not_found": ~read_mask.any()}
+            return {"data": Option(self.data_layout).wrap(data_array[encoder_read.outputs[0].data], read_mask.any())}
 
         @def_method(m, self.remove)
         def _(addr):
@@ -314,7 +309,7 @@ class ContentAddressableMemory(Elaboratable):
             m.d.top_comb += rm_mask.eq(Cat([addr == stored_addr for stored_addr in address_array]) & valids)
             m.d.top_comb += encoder_remove.input.eq(rm_mask)
             with m.If(rm_mask.any()):
-                m.d.sync += valids.bit_select(encoder_remove.outputs[0], 1).eq(0)
+                m.d.sync += valids.bit_select(encoder_remove.outputs[0].data, 1).eq(0)
 
         return m
 

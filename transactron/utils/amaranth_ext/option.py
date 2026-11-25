@@ -209,8 +209,8 @@ class Option[T: ShapeLike](ShapeCastable[OptionView[T]]):
         """A view of an invalid ("empty") constant of this shape."""
         return self(Const(0, Shape.cast(self).width))
 
-    def wrap(self, data: ValueLike | None) -> OptionView[T]:
-        """Wrap a value as a valid option.
+    def wrap(self, data: ValueLike, valid: ValueLike = 1) -> OptionView[T]:
+        """Wrap a value as an option.
 
         Parameters
         ----------
@@ -219,15 +219,16 @@ class Option[T: ShapeLike](ShapeCastable[OptionView[T]]):
             passed to it directly and interpreted as that shape's
             constructor would interpret it. Otherwise, ``data`` is cast to a
             ``Value`` and truncated or zero-extended to fit ``data_shape``.
+        valid : ValueLike, optional
+            Whether the resulting option is valid. Cast to a boolean.
+            By default, the option is valid.
         """
-        if data is None:
-            return self.empty
         if isinstance(self._data_shape, ShapeCastable):
             val = Value.cast(self._data_shape(data))
         else:
             shape = Shape.cast(self._data_shape)
             val = (Value.cast(data) | Const(0, shape.width))[: shape.width]
-        return self(Cat(Const(1, 1), val))
+        return self(Cat(Value.cast(valid).bool(), val))
 
     def signal(self, *, src_loc_at: int = 0) -> OptionView[T]:
         """Create a signal of this shape.
@@ -269,6 +270,8 @@ class Option[T: ShapeLike](ShapeCastable[OptionView[T]]):
         if isinstance(target, (Value, ValueCastable)) and target.shape() == Shape.cast(self):
             # ShapeCastables are required to return a higher-level representation in this case.
             return OptionView[T](self.data_shape, target)
+        elif target is None:
+            return self.empty
         else:
             return self.wrap(target)
 

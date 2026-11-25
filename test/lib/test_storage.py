@@ -87,10 +87,10 @@ class TestContentAddressableMemory(TestCaseWithSimulator):
             addr = elem["addr"]
             frozen_addr = frozenset(addr.items())
             if frozen_addr in self.memory:
-                assert response.not_found == 0
+                assert response.data is not None
                 assert data_const_to_dict(response.data) == self.memory[frozen_addr]
             else:
-                assert response.not_found == 1
+                assert response.data is None
 
         return self.generic_process(self.circ.read, in_read, behaviour_check=check, settle_count=0, name="read")
 

@@ -170,12 +170,8 @@ class TestPriorityEncoder(TestCaseWithSimulator):
                 except AttributeError:
                     pass
                 expected_output = get_expected(self.input_width, self.output_count, input, first, last)
-                for ex, real, valid in zip(expected_output, self.circ.outputs, self.circ.valids):
-                    if ex is None:
-                        assert sim.get(valid) == 0
-                    else:
-                        assert sim.get(valid) == 1
-                        assert sim.get(real) == ex
+                for ex, real in zip(expected_output, self.circ.outputs):
+                    assert sim.get(real) == ex
                 await sim.delay(1e-7)
 
         return f
@@ -211,14 +207,13 @@ class TestPriorityEncoder(TestCaseWithSimulator):
             def elaborate(self, platform):
                 m = Module()
                 if test_class == MultiPriorityEncoder:
-                    out, val = test_class.create_simple(m, self.input_width, self.input, name=self.name)
+                    out = test_class.create_simple(m, self.input_width, self.input, name=self.name)
                 else:
-                    out, val = test_class.create_simple(
+                    out = test_class.create_simple(
                         m, self.input_width, self.input, self.first, self.last, name=self.name
                     )
                 # Save as a list to use common interface in testing
                 self.outputs = [out]
-                self.valids = [val]
                 return m
 
         self.circ = DUT(self.input_width, self.output_count, name)
@@ -250,7 +245,7 @@ class TestPriorityEncoder(TestCaseWithSimulator):
                     out = test_class.create(
                         m, self.input_width, self.input, self.first, self.last, self.output_count, name=self.name
                     )
-                self.outputs, self.valids = list(zip(*out))
+                self.outputs = out
                 return m
 
         self.circ = DUT(self.input_width, self.output_count, name)
