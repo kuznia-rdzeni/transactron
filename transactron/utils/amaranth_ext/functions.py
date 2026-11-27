@@ -20,6 +20,7 @@ __all__ = [
     "count_leading_zeros",
     "count_trailing_zeros",
     "cyclic_mask",
+    "cyclic_mask_count",
     "extract_lowest_set_bit",
     "generic_min_value",
     "mask_after_first_set_bit",
@@ -34,6 +35,8 @@ __all__ = [
     "one_hot_mux",
     "or_value",
     "popcount",
+    "rotate_left",
+    "rotate_right",
     "shape_of",
     "sum_value",
     "switch_value",
@@ -159,6 +162,43 @@ def count_leading_zeros(value: ValueLike) -> Value:
     """
     value = Value.cast(value)
     return count_trailing_zeros(value[::-1])
+
+
+def rotate_right(value: Value, shift: ValueLike) -> Value:
+    """Compotes the rotation of a signal to the right by given amount.
+
+    Parameters
+    ----------
+    value : Value
+        The input signal.
+    shift : ValueLike
+        Amount of bits to rotate by. Must be ``< len(value)``.
+    """
+    if isinstance(shift, int):
+        return value.rotate_left(shift)
+    return (value.replicate(2) >> shift)[: len(value)]
+
+
+def rotate_left(value: Value, shift: ValueLike) -> Value:
+    """Compotes the rotation of a signal to the left by given amount.
+
+    Parameters
+    ----------
+    value : Value
+        The input signal.
+    shift : ValueLike
+        Amount of bits to rotate by. Must be ``< len(value)``.
+    """
+    return rotate_right(value[::-1], shift)[::-1]
+
+
+def cyclic_mask_count(bits: int, start: ValueLike, count: ValueLike):
+    """
+    Generate ``bits`` bit-wide mask with ones from ``start`` position and ``count`` bits long
+    wrapping around if necessary. If ``count`` is zero, the mask is all zeros.
+    """
+    data = (~(C(~0, bits * 2) << count) << start)[: 2 * bits]
+    return data[:bits] | data[bits:]
 
 
 def cyclic_mask(bits: int, start: ValueLike, end: ValueLike):
