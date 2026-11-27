@@ -34,7 +34,7 @@ class ConditionTestCircuit(Elaboratable):
                     self.target(m, cond=1)
                 with branch(cond2):
                     self.target(m, cond=2)
-                with branch(cond3):
+                with branch(Cat(0, cond3)):
                     self.target(m, cond=3)
                 if self.catchall:
                     with branch():

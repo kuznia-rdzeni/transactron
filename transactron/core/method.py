@@ -255,7 +255,7 @@ class Method(TransactionBase["Transaction | Method"]):
         )
         self._set_impl(body)
 
-        m.d.av_comb += body.ready.eq(ready)
+        m.d.av_comb += body.ready.eq(Value.cast(ready).bool())
         m.d.top_comb += body.data_out.eq(out)
         with body.context(m):
             with m.AvoidedIf(body.run):

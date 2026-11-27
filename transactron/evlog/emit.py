@@ -128,7 +128,7 @@ class EventSource:
         if not evlog_enabled():
             return
         trigger = Signal()
-        m.d.comb += trigger.eq(Value.cast(when).any())
+        m.d.comb += trigger.eq(Value.cast(when).bool())
         self.top_emit(ev, when=trigger, src_loc=get_src_loc(src_loc))
 
     def top_emit(self, ev: Event, *, when: ValueLike = 1, src_loc: int | SrcLoc = 0):
@@ -164,7 +164,7 @@ class EventSource:
             source_name=self.name,
             event_type=cls,
             location=local_src_loc(get_src_loc(src_loc)),
-            trigger=Value.cast(when).any(),
+            trigger=Value.cast(when).bool(),
             fields=fields,
             statics=statics,
         )

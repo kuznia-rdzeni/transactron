@@ -825,13 +825,13 @@ class TaggedLatencyMeasurer(Elaboratable):
         @def_methods(m, self.start)
         def _(k: int, slot: Value):
             m.d.comb += slots_taken_start[k].eq(1 << slot)
-            self.log.error(m, (slots_taken & (1 << slot)).any(), "taken slot {} taken again", slot)
+            self.log.error(m, slots_taken.bit_select(slot, 1), "taken slot {} taken again", slot)
             self.slots.write[k](m, addr=slot, data=epoch)
 
         @def_methods(m, self.stop)
         def _(k: int, slot: Value):
             m.d.comb += slots_taken_stop[k].eq(~(C(1, self.slots_number) << slot))
-            self.log.error(m, ~(slots_taken & (1 << slot)).any(), "free slot {} freed again", slot)
+            self.log.error(m, ~slots_taken.bit_select(slot, 1), "free slot {} freed again", slot)
             ret = self.slots.read[k](m, addr=slot)
             # The result of subtracting two unsigned n-bit is a signed (n+1)-bit value,
             # so we need to cast the result and discard the most significant bit.

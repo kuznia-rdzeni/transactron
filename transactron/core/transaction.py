@@ -129,7 +129,7 @@ class Transaction(TransactionBase["Transaction | Method"]):
         )
         self._set_impl(m, impl)
 
-        m.d.av_comb += impl.ready.eq(ready)
+        m.d.av_comb += impl.ready.eq(Value.cast(ready).bool())
         with impl.context(m):
             with m.AvoidedIf(impl.run):
                 yield self
@@ -148,7 +148,7 @@ class Transaction(TransactionBase["Transaction | Method"]):
             yield t
 
         ready_ctx = Signal()
-        m.d.comb += ready_ctx.eq(ready)
+        m.d.comb += ready_ctx.eq(Value.cast(ready).bool())
 
         log.assertion(m, ~ready_ctx | self.run, f"Transaction '{self.name}' was not run", src_loc=self.src_loc)
 

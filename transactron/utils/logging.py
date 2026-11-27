@@ -166,7 +166,7 @@ class HardwareLogger:
         See `HardwareLogger.log` function for more details.
         """
         src_loc = local_src_loc(get_src_loc(src_loc))
-        trigger = Value.cast(trigger).any()
+        trigger = Value.cast(trigger).bool()
 
         format_spec: list[LogChunkInfo] = []
         values: list[Value] = []
@@ -236,7 +236,7 @@ class HardwareLogger:
 
         See `HardwareLogger.assertion` function for more details.
         """
-        self.top_error(~Value.cast(value).any(), format, *args, src_loc=get_src_loc(src_loc), **kwargs)
+        self.top_error(~Value.cast(value).bool(), format, *args, src_loc=get_src_loc(src_loc), **kwargs)
 
     def log(
         self,
@@ -266,7 +266,7 @@ class HardwareLogger:
             identify the failing assertion.
         """
         trigger_signal = Signal()
-        m.d.comb += trigger_signal.eq(Value.cast(trigger).any())
+        m.d.comb += trigger_signal.eq(Value.cast(trigger).bool())
         self.top_log(level, trigger_signal, format, *args, src_loc=get_src_loc(src_loc), **kwargs)
 
     def debug(
@@ -351,7 +351,7 @@ class HardwareLogger:
 
         See `HardwareLogger.log` function for more details.
         """
-        self.error(m, ~Value.cast(value).any(), format, *args, src_loc=get_src_loc(src_loc), **kwargs)
+        self.error(m, ~Value.cast(value).bool(), format, *args, src_loc=get_src_loc(src_loc), **kwargs)
 
 
 def top_assertion(
