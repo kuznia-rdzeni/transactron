@@ -188,7 +188,7 @@ class TransactionPriorityTestCircuit(PriorityTestCircuit):
         with transaction1.body(m, ready=self.r1):
             m.d.comb += self.t1.eq(1)
 
-        with transaction2.body(m, ready=self.r2):
+        with transaction2.body(m, ready=Mux(self.r2, 4, 0)):
             m.d.comb += self.t2.eq(1)
 
         self.make_relations(transaction1, transaction2)
