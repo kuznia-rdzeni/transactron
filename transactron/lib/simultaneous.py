@@ -65,7 +65,7 @@ def condition(m: TModule, *, nonblocking: bool = False, priority: bool = False):
         if last:
             raise RuntimeError("Condition clause added after catch-all")
         ready = Signal()
-        m.d.top_comb += ready.eq(cond if cond is not None else ~Cat(*conds).any())
+        m.d.top_comb += ready.eq(Value.cast(cond).bool() if cond is not None else ~Cat(*conds).any())
         conds.append(ready)
         name = f"{this.name}_cond{len(transactions)}"
         with (transaction := Transaction(name=name, src_loc=src_loc)).body(m, ready=ready):
