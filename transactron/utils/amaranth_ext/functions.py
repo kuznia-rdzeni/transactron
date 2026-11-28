@@ -175,7 +175,7 @@ def rotate_right(value: Value, shift: ValueLike) -> Value:
         Amount of bits to rotate by. Must be ``< len(value)``.
     """
     if isinstance(shift, int):
-        return value.rotate_left(shift)
+        return value.rotate_right(shift)
     return (value.replicate(2) >> shift)[: len(value)]
 
 
@@ -195,10 +195,20 @@ def rotate_left(value: Value, shift: ValueLike) -> Value:
 def cyclic_mask_count(bits: int, start: ValueLike, count: ValueLike):
     """
     Generate ``bits`` bit-wide mask with ones from ``start`` position and ``count`` bits long
-    wrapping around if necessary. If ``count`` is zero, the mask is all zeros.
+    wrapping around if necessary.
+
+    Parameters
+    ----------
+    bits : int
+        Width of the mask.
+    start : ValueLike
+        The position of the first bit to set. Must be ``< bits``.
+    count : ValueLike
+        Count of bits to set. Must be ``<= bits``.
     """
-    data = (~(C(~0, bits * 2) << count) << start)[: 2 * bits]
-    return data[:bits] | data[bits:]
+    data = ~((C(~0, bits) << count)[:bits])  # mask with ``count`` ones starting from bit 0
+    data = data << start  # move the mask to ``start``
+    return data[:bits] | data[bits:][:bits]  # handle wrap aournd
 
 
 def cyclic_mask(bits: int, start: ValueLike, end: ValueLike):

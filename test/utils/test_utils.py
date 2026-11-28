@@ -168,7 +168,12 @@ class TestFunctions(TestCaseWithSimulator):
             width = data.draw(st.integers(min_value=1, max_value=256))
             value = data.draw(st.integers(min_value=0, max_value=(1 << width) - 1))
             amount = data.draw(st.integers(min_value=0, max_value=width - 1))
-            return (Const(value, width), Const(amount)), (width, value, amount), f"{width=}, {value=}, {amount=}"
+            amount_type = data.draw(st.sampled_from([Const, int]))
+            return (
+                (Const(value, width), amount_type(amount)),
+                (width, value, amount),
+                f"{width=}, {value=}, {amount=} ({amount_type!r})",
+            )
 
         self.do_test_generic(function, ref_function, data_gen)
 
