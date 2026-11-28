@@ -20,6 +20,7 @@ __all__ = [
     "count_leading_zeros",
     "count_trailing_zeros",
     "cyclic_mask",
+    "cyclic_mask_count",
     "extract_lowest_set_bit",
     "generic_min_value",
     "mask_after_first_set_bit",
@@ -34,6 +35,8 @@ __all__ = [
     "one_hot_mux",
     "or_value",
     "popcount",
+    "rotate_left",
+    "rotate_right",
     "shape_of",
     "sum_value",
     "switch_value",
@@ -161,6 +164,53 @@ def count_leading_zeros(value: ValueLike) -> Value:
     return count_trailing_zeros(value[::-1])
 
 
+def rotate_right(value: Value, shift: ValueLike) -> Value:
+    """Compotes the rotation of a signal to the right by given amount.
+
+    Parameters
+    ----------
+    value : Value
+        The input signal.
+    shift : ValueLike
+        Amount of bits to rotate by. Must be ``< len(value)``.
+    """
+    if isinstance(shift, int):
+        return value.rotate_right(shift)
+    return (value.replicate(2) >> shift)[: len(value)]
+
+
+def rotate_left(value: Value, shift: ValueLike) -> Value:
+    """Compotes the rotation of a signal to the left by given amount.
+
+    Parameters
+    ----------
+    value : Value
+        The input signal.
+    shift : ValueLike
+        Amount of bits to rotate by. Must be ``< len(value)``.
+    """
+    return rotate_right(value[::-1], shift)[::-1]
+
+
+def cyclic_mask_count(bits: int, start: ValueLike, count: ValueLike):
+    """
+    Generate ``bits`` bit-wide mask with ones from ``start`` position and ``count`` bits long
+    wrapping around if necessary.
+
+    Parameters
+    ----------
+    bits : int
+        Width of the mask.
+    start : ValueLike
+        The position of the first bit to set. Must be ``< bits``.
+    count : ValueLike
+        Count of bits to set. Must be ``<= bits``.
+    """
+    data = ~(C(~0, bits) << count)[:bits]  # mask with ``count`` ones starting from bit 0
+    data = data << start  # move the mask to ``start``
+    return data[:bits] | data[bits:][:bits]  # handle wrap aournd
+
+
 def cyclic_mask(bits: int, start: ValueLike, end: ValueLike):
     """
     Generate ``bits`` bit-wide mask with ones from ``start`` to ``end``
@@ -179,7 +229,7 @@ def cyclic_mask(bits: int, start: ValueLike, end: ValueLike):
     right = (1 << ((bits - start).as_unsigned())) - 1
     mask_es = left | (right << start)
 
-    return Mux(start <= end, mask_se, mask_es)
+    return Mux(start <= end, mask_se, mask_es)[:bits]
 
 
 def shape_of(value: ValueLike) -> Shape | ShapeCastable:

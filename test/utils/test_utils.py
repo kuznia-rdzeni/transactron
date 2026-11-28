@@ -1,6 +1,4 @@
 import unittest
-import random
-import pytest
 
 from amaranth import *
 from transactron.testing import *
@@ -10,13 +8,16 @@ from transactron.utils import (
     popcount,
     count_leading_zeros,
     count_trailing_zeros,
-    cyclic_mask,
     extract_lowest_set_bit,
     clear_lowest_set_bit,
     mask_after_first_set_bit,
     mask_from_first_set_bit,
     mask_until_first_set_bit,
     mask_before_first_set_bit,
+    rotate_left,
+    rotate_right,
+    cyclic_mask,
+    cyclic_mask_count,
 )
 from hypothesis import given
 import hypothesis.strategies as st
@@ -60,59 +61,6 @@ class TestAlignToPowerOfTwo(unittest.TestCase):
         for num, power, expected in test_cases:
             out = align_down_to_power_of_two(num, power)
             assert expected == out
-
-
-class GenCyclicMaskTestCircuit(Elaboratable):
-    def __init__(self, xlen: int):
-        self.start = Signal(range(xlen))
-        self.end = Signal(range(xlen))
-        self.sig_out = Signal(xlen)
-        self.xlen = xlen
-
-    def elaborate(self, platform):
-        m = Module()
-
-        m.d.comb += self.sig_out.eq(cyclic_mask(self.xlen, self.start, self.end))
-
-        return m
-
-
-@pytest.mark.parametrize("size", [1, 2, 3, 5, 8])
-class TestGenCyclicMask(TestCaseWithSimulator):
-    @pytest.fixture(scope="function", autouse=True)
-    def setup_fixture(self, size):
-        self.size = size
-        random.seed(14)
-        self.test_number = 40
-        self.m = GenCyclicMaskTestCircuit(self.size)
-
-    async def check(self, sim: TestbenchContext, start, end):
-        sim.set(self.m.start, start)
-        sim.set(self.m.end, end)
-        await sim.delay(1e-6)
-        out = sim.get(self.m.sig_out)
-
-        expected = 0
-        for i in range(min(start, end), max(start, end) + 1):
-            expected |= 1 << i
-
-        if end < start:
-            expected ^= (1 << self.size) - 1
-            expected |= 1 << start
-            expected |= 1 << end
-
-        assert out == expected
-
-    async def process(self, sim: TestbenchContext):
-        for _ in range(self.test_number):
-            start = random.randrange(self.size)
-            end = random.randrange(self.size)
-            await self.check(sim, start, end)
-            await sim.delay(1e-6)
-
-    def test_count_trailing_zeros(self, size):
-        with self.run_simulation(self.m) as sim:
-            sim.add_testbench(self.process)
 
 
 def reference_popcount(n, width):
@@ -168,51 +116,153 @@ def reference_mask_before_first_set_bit(n, width):
     return (1 << ctz) - 1
 
 
-class TestBitManipulationFunctions(TestCaseWithSimulator):
-    def do_test(self, function, ref_function, data):
+def reference_rotate_left(width, value, amount):
+    value = bin(value)[2:].zfill(width)
+    return int(value[amount:] + value[:amount], 2)
+
+
+def reference_rotate_right(width, value, amount):
+    value = bin(value)[2:].zfill(width)
+    return int(value[-amount:] + value[:-amount], 2)
+
+
+def reference_cyclic_mask_count(width, start, count):
+    return reference_rotate_left(width, (2**count) - 1, start)
+
+
+def reference_cyclic_mask(width, start, end):
+    expected = 0
+    for i in range(min(start, end), max(start, end) + 1):
+        expected |= 1 << i
+
+    if end < start:
+        expected ^= (1 << width) - 1
+        expected |= 1 << start
+        expected |= 1 << end
+
+    return expected
+
+
+class TestFunctions(TestCaseWithSimulator):
+    def do_test_generic(self, function, ref_function, data_gen):
         # TODO: remove simulator when https://codeberg.org/amaranth-lang/rfcs/pulls/88 gets approved and implemented
         async def process(sim: TestbenchContext):
-            width = data.draw(st.integers(min_value=0, max_value=256))
-            value = data.draw(st.integers(min_value=0, max_value=(1 << width) - 1))
-            result = sim.get(function(Const(value, width)))
-            expected = ref_function(value, width)
-            assert result == expected, f"Failed for value {value} with width {width}"
+            data = data_gen()
+            result = sim.get(result_val := function(*data[0]))
+            result_shape = result_val.shape()
+            expected = ref_function(*data[1])
+            if data[3] is not None:
+                assert result_shape == data[3], f"Failed for: {data[2]}; expected shape {data[3]}, got {result_shape}"
+            assert result == expected, f"Failed for: {data[2]}; expected {expected}, got {result}"
 
         with self.run_simulation(Module()) as sim:
             sim.add_testbench(process)
 
+    def do_test_value(self, function, ref_function, data):
+        def data_gen():
+            width = data.draw(st.integers(min_value=0, max_value=256))
+            value = data.draw(st.integers(min_value=0, max_value=(1 << width) - 1))
+            return (
+                (Const(value, width),),
+                (value, width),
+                f"{width=}, {value=}",
+                unsigned(width),
+            )
+
+        self.do_test_generic(function, ref_function, data_gen)
+
+    def do_test_value_not_width_preserving(self, function, ref_function, data):
+        def data_gen():
+            width = data.draw(st.integers(min_value=0, max_value=256))
+            value = data.draw(st.integers(min_value=0, max_value=(1 << width) - 1))
+            return (
+                (Const(value, width),),
+                (value, width),
+                f"{width=}, {value=}",
+                None,
+            )
+
+        self.do_test_generic(function, ref_function, data_gen)
+
+    def do_test_rotate(self, function, ref_function, data):
+        def data_gen():
+            width = data.draw(st.integers(min_value=1, max_value=256))
+            value = data.draw(st.integers(min_value=0, max_value=(1 << width) - 1))
+            amount = data.draw(st.integers(min_value=0, max_value=width - 1))
+            amount_type = data.draw(st.sampled_from([Const, int]))
+            return (
+                (Const(value, width), amount_type(amount)),
+                (width, value, amount),
+                f"{width=}, {value=}, {amount=} ({amount_type!r})",
+                unsigned(width),
+            )
+
+        self.do_test_generic(function, ref_function, data_gen)
+
+    def do_test_cyclic_mask(self, function, ref_function, data):
+        def data_gen():
+            width = data.draw(st.integers(min_value=1, max_value=256))
+            start = data.draw(st.integers(min_value=0, max_value=width - 1))
+            start_type = data.draw(st.sampled_from([Const, int]))
+            pos = data.draw(st.integers(min_value=0, max_value=width - 1))
+            pos_type = data.draw(st.sampled_from([Const, int]))
+            return (
+                (width, start_type(start), pos_type(pos)),
+                (width, start, pos),
+                f"{width=}, {start=} ({start_type!r}), end/count={pos} ({pos_type!r})",
+                unsigned(width),
+            )
+
+        self.do_test_generic(function, ref_function, data_gen)
+
     @given(st.data())
     def test_popcount(self, data):
-        self.do_test(popcount, reference_popcount, data)
+        self.do_test_value_not_width_preserving(popcount, reference_popcount, data)
 
     @given(st.data())
     def test_count_leading_zeros(self, data):
-        self.do_test(count_leading_zeros, reference_clz, data)
+        self.do_test_value_not_width_preserving(count_leading_zeros, reference_clz, data)
 
     @given(st.data())
     def test_count_trailing_zeros(self, data):
-        self.do_test(count_trailing_zeros, reference_ctz, data)
+        self.do_test_value_not_width_preserving(count_trailing_zeros, reference_ctz, data)
 
     @given(st.data())
     def test_extract_lowest_set_bit(self, data):
-        self.do_test(extract_lowest_set_bit, reference_extract_lowest_set_bit, data)
+        self.do_test_value(extract_lowest_set_bit, reference_extract_lowest_set_bit, data)
 
     @given(st.data())
     def test_clear_lowest_set_bit(self, data):
-        self.do_test(clear_lowest_set_bit, reference_clear_lowest_set_bit, data)
+        self.do_test_value(clear_lowest_set_bit, reference_clear_lowest_set_bit, data)
 
     @given(st.data())
     def test_mask_after_first_set_bit(self, data):
-        self.do_test(mask_after_first_set_bit, reference_mask_after_first_set_bit, data)
+        self.do_test_value(mask_after_first_set_bit, reference_mask_after_first_set_bit, data)
 
     @given(st.data())
     def test_mask_from_first_set_bit(self, data):
-        self.do_test(mask_from_first_set_bit, reference_mask_from_first_set_bit, data)
+        self.do_test_value(mask_from_first_set_bit, reference_mask_from_first_set_bit, data)
 
     @given(st.data())
     def test_mask_until_first_set_bit(self, data):
-        self.do_test(mask_until_first_set_bit, reference_mask_until_first_set_bit, data)
+        self.do_test_value(mask_until_first_set_bit, reference_mask_until_first_set_bit, data)
 
     @given(st.data())
     def test_mask_before_first_set_bit(self, data):
-        self.do_test(mask_before_first_set_bit, reference_mask_before_first_set_bit, data)
+        self.do_test_value(mask_before_first_set_bit, reference_mask_before_first_set_bit, data)
+
+    @given(st.data())
+    def test_rotate_left(self, data):
+        self.do_test_rotate(rotate_left, reference_rotate_left, data)
+
+    @given(st.data())
+    def test_rotate_right(self, data):
+        self.do_test_rotate(rotate_right, reference_rotate_right, data)
+
+    @given(st.data())
+    def test_cyclic_mask_count(self, data):
+        self.do_test_cyclic_mask(cyclic_mask_count, reference_cyclic_mask_count, data)
+
+    @given(st.data())
+    def test_cyclic_mask(self, data):
+        self.do_test_cyclic_mask(cyclic_mask, reference_cyclic_mask, data)
