@@ -206,7 +206,7 @@ def cyclic_mask_count(bits: int, start: ValueLike, count: ValueLike):
     count : ValueLike
         Count of bits to set. Must be ``<= bits``.
     """
-    data = ~((C(~0, bits) << count)[:bits])  # mask with ``count`` ones starting from bit 0
+    data = ~(C(~0, bits) << count)[:bits]  # mask with ``count`` ones starting from bit 0
     data = data << start  # move the mask to ``start``
     return data[:bits] | data[bits:][:bits]  # handle wrap aournd
 

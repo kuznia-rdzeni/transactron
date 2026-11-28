@@ -181,8 +181,14 @@ class TestFunctions(TestCaseWithSimulator):
         def data_gen():
             width = data.draw(st.integers(min_value=1, max_value=256))
             start = data.draw(st.integers(min_value=0, max_value=width - 1))
+            start_type = data.draw(st.sampled_from([Const, int]))
             pos = data.draw(st.integers(min_value=0, max_value=width - 1))
-            return (width, Const(start), Const(pos)), (width, start, pos), f"{width=}, {start=}, end/count={pos}"
+            pos_type = data.draw(st.sampled_from([Const, int]))
+            return (
+                (width, start_type(start), pos_type(pos)),
+                (width, start, pos),
+                f"{width=}, {start=} ({start_type!r}), end/count={pos} ({pos_type!r})",
+            )
 
         self.do_test_generic(function, ref_function, data_gen)
 
