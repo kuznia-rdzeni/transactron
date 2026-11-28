@@ -158,6 +158,7 @@ class TestTopModule:
         m._MustUse__silence = True  # type: ignore
         top_m_1._MustUse__silence = True  # type: ignore
 
+
 class TestToSignal(TestCaseWithSimulator):
     def test_value(self):
         m = Module()
