@@ -148,8 +148,11 @@ class TestFunctions(TestCaseWithSimulator):
         # TODO: remove simulator when https://codeberg.org/amaranth-lang/rfcs/pulls/88 gets approved and implemented
         async def process(sim: TestbenchContext):
             data = data_gen()
-            result = sim.get(function(*data[0]))
+            result = sim.get(result_val := function(*data[0]))
+            result_shape = result_val.shape()
             expected = ref_function(*data[1])
+            if data[3] is not None:
+                assert result_shape == data[3], f"Failed for: {data[2]}; expected shape {data[3]}, got {result_shape}"
             assert result == expected, f"Failed for: {data[2]}; expected {expected}, got {result}"
 
         with self.run_simulation(Module()) as sim:
@@ -159,7 +162,25 @@ class TestFunctions(TestCaseWithSimulator):
         def data_gen():
             width = data.draw(st.integers(min_value=0, max_value=256))
             value = data.draw(st.integers(min_value=0, max_value=(1 << width) - 1))
-            return (Const(value, width),), (value, width), f"{width=}, {value=}"
+            return (
+                (Const(value, width),),
+                (value, width),
+                f"{width=}, {value=}",
+                unsigned(width),
+            )
+
+        self.do_test_generic(function, ref_function, data_gen)
+
+    def do_test_value_not_width_preserving(self, function, ref_function, data):
+        def data_gen():
+            width = data.draw(st.integers(min_value=0, max_value=256))
+            value = data.draw(st.integers(min_value=0, max_value=(1 << width) - 1))
+            return (
+                (Const(value, width),),
+                (value, width),
+                f"{width=}, {value=}",
+                None,
+            )
 
         self.do_test_generic(function, ref_function, data_gen)
 
@@ -173,6 +194,7 @@ class TestFunctions(TestCaseWithSimulator):
                 (Const(value, width), amount_type(amount)),
                 (width, value, amount),
                 f"{width=}, {value=}, {amount=} ({amount_type!r})",
+                unsigned(width),
             )
 
         self.do_test_generic(function, ref_function, data_gen)
@@ -188,21 +210,22 @@ class TestFunctions(TestCaseWithSimulator):
                 (width, start_type(start), pos_type(pos)),
                 (width, start, pos),
                 f"{width=}, {start=} ({start_type!r}), end/count={pos} ({pos_type!r})",
+                unsigned(width),
             )
 
         self.do_test_generic(function, ref_function, data_gen)
 
     @given(st.data())
     def test_popcount(self, data):
-        self.do_test_value(popcount, reference_popcount, data)
+        self.do_test_value_not_width_preserving(popcount, reference_popcount, data)
 
     @given(st.data())
     def test_count_leading_zeros(self, data):
-        self.do_test_value(count_leading_zeros, reference_clz, data)
+        self.do_test_value_not_width_preserving(count_leading_zeros, reference_clz, data)
 
     @given(st.data())
     def test_count_trailing_zeros(self, data):
-        self.do_test_value(count_trailing_zeros, reference_ctz, data)
+        self.do_test_value_not_width_preserving(count_trailing_zeros, reference_ctz, data)
 
     @given(st.data())
     def test_extract_lowest_set_bit(self, data):

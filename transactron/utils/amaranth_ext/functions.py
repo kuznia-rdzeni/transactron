@@ -229,7 +229,7 @@ def cyclic_mask(bits: int, start: ValueLike, end: ValueLike):
     right = (1 << ((bits - start).as_unsigned())) - 1
     mask_es = left | (right << start)
 
-    return Mux(start <= end, mask_se, mask_es)
+    return Mux(start <= end, mask_se, mask_es)[:bits]
 
 
 def shape_of(value: ValueLike) -> Shape | ShapeCastable:
